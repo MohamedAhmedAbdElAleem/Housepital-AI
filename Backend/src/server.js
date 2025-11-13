@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 const { logger, logEvents } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const connectDB = require("./config/dbConn");
@@ -10,6 +11,14 @@ const app = express();
 const PORT = process.env.PORT || 3500;
 
 connectDB();
+
+// CORS configuration to allow Flutter app connections
+app.use(cors({
+    origin: '*', // Allow all origins for development
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(logger);
 app.use(express.json());

@@ -34,7 +34,7 @@ const validateRegister = [
     body('mobile')
         .trim()
         .notEmpty().withMessage('Mobile number is required')
-        .matches(/^[0-9]{10,15}$/).withMessage('Mobile number must be 10-15 digits'),
+        .matches(/^01[0125][0-9]{8}$/).withMessage('Please provide a valid Egyptian mobile number (e.g., 01012345678)'),
     
     body('password')
         .notEmpty().withMessage('Password is required')

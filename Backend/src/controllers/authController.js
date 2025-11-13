@@ -10,23 +10,36 @@ exports.register = async (req, res, next) => {
     try {
         const { name, email, mobile, password, confirmPassword } = req.body;
 
-        // Check if user already exists
+        // Convert email to lowercase for case-insensitive comparison
+        const emailLowerCase = email.toLowerCase();
+
+        // Check if user already exists (case-insensitive email)
         let user = await User.findOne({
-            $or: [{ email }, { mobile }]
+            $or: [
+                { email: emailLowerCase },
+                { mobile }
+            ]
         });
 
         if (user) {
-            const existingField = user.email === email ? 'email' : 'mobile';
-            return res.status(400).json({
-                success: false,
-                message: `A user with this ${existingField} already exists`
-            });
+            if (user.email === emailLowerCase) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'A user with this email already exists'
+                });
+            }
+            if (user.mobile === mobile) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'A user with this mobile number already exists'
+                });
+            }
         }
 
         // Create new user
         user = new User({
             name,
-            email,
+            email: emailLowerCase, // Store email in lowercase
             mobile,
             password_hash: password, // Will be hashed by the pre-save hook
             isVerified: false,
@@ -76,8 +89,11 @@ exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
+        // Convert email to lowercase for case-insensitive comparison
+        const emailLowerCase = email.toLowerCase();
+
         // Find user by email and include password field for comparison
-        const user = await User.findOne({ email }).select('+password_hash');
+        const user = await User.findOne({ email: emailLowerCase }).select('+password_hash');
 
         if (!user) {
             return res.status(401).json({
