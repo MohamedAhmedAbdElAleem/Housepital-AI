@@ -16,6 +16,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/otp", require("./routes/otpRoutes"));
 
 app.use((req, res) => res.status(404).json({ message: "404 Not Found" }));
 

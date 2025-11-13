@@ -380,6 +380,7 @@ All passwords must contain:
 
 ## See Also
 
+- [OTP Endpoints](./otp.md) - Email/SMS verification codes
 - [Error Handling](./error-handling.md) - Detailed error codes
 - [Data Models](./data-models.md) - User schema
 - [Security Guide](../Guides/security.md) - Password hashing details
