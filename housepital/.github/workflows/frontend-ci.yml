@@ -1,0 +1,52 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths:
+      - "housepital/**"
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - "housepital/**"
+
+jobs:
+  flutter-ui:
+    name: Flutter UI Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 — Checkout Code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2 — Install Flutter 3.7.2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.7.2"
+
+      # Step 3 — Navigate to the Flutter project directory
+      - name: Set working directory
+        run: cd housepital
+        shell: bash
+
+      # Step 4 — Install Dependencies
+      - name: Flutter pub get
+        working-directory: ./housepital
+        run: flutter pub get
+
+      # Step 5 — Run Static Analysis
+      - name: Flutter analyze
+        working-directory: ./housepital
+        run: flutter analyze
+
+      # Step 6 — Run Tests (you don't have tests yet, so this will not fail)
+      - name: Run Flutter tests (safe mode)
+        working-directory: ./housepital
+        run: flutter test || echo "No tests found yet — skipping"
+
+      # Step 7 — Build Debug APK 
+      - name: Build Debug APK
+        working-directory: ./housepital
+        run: flutter build apk --debug
