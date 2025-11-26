@@ -102,7 +102,7 @@ exports.login = async (req, res, next) => {
 
         //console.log(cachedUser);
 
-        if (cachedUser) {
+        /*if (cachedUser) {
             try {
                 const user = cachedUser;
                 console.log(`✅ User ${emailLowerCase} fetched from Redis cache`);
@@ -123,7 +123,7 @@ exports.login = async (req, res, next) => {
                 console.error('⚠️ Invalid cache data, deleting...', err);
                 await redis.del(emailLowerCase);
             }
-        }
+        }*/
 
 
 
@@ -170,9 +170,9 @@ exports.login = async (req, res, next) => {
 
 
 
-        redis.set(emailLowerCase, JSON.stringify(user), { ex: 3600 });
+       // redis.set(emailLowerCase, JSON.stringify(user), { ex: 3600 });
 
-        console.log(`user ${email} added to the redis cache`);
+        //console.log(`user ${email} added to the redis cache`);
 
 
         // Return success response with user data
