@@ -8,6 +8,11 @@ class ApiConstants {
   static const String login = '/api/auth/login';
   static const String getCurrentUser = '/api/auth/me';
 
+  // OTP Endpoints
+  static const String otpRequest = '/api/otp/request';
+  static const String otpVerify = '/api/otp/verify';
+  static const String otpResend = '/api/otp/resend';
+
   // Headers
   static Map<String, String> get headers => {
     'Content-Type': 'application/json',
