@@ -81,8 +81,8 @@ class VerifyIdentityPage extends StatelessWidget {
                     height: 56,
                     child: ElevatedButton(
                       onPressed: () {
-                        // TODO: الانتقال لصفحة التحقق من الهوية
-                        // Navigator.pushNamed(context, AppRoutes.identityVerification);
+                        // الانتقال لصفحة مسح البطاقة
+                        Navigator.pushNamed(context, AppRoutes.scanNationalID);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary500,

@@ -6,6 +6,9 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/otp_page.dart';
 import '../../features/auth/presentation/pages/verify_identity_page.dart';
+import '../../features/auth/presentation/pages/scan_national_id_page.dart';
+import '../../features/auth/presentation/pages/verifying_identity_page.dart';
+import '../../features/auth/presentation/pages/verification_success_page.dart';
 import '../../features/auth/presentation/pages/verify_email_page.dart';
 import '../../features/auth/presentation/pages/verify_otp_page.dart';
 import '../../features/customer/home/presentation/pages/customer_home_page.dart';
@@ -33,6 +36,17 @@ class AppRouter {
 
       case AppRoutes.verifyIdentity:
         return MaterialPageRoute(builder: (_) => const VerifyIdentityPage());
+
+      case AppRoutes.scanNationalID:
+        return MaterialPageRoute(builder: (_) => const ScanNationalIDPage());
+
+      case AppRoutes.verifyingIdentity:
+        return MaterialPageRoute(builder: (_) => const VerifyingIdentityPage());
+
+      case AppRoutes.verificationSuccess:
+        return MaterialPageRoute(
+          builder: (_) => const VerificationSuccessPage(),
+        );
 
       case AppRoutes.verifyEmail:
         return MaterialPageRoute(builder: (_) => const VerifyEmailPage());
