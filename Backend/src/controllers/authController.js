@@ -1,5 +1,9 @@
 const User = require('../models/User');
 const { logEvents } = require('../middleware/logger');
+const jwt = require('jsonwebtoken');
+const { createRedisClient } = require('../caching/redis');
+const redis = createRedisClient();
+
 
 /**
  * @desc    Register a new user
@@ -88,9 +92,40 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
+        
 
         // Convert email to lowercase for case-insensitive comparison
         const emailLowerCase = email.toLowerCase();
+        // await redis.del(emailLowerCase);
+
+        const cachedUser = await redis.get(emailLowerCase);
+
+        //console.log(cachedUser);
+
+        if (cachedUser) {
+            try {
+                const user = cachedUser;
+                console.log(`✅ User ${emailLowerCase} fetched from Redis cache`);
+
+                const token = jwt.sign(
+                    { name: user.name, email: user.email },
+                    process.env.JWT_SECRET_KEY,
+                    { expiresIn: '3h' }
+                );
+
+                return res.status(200).json({
+                    success: true,
+                    message: 'User logged in successfully (from cache)',
+                    response: user,
+                    token
+                });
+            } catch (err) {
+                console.error('⚠️ Invalid cache data, deleting...', err);
+                await redis.del(emailLowerCase);
+            }
+        }
+
+
 
         // Find user by email and include password field for comparison
         const user = await User.findOne({ email: emailLowerCase }).select('+password_hash');
@@ -118,19 +153,38 @@ exports.login = async (req, res, next) => {
             });
         }
 
+        
+
         // Log successful login
         logEvents(
             `User logged in: ${email}`,
             'authLog.log'
         );
 
+
+        const payload = {name:user.name,email:user.email};
+        const secretKey = process.env.JWT_SECRET_KEY;
+        const options = { expiresIn: '3h' };
+
+        const JWTToken = jwt.sign(payload,secretKey,options);
+
+
+
+        redis.set(emailLowerCase, JSON.stringify(user), { ex: 3600 });
+
+        console.log(`user ${email} added to the redis cache`);
+
+
         // Return success response with user data
         res.status(200).json({
             success: true,
             message: 'User logged in successfully',
             user: user.toJSON(),
-            token: null // Could generate JWT here if needed
+            token: JWTToken 
         });
+
+
+        
 
     } catch (error) {
         // Log error
