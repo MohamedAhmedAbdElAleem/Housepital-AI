@@ -140,10 +140,16 @@ class _RegisterPageState extends State<RegisterPage> {
 
         if (response.success) {
           print('🎉 Registration successful!');
-          CustomPopup.success(context, response.message);
-          Future.delayed(const Duration(seconds: 2), () {
+          CustomPopup.success(
+            context,
+            'Registration successful! Please verify your email',
+          );
+          Future.delayed(const Duration(seconds: 1), () {
             if (mounted) {
-              Navigator.of(context).pushNamed(AppRoutes.login);
+              Navigator.of(context).pushNamed(
+                AppRoutes.otp,
+                arguments: _emailController.text.trim(),
+              );
             }
           });
         } else {

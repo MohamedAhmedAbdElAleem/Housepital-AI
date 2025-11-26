@@ -6,6 +6,11 @@ class AppRoutes {
   // Auth
   static const String login = '/login';
   static const String register = '/register';
+  static const String otp = '/otp';
+  static const String verifyIdentity = '/verify-identity';
+  static const String scanNationalID = '/scan-national-id';
+  static const String verifyingIdentity = '/verifying-identity';
+  static const String verificationSuccess = '/verification-success';
   static const String verifyEmail = '/verify-email';
   static const String verifyOTP = '/verify-otp';
   static const String forgotPassword = '/forgot-password';

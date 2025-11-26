@@ -2,6 +2,219 @@ const User = require("../models/User");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 
+// Function to generate HTML email template
+const generateOTPEmailHTML = (otp, userName = '') => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #f5f7fa;
+          padding: 20px;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .header {
+          background: linear-gradient(135deg, #2ECC71 0%, #27AE60 100%);
+          padding: 50px 20px;
+          text-align: center;
+        }
+        .header h1 {
+          color: white;
+          font-size: 28px;
+          font-weight: 700;
+          margin: 0;
+        }
+        .header p {
+          color: rgba(255,255,255,0.9);
+          font-size: 16px;
+          margin-top: 8px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .greeting {
+          font-size: 18px;
+          color: #2c3e50;
+          margin-bottom: 20px;
+          font-weight: 600;
+        }
+        .message {
+          color: #5a6c7d;
+          font-size: 15px;
+          line-height: 1.6;
+          margin-bottom: 30px;
+        }
+        .otp-container {
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          border-radius: 12px;
+          padding: 30px;
+          text-align: center;
+          margin: 30px 0;
+          border: 2px dashed #2ECC71;
+        }
+        .otp-label {
+          font-size: 14px;
+          color: #6c757d;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-bottom: 12px;
+          font-weight: 600;
+        }
+        .otp-code {
+          font-size: 48px;
+          font-weight: bold;
+          color: #2ECC71;
+          letter-spacing: 12px;
+          font-family: 'Courier New', monospace;
+          text-shadow: 0 2px 4px rgba(46,204,113,0.2);
+        }
+        .info-box {
+          background: #fff3cd;
+          border-left: 4px solid #ffc107;
+          padding: 16px 20px;
+          margin: 25px 0;
+          border-radius: 8px;
+        }
+        .info-box-title {
+          color: #856404;
+          font-weight: 600;
+          font-size: 14px;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+        }
+        .info-box-title::before {
+          content: "⚠️";
+          margin-right: 8px;
+          font-size: 18px;
+        }
+        .info-box ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .info-box li {
+          color: #856404;
+          font-size: 13px;
+          line-height: 1.8;
+          padding-left: 20px;
+          position: relative;
+        }
+        .info-box li::before {
+          content: "•";
+          position: absolute;
+          left: 8px;
+          font-weight: bold;
+        }
+        .security-note {
+          background: #e7f3ff;
+          border-left: 4px solid #0066cc;
+          padding: 16px 20px;
+          margin: 25px 0;
+          border-radius: 8px;
+          color: #004085;
+          font-size: 13px;
+          line-height: 1.6;
+        }
+        .footer {
+          background: #f8f9fa;
+          padding: 30px 20px;
+          text-align: center;
+          border-top: 1px solid #dee2e6;
+        }
+        .footer-logo {
+          font-size: 24px;
+          font-weight: bold;
+          color: #2ECC71;
+          margin-bottom: 12px;
+        }
+        .footer-text {
+          color: #6c757d;
+          font-size: 13px;
+          line-height: 1.6;
+        }
+        .footer-links {
+          margin-top: 15px;
+        }
+        .footer-links a {
+          color: #2ECC71;
+          text-decoration: none;
+          margin: 0 10px;
+          font-size: 12px;
+        }
+        .footer-links a:hover {
+          text-decoration: underline;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <div class="header">
+          <h1>Email Verification</h1>
+          <p>Secure your Housepital account</p>
+        </div>
+        
+        <div class="content">
+          <div class="greeting">Hello${userName ? ' ' + userName : ''},</div>
+          
+          <div class="message">
+            Thank you for registering with <strong>Housepital</strong> - your trusted AI-powered home nursing platform. To complete your registration and secure your account, please verify your email address using the code below.
+          </div>
+          
+          <div class="otp-container">
+            <div class="otp-label">Your Verification Code</div>
+            <div class="otp-code">${otp}</div>
+          </div>
+          
+          <div class="info-box">
+            <div class="info-box-title">Important Information</div>
+            <ul>
+              <li>This code is valid for <strong>10 minutes only</strong></li>
+              <li>You have <strong>5 attempts</strong> to enter the correct code</li>
+              <li>Never share this code with anyone</li>
+            </ul>
+          </div>
+          
+          <div class="security-note">
+            🔒 <strong>Security Tip:</strong> If you didn't request this verification code, please ignore this email and ensure your account is secure. For any concerns, contact our support team immediately.
+          </div>
+        </div>
+        
+        <div class="footer">
+          <div class="footer-logo">Housepital</div>
+          <div class="footer-text">
+            AI-Powered Home Nursing Services<br>
+            Bringing professional healthcare to your doorstep<br>
+            © 2025 Housepital. All rights reserved.
+          </div>
+          <div class="footer-links">
+            <a href="#">Privacy Policy</a> |
+            <a href="#">Terms of Service</a> |
+            <a href="#">Contact Support</a>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
 // ========== Request OTP ==========
 const requestOTP = async (req, res) => {
   const { contact, contactType, purpose } = req.body;
@@ -73,119 +286,14 @@ const requestOTP = async (req, res) => {
         },
       });
 
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html dir="rtl" lang="ar">
-        <head>
-          <meta charset="UTF-8">
-          <style>
-            body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              background-color: #f5f5f5;
-              margin: 0;
-              padding: 0;
-            }
-            .container {
-              max-width: 600px;
-              margin: 40px auto;
-              background: white;
-              border-radius: 16px;
-              overflow: hidden;
-              box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            }
-            .header {
-              background: linear-gradient(135deg, #00b558 0%, #3cd278 100%);
-              padding: 40px 20px;
-              text-align: center;
-            }
-            .header h1 {
-              color: white;
-              margin: 0;
-              font-size: 28px;
-              font-weight: bold;
-            }
-            .content {
-              padding: 40px 30px;
-              text-align: center;
-            }
-            .otp-box {
-              background: #f8f9fa;
-              border: 3px dashed #00b558;
-              border-radius: 12px;
-              padding: 30px;
-              margin: 30px 0;
-            }
-            .otp-code {
-              font-size: 48px;
-              font-weight: bold;
-              color: #00b558;
-              letter-spacing: 8px;
-              font-family: 'Courier New', monospace;
-            }
-            .info {
-              color: #666;
-              font-size: 14px;
-              line-height: 1.8;
-              margin: 20px 0;
-            }
-            .warning {
-              background: #fff3cd;
-              border-right: 4px solid #ffc107;
-              padding: 15px;
-              margin: 20px 0;
-              border-radius: 8px;
-            }
-            .warning strong {
-              color: #856404;
-            }
-            .footer {
-              background: #f8f9fa;
-              padding: 20px;
-              text-align: center;
-              color: #999;
-              font-size: 12px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>🏥 استعادة كلمة المرور</h1>
-            </div>
-            <div class="content">
-              <p class="info">مرحباً،</p>
-              <p class="info">لقد تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك في نظام Housepital.</p>
-              <p class="info">استخدم رمز التحقق التالي لإكمال العملية:</p>
-              
-              <div class="otp-box">
-                <div class="otp-code">${otp}</div>
-              </div>
-              
-              <div class="warning">
-                <strong>⚠️ تنبيه:</strong><br>
-                • رمز التحقق صالح لمدة <strong>10 دقائق فقط</strong><br>
-                • لديك <strong>5 محاولات</strong> لإدخال الرمز الصحيح<br>
-                • يمكنك إعادة إرسال الرمز <strong>3 مرات كحد أقصى</strong>
-              </div>
-              
-              <p class="info" style="margin-top: 30px; color: #999;">
-                إذا لم تطلب إعادة تعيين كلمة المرور، يرجى تجاهل هذه الرسالة.
-              </p>
-            </div>
-            <div class="footer">
-              <p>© 2025 Housepital System. جميع الحقوق محفوظة.</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
+      const htmlContent = generateOTPEmailHTML(otp, user.firstName);
 
       await transporter.sendMail({
-        from: `"Housepital System" <${process.env.EMAIL_USER}>`,
+        from: `"Housepital - AI Home Nursing" <${process.env.EMAIL_USER}>`,
         to: contact,
-        subject: "🏥 رمز التحقق - Housepital",
+        subject: "🏥 Verify Your Email - Housepital",
         html: htmlContent,
-        text: `رمز التحقق الخاص بك هو: ${otp}\nصالح لمدة 10 دقائق فقط.`,
+        text: `Your verification code is: ${otp}\nValid for 10 minutes only.\n\nIf you didn't request this, please ignore this email.`,
       });
     }
     // TODO: Add SMS service for phone OTP
@@ -431,33 +539,14 @@ const resendOTP = async (req, res) => {
         },
       });
 
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <style>
-            body { font-family: Arial, sans-serif; }
-            .container { max-width: 600px; margin: 20px auto; padding: 20px; background: #f5f5f5; border-radius: 8px; }
-            .otp-code { font-size: 36px; font-weight: bold; color: #00b558; letter-spacing: 5px; font-family: monospace; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>🔐 Your Verification Code</h2>
-            <p>Your OTP code is:</p>
-            <div class="otp-code">${otp}</div>
-            <p>This code expires in 10 minutes.</p>
-          </div>
-        </body>
-        </html>
-      `;
+      const htmlContent = generateOTPEmailHTML(otp, user.firstName);
 
       await transporter.sendMail({
-        from: `"Housepital System" <${process.env.EMAIL_USER}>`,
+        from: `"Housepital - AI Home Nursing" <${process.env.EMAIL_USER}>`,
         to: contact,
-        subject: "🔐 Your Verification Code - Housepital",
+        subject: "🏥 Verify Your Email - Housepital",
         html: htmlContent,
+        text: `Your verification code is: ${otp}\nValid for 10 minutes only.\n\nIf you didn't request this, please ignore this email.`,
       });
     }
 
