@@ -78,7 +78,7 @@ userSchema.pre('save', async function(next) {
     }
 
     try {
-        // Generate salt and hash password with bcrypt (cost factor 12)
+        // Generate salt and hash passwsord with bcrypt (cost factor 12)
         const salt = await bcrypt.genSalt(12);
         this.password_hash = await bcrypt.hash(this.password_hash, salt);
         this.salt = salt;

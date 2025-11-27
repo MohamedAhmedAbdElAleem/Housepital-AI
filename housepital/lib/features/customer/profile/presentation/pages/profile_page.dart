@@ -5,6 +5,9 @@ import '../../../../auth/data/repositories/auth_repository_impl.dart';
 import '../../../../auth/data/datasources/auth_remote_datasource.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../auth/data/models/user_model.dart';
+import '../../../../../core/utils/token_manager.dart';
+import '../../../../auth/presentation/pages/login_page.dart';
+import 'family_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -50,6 +53,47 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           _isLoading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _signOut() async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      // Clear token
+      await TokenManager.deleteToken();
+      
+      // Navigate to login page and remove all previous routes
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+          (route) => false,
+        );
       }
     }
   }
@@ -324,7 +368,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 _buildMenuItem(
                   icon: Icons.family_restroom,
                   title: 'My Family',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FamilyPage(),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 12),
                 _buildMenuItem(
@@ -369,6 +420,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: 'Help & Support',
                   onTap: () {},
                 ),
+                const SizedBox(height: 12),
+                _buildMenuItem(
+                  icon: Icons.logout,
+                  title: 'Sign Out',
+                  onTap: _signOut,
+                  isDestructive: true,
+                ),
                 const SizedBox(height: 100),
               ],
             ),
@@ -395,6 +453,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    bool isDestructive = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -417,12 +476,14 @@ class _ProfilePageState extends State<ProfilePage> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF2ECC71).withOpacity(0.1),
+                color: isDestructive 
+                    ? Colors.red.withOpacity(0.1)
+                    : const Color(0xFF2ECC71).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                color: const Color(0xFF2ECC71),
+                color: isDestructive ? Colors.red : const Color(0xFF2ECC71),
                 size: 24,
               ),
             ),
@@ -430,10 +491,10 @@ class _ProfilePageState extends State<ProfilePage> {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E293B),
+                  color: isDestructive ? Colors.red : const Color(0xFF1E293B),
                 ),
               ),
             ),

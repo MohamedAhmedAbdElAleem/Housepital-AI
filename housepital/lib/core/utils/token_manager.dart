@@ -22,4 +22,10 @@ class TokenManager {
     final prefs = await SharedPreferences.getInstance();
     return prefs.containsKey(_tokenKey);
   }
+
+  static Future<String?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Assuming userId is stored in shared preferences with key 'user_id'
+    return prefs.getString('user_id');
+  }
 }
