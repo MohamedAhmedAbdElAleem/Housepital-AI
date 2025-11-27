@@ -79,8 +79,6 @@ exports.register = async (req, res, next) => {
             success: false,
             message: error.message || 'Error registering user'
         });
-
-        next(error);
     }
 };
 
@@ -197,8 +195,6 @@ exports.login = async (req, res, next) => {
             success: false,
             message: error.message || 'Error logging in'
         });
-
-        next(error);
     }
 };
 
@@ -234,7 +230,5 @@ exports.getCurrentUser = async (req, res, next) => {
             success: false,
             message: error.message || 'Error getting user'
         });
-
-        next(error);
     }
 };

@@ -95,7 +95,26 @@ class _LoginPageState extends State<LoginPage> {
         if (response.success) {
           print('🎉 Login successful!');
           CustomPopup.success(context, response.message);
-          // TODO: Navigate to home page
+          
+          // Navigate based on user role
+          if (response.user != null) {
+            final role = response.user!.role;
+            print('👤 User role: $role');
+            
+            // Navigate and remove all previous routes
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              _getHomeRouteForRole(role),
+              (route) => false,
+            );
+          } else {
+            // Default to customer home if no user data
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              AppRoutes.customerHome,
+              (route) => false,
+            );
+          }
         } else {
           print('❌ Login failed: ${response.message}');
           CustomPopup.error(context, 'Invalid email or password');
@@ -133,6 +152,21 @@ class _LoginPageState extends State<LoginPage> {
         });
         CustomPopup.error(context, 'Something went wrong');
       }
+    }
+  }
+
+  String _getHomeRouteForRole(String role) {
+    switch (role.toLowerCase()) {
+      case 'customer':
+        return AppRoutes.customerHome;
+      case 'nurse':
+        return AppRoutes.nurseHome;
+      case 'doctor':
+        return AppRoutes.doctorHome;
+      case 'admin':
+        return AppRoutes.customerHome; // Or create admin route
+      default:
+        return AppRoutes.customerHome;
     }
   }
 
