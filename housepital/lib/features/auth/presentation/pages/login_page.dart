@@ -4,6 +4,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/network/api_service.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/widgets/custom_popup.dart';
+import '../../../../core/utils/token_manager.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/models/login_request.dart';
@@ -94,6 +95,13 @@ class _LoginPageState extends State<LoginPage> {
 
         if (response.success) {
           print('🎉 Login successful!');
+          
+          // Save the token if available
+          if (response.token != null) {
+            await TokenManager.saveToken(response.token!);
+            print('🔑 Token saved successfully');
+          }
+          
           CustomPopup.success(context, response.message);
           
           // Navigate based on user role

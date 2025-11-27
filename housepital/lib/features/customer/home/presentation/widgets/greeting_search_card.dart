@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
 
-class GreetingSearchCard extends StatelessWidget {
+class GreetingSearchCard extends StatefulWidget {
   const GreetingSearchCard({super.key});
+
+  @override
+  State<GreetingSearchCard> createState() => _GreetingSearchCardState();
+}
+
+class _GreetingSearchCardState extends State<GreetingSearchCard> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +56,12 @@ class GreetingSearchCard extends StatelessWidget {
               ],
             ),
             child: TextField(
+              focusNode: _focusNode,
+              autofocus: false,
+              enableInteractiveSelection: true,
+              onTap: () {
+                _focusNode.requestFocus();
+              },
               decoration: InputDecoration(
                 hintText: 'Search nursing services…',
                 hintStyle: TextStyle(

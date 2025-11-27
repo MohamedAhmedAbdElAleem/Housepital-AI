@@ -7,6 +7,11 @@ import '../widgets/my_health_section.dart';
 import '../widgets/service_tabs.dart';
 import '../widgets/popular_services_grid.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
+import '../../../../auth/data/repositories/auth_repository_impl.dart';
+import '../../../../auth/data/datasources/auth_remote_datasource.dart';
+import '../../../../../core/network/api_service.dart';
+import '../../../../auth/data/models/user_model.dart';
 
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key});
@@ -18,6 +23,45 @@ class CustomerHomePage extends StatefulWidget {
 class _CustomerHomePageState extends State<CustomerHomePage> {
   int _currentIndex = 0;
   String _selectedTab = 'Home Nursing';
+  UserModel? _user;
+  bool _isLoadingUser = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final apiService = ApiService();
+      final remoteDataSource = AuthRemoteDataSourceImpl(apiService: apiService);
+      final repository = AuthRepositoryImpl(remoteDataSource: remoteDataSource);
+      
+      final response = await repository.getCurrentUser();
+      
+      if (mounted) {
+        setState(() {
+          _user = response.user;
+          _isLoadingUser = false;
+        });
+        
+        // Debug output
+        debugPrint('🏠 Home: User data loaded');
+        debugPrint('   Name: ${_user?.name}');
+        debugPrint('   Email: ${_user?.email}');
+        debugPrint('   Verified: ${_user?.isVerified}');
+        debugPrint('   Should show warning: ${_user?.isVerified == false}');
+      }
+    } catch (e) {
+      debugPrint('❌ Home: Error loading user data: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingUser = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +109,69 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
             ),
 
             const SizedBox(height: 20),
+
+            // -------------------------------
+            // ⚠️ Verification Warning
+            // -------------------------------
+            if (!_isLoadingUser && _user?.isVerified == false)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEE2E2),
+                    border: Border.all(color: const Color(0xFFEF4444)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.warning_rounded,
+                          color: Color(0xFFEF4444),
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Account Not Verified',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFEF4444),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Please verify your account to access all features',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.red[700],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: const Color(0xFFEF4444),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (!_isLoadingUser && _user?.isVerified == false)
+              const SizedBox(height: 16),
 
             // -------------------------------
             // 🤖 AI Assistant Card
@@ -135,6 +242,21 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
           setState(() {
             _currentIndex = index;
           });
+          
+          // Navigate to Profile page when Profile tab is tapped
+          if (index == 4) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ProfilePage(),
+              ),
+            ).then((_) {
+              // Reset to Home tab when returning from Profile
+              setState(() {
+                _currentIndex = 0;
+              });
+            });
+          }
         },
       ),
     );

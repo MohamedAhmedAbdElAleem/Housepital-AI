@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { register, login, getCurrentUser } = require('../controllers/authController');
 const { validateRegister, validateLogin } = require('../middleware/validation');
+const { authenticateToken } = require('../middleware/authMiddleware');
 
 /**
  * @route   POST /api/auth/register
@@ -22,6 +23,6 @@ router.post('/login', validateLogin, login);
  * @desc    Get current logged in user
  * @access  Private (requires authentication middleware)
  */
-router.get('/me', getCurrentUser);
+router.get('/me', authenticateToken, getCurrentUser);
 
 module.exports = router;
