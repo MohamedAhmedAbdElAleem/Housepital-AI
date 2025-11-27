@@ -99,13 +99,12 @@ exports.login = async (req, res, next) => {
         const temp_user = await User.findOne({ email });
         if (!temp_user) return res.status(404).json({ message: "User not found" });
 
-        const userLastUpdate = temp_user?.updatedAt;
+        const userLastUpdate = temp_user.updatedAt;
 
         const cachedUser = await redis.get(emailLowerCase);
 
         //console.log(cachedUser);
 
-        // Only check cache times if cachedUser exists
         if (cachedUser && userLastUpdate) {
             const dbTime = new Date(userLastUpdate).toISOString();
             const cacheTime = new Date(cachedUser.updatedAt).toISOString();
@@ -143,8 +142,6 @@ exports.login = async (req, res, next) => {
                 }
             }
         }
-
-
 
         // Find user by email and include password field for comparison
         const user = await User.findOne({ email: emailLowerCase }).select('+password_hash');
