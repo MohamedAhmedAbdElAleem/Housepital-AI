@@ -95,20 +95,26 @@ class _LoginPageState extends State<LoginPage> {
 
         if (response.success) {
           print('🎉 Login successful!');
-          
+
           // Save the token if available
           if (response.token != null) {
             await TokenManager.saveToken(response.token!);
             print('🔑 Token saved successfully');
           }
-          
+
+          // Save the user ID if available
+          if (response.user != null && response.user!.id.isNotEmpty) {
+            await TokenManager.saveUserId(response.user!.id);
+            print('🆔 User ID saved successfully: ${response.user!.id}');
+          }
+
           CustomPopup.success(context, response.message);
-          
+
           // Navigate based on user role
           if (response.user != null) {
             final role = response.user!.role;
             print('👤 User role: $role');
-            
+
             // Navigate and remove all previous routes
             Navigator.pushNamedAndRemoveUntil(
               context,

@@ -2,7 +2,7 @@ class ApiConstants {
   // Base URL for the API
   // For Physical Device: Use your computer's actual IP address
   // For Android Emulator: Use 10.0.2.2
-  static const String baseUrl = 'http://192.168.1.140:3500';
+  static const String baseUrl = 'http://192.168.1.7:3500';
 
   // API Endpoints
   static const String register = '/api/auth/register';

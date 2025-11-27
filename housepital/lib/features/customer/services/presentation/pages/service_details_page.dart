@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../booking/presentation/pages/booking_step1_select_patient.dart';
 
 class ServiceDetailsPage extends StatelessWidget {
   final String title;
@@ -61,11 +62,7 @@ class ServiceDetailsPage extends StatelessWidget {
                         color: Colors.white.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        icon,
-                        size: 80,
-                        color: Colors.white,
-                      ),
+                      child: Icon(icon, size: 80, color: Colors.white),
                     ),
                     const SizedBox(height: 20),
                     Text(
@@ -342,7 +339,27 @@ class ServiceDetailsPage extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Navigate to booking flow
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => BookingStep1SelectPatient(
+                              serviceName: title,
+                              serviceId: title.toLowerCase().replaceAll(
+                                ' ',
+                                '_',
+                              ),
+                              servicePrice:
+                                  double.tryParse(
+                                    price.replaceAll(RegExp(r'[^0-9.]'), ''),
+                                  ) ??
+                                  0.0,
+                            ),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF17C47F),
                     foregroundColor: Colors.white,
@@ -375,7 +392,12 @@ class ServiceDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPriceInfo(IconData icon, String label, String value, Color color) {
+  Widget _buildPriceInfo(
+    IconData icon,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Column(
       children: [
         Container(
@@ -389,10 +411,7 @@ class ServiceDetailsPage extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xFF64748B),
-          ),
+          style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
         ),
         const SizedBox(height: 4),
         Text(
@@ -418,20 +437,13 @@ class ServiceDetailsPage extends StatelessWidget {
               color: Color(0xFFD1FAE5),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.check,
-              color: Color(0xFF059669),
-              size: 16,
-            ),
+            child: const Icon(Icons.check, color: Color(0xFF059669), size: 16),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xFF475569),
-              ),
+              style: const TextStyle(fontSize: 16, color: Color(0xFF475569)),
             ),
           ),
         ],
@@ -439,7 +451,12 @@ class ServiceDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(IconData icon, String title, String subtitle, Color color) {
+  Widget _buildFeatureCard(
+    IconData icon,
+    String title,
+    String subtitle,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -470,10 +487,7 @@ class ServiceDetailsPage extends StatelessWidget {
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF64748B),
-            ),
+            style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
           ),
         ],
       ),

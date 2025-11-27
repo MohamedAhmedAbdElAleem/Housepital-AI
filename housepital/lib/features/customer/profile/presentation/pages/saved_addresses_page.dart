@@ -1,43 +1,40 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
-import 'add_dependent_page.dart';
-import 'edit_dependent_page.dart';
+import 'add_address_page.dart';
 
-class FamilyPage extends StatefulWidget {
-  const FamilyPage({Key? key}) : super(key: key);
+class SavedAddressesPage extends StatefulWidget {
+  const SavedAddressesPage({Key? key}) : super(key: key);
 
   @override
-  State<FamilyPage> createState() => _FamilyPageState();
+  State<SavedAddressesPage> createState() => _SavedAddressesPageState();
 }
 
-class _FamilyPageState extends State<FamilyPage> {
-  List<dynamic> _dependents = [];
+class _SavedAddressesPageState extends State<SavedAddressesPage> {
+  List<dynamic> _addresses = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchDependents();
+    _fetchAddresses();
   }
 
-  Future<void> _fetchDependents() async {
+  Future<void> _fetchAddresses() async {
     setState(() {
       _isLoading = true;
     });
+
     try {
       final userId = await TokenManager.getUserId();
-      debugPrint('🔍 Family Page: User ID: $userId');
-
       if (userId == null || userId.isEmpty) {
-        debugPrint('❌ Family Page: No user ID found');
         if (mounted) {
           setState(() {
             _isLoading = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Unable to load dependents. Please log in again.'),
+              content: Text('Unable to load addresses. Please log in again.'),
             ),
           );
         }
@@ -45,42 +42,35 @@ class _FamilyPageState extends State<FamilyPage> {
       }
 
       final apiService = ApiService();
-      // Send user ID in the request body using POST
-      final response = await apiService.post(
-        '/api/user/getAllDependents',
-        body: {'id': userId},
-      );
-
-      debugPrint('🔍 Family Page: Response: $response');
-      debugPrint('🔍 Family Page: Response type: ${response.runtimeType}');
+      final response = await apiService.get('/api/user/addresses/$userId');
 
       if (mounted) {
         setState(() {
-          _dependents = response is List ? response : [];
+          _addresses =
+              response is List ? response : (response['addresses'] ?? []);
           _isLoading = false;
         });
-        debugPrint('✅ Family Page: Loaded ${_dependents.length} dependents');
       }
     } catch (e) {
-      debugPrint('❌ Family Page: Error loading dependents: $e');
+      debugPrint('❌ Error loading addresses: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading dependents: ${e.toString()}')),
+          SnackBar(content: Text('Error loading addresses: ${e.toString()}')),
         );
       }
     }
   }
 
-  void _goToAddDependent() async {
+  void _addAddress() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AddDependentPage()),
+      MaterialPageRoute(builder: (context) => const AddAddressPage()),
     );
     if (result == true) {
-      _fetchDependents();
+      _fetchAddresses();
     }
   }
 
@@ -96,7 +86,7 @@ class _FamilyPageState extends State<FamilyPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'My Family',
+          'Saved Addresses',
           style: TextStyle(
             color: Color(0xFF1E293B),
             fontWeight: FontWeight.bold,
@@ -139,7 +129,7 @@ class _FamilyPageState extends State<FamilyPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
-                            Icons.people,
+                            Icons.location_on,
                             color: Colors.white,
                             size: 28,
                           ),
@@ -150,7 +140,7 @@ class _FamilyPageState extends State<FamilyPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Family Members',
+                                'My Addresses',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -159,7 +149,7 @@ class _FamilyPageState extends State<FamilyPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '${_dependents.length} member${_dependents.length != 1 ? 's' : ''} registered',
+                                '${_addresses.length} address${_addresses.length != 1 ? 'es' : ''} saved',
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
                                   fontSize: 14,
@@ -172,10 +162,10 @@ class _FamilyPageState extends State<FamilyPage> {
                     ),
                   ),
 
-                  // Family Members List
+                  // Addresses List
                   Expanded(
                     child:
-                        _dependents.isEmpty
+                        _addresses.isEmpty
                             ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -187,14 +177,14 @@ class _FamilyPageState extends State<FamilyPage> {
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
-                                      Icons.people_outline,
+                                      Icons.location_off,
                                       size: 64,
                                       color: Colors.grey[400],
                                     ),
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    'No family members yet',
+                                    'No saved addresses',
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -203,7 +193,7 @@ class _FamilyPageState extends State<FamilyPage> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    'Add your first family member',
+                                    'Add an address to get started',
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.grey[500],
@@ -216,15 +206,15 @@ class _FamilyPageState extends State<FamilyPage> {
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
                               ),
-                              itemCount: _dependents.length,
+                              itemCount: _addresses.length,
                               itemBuilder: (context, index) {
-                                final dep = _dependents[index];
-                                return _buildFamilyMemberCard(dep);
+                                final address = _addresses[index];
+                                return _buildAddressCard(address);
                               },
                             ),
                   ),
 
-                  // Add Member Button
+                  // Add Address Button
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -242,7 +232,7 @@ class _FamilyPageState extends State<FamilyPage> {
                         color: const Color(0xFF17C47F),
                         borderRadius: BorderRadius.circular(16),
                         child: InkWell(
-                          onTap: _goToAddDependent,
+                          onTap: _addAddress,
                           borderRadius: BorderRadius.circular(16),
                           child: Container(
                             width: double.infinity,
@@ -251,13 +241,13 @@ class _FamilyPageState extends State<FamilyPage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: const [
                                 Icon(
-                                  Icons.add_circle_outline,
+                                  Icons.add_location_alt,
                                   color: Colors.white,
                                   size: 24,
                                 ),
                                 SizedBox(width: 12),
                                 Text(
-                                  'Add Family Member',
+                                  'Add New Address',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
@@ -276,36 +266,29 @@ class _FamilyPageState extends State<FamilyPage> {
     );
   }
 
-  Widget _buildFamilyMemberCard(dynamic dep) {
-    final String fullName = dep['fullName'] ?? 'Unknown';
-    final String relationship = dep['relationship'] ?? 'Unknown';
-    final String gender = dep['gender'] ?? 'other';
-    final String? dateOfBirth = dep['dateOfBirth'];
+  Widget _buildAddressCard(dynamic address) {
+    final String label = address['label'] ?? '';
+    final String type = address['type'] ?? 'Other';
+    final String street = address['street'] ?? '';
+    final String city = address['city'] ?? '';
+    final String state = address['state'] ?? '';
+    final bool isDefault = address['isDefault'] ?? false;
 
-    // Calculate age if DOB is available
-    String ageText = '';
-    if (dateOfBirth != null && dateOfBirth.isNotEmpty) {
-      try {
-        final dob = DateTime.parse(dateOfBirth);
-        final age = DateTime.now().year - dob.year;
-        ageText = '$age years old';
-      } catch (e) {
-        ageText = '';
-      }
-    }
-
-    // Gender icon and color
-    IconData genderIcon;
-    Color genderColor;
-    if (gender.toLowerCase() == 'male') {
-      genderIcon = Icons.male;
-      genderColor = const Color(0xFF3B82F6);
-    } else if (gender.toLowerCase() == 'female') {
-      genderIcon = Icons.female;
-      genderColor = const Color(0xFFEC4899);
-    } else {
-      genderIcon = Icons.person;
-      genderColor = const Color(0xFF8B5CF6);
+    // Icon based on type
+    IconData typeIcon;
+    Color typeColor;
+    switch (type.toLowerCase()) {
+      case 'home':
+        typeIcon = Icons.home;
+        typeColor = const Color(0xFF3B82F6);
+        break;
+      case 'work':
+        typeIcon = Icons.business;
+        typeColor = const Color(0xFFF59E0B);
+        break;
+      default:
+        typeIcon = Icons.location_on;
+        typeColor = const Color(0xFF8B5CF6);
     }
 
     return Container(
@@ -313,7 +296,10 @@ class _FamilyPageState extends State<FamilyPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDefault ? const Color(0xFF17C47F) : const Color(0xFFE2E8F0),
+          width: isDefault ? 2 : 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -329,11 +315,11 @@ class _FamilyPageState extends State<FamilyPage> {
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => EditDependentPage(dependent: dep),
+                builder: (context) => AddAddressPage(existingAddress: address),
               ),
             );
             if (result == true) {
-              _fetchDependents();
+              _fetchAddresses();
             }
           },
           borderRadius: BorderRadius.circular(16),
@@ -341,63 +327,95 @@ class _FamilyPageState extends State<FamilyPage> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Avatar
+                // Icon
                 Container(
-                  width: 56,
-                  height: 56,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    color: genderColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
+                    color: typeColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(genderIcon, color: genderColor, size: 28),
+                  child: Icon(typeIcon, color: typeColor, size: 24),
                 ),
                 const SizedBox(width: 16),
 
-                // Info
+                // Address Details
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        fullName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF17C47F).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
+                          Expanded(
                             child: Text(
-                              relationship,
+                              label.isNotEmpty ? label : type,
                               style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF17C47F),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (ageText.isNotEmpty) ...[
+                          if (isDefault) ...[
                             const SizedBox(width: 8),
-                            Text(
-                              ageText,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[600],
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF17C47F),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'Default',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ],
                         ],
+                      ),
+                      if (label.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: typeColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            type,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: typeColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 6),
+                      Text(
+                        [
+                          street,
+                          city,
+                          state,
+                        ].where((s) => s.isNotEmpty).join(', '),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          height: 1.4,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),

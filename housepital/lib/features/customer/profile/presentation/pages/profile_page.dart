@@ -7,7 +7,9 @@ import '../../../../../core/network/api_service.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../../../../auth/presentation/pages/login_page.dart';
+import '../../../booking/presentation/pages/bookings_page.dart';
 import 'family_page.dart';
+import 'saved_addresses_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -32,15 +34,15 @@ class _ProfilePageState extends State<ProfilePage> {
       final apiService = ApiService();
       final remoteDataSource = AuthRemoteDataSourceImpl(apiService: apiService);
       final repository = AuthRepositoryImpl(remoteDataSource: remoteDataSource);
-      
+
       final response = await repository.getCurrentUser();
-      
+
       if (mounted) {
         setState(() {
           _user = response.user;
           _isLoading = false;
         });
-        
+
         // Debug output
         debugPrint('🎯 User data loaded:');
         debugPrint('   Name: ${_user?.name}');
@@ -61,32 +63,32 @@ class _ProfilePageState extends State<ProfilePage> {
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Sign Out'),
+            content: const Text('Are you sure you want to sign out?'),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: const Text('Sign Out'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Sign Out'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (confirmed == true && mounted) {
-      // Clear token
+      // Clear token and user ID
       await TokenManager.deleteToken();
-      
+      await TokenManager.deleteUserId();
+
       // Navigate to login page and remove all previous routes
       if (mounted) {
         Navigator.pushAndRemoveUntil(
@@ -104,9 +106,7 @@ class _ProfilePageState extends State<ProfilePage> {
       return const Scaffold(
         backgroundColor: Color(0xFFF8F9FA),
         body: Center(
-          child: CircularProgressIndicator(
-            color: Color(0xFF2ECC71),
-          ),
+          child: CircularProgressIndicator(color: Color(0xFF2ECC71)),
         ),
       );
     }
@@ -144,10 +144,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           decoration: BoxDecoration(
                             color: Colors.grey[300],
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 4,
-                            ),
+                            border: Border.all(color: Colors.white, width: 4),
                           ),
                           child: Icon(
                             Icons.person,
@@ -187,10 +184,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     // Email
                     Text(
                       _user?.email ?? 'email@example.com',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
+                      style: const TextStyle(fontSize: 14, color: Colors.white),
                     ),
                     const SizedBox(height: 12),
                     // Premium badge
@@ -381,7 +375,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 _buildMenuItem(
                   icon: Icons.location_on,
                   title: 'Saved Addresses',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SavedAddressesPage(),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 12),
                 _buildMenuItem(
@@ -439,10 +440,19 @@ class _ProfilePageState extends State<ProfilePage> {
           setState(() {
             _currentIndex = index;
           });
-          
-          // Navigate back to home if Home tab is tapped
+
+          // Navigate based on selected tab
           if (index == 0) {
+            // Navigate back to home
             Navigator.pop(context);
+          } else if (index == 1) {
+            // Navigate to bookings
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const BookingsPage(),
+              ),
+            );
           }
         },
       ),
@@ -476,9 +486,10 @@ class _ProfilePageState extends State<ProfilePage> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isDestructive 
-                    ? Colors.red.withOpacity(0.1)
-                    : const Color(0xFF2ECC71).withOpacity(0.1),
+                color:
+                    isDestructive
+                        ? Colors.red.withOpacity(0.1)
+                        : const Color(0xFF2ECC71).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -498,11 +509,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
           ],
         ),
       ),

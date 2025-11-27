@@ -197,14 +197,34 @@ exports.addDependent = async (req, res) => {
       });
     }
 
+    // Handle chronic conditions - convert comma-separated string to array if needed
+    let chronicConditionsArray = [];
+    if (chronicConditions) {
+      if (typeof chronicConditions === 'string') {
+        chronicConditionsArray = chronicConditions.split(',').map(c => c.trim()).filter(c => c);
+      } else if (Array.isArray(chronicConditions)) {
+        chronicConditionsArray = chronicConditions;
+      }
+    }
+
+    // Handle allergies - convert comma-separated string to array if needed
+    let allergiesArray = [];
+    if (allergies) {
+      if (typeof allergies === 'string') {
+        allergiesArray = allergies.split(',').map(a => a.trim()).filter(a => a);
+      } else if (Array.isArray(allergies)) {
+        allergiesArray = allergies;
+      }
+    }
+
     const newDependent = new Dependent({
       fullName,
       relationship,
       dateOfBirth,
       gender,
       mobile,
-      chronicConditions,
-      allergies,
+      chronicConditions: chronicConditionsArray,
+      allergies: allergiesArray,
       nationalId,
       birthCertificateId,
       responsibleUser
