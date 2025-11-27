@@ -98,11 +98,24 @@ exports.login = async (req, res, next) => {
         const emailLowerCase = email.toLowerCase();
         // await redis.del(emailLowerCase);
 
+        const temp_user = await User.findOne({ email });
+        if (!temp_user) return res.status(404).json({ message: "User not found" });
+
+        const userLastUpdate = temp_user?.updatedAt;
+
         const cachedUser = await redis.get(emailLowerCase);
 
         //console.log(cachedUser);
 
-        /*if (cachedUser) {
+        const dbTime = new Date(userLastUpdate).toISOString();
+        const cacheTime = new Date(cachedUser.updatedAt).toISOString();
+
+        console.log(cachedUser.updatedAt);
+        console.log(userLastUpdate);
+        console.log(userLastUpdate == cachedUser.updatedAt);
+        console.log(typeof(cachedUser.updatedAt),typeof(userLastUpdate))
+
+        if (cachedUser &&  dbTime === cacheTime) {
             try {
                 const user = cachedUser;
                 console.log(`✅ User ${emailLowerCase} fetched from Redis cache`);
@@ -123,7 +136,7 @@ exports.login = async (req, res, next) => {
                 console.error('⚠️ Invalid cache data, deleting...', err);
                 await redis.del(emailLowerCase);
             }
-        }*/
+        }
 
 
 
@@ -170,9 +183,9 @@ exports.login = async (req, res, next) => {
 
 
 
-       // redis.set(emailLowerCase, JSON.stringify(user), { ex: 3600 });
+        redis.set(emailLowerCase, JSON.stringify(user), { ex: 3600 });
 
-        //console.log(`user ${email} added to the redis cache`);
+        console.log(`user ${email} added to the redis cache`);
 
 
         // Return success response with user data
@@ -238,3 +251,6 @@ exports.getCurrentUser = async (req, res, next) => {
         next(error);
     }
 };
+
+
+

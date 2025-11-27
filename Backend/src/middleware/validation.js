@@ -68,8 +68,40 @@ const validateLogin = [
     handleValidationErrors
 ];
 
+
+
+const updateUserValidator = [
+  body('name')
+    .optional()
+    .isString().withMessage('Name must be a string')
+    .isLength({ min: 2, max: 50 }).withMessage('Name must be 2-50 characters'),
+
+  body('email')
+    .optional()
+    .isEmail().withMessage('Please provide a valid email address')
+    .normalizeEmail(),
+
+  body('mobile')
+    .optional()
+    .matches(/^01[0125][0-9]{8}$/).withMessage('Please provide a valid Egyptian mobile number'),
+
+  body('role')
+    .optional()
+    .isIn(['customer', 'doctor', 'admin']).withMessage('Invalid role'),
+
+  body('password')
+    .optional()
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
+    .withMessage('Password must contain uppercase, lowercase, number, and special character'),
+
+  handleValidationErrors
+];
+
+
 module.exports = {
     validateRegister,
     validateLogin,
+    updateUserValidator,
     handleValidationErrors
 };
