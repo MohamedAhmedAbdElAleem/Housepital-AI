@@ -101,19 +101,19 @@ exports.login = async (req, res, next) => {
         const temp_user = await User.findOne({ email });
         if (!temp_user) return res.status(404).json({ message: "User not found" });
 
-        const userLastUpdate = temp_user?.updatedAt;
+        const userLastUpdate = temp_user.updatedAt;
 
         const cachedUser = await redis.get(emailLowerCase);
 
         //console.log(cachedUser);
 
-        const dbTime = new Date(userLastUpdate).toISOString();
-        const cacheTime = new Date(cachedUser.updatedAt).toISOString();
+        const dbTime = userLastUpdate ? new Date(userLastUpdate).toISOString() : null;
+        const cacheTime = cachedUser?.updatedAt ? new Date(cachedUser.updatedAt).toISOString() : null;
 
-        console.log(cachedUser.updatedAt);
+        /*console.log(cachedUser.updatedAt);
         console.log(userLastUpdate);
         console.log(userLastUpdate == cachedUser.updatedAt);
-        console.log(typeof(cachedUser.updatedAt),typeof(userLastUpdate))
+        console.log(typeof(cachedUser.updatedAt),typeof(userLastUpdate))*/
 
         if (cachedUser &&  dbTime === cacheTime) {
             try {
