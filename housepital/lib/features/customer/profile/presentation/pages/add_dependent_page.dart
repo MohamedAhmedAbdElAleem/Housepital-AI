@@ -43,7 +43,9 @@ class _AddDependentPageState extends State<AddDependentPage> {
       // Log an error and handle missing user ID
       debugPrint('Error: User ID is missing or invalid.');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to retrieve user ID. Please try again.')),
+        const SnackBar(
+          content: Text('Unable to retrieve user ID. Please try again.'),
+        ),
       );
     }
     setState(() {});
@@ -81,7 +83,7 @@ class _AddDependentPageState extends State<AddDependentPage> {
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (pickedFile != null) {
       setState(() {
         _profileImage = File(pickedFile.path);
@@ -124,7 +126,9 @@ class _AddDependentPageState extends State<AddDependentPage> {
 
     if (_userId == null || _userId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User ID is missing. Cannot submit the form.')),
+        const SnackBar(
+          content: Text('User ID is missing. Cannot submit the form.'),
+        ),
       );
       return;
     }
@@ -163,18 +167,22 @@ class _AddDependentPageState extends State<AddDependentPage> {
     }
 
     // Validate that at least one ID is provided
-    if (_nationalIdController.text.trim().isEmpty && 
+    if (_nationalIdController.text.trim().isEmpty &&
         _birthCertificateIdController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please provide either National ID or Birth Certificate ID'),
+          content: Text(
+            'Please provide either National ID or Birth Certificate ID',
+          ),
           backgroundColor: Color(0xFFEF4444),
         ),
       );
       return;
     }
 
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final apiService = ApiService();
       final response = await apiService.post(
@@ -192,19 +200,25 @@ class _AddDependentPageState extends State<AddDependentPage> {
           'responsibleUser': _userId!,
         },
       );
-      setState(() { _isLoading = false; });
+      setState(() {
+        _isLoading = false;
+      });
       if (response['success'] == true) {
         Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? 'Failed to add dependent')),
+          SnackBar(
+            content: Text(response['message'] ?? 'Failed to add dependent'),
+          ),
         );
       }
     } catch (e) {
-      setState(() { _isLoading = false; });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -244,10 +258,7 @@ class _AddDependentPageState extends State<AddDependentPage> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFF3F4F6),
                               shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 4,
-                              ),
+                              border: Border.all(color: Colors.white, width: 4),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.1),
@@ -256,18 +267,19 @@ class _AddDependentPageState extends State<AddDependentPage> {
                                 ),
                               ],
                             ),
-                            child: _profileImage != null
-                                ? ClipOval(
-                                    child: Image.file(
-                                      _profileImage!,
-                                      fit: BoxFit.cover,
+                            child:
+                                _profileImage != null
+                                    ? ClipOval(
+                                      child: Image.file(
+                                        _profileImage!,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                    : const Icon(
+                                      Icons.person_outline,
+                                      size: 40,
+                                      color: Color(0xFF9CA3AF),
                                     ),
-                                  )
-                                : const Icon(
-                                    Icons.person_outline,
-                                    size: 40,
-                                    color: Color(0xFF9CA3AF),
-                                  ),
                           ),
                           Positioned(
                             bottom: 0,
@@ -298,7 +310,11 @@ class _AddDependentPageState extends State<AddDependentPage> {
                     const SizedBox(height: 32),
 
                     // Full Name (keep original)
-                    _buildTextField(_fullNameController, 'Full Name', Icons.person),
+                    _buildTextField(
+                      _fullNameController,
+                      'Full Name',
+                      Icons.person,
+                    ),
 
                     // Relationship (keep original)
                     Padding(
@@ -307,74 +323,139 @@ class _AddDependentPageState extends State<AddDependentPage> {
                         value: _selectedRelationship,
                         decoration: InputDecoration(
                           labelText: 'Relationship',
-                          prefixIcon: const Icon(Icons.group, color: Color(0xFF2ECC71)),
+                          prefixIcon: const Icon(
+                            Icons.group,
+                            color: Color(0xFF2ECC71),
+                          ),
                           filled: true,
                           fillColor: const Color(0xFFF8F9FA),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE2E8F0),
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE2E8F0),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: Color(0xFF2ECC71)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF2ECC71),
+                            ),
                           ),
                         ),
-                        items: [
-                          'father', 'mother', 'son', 'daughter', 'brother', 'sister', 'grandparent', 'grandchild', 'spouse', 'other'
-                        ].map((rel) => DropdownMenuItem(value: rel, child: Text(rel))).toList(),
-                        onChanged: (val) => setState(() => _selectedRelationship = val),
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                        items:
+                            [
+                                  'father',
+                                  'mother',
+                                  'son',
+                                  'daughter',
+                                  'brother',
+                                  'sister',
+                                  'grandparent',
+                                  'grandchild',
+                                  'spouse',
+                                  'other',
+                                ]
+                                .map(
+                                  (rel) => DropdownMenuItem(
+                                    value: rel,
+                                    child: Text(rel),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged:
+                            (val) =>
+                                setState(() => _selectedRelationship = val),
+                        validator:
+                            (v) => v == null || v.isEmpty ? 'Required' : null,
                       ),
                     ),
 
                     // Gender Selection (keep original)
                     Row(
                       children: [
-                        const Text('Gender:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Gender:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               GestureDetector(
-                                onTap: () => setState(() => _genderController.text = 'male'),
+                                onTap:
+                                    () => setState(
+                                      () => _genderController.text = 'male',
+                                    ),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: _genderController.text == 'male' ? const Color(0xFF2ECC71) : const Color(0xFFF8F9FA),
+                                    color:
+                                        _genderController.text == 'male'
+                                            ? const Color(0xFF2ECC71)
+                                            : const Color(0xFFF8F9FA),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: _genderController.text == 'male' ? const Color(0xFF2ECC71) : const Color(0xFFE2E8F0),
+                                      color:
+                                          _genderController.text == 'male'
+                                              ? const Color(0xFF2ECC71)
+                                              : const Color(0xFFE2E8F0),
                                     ),
                                   ),
                                   child: Text(
                                     'Male',
                                     style: TextStyle(
-                                      color: _genderController.text == 'male' ? Colors.white : const Color(0xFF1E293B),
+                                      color:
+                                          _genderController.text == 'male'
+                                              ? Colors.white
+                                              : const Color(0xFF1E293B),
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
                               ),
                               GestureDetector(
-                                onTap: () => setState(() => _genderController.text = 'female'),
+                                onTap:
+                                    () => setState(
+                                      () => _genderController.text = 'female',
+                                    ),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: _genderController.text == 'female' ? const Color(0xFF2ECC71) : const Color(0xFFF8F9FA),
+                                    color:
+                                        _genderController.text == 'female'
+                                            ? const Color(0xFF2ECC71)
+                                            : const Color(0xFFF8F9FA),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: _genderController.text == 'female' ? const Color(0xFF2ECC71) : const Color(0xFFE2E8F0),
+                                      color:
+                                          _genderController.text == 'female'
+                                              ? const Color(0xFF2ECC71)
+                                              : const Color(0xFFE2E8F0),
                                     ),
                                   ),
                                   child: Text(
                                     'Female',
                                     style: TextStyle(
-                                      color: _genderController.text == 'female' ? Colors.white : const Color(0xFF1E293B),
+                                      color:
+                                          _genderController.text == 'female'
+                                              ? Colors.white
+                                              : const Color(0xFF1E293B),
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -466,27 +547,32 @@ class _AddDependentPageState extends State<AddDependentPage> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: _chronicDiseases
-                            .asMap()
-                            .entries
-                            .map(
-                              (entry) => Chip(
-                                label: Text(entry.value),
-                                deleteIcon: const Icon(Icons.close, size: 16),
-                                onDeleted: () => _removeChronicDisease(entry.key),
-                                backgroundColor: const Color(0xFFFEF2F2),
-                                labelStyle: const TextStyle(
-                                  color: Color(0xFFEF4444),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                deleteIconColor: const Color(0xFFEF4444),
-                                side: const BorderSide(
-                                  color: Color(0xFFFECACA),
-                                ),
-                              ),
-                            )
-                            .toList(),
+                        children:
+                            _chronicDiseases
+                                .asMap()
+                                .entries
+                                .map(
+                                  (entry) => Chip(
+                                    label: Text(entry.value),
+                                    deleteIcon: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                    ),
+                                    onDeleted:
+                                        () => _removeChronicDisease(entry.key),
+                                    backgroundColor: const Color(0xFFFEF2F2),
+                                    labelStyle: const TextStyle(
+                                      color: Color(0xFFEF4444),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    deleteIconColor: const Color(0xFFEF4444),
+                                    side: const BorderSide(
+                                      color: Color(0xFFFECACA),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                       ),
                     ],
                     if (_chronicDiseases.isEmpty) ...[
@@ -566,27 +652,31 @@ class _AddDependentPageState extends State<AddDependentPage> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: _allergies
-                            .asMap()
-                            .entries
-                            .map(
-                              (entry) => Chip(
-                                label: Text(entry.value),
-                                deleteIcon: const Icon(Icons.close, size: 16),
-                                onDeleted: () => _removeAllergy(entry.key),
-                                backgroundColor: const Color(0xFFFEF2F2),
-                                labelStyle: const TextStyle(
-                                  color: Color(0xFFEF4444),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                deleteIconColor: const Color(0xFFEF4444),
-                                side: const BorderSide(
-                                  color: Color(0xFFFECACA),
-                                ),
-                              ),
-                            )
-                            .toList(),
+                        children:
+                            _allergies
+                                .asMap()
+                                .entries
+                                .map(
+                                  (entry) => Chip(
+                                    label: Text(entry.value),
+                                    deleteIcon: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                    ),
+                                    onDeleted: () => _removeAllergy(entry.key),
+                                    backgroundColor: const Color(0xFFFEF2F2),
+                                    labelStyle: const TextStyle(
+                                      color: Color(0xFFEF4444),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    deleteIconColor: const Color(0xFFEF4444),
+                                    side: const BorderSide(
+                                      color: Color(0xFFFECACA),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                       ),
                     ],
                     if (_allergies.isEmpty) ...[
@@ -614,10 +704,7 @@ class _AddDependentPageState extends State<AddDependentPage> {
                     const SizedBox(height: 4),
                     const Text(
                       'Please provide either National ID or Birth Certificate ID',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF9CA3AF),
-                      ),
+                      style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
                     ),
                     const SizedBox(height: 12),
 
@@ -629,7 +716,10 @@ class _AddDependentPageState extends State<AddDependentPage> {
                       decoration: InputDecoration(
                         labelText: 'National ID',
                         hintText: '14 digits',
-                        prefixIcon: const Icon(Icons.badge, color: Color(0xFF2ECC71)),
+                        prefixIcon: const Icon(
+                          Icons.badge,
+                          color: Color(0xFF2ECC71),
+                        ),
                         filled: true,
                         fillColor: const Color(0xFFE5E7EB),
                         contentPadding: const EdgeInsets.symmetric(
@@ -664,7 +754,10 @@ class _AddDependentPageState extends State<AddDependentPage> {
                       decoration: InputDecoration(
                         labelText: 'Birth Certificate ID',
                         hintText: '9-20 digits',
-                        prefixIcon: const Icon(Icons.description, color: Color(0xFF2ECC71)),
+                        prefixIcon: const Icon(
+                          Icons.description,
+                          color: Color(0xFF2ECC71),
+                        ),
                         filled: true,
                         fillColor: const Color(0xFFE5E7EB),
                         contentPadding: const EdgeInsets.symmetric(
@@ -694,17 +787,14 @@ class _AddDependentPageState extends State<AddDependentPage> {
                 ),
               ),
             ),
-            
+
             // Bottom Button Section
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: const Border(
-                  top: BorderSide(
-                    color: Color(0xFFE5E7EB),
-                    width: 1,
-                  ),
+                  top: BorderSide(color: Color(0xFFE5E7EB), width: 1),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -726,18 +816,17 @@ class _AddDependentPageState extends State<AddDependentPage> {
                     ),
                     disabledBackgroundColor: const Color(0xFFE5E7EB),
                   ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(
-                          color: Colors.white,
-                        )
-                      : const Text(
-                          'Save Profile',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                  child:
+                      _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                            'Save Profile',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
                 ),
               ),
             ),
@@ -747,7 +836,11 @@ class _AddDependentPageState extends State<AddDependentPage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    IconData icon,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(

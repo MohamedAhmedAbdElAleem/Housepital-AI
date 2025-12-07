@@ -31,25 +31,31 @@ class _EditDependentPageState extends State<EditDependentPage> {
   void initState() {
     super.initState();
     _fullNameController.text = widget.dependent['fullName'] ?? '';
-    _selectedRelationship = widget.dependent['relationship']?.toString().toLowerCase();
+    _selectedRelationship =
+        widget.dependent['relationship']?.toString().toLowerCase();
     _selectedGender = widget.dependent['gender'] ?? 'male';
 
     // Load chronic conditions
     if (widget.dependent['chronicConditions'] != null) {
       if (widget.dependent['chronicConditions'] is List) {
-        _chronicDiseases = List<String>.from(widget.dependent['chronicConditions'])
-          .map((e) => e.toString().trim())
-          .where((e) => e.isNotEmpty && e != '[]')
-          .toList();
+        _chronicDiseases =
+            List<String>.from(widget.dependent['chronicConditions'])
+                .map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty && e != '[]')
+                .toList();
       } else {
         final conditions = widget.dependent['chronicConditions'].toString();
-        if (conditions.isNotEmpty && conditions != '[]' && conditions != 'null') {
+        if (conditions.isNotEmpty &&
+            conditions != '[]' &&
+            conditions != 'null') {
           // Remove brackets if present and split
           final cleaned = conditions.replaceAll('[', '').replaceAll(']', '');
-          _chronicDiseases = cleaned.split(',')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList();
+          _chronicDiseases =
+              cleaned
+                  .split(',')
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList();
         }
       }
     }
@@ -57,19 +63,22 @@ class _EditDependentPageState extends State<EditDependentPage> {
     // Load allergies
     if (widget.dependent['allergies'] != null) {
       if (widget.dependent['allergies'] is List) {
-        _allergies = List<String>.from(widget.dependent['allergies'])
-          .map((e) => e.toString().trim())
-          .where((e) => e.isNotEmpty && e != '[]')
-          .toList();
+        _allergies =
+            List<String>.from(widget.dependent['allergies'])
+                .map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty && e != '[]')
+                .toList();
       } else {
         final allergies = widget.dependent['allergies'].toString();
         if (allergies.isNotEmpty && allergies != '[]' && allergies != 'null') {
           // Remove brackets if present and split
           final cleaned = allergies.replaceAll('[', '').replaceAll(']', '');
-          _allergies = cleaned.split(',')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList();
+          _allergies =
+              cleaned
+                  .split(',')
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList();
         }
       }
     }
@@ -95,7 +104,7 @@ class _EditDependentPageState extends State<EditDependentPage> {
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (pickedFile != null) {
       setState(() {
         _profileImage = File(pickedFile.path);
@@ -341,10 +350,7 @@ class _EditDependentPageState extends State<EditDependentPage> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFF3F4F6),
                               shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 4,
-                              ),
+                              border: Border.all(color: Colors.white, width: 4),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.1),
@@ -353,18 +359,19 @@ class _EditDependentPageState extends State<EditDependentPage> {
                                 ),
                               ],
                             ),
-                            child: _profileImage != null
-                                ? ClipOval(
-                                    child: Image.file(
-                                      _profileImage!,
-                                      fit: BoxFit.cover,
+                            child:
+                                _profileImage != null
+                                    ? ClipOval(
+                                      child: Image.file(
+                                        _profileImage!,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                    : const Icon(
+                                      Icons.person_outline,
+                                      size: 40,
+                                      color: Color(0xFF9CA3AF),
                                     ),
-                                  )
-                                : const Icon(
-                                    Icons.person_outline,
-                                    size: 40,
-                                    color: Color(0xFF9CA3AF),
-                                  ),
                           ),
                           Positioned(
                             bottom: 0,
@@ -396,10 +403,7 @@ class _EditDependentPageState extends State<EditDependentPage> {
 
                     // Full Name
                     _buildLabel('Full Name'),
-                    _buildTextField(
-                      _fullNameController,
-                      'E.g., Sarah Ali',
-                    ),
+                    _buildTextField(_fullNameController, 'E.g., Sarah Ali'),
                     const SizedBox(height: 20),
 
                     // Relationship & Gender Row
@@ -413,29 +417,35 @@ class _EditDependentPageState extends State<EditDependentPage> {
                               DropdownButtonFormField<String>(
                                 value: _selectedRelationship,
                                 decoration: _buildInputDecoration('Select'),
-                                items: [
-                                  'Father',
-                                  'Mother',
-                                  'Son',
-                                  'Daughter',
-                                  'Brother',
-                                  'Sister',
-                                  'Grandparent',
-                                  'Grandchild',
-                                  'Spouse',
-                                  'Other',
-                                ]
-                                    .map(
-                                      (rel) => DropdownMenuItem(
-                                        value: rel.toLowerCase(),
-                                        child: Text(rel),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (val) =>
-                                    setState(() => _selectedRelationship = val),
-                                validator: (v) =>
-                                    v == null || v.isEmpty ? 'Required' : null,
+                                items:
+                                    [
+                                          'Father',
+                                          'Mother',
+                                          'Son',
+                                          'Daughter',
+                                          'Brother',
+                                          'Sister',
+                                          'Grandparent',
+                                          'Grandchild',
+                                          'Spouse',
+                                          'Other',
+                                        ]
+                                        .map(
+                                          (rel) => DropdownMenuItem(
+                                            value: rel.toLowerCase(),
+                                            child: Text(rel),
+                                          ),
+                                        )
+                                        .toList(),
+                                onChanged:
+                                    (val) => setState(
+                                      () => _selectedRelationship = val,
+                                    ),
+                                validator:
+                                    (v) =>
+                                        v == null || v.isEmpty
+                                            ? 'Required'
+                                            : null,
                               ),
                             ],
                           ),
@@ -464,8 +474,11 @@ class _EditDependentPageState extends State<EditDependentPage> {
                                     _selectedGender = val ?? 'male';
                                   });
                                 },
-                                validator: (v) =>
-                                    v == null || v.isEmpty ? 'Required' : null,
+                                validator:
+                                    (v) =>
+                                        v == null || v.isEmpty
+                                            ? 'Required'
+                                            : null,
                               ),
                             ],
                           ),
@@ -485,7 +498,8 @@ class _EditDependentPageState extends State<EditDependentPage> {
                                 ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
                                 : 'Select date',
                           ),
-                          validator: (v) => _selectedDate == null ? 'Required' : null,
+                          validator:
+                              (v) => _selectedDate == null ? 'Required' : null,
                         ),
                       ),
                     ),
@@ -524,28 +538,32 @@ class _EditDependentPageState extends State<EditDependentPage> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: _chronicDiseases
-                            .asMap()
-                            .entries
-                            .map(
-                              (entry) => Chip(
-                                label: Text(entry.value),
-                                deleteIcon: const Icon(Icons.close, size: 16),
-                                onDeleted: () =>
-                                    _removeChronicDisease(entry.key),
-                                backgroundColor: const Color(0xFFFEF2F2),
-                                labelStyle: const TextStyle(
-                                  color: Color(0xFFEF4444),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                deleteIconColor: const Color(0xFFEF4444),
-                                side: const BorderSide(
-                                  color: Color(0xFFFECACA),
-                                ),
-                              ),
-                            )
-                            .toList(),
+                        children:
+                            _chronicDiseases
+                                .asMap()
+                                .entries
+                                .map(
+                                  (entry) => Chip(
+                                    label: Text(entry.value),
+                                    deleteIcon: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                    ),
+                                    onDeleted:
+                                        () => _removeChronicDisease(entry.key),
+                                    backgroundColor: const Color(0xFFFEF2F2),
+                                    labelStyle: const TextStyle(
+                                      color: Color(0xFFEF4444),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    deleteIconColor: const Color(0xFFEF4444),
+                                    side: const BorderSide(
+                                      color: Color(0xFFFECACA),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                       ),
                     ],
                     if (_chronicDiseases.isEmpty) ...[
@@ -568,7 +586,9 @@ class _EditDependentPageState extends State<EditDependentPage> {
                         Expanded(
                           child: TextField(
                             controller: _allergiesController,
-                            decoration: _buildInputDecoration('E.g., Penicillin, Peanuts...'),
+                            decoration: _buildInputDecoration(
+                              'E.g., Penicillin, Peanuts...',
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -594,27 +614,31 @@ class _EditDependentPageState extends State<EditDependentPage> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: _allergies
-                            .asMap()
-                            .entries
-                            .map(
-                              (entry) => Chip(
-                                label: Text(entry.value),
-                                deleteIcon: const Icon(Icons.close, size: 16),
-                                onDeleted: () => _removeAllergy(entry.key),
-                                backgroundColor: const Color(0xFFFEF2F2),
-                                labelStyle: const TextStyle(
-                                  color: Color(0xFFEF4444),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                deleteIconColor: const Color(0xFFEF4444),
-                                side: const BorderSide(
-                                  color: Color(0xFFFECACA),
-                                ),
-                              ),
-                            )
-                            .toList(),
+                        children:
+                            _allergies
+                                .asMap()
+                                .entries
+                                .map(
+                                  (entry) => Chip(
+                                    label: Text(entry.value),
+                                    deleteIcon: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                    ),
+                                    onDeleted: () => _removeAllergy(entry.key),
+                                    backgroundColor: const Color(0xFFFEF2F2),
+                                    labelStyle: const TextStyle(
+                                      color: Color(0xFFEF4444),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    deleteIconColor: const Color(0xFFEF4444),
+                                    side: const BorderSide(
+                                      color: Color(0xFFFECACA),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                       ),
                     ],
                     if (_allergies.isEmpty) ...[
@@ -633,17 +657,14 @@ class _EditDependentPageState extends State<EditDependentPage> {
                 ),
               ),
             ),
-            
+
             // Bottom Button Section
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: const Border(
-                  top: BorderSide(
-                    color: Color(0xFFE5E7EB),
-                    width: 1,
-                  ),
+                  top: BorderSide(color: Color(0xFFE5E7EB), width: 1),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -667,18 +688,19 @@ class _EditDependentPageState extends State<EditDependentPage> {
                         ),
                         disabledBackgroundColor: const Color(0xFFE5E7EB),
                       ),
-                      child: _isSubmitting
-                          ? const CircularProgressIndicator(
-                              color: Colors.white,
-                            )
-                          : const Text(
-                              'Save Profile',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                      child:
+                          _isSubmitting
+                              ? const CircularProgressIndicator(
                                 color: Colors.white,
+                              )
+                              : const Text(
+                                'Save Profile',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -726,16 +748,10 @@ class _EditDependentPageState extends State<EditDependentPage> {
   InputDecoration _buildInputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(
-        color: Color(0xFF9CA3AF),
-        fontSize: 16,
-      ),
+      hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
       filled: true,
       fillColor: const Color(0xFFE5E7EB),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 16,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide.none,
@@ -746,25 +762,16 @@ class _EditDependentPageState extends State<EditDependentPage> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: Color(0xFF2ECC71),
-          width: 2,
-        ),
+        borderSide: const BorderSide(color: Color(0xFF2ECC71), width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: Color(0xFFEF4444),
-          width: 2,
-        ),
+        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
       ),
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String hint,
-  ) {
+  Widget _buildTextField(TextEditingController controller, String hint) {
     return TextFormField(
       controller: controller,
       decoration: _buildInputDecoration(hint),

@@ -265,10 +265,7 @@ class _AddAddressPageState extends State<AddAddressPage> {
               controller: _areaController,
               decoration: InputDecoration(
                 hintText: 'Enter area or district',
-                prefixIcon: const Icon(
-                  Icons.place,
-                  color: Color(0xFF17C47F),
-                ),
+                prefixIcon: const Icon(Icons.place, color: Color(0xFF17C47F)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: Color(0xFFE2E8F0)),

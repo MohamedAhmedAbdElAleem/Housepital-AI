@@ -35,8 +35,9 @@ class _LocationHeaderState extends State<LocationHeader> {
       final response = await apiService.get('/api/user/addresses/$userId');
 
       if (mounted) {
-        final addresses = response is List ? response : (response['addresses'] ?? []);
-        
+        final addresses =
+            response is List ? response : (response['addresses'] ?? []);
+
         // Find primary address or use first one
         final primaryAddress = addresses.firstWhere(
           (addr) => addr['isPrimary'] == true,
@@ -48,7 +49,7 @@ class _LocationHeaderState extends State<LocationHeader> {
             // Format: "Area, City" or just "City"
             final area = primaryAddress['area']?.toString() ?? '';
             final city = primaryAddress['city']?.toString() ?? '';
-            
+
             if (area.isNotEmpty && city.isNotEmpty) {
               _locationText = '$area, $city';
             } else if (city.isNotEmpty) {
@@ -76,11 +77,9 @@ class _LocationHeaderState extends State<LocationHeader> {
   void _openAddresses() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const SavedAddressesPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const SavedAddressesPage()),
     );
-    
+
     // Reload location if addresses were changed
     if (result == true || result == null) {
       _loadPrimaryAddress();
@@ -97,11 +96,7 @@ class _LocationHeaderState extends State<LocationHeader> {
             color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(
-            Icons.location_on,
-            color: Colors.white,
-            size: 20,
-          ),
+          child: const Icon(Icons.location_on, color: Colors.white, size: 20),
         ),
         const SizedBox(width: 8),
         GestureDetector(
@@ -133,11 +128,7 @@ class _LocationHeaderState extends State<LocationHeader> {
             color: Colors.white.withOpacity(0.2),
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.notifications,
-            color: Colors.white,
-            size: 22,
-          ),
+          child: const Icon(Icons.notifications, color: Colors.white, size: 22),
         ),
       ],
     );

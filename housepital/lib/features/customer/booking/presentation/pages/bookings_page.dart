@@ -4,6 +4,17 @@ import '../../../../../core/utils/token_manager.dart';
 import 'booking_tracking_page.dart';
 import '../../../home/presentation/widgets/custom_bottom_nav_bar.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
+import '../widgets/booking_tab_switcher.dart';
+import '../widgets/booking_card_nurse_waiting.dart';
+import '../widgets/booking_card_nurse_emergency.dart';
+import '../widgets/booking_card_confirmed_nursing.dart';
+import '../widgets/booking_card_confirmed_clinic.dart';
+import '../widgets/booking_card_searching.dart';
+import '../widgets/booking_card_completed.dart';
+import '../widgets/booking_cancellation_modal.dart';
+import '../widgets/booking_ticket_modal.dart';
+import '../widgets/booking_empty_state.dart';
+import '../../utils/booking_utils.dart';
 
 class BookingsPage extends StatefulWidget {
   const BookingsPage({Key? key}) : super(key: key);
@@ -12,24 +23,16 @@ class BookingsPage extends StatefulWidget {
   State<BookingsPage> createState() => _BookingsPageState();
 }
 
-class _BookingsPageState extends State<BookingsPage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _BookingsPageState extends State<BookingsPage> {
   List<dynamic> _bookings = [];
   bool _isLoading = true;
   int _currentNavIndex = 1; // Bookings tab is active
+  int _activeTab = 0; // 0 = Active & Upcoming, 1 = History
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
     _fetchBookings();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   Future<void> _fetchBookings() async {
@@ -77,92 +80,208 @@ class _BookingsPageState extends State<BookingsPage>
     }
   }
 
-  // 🧪 Mock data for testing UI
+  // 🧪 Mock data for testing UI with all different states
   List<Map<String, dynamic>> _getMockBookings() {
     return [
       {
         'id': 'mock1',
-        'serviceName': 'Wound Care',
+        'serviceName': 'Home Nursing Care',
         'patientName': 'Ahmed Ali',
-        'status': 'confirmed',
+        'status': 'nurse_waiting',
+        'bookingType': 'nursing',
         'timeOption': 'asap',
         'servicePrice': 150,
         'scheduledDate': null,
+        'nurseName': 'Nurse Sarah',
+        'nursePhone': '+201234567890',
+        'waitingStartTime':
+            DateTime.now()
+                .subtract(const Duration(minutes: 3))
+                .toIso8601String(),
       },
       {
         'id': 'mock2',
-        'serviceName': 'Injections',
+        'serviceName': 'IV Therapy',
         'patientName': 'Fatima Ali',
-        'status': 'assigned',
+        'status': 'nurse_emergency',
+        'bookingType': 'nursing',
         'timeOption': 'schedule',
-        'servicePrice': 50,
+        'servicePrice': 200,
         'scheduledDate':
             DateTime.now().add(const Duration(hours: 2)).toIso8601String(),
       },
       {
         'id': 'mock3',
-        'serviceName': 'Elderly Care',
+        'serviceName': 'Wound Care',
         'patientName': 'Ahmed Ali',
-        'status': 'in-progress',
+        'status': 'confirmed',
+        'bookingType': 'nursing',
         'timeOption': 'asap',
-        'servicePrice': 200,
+        'servicePrice': 180,
         'scheduledDate': null,
+        'nurseName': 'Nurse Mohamed',
+        'nursePhone': '+201234567891',
       },
       {
         'id': 'mock4',
+        'serviceName': 'Dermatology Consultation',
+        'patientName': 'Ahmed Ali',
+        'status': 'clinic_confirmed',
+        'bookingType': 'clinic',
+        'timeOption': 'schedule',
+        'servicePrice': 350,
+        'scheduledDate':
+            DateTime.now()
+                .add(const Duration(days: 1, hours: 10))
+                .toIso8601String(),
+        'clinicName': 'Nile Medical Center',
+        'clinicAddress': 'Maadi, Cairo',
+        'doctorName': 'Dr. Hany Ezzat',
+        'checkInPin': '8472',
+      },
+      {
+        'id': 'mock5',
+        'serviceName': 'Elderly Care',
+        'patientName': 'Fatima Ali',
+        'status': 'searching',
+        'bookingType': 'nursing',
+        'timeOption': 'asap',
+        'servicePrice': 250,
+        'scheduledDate': null,
+      },
+      {
+        'id': 'mock6',
         'serviceName': 'Post-Op Care',
         'patientName': 'Ahmed Ali',
         'status': 'completed',
+        'bookingType': 'nursing',
         'timeOption': 'schedule',
         'servicePrice': 300,
         'scheduledDate':
             DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
+        'nurseName': 'Nurse Laila',
+        'nurseRating': 4.8,
       },
       {
-        'id': 'mock5',
-        'serviceName': 'IV Therapy',
-        'patientName': 'Fatima Ali',
-        'status': 'pending',
-        'timeOption': 'asap',
-        'servicePrice': 120,
-        'scheduledDate': null,
+        'id': 'mock7',
+        'serviceName': 'General Checkup',
+        'patientName': 'Ahmed Ali',
+        'status': 'completed',
+        'bookingType': 'clinic',
+        'timeOption': 'schedule',
+        'servicePrice': 200,
+        'scheduledDate':
+            DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
+        'doctorName': 'Dr. Ahmed Hassan',
+        'clinicName': 'Cairo Medical',
       },
     ];
   }
 
-  List<dynamic> _getFilteredBookings(String status) {
-    if (status == 'all') return _bookings;
-
-    if (status == 'active') {
+  List<dynamic> _getFilteredBookings() {
+    if (_activeTab == 0) {
+      // Active & Upcoming
       return _bookings
-          .where(
-            (b) => [
-              'pending',
-              'confirmed',
-              'assigned',
-              'in-progress',
-            ].contains(b['status']),
-          )
+          .where((b) => BookingUtils.activeStatuses.contains(b['status']))
+          .toList();
+    } else {
+      // History
+      return _bookings
+          .where((b) => BookingUtils.historyStatuses.contains(b['status']))
           .toList();
     }
+  }
 
-    if (status == 'completed') {
-      return _bookings
-          .where((b) => ['completed', 'cancelled'].contains(b['status']))
-          .toList();
+  void _handleCancelBooking(Map<String, dynamic> booking) {
+    final isLate = BookingUtils.isLateCancel(booking['status']);
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => BookingCancellationModal(
+            isLateCancel: isLate,
+            onConfirm: () {
+              Navigator.pop(context);
+              _performCancelBooking(booking['id']);
+            },
+            onCancel: () => Navigator.pop(context),
+          ),
+    );
+  }
+
+  Future<void> _performCancelBooking(String bookingId) async {
+    try {
+      final apiService = ApiService();
+      await apiService.put('/api/bookings/$bookingId/cancel', body: {});
+      _fetchBookings(); // Refresh the list
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Booking cancelled successfully'),
+            backgroundColor: Color(0xFF17C47F),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error cancelling booking: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to cancel booking'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
+  }
 
-    return [];
+  void _handleViewTicket(Map<String, dynamic> booking) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => BookingTicketModal(
+            serviceName: booking['serviceName'] ?? 'Service',
+            patientName: booking['patientName'] ?? 'Patient',
+            clinicName: booking['clinicName'] ?? 'Clinic',
+            clinicAddress: booking['clinicAddress'] ?? '',
+            doctorName: booking['doctorName'] ?? 'Doctor',
+            scheduledTime: BookingUtils.formatScheduledTime(
+              booking['scheduledDate'],
+            ),
+            checkInPin: booking['checkInPin'] ?? '0000',
+            onClose: () => Navigator.pop(context),
+          ),
+    );
+  }
+
+  void _handleTrackNurse(Map<String, dynamic> booking) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookingTrackingPage(booking: booking),
+      ),
+    );
+  }
+
+  void _handleCheckIn(Map<String, dynamic> booking) {
+    // TODO: Implement check-in flow
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Check-in feature coming soon!'),
+        backgroundColor: Color(0xFF17C47F),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
+        centerTitle: false,
         title: const Text(
           'My Bookings',
           style: TextStyle(
@@ -171,440 +290,187 @@ class _BookingsPageState extends State<BookingsPage>
             fontSize: 24,
           ),
         ),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: const Color(0xFF17C47F),
-          indicatorWeight: 3,
-          labelColor: const Color(0xFF17C47F),
-          unselectedLabelColor: Colors.grey,
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-          tabs: const [
-            Tab(text: 'All'),
-            Tab(text: 'Active'),
-            Tab(text: 'History'),
-          ],
-        ),
       ),
-      body:
-          _isLoading
-              ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF17C47F)),
-              )
-              : TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildBookingsList('all'),
-                  _buildBookingsList('active'),
-                  _buildBookingsList('completed'),
-                ],
-              ),
+      body: Column(
+        children: [
+          // Tab Switcher
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+            child: BookingTabSwitcher(
+              activeTab: _activeTab,
+              onTabChanged: (tab) {
+                setState(() {
+                  _activeTab = tab;
+                });
+              },
+            ),
+          ),
+
+          // Bookings List
+          Expanded(
+            child:
+                _isLoading
+                    ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF17C47F),
+                      ),
+                    )
+                    : _buildBookingsList(),
+          ),
+        ],
+      ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentNavIndex,
         onTap: (index) {
           if (index == 0) {
-            // Navigate to Home
             Navigator.pop(context);
           } else if (index == 4) {
-            // Navigate to Profile
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const ProfilePage()),
             );
           }
-          // index 1 is current page (Bookings), so do nothing
         },
       ),
     );
   }
 
-  Widget _buildBookingsList(String filter) {
-    final bookings = _getFilteredBookings(filter);
+  Widget _buildBookingsList() {
+    final bookings = _getFilteredBookings();
 
     if (bookings.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF8F9FA),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.calendar_today,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              filter == 'active' ? 'No active bookings' : 'No bookings found',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              filter == 'active'
-                  ? 'Book a service to get started'
-                  : 'Your booking history will appear here',
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-            ),
-          ],
-        ),
-      );
+      return BookingEmptyState(isHistory: _activeTab == 1);
     }
 
     return RefreshIndicator(
       onRefresh: _fetchBookings,
       color: const Color(0xFF17C47F),
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(
-          20,
-          20,
-          20,
-          100,
-        ), // Extra bottom padding for nav bar
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
         itemCount: bookings.length,
         itemBuilder: (context, index) {
-          final booking = bookings[index];
-          return _buildBookingCard(booking);
+          final booking = Map<String, dynamic>.from(bookings[index]);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildBookingCard(booking),
+          );
         },
       ),
     );
   }
 
-  Widget _buildBookingCard(dynamic booking) {
+  Widget _buildBookingCard(Map<String, dynamic> booking) {
+    final String status = booking['status'] ?? 'pending';
+    final String bookingType = booking['bookingType'] ?? 'nursing';
     final String serviceName = booking['serviceName'] ?? 'Service';
     final String patientName = booking['patientName'] ?? 'Patient';
-    final String status = booking['status'] ?? 'pending';
-    final String timeOption = booking['timeOption'] ?? 'asap';
     final double price = (booking['servicePrice'] ?? 0).toDouble();
-    final String? scheduledDate = booking['scheduledDate'];
-
-    // Status configuration
-    Color statusColor;
-    IconData statusIcon;
-    String statusText;
+    final String scheduledTime = BookingUtils.formatScheduledTime(
+      booking['scheduledDate'],
+    );
 
     switch (status) {
-      case 'pending':
-        statusColor = const Color(0xFFF59E0B);
-        statusIcon = Icons.access_time;
-        statusText = 'Pending';
-        break;
-      case 'confirmed':
-        statusColor = const Color(0xFF3B82F6);
-        statusIcon = Icons.check_circle;
-        statusText = 'Confirmed';
-        break;
-      case 'assigned':
-        statusColor = const Color(0xFF8B5CF6);
-        statusIcon = Icons.person_pin;
-        statusText = 'Nurse Assigned';
-        break;
-      case 'in-progress':
-        statusColor = const Color(0xFF17C47F);
-        statusIcon = Icons.local_hospital;
-        statusText = 'In Progress';
-        break;
-      case 'completed':
-        statusColor = const Color(0xFF10B981);
-        statusIcon = Icons.check_circle;
-        statusText = 'Completed';
-        break;
-      case 'cancelled':
-        statusColor = const Color(0xFFEF4444);
-        statusIcon = Icons.cancel;
-        statusText = 'Cancelled';
-        break;
-      default:
-        statusColor = Colors.grey;
-        statusIcon = Icons.help;
-        statusText = status;
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            // Navigate to tracking page for active bookings
-            if (['confirmed', 'assigned', 'in-progress'].contains(status)) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BookingTrackingPage(booking: booking),
-                ),
-              );
-            }
+      case 'nurse_waiting':
+        // Calculate remaining time from waitingStartTime
+        int remainingSeconds = 300; // 5 minutes default
+        if (booking['waitingStartTime'] != null) {
+          try {
+            final startTime = DateTime.parse(booking['waitingStartTime']);
+            final elapsed = DateTime.now().difference(startTime).inSeconds;
+            remainingSeconds = (300 - elapsed).clamp(0, 300);
+          } catch (e) {
+            // Use default
+          }
+        }
+        return BookingCardNurseWaiting(
+          serviceName: serviceName,
+          patientName: patientName,
+          nurseName: booking['nurseName'] ?? 'Nurse',
+          remainingSeconds: remainingSeconds,
+          onCheckIn: () => _handleCheckIn(booking),
+          onCall: () {
+            // TODO: Implement call
           },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header with service icon and status
-                Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF17C47F).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.medical_services,
-                        color: Color(0xFF17C47F),
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            serviceName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.person_outline,
-                                size: 14,
-                                color: Colors.grey[600],
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                patientName,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(statusIcon, size: 14, color: statusColor),
-                          const SizedBox(width: 4),
-                          Text(
-                            statusText,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: statusColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+        );
 
-                const SizedBox(height: 12),
-                const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                const SizedBox(height: 12),
+      case 'nurse_emergency':
+        return BookingCardNurseEmergency(
+          serviceName: serviceName,
+          patientName: patientName,
+          scheduledTime: scheduledTime,
+        );
 
-                // Booking details
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildInfoItem(
-                        Icons.schedule,
-                        timeOption == 'asap' ? 'ASAP' : 'Scheduled',
-                        scheduledDate != null
-                            ? _formatDate(scheduledDate)
-                            : 'As soon as possible',
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildInfoItem(
-                        Icons.payments,
-                        'Price',
-                        '${price.toStringAsFixed(0)} EGP',
-                      ),
-                    ),
-                  ],
-                ),
+      case 'confirmed':
+      case 'assigned':
+      case 'in-progress':
+        if (bookingType == 'clinic') {
+          return BookingCardConfirmedClinic(
+            serviceName: serviceName,
+            patientName: patientName,
+            clinicName: booking['clinicName'] ?? 'Clinic',
+            doctorName: booking['doctorName'] ?? 'Doctor',
+            scheduledTime: scheduledTime,
+            onViewTicket: () => _handleViewTicket(booking),
+            onCancel: () => _handleCancelBooking(booking),
+          );
+        }
+        return BookingCardConfirmedNursing(
+          serviceName: serviceName,
+          patientName: patientName,
+          nurseName: booking['nurseName'] ?? 'Finding nurse...',
+          scheduledTime: scheduledTime,
+          onTrackNurse: () => _handleTrackNurse(booking),
+          onCancel: () => _handleCancelBooking(booking),
+        );
 
-                // Action buttons for active bookings
-                if ([
-                  'confirmed',
-                  'assigned',
-                  'in-progress',
-                ].contains(status)) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      if (['assigned', 'in-progress'].contains(status))
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              // TODO: Call nurse
-                            },
-                            icon: const Icon(Icons.phone, size: 16),
-                            label: const Text('Call'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF17C47F),
-                              side: const BorderSide(color: Color(0xFF17C47F)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                      if (['assigned', 'in-progress'].contains(status))
-                        const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        BookingTrackingPage(booking: booking),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF17C47F),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text('Track'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+      case 'clinic_confirmed':
+        return BookingCardConfirmedClinic(
+          serviceName: serviceName,
+          patientName: patientName,
+          clinicName: booking['clinicName'] ?? 'Clinic',
+          doctorName: booking['doctorName'] ?? 'Doctor',
+          scheduledTime: scheduledTime,
+          onViewTicket: () => _handleViewTicket(booking),
+          onCancel: () => _handleCancelBooking(booking),
+        );
 
-                // Rate button for completed bookings
-                if (status == 'completed') ...[
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // TODO: Navigate to rating page
-                    },
-                    icon: const Icon(Icons.star, size: 16),
-                    label: const Text('Rate Service'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFF8E1),
-                      foregroundColor: const Color(0xFFF59E0B),
-                      elevation: 0,
-                      minimumSize: const Size(double.infinity, 36),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+      case 'pending':
+      case 'searching':
+        return BookingCardSearching(
+          serviceName: serviceName,
+          patientName: patientName,
+          price: price,
+          scheduledTime: scheduledTime,
+          onCancel: () => _handleCancelBooking(booking),
+        );
 
-  Widget _buildInfoItem(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: Colors.grey[600]),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey[500],
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+      case 'completed':
+        return BookingCardCompleted(
+          serviceName: serviceName,
+          patientName: patientName,
+          providerName:
+              booking['nurseName'] ?? booking['doctorName'] ?? 'Provider',
+          completedDate: scheduledTime,
+          price: price,
+          onRebook: () {
+            // TODO: Implement rebook
+          },
+          onRate: () {
+            // TODO: Implement rate
+          },
+        );
 
-  String _formatDate(String dateStr) {
-    try {
-      final date = DateTime.parse(dateStr);
-      final months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ];
-      return '${date.day} ${months[date.month - 1]}, ${date.year}';
-    } catch (e) {
-      return dateStr;
+      default:
+        // Fallback to confirmed nursing card
+        return BookingCardConfirmedNursing(
+          serviceName: serviceName,
+          patientName: patientName,
+          nurseName: booking['nurseName'] ?? 'Provider',
+          scheduledTime: scheduledTime,
+          onTrackNurse: () => _handleTrackNurse(booking),
+          onCancel: () => _handleCancelBooking(booking),
+        );
     }
   }
 }

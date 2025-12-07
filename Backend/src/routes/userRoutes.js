@@ -42,8 +42,17 @@ router.get("/addresses/:userId", authenticateToken, async (req, res) => {
 router.post("/addresses", authenticateToken, async (req, res) => {
 	try {
 		const User = require("../models/User");
-		const { userId, label, type, street, area, city, state, zipCode, isDefault } =
-			req.body;
+		const {
+			userId,
+			label,
+			type,
+			street,
+			area,
+			city,
+			state,
+			zipCode,
+			isDefault,
+		} = req.body;
 
 		const user = await User.findById(userId);
 		if (!user) {
@@ -67,12 +76,10 @@ router.post("/addresses", authenticateToken, async (req, res) => {
 		});
 
 		await user.save();
-		res
-			.status(201)
-			.json({
-				message: "Address added successfully",
-				addresses: user.addresses,
-			});
+		res.status(201).json({
+			message: "Address added successfully",
+			addresses: user.addresses,
+		});
 	} catch (error) {
 		res.status(500).json({ message: error.message });
 	}
@@ -81,8 +88,17 @@ router.post("/addresses", authenticateToken, async (req, res) => {
 router.put("/addresses/:addressId", authenticateToken, async (req, res) => {
 	try {
 		const User = require("../models/User");
-		const { userId, label, type, street, area, city, state, zipCode, isDefault } =
-			req.body;
+		const {
+			userId,
+			label,
+			type,
+			street,
+			area,
+			city,
+			state,
+			zipCode,
+			isDefault,
+		} = req.body;
 
 		const user = await User.findById(userId);
 		if (!user) {
@@ -149,7 +165,17 @@ router.put("/dependent/:dependentId", authenticateToken, async (req, res) => {
 	try {
 		const User = require("../models/User");
 		const Dependent = require("../models/Dependent");
-		const { fullName, relationship, gender, dateOfBirth, chronicConditions, allergies, mobile, nationalId, birthCertificateId } = req.body;
+		const {
+			fullName,
+			relationship,
+			gender,
+			dateOfBirth,
+			chronicConditions,
+			allergies,
+			mobile,
+			nationalId,
+			birthCertificateId,
+		} = req.body;
 
 		const dependent = await Dependent.findById(req.params.dependentId);
 		if (!dependent) {
@@ -160,28 +186,35 @@ router.put("/dependent/:dependentId", authenticateToken, async (req, res) => {
 		dependent.relationship = relationship || dependent.relationship;
 		dependent.gender = gender || dependent.gender;
 		dependent.dateOfBirth = dateOfBirth || dependent.dateOfBirth;
-		
+
 		// Handle chronic conditions - convert comma-separated string to array if needed
 		if (chronicConditions !== undefined) {
-			if (typeof chronicConditions === 'string') {
-				dependent.chronicConditions = chronicConditions.split(',').map(c => c.trim()).filter(c => c);
+			if (typeof chronicConditions === "string") {
+				dependent.chronicConditions = chronicConditions
+					.split(",")
+					.map((c) => c.trim())
+					.filter((c) => c);
 			} else if (Array.isArray(chronicConditions)) {
 				dependent.chronicConditions = chronicConditions;
 			}
 		}
-		
+
 		// Handle allergies - convert comma-separated string to array if needed
 		if (allergies !== undefined) {
-			if (typeof allergies === 'string') {
-				dependent.allergies = allergies.split(',').map(a => a.trim()).filter(a => a);
+			if (typeof allergies === "string") {
+				dependent.allergies = allergies
+					.split(",")
+					.map((a) => a.trim())
+					.filter((a) => a);
 			} else if (Array.isArray(allergies)) {
 				dependent.allergies = allergies;
 			}
 		}
-		
+
 		if (mobile !== undefined) dependent.mobile = mobile;
 		if (nationalId !== undefined) dependent.nationalId = nationalId;
-		if (birthCertificateId !== undefined) dependent.birthCertificateId = birthCertificateId;
+		if (birthCertificateId !== undefined)
+			dependent.birthCertificateId = birthCertificateId;
 
 		await dependent.save();
 		res.json({ message: "Dependent updated successfully", dependent });

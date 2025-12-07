@@ -449,9 +449,7 @@ class _ProfilePageState extends State<ProfilePage> {
             // Navigate to bookings
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(
-                builder: (context) => const BookingsPage(),
-              ),
+              MaterialPageRoute(builder: (context) => const BookingsPage()),
             );
           }
         },
