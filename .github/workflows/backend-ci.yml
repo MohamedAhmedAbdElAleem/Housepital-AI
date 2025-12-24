@@ -1,0 +1,112 @@
+name: Backend CI/CD Pipeline
+
+# Trigger: Push to main or Pull Request
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+jobs:
+  ci-cd:
+    name: CI/CD Pipeline
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    defaults:
+      run:
+        working-directory: ./Backend
+    
+    steps:
+      # 1. Checkout & Cache
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ./Backend/package-lock.json
+      
+      # 2. Install Dependencies
+      - name: Install dependencies
+        run: npm ci
+      
+      # 3. Static Code Analysis (Linting)
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: false
+      
+      # 4. Security Audit (SCA - Software Composition Analysis)
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: false
+      
+      - name: Run Snyk security scan (optional)
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+          command: test
+      
+      # 5. Unit Testing
+      - name: Run unit tests
+        run: npm run test:unit
+        env:
+          NODE_ENV: test
+      
+      - name: Upload unit test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./Backend/coverage/lcov.info
+          flags: unit-tests
+          name: unit-test-coverage
+        continue-on-error: true
+      
+      # 6. Integration Testing
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          NODE_ENV: test
+      
+      - name: Upload integration test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./Backend/coverage/lcov.info
+          flags: integration-tests
+          name: integration-test-coverage
+        continue-on-error: true
+      
+      # Generate test report
+      - name: Generate test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Test Results - Node ${{ matrix.node-version }}
+          path: ./Backend/coverage/junit.xml
+          reporter: jest-junit
+        continue-on-error: true
+      
+      # Build step (optional, if needed)
+      - name: Build application
+        run: npm run build
+        if: success()
+      
+      # Notification on failure
+      - name: Notify on failure
+        if: failure()
+        run: echo "CI/CD Pipeline failed for Node.js ${{ matrix.node-version }}"
