@@ -26,7 +26,8 @@ module.exports = {
             outputName: 'junit.xml',
         }],
     ],
-    transformIgnorePatterns: [
-        'node_modules/(?!(uuid|date-fns))',
-    ],
+    moduleNameMapper: {
+        '^uuid$': '<rootDir>/__mocks__/uuid.js',
+        '^date-fns$': '<rootDir>/__mocks__/date-fns.js',
+    },
 };
