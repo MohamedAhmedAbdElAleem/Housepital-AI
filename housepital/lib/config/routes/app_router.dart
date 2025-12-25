@@ -11,6 +11,10 @@ import '../../features/auth/presentation/pages/verifying_identity_page.dart';
 import '../../features/auth/presentation/pages/verification_success_page.dart';
 import '../../features/auth/presentation/pages/verify_email_page.dart';
 import '../../features/auth/presentation/pages/verify_otp_page.dart';
+import '../../features/auth/presentation/pages/forgot_password_page.dart';
+import '../../features/auth/presentation/pages/reset_password_otp_page.dart';
+import '../../features/auth/presentation/pages/new_password_page.dart';
+import '../../features/auth/presentation/pages/reset_password_success_page.dart';
 import '../../features/customer/home/presentation/pages/customer_home_page.dart';
 import '../../features/nurse/home/presentation/pages/nurse_home_page.dart';
 import '../../features/doctor/home/presentation/pages/doctor_home_page.dart';
@@ -53,6 +57,24 @@ class AppRouter {
 
       case AppRoutes.verifyOTP:
         return MaterialPageRoute(builder: (_) => const VerifyOTPPage());
+
+      case AppRoutes.forgotPassword:
+        return MaterialPageRoute(builder: (_) => const ForgotPasswordPage());
+
+      case AppRoutes.resetPasswordOtp:
+        final email = settings.arguments as String;
+        return MaterialPageRoute(
+          builder: (_) => ResetPasswordOtpPage(email: email),
+        );
+
+      case AppRoutes.newPassword:
+        final email = settings.arguments as String;
+        return MaterialPageRoute(builder: (_) => NewPasswordPage(email: email));
+
+      case AppRoutes.resetPasswordSuccess:
+        return MaterialPageRoute(
+          builder: (_) => const ResetPasswordSuccessPage(),
+        );
 
       case AppRoutes.customerHome:
         return MaterialPageRoute(builder: (_) => const CustomerHomePage());

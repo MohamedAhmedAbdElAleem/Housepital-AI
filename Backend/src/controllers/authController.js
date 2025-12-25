@@ -90,7 +90,7 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
-        
+
 
         // Convert email to lowercase for case-insensitive comparison
         const emailLowerCase = email.toLowerCase();
@@ -99,49 +99,8 @@ exports.login = async (req, res, next) => {
         const temp_user = await User.findOne({ email });
         if (!temp_user) return res.status(404).json({ message: "User not found" });
 
-        const userLastUpdate = temp_user.updatedAt;
-
-        const cachedUser = await redis.get(emailLowerCase);
-
-        //console.log(cachedUser);
-
-        if (cachedUser && userLastUpdate) {
-            const dbTime = new Date(userLastUpdate).toISOString();
-            const cacheTime = new Date(cachedUser.updatedAt).toISOString();
-
-            console.log(cachedUser.updatedAt);
-            console.log(userLastUpdate);
-            console.log(userLastUpdate == cachedUser.updatedAt);
-            console.log(typeof(cachedUser.updatedAt),typeof(userLastUpdate))
-
-            if (dbTime === cacheTime) {
-                try {
-                    const user = cachedUser;
-                    console.log(`✅ User ${emailLowerCase} fetched from Redis cache`);
-
-                    const token = jwt.sign(
-                        { 
-                            id: user._id,
-                            name: user.name, 
-                            email: user.email,
-                            role: user.role
-                        },
-                        process.env.JWT_SECRET_KEY,
-                        { expiresIn: '3h' }
-                    );
-
-                    return res.status(200).json({
-                        success: true,
-                        message: 'User logged in successfully (from cache)',
-                        response: user,
-                        token
-                    });
-                } catch (err) {
-                    console.error('⚠️ Invalid cache data, deleting...', err);
-                    await redis.del(emailLowerCase);
-                }
-            }
-        }
+        // SECURITY: Always verify password - never skip password check even with cache
+        // Cache is only used for performance, not for authentication bypass
 
         // Find user by email and include password field for comparison
         const user = await User.findOne({ email: emailLowerCase }).select('+password_hash');
@@ -153,11 +112,11 @@ exports.login = async (req, res, next) => {
             });
         }
 
-        // Compare password with stored hash
+        // Compare password with stored hash - THIS MUST ALWAYS HAPPEN
         const isPasswordValid = await user.comparePassword(password);
 
         if (!isPasswordValid) {
-            // Log failed login attempt (don't log password)
+            // Log failed login attempt
             logEvents(
                 `Failed login attempt for: ${email}`,
                 'authLog.log'
@@ -169,7 +128,7 @@ exports.login = async (req, res, next) => {
             });
         }
 
-        
+
 
         // Log successful login
         logEvents(
@@ -184,7 +143,7 @@ exports.login = async (req, res, next) => {
             email: user.email,
             role: user.role
         };
-        const secretKey = process.env.JWT_SECRET_KEY;
+        const secretKey = process.env.JWT_SECRET_KEY || 'housepital_secret_key_2024';
         const options = { expiresIn: '3h' };
 
         const JWTToken = jwt.sign(payload, secretKey, options);
@@ -201,11 +160,11 @@ exports.login = async (req, res, next) => {
             success: true,
             message: 'User logged in successfully',
             user: user.toJSON(),
-            token: JWTToken 
+            token: JWTToken
         });
 
 
-        
+
 
     } catch (error) {
         // Log error
@@ -230,7 +189,7 @@ exports.getCurrentUser = async (req, res, next) => {
     try {
         console.log('📋 getCurrentUser called');
         console.log('👤 req.user:', req.user);
-        
+
         // Assuming middleware sets req.user with userId
         if (!req.user) {
             console.log('❌ No user in request');
