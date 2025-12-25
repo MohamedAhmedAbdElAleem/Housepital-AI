@@ -157,7 +157,7 @@ const getDashboardInsights = async (req, res) => {
         // Format the response
         const insights = {
             timestamp: new Date().toISOString(),
-            
+
             // User Overview
             users: {
                 total: userStats.reduce((acc, s) => acc + s.total, 0),
@@ -281,10 +281,10 @@ const getDashboardInsights = async (req, res) => {
 const getUserInsights = async (req, res) => {
     try {
         const { period = "week" } = req.query;
-        
+
         let startDate;
         const now = new Date();
-        
+
         switch (period) {
             case "day":
                 startDate = new Date(now.setHours(0, 0, 0, 0));
@@ -361,10 +361,10 @@ const getUserInsights = async (req, res) => {
 const getBookingInsights = async (req, res) => {
     try {
         const { period = "week" } = req.query;
-        
+
         let startDate;
         const now = new Date();
-        
+
         switch (period) {
             case "day":
                 startDate = new Date(now.setHours(0, 0, 0, 0));
@@ -475,10 +475,10 @@ const getBookingInsights = async (req, res) => {
 const getFinancialInsights = async (req, res) => {
     try {
         const { period = "month" } = req.query;
-        
+
         let startDate;
         const now = new Date();
-        
+
         switch (period) {
             case "week":
                 startDate = new Date(now.setDate(now.getDate() - 7));
@@ -496,12 +496,12 @@ const getFinancialInsights = async (req, res) => {
         const [revenueTrend, transactionBreakdown, nursePayouts] = await Promise.all([
             // Revenue trend
             Transaction.aggregate([
-                { 
-                    $match: { 
+                {
+                    $match: {
                         createdAt: { $gte: startDate },
                         status: "completed",
                         type: "booking_payment"
-                    } 
+                    }
                 },
                 {
                     $group: {
@@ -563,9 +563,59 @@ const getFinancialInsights = async (req, res) => {
     }
 };
 
+/**
+ * @desc    Get all users (with optional filtering)
+ * @route   GET /api/admin/insights/all-users
+ * @access  Private (Admin only)
+ */
+const getAllUsers = async (req, res) => {
+    try {
+        const { role, status, search } = req.query;
+
+        const query = {};
+
+        // Filter by role
+        if (role && role !== 'all') {
+            query.role = role;
+        }
+
+        // Filter by status
+        if (status && status !== 'all') {
+            query.status = status;
+        }
+
+        // Search by name, email, or mobile
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+                { mobile: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const users = await User.find(query)
+            .select('-password_hash -salt -hashingAlgorithm -costFactor') // Exclude sensitive data
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: users.length,
+            users: users
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching users",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getDashboardInsights,
     getUserInsights,
     getBookingInsights,
-    getFinancialInsights
+    getFinancialInsights,
+    getAllUsers
 };

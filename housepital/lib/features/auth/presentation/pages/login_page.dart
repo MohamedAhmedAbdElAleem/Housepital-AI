@@ -107,6 +107,9 @@ class _LoginPageState extends State<LoginPage>
           if (response.user != null && response.user!.id.isNotEmpty) {
             await TokenManager.saveUserId(response.user!.id);
           }
+          if (response.user != null) {
+            await TokenManager.saveUserRole(response.user!.role);
+          }
 
           // Save Remember Me preference
           await TokenManager.setRememberMe(
@@ -163,6 +166,8 @@ class _LoginPageState extends State<LoginPage>
         return AppRoutes.nurseHome;
       case 'doctor':
         return AppRoutes.doctorHome;
+      case 'admin':
+        return AppRoutes.adminDashboard;
       default:
         return AppRoutes.customerHome;
     }

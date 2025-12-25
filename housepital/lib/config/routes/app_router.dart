@@ -18,6 +18,7 @@ import '../../features/auth/presentation/pages/reset_password_success_page.dart'
 import '../../features/customer/home/presentation/pages/customer_home_page.dart';
 import '../../features/nurse/home/presentation/pages/nurse_home_page.dart';
 import '../../features/doctor/home/presentation/pages/doctor_home_page.dart';
+import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -84,6 +85,9 @@ class AppRouter {
 
       case AppRoutes.doctorHome:
         return MaterialPageRoute(builder: (_) => const DoctorHomePage());
+
+      case AppRoutes.adminDashboard:
+        return MaterialPageRoute(builder: (_) => const AdminDashboardPage());
 
       default:
         return MaterialPageRoute(

@@ -56,8 +56,28 @@ class _SplashPageState extends State<SplashPage>
     // Check if user has a valid token (already logged in)
     final hasToken = await TokenManager.hasToken();
     if (hasToken) {
-      // User is logged in, go to home
-      Navigator.of(context).pushReplacementNamed(AppRoutes.customerHome);
+      // Get user role to navigate to the correct dashboard
+      final role = await TokenManager.getUserRole();
+      String nextRoute = AppRoutes.customerHome; // Default
+
+      if (role != null) {
+        switch (role.toLowerCase()) {
+          case 'customer':
+            nextRoute = AppRoutes.customerHome;
+            break;
+          case 'nurse':
+            nextRoute = AppRoutes.nurseHome;
+            break;
+          case 'doctor':
+            nextRoute = AppRoutes.doctorHome;
+            break;
+          case 'admin':
+            nextRoute = AppRoutes.adminDashboard;
+            break;
+        }
+      }
+
+      Navigator.of(context).pushReplacementNamed(nextRoute);
       return;
     }
 

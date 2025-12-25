@@ -382,6 +382,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   // Clear token and user ID
                   await TokenManager.deleteToken();
                   await TokenManager.deleteUserId();
+                  await TokenManager.deleteUserRole();
                   // Navigate to login
                   if (context.mounted) {
                     Navigator.pushNamedAndRemoveUntil(
