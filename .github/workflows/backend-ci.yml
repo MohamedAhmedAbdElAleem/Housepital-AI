@@ -45,7 +45,7 @@ jobs:
         run: npm ci
       
       
-      # 4. Security Audit (SCA - Software Composition Analysis)
+      # 3. Security Audit (SCA - Software Composition Analysis)
       - name: Run npm audit
         run: npm audit --audit-level=moderate
         continue-on-error: false
@@ -59,7 +59,7 @@ jobs:
           args: --severity-threshold=high
           command: test
       
-      # 5. Unit Testing
+      # 4. Unit Testing
       - name: Run unit tests
         run: npm run test:unit
         env:
@@ -73,7 +73,7 @@ jobs:
           name: unit-test-coverage
         continue-on-error: true
       
-      # 6. Integration Testing
+      # 5. Integration Testing
       - name: Run integration tests
         run: npm run test:integration
         env:
