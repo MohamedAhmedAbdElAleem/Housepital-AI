@@ -79,8 +79,6 @@ exports.register = async (req, res, next) => {
             success: false,
             message: error.message || 'Error registering user'
         });
-
-        next(error);
     }
 };
 
@@ -107,38 +105,43 @@ exports.login = async (req, res, next) => {
 
         //console.log(cachedUser);
 
-        const dbTime = userLastUpdate ? new Date(userLastUpdate).toISOString() : null;
-        const cacheTime = cachedUser?.updatedAt ? new Date(cachedUser.updatedAt).toISOString() : null;
+        if (cachedUser && userLastUpdate) {
+            const dbTime = new Date(userLastUpdate).toISOString();
+            const cacheTime = new Date(cachedUser.updatedAt).toISOString();
 
-        /*console.log(cachedUser.updatedAt);
-        console.log(userLastUpdate);
-        console.log(userLastUpdate == cachedUser.updatedAt);
-        console.log(typeof(cachedUser.updatedAt),typeof(userLastUpdate))*/
+            console.log(cachedUser.updatedAt);
+            console.log(userLastUpdate);
+            console.log(userLastUpdate == cachedUser.updatedAt);
+            console.log(typeof(cachedUser.updatedAt),typeof(userLastUpdate))
 
-        if (cachedUser &&  dbTime === cacheTime) {
-            try {
-                const user = cachedUser;
-                console.log(`✅ User ${emailLowerCase} fetched from Redis cache`);
+            if (dbTime === cacheTime) {
+                try {
+                    const user = cachedUser;
+                    console.log(`✅ User ${emailLowerCase} fetched from Redis cache`);
 
-                const token = jwt.sign(
-                    { name: user.name, email: user.email },
-                    process.env.JWT_SECRET_KEY,
-                    { expiresIn: '3h' }
-                );
+                    const token = jwt.sign(
+                        { 
+                            id: user._id,
+                            name: user.name, 
+                            email: user.email,
+                            role: user.role
+                        },
+                        process.env.JWT_SECRET_KEY,
+                        { expiresIn: '3h' }
+                    );
 
-                return res.status(200).json({
-                    success: true,
-                    message: 'User logged in successfully (from cache)',
-                    response: user,
-                    token
-                });
-            } catch (err) {
-                console.error('⚠️ Invalid cache data, deleting...', err);
-                await redis.del(emailLowerCase);
+                    return res.status(200).json({
+                        success: true,
+                        message: 'User logged in successfully (from cache)',
+                        response: user,
+                        token
+                    });
+                } catch (err) {
+                    console.error('⚠️ Invalid cache data, deleting...', err);
+                    await redis.del(emailLowerCase);
+                }
             }
         }
-
-
 
         // Find user by email and include password field for comparison
         const user = await User.findOne({ email: emailLowerCase }).select('+password_hash');
@@ -175,11 +178,16 @@ exports.login = async (req, res, next) => {
         );
 
 
-        const payload = {name:user.name,email:user.email};
+        const payload = {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        };
         const secretKey = process.env.JWT_SECRET_KEY;
         const options = { expiresIn: '3h' };
 
-        const JWTToken = jwt.sign(payload,secretKey,options);
+        const JWTToken = jwt.sign(payload, secretKey, options);
 
 
 
@@ -210,8 +218,6 @@ exports.login = async (req, res, next) => {
             success: false,
             message: error.message || 'Error logging in'
         });
-
-        next(error);
     }
 };
 
@@ -222,22 +228,37 @@ exports.login = async (req, res, next) => {
  */
 exports.getCurrentUser = async (req, res, next) => {
     try {
+        console.log('📋 getCurrentUser called');
+        console.log('👤 req.user:', req.user);
+        
         // Assuming middleware sets req.user with userId
         if (!req.user) {
+            console.log('❌ No user in request');
             return res.status(401).json({
                 success: false,
                 message: 'Not authenticated'
             });
         }
 
+        console.log('🔍 Finding user by ID:', req.user.id);
         const user = await User.findById(req.user.id);
 
+        if (!user) {
+            console.log('❌ User not found in database');
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        console.log('✅ User found:', user.email);
         res.status(200).json({
             success: true,
-            user
+            user: user.toJSON()
         });
 
     } catch (error) {
+        console.error('❌ Error in getCurrentUser:', error);
         logEvents(
             `Get current user error: ${error.message}`,
             'authErrLog.log'
@@ -247,8 +268,6 @@ exports.getCurrentUser = async (req, res, next) => {
             success: false,
             message: error.message || 'Error getting user'
         });
-
-        next(error);
     }
 };
 
