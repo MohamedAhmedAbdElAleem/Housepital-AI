@@ -58,6 +58,18 @@ const userSchema = new mongoose.Schema(
 			enum: ["customer", "nurse", "doctor", "admin"],
 			default: "customer",
 		},
+		wallet: {
+			type: Number,
+			default: 0,
+		},
+		totalVisits: {
+			type: Number,
+			default: 0,
+		},
+		savedServices: {
+			type: Number,
+			default: 0,
+		},
 		resetOTP: {
 			type: String,
 			select: false,

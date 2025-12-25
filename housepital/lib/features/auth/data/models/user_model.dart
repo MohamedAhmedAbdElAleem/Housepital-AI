@@ -5,6 +5,9 @@ class UserModel {
   final String mobile;
   final bool isVerified;
   final String role;
+  final double wallet;
+  final int totalVisits;
+  final int savedServices;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -15,6 +18,9 @@ class UserModel {
     required this.mobile,
     required this.isVerified,
     required this.role,
+    this.wallet = 0,
+    this.totalVisits = 0,
+    this.savedServices = 0,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -27,6 +33,9 @@ class UserModel {
       mobile: json['mobile'] ?? '',
       isVerified: json['isVerified'] ?? false,
       role: json['role'] ?? 'customer',
+      wallet: (json['wallet'] ?? 0).toDouble(),
+      totalVisits: json['totalVisits'] ?? 0,
+      savedServices: json['savedServices'] ?? 0,
       createdAt:
           json['createdAt'] != null
               ? DateTime.parse(json['createdAt'])
@@ -46,6 +55,9 @@ class UserModel {
       'mobile': mobile,
       'isVerified': isVerified,
       'role': role,
+      'wallet': wallet,
+      'totalVisits': totalVisits,
+      'savedServices': savedServices,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -53,6 +65,6 @@ class UserModel {
 
   @override
   String toString() {
-    return 'UserModel(id: $id, name: $name, email: $email, mobile: $mobile, role: $role)';
+    return 'UserModel(id: $id, name: $name, email: $email, mobile: $mobile, role: $role, wallet: $wallet)';
   }
 }

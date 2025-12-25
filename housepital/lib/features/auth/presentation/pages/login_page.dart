@@ -45,6 +45,21 @@ class _LoginPageState extends State<LoginPage>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
+
+    // Load saved email if Remember Me was enabled
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final rememberMe = await TokenManager.getRememberMe();
+    final savedEmail = await TokenManager.getSavedEmail();
+
+    if (mounted && rememberMe && savedEmail != null) {
+      setState(() {
+        _rememberMe = true;
+        _emailController.text = savedEmail;
+      });
+    }
   }
 
   @override
@@ -92,6 +107,13 @@ class _LoginPageState extends State<LoginPage>
           if (response.user != null && response.user!.id.isNotEmpty) {
             await TokenManager.saveUserId(response.user!.id);
           }
+
+          // Save Remember Me preference
+          await TokenManager.setRememberMe(
+            _rememberMe,
+            email: _rememberMe ? _emailController.text.trim() : null,
+          );
+
           CustomPopup.success(context, response.message);
           if (response.user != null) {
             Navigator.pushNamedAndRemoveUntil(
