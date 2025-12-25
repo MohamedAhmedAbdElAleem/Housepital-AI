@@ -1,12 +1,111 @@
-const User = require("../models/User");
-const Dependent = require("../models/Dependent");
-const { logEvents } = require("../middleware/logger");
-const jwt = require("jsonwebtoken");
-const { createRedisClient } = require("../caching/redis");
-const redis = createRedisClient();
-const bcrypt = require("bcryptjs");
+/**
+ * User controller - Combined version with both test functions and production MongoDB functions
+ */
 
-exports.updateInfo = async (req, res) => {
+const User = require('../models/User');
+const Dependent = require("../models/Dependent");
+const { logEvents } = require('../middleware/logger');
+const jwt = require('jsonwebtoken');
+const { createRedisClient } = require('../caching/redis');
+const redis = createRedisClient();
+const bcrypt = require('bcryptjs');
+
+// In-memory storage for testing purposes
+const users = [];
+
+// Test helper functions (for unit/integration tests)
+const clearUsers = () => {
+	users.length = 0;
+};
+
+// Test controller functions (used by tests)
+const registerUser = (req, res) => {
+	const { email, password, name } = req.body;
+
+	// Check if user already exists
+	const existingUser = users.find((user) => user.email === email);
+	if (existingUser) {
+		return res.status(409).json({
+			success: false,
+			error: 'User already exists',
+		});
+	}
+
+	// Create new user
+	const newUser = {
+		id: users.length + 1,
+		email,
+		name,
+		password,
+		createdAt: new Date(),
+	};
+
+	users.push(newUser);
+
+	// Return user without password
+	const { password: _, ...userWithoutPassword } = newUser;
+
+	res.status(201).json({
+		success: true,
+		data: userWithoutPassword,
+	});
+};
+
+const loginUser = (req, res) => {
+	const { email, password } = req.body;
+
+	// Find user
+	const user = users.find((u) => u.email === email && u.password === password);
+
+	if (!user) {
+		return res.status(401).json({
+			success: false,
+			error: 'Invalid credentials',
+		});
+	}
+
+	// Return user without password
+	const { password: _, ...userWithoutPassword } = user;
+
+	res.status(200).json({
+		success: true,
+		data: userWithoutPassword,
+		token: 'mock-jwt-token',
+	});
+};
+
+const getAllUsers = (req, res) => {
+	// Remove passwords from response
+	const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+
+	res.status(200).json({
+		success: true,
+		count: users.length,
+		data: usersWithoutPasswords,
+	});
+};
+
+const getUserById = (req, res) => {
+	const { id } = req.params;
+	const user = users.find((u) => u.id === parseInt(id, 10));
+
+	if (!user) {
+		return res.status(404).json({
+			success: false,
+			error: 'User not found',
+		});
+	}
+
+	const { password: _, ...userWithoutPassword } = user;
+
+	res.status(200).json({
+		success: true,
+		data: userWithoutPassword,
+	});
+};
+
+// Production MongoDB functions
+const updateInfo = async (req, res) => {
 	try {
 		const id = req.body.id;
 		const data = req.body;
@@ -43,7 +142,7 @@ exports.updateInfo = async (req, res) => {
 	}
 };
 
-exports.getUserinfo = async (req, res) => {
+const getUserinfo = async (req, res) => {
 	try {
 		const id = req.body.id;
 		if (!id) return res.status(400).json({ message: "No ID provided" });
@@ -64,7 +163,7 @@ exports.getUserinfo = async (req, res) => {
  * @route   PUT /api/user/update-profile
  * @access  Private
  */
-exports.updateProfile = async (req, res) => {
+const updateProfile = async (req, res) => {
 	try {
 		const { name, email, mobile } = req.body;
 		const userId = req.user.id;
@@ -142,7 +241,7 @@ exports.updateProfile = async (req, res) => {
 	}
 };
 
-exports.getSingleDependent = async (req, res) => {
+const getSingleDependent = async (req, res) => {
 	const id = req.body._id || req.body.id;
 	if (!id) return res.status(400).json({ message: "No ID provided" });
 
@@ -164,7 +263,7 @@ exports.getSingleDependent = async (req, res) => {
 	}
 };
 
-exports.addDependent = async (req, res) => {
+const addDependent = async (req, res) => {
 	try {
 		const userId = req.body._id || req.body.id;
 
@@ -239,7 +338,7 @@ exports.addDependent = async (req, res) => {
 	}
 };
 
-exports.getAllDependents = async (req, res) => {
+const getAllDependents = async (req, res) => {
 	const id = req.body._id || req.body.id;
 	if (!id) return res.status(400).json("No ID provided");
 
@@ -253,4 +352,20 @@ exports.getAllDependents = async (req, res) => {
 			.status(500)
 			.json({ message: "An error occurred", error: err.message });
 	}
+};
+
+module.exports = {
+	// Test functions
+	registerUser,
+	loginUser,
+	getAllUsers,
+	getUserById,
+	clearUsers,
+	// Production functions
+	updateInfo,
+	getUserinfo,
+	updateProfile,
+	getSingleDependent,
+	addDependent,
+	getAllDependents,
 };

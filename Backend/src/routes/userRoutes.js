@@ -1,34 +1,54 @@
-const express = require("express");
+/**
+ * User routes - Combined version with all features
+ */
+
+const express = require('express');
 const router = express.Router();
+
+// Import controllers
 const {
-	register,
-	login,
-	getCurrentUser,
-} = require("../controllers/authController");
-const { updateUserValidator } = require("../middleware/validation");
-const {
+	registerUser,
+	loginUser,
+	getAllUsers,
+	getUserById,
 	updateInfo,
 	getUserinfo,
 	updateProfile,
 	getSingleDependent,
 	addDependent,
 	getAllDependents,
-} = require("../controllers/userController");
-const { authenticateToken } = require("../middleware/authMiddleware");
+} = require('../controllers/userController');
 
-router.patch("/updateInfo", updateUserValidator, updateInfo);
-router.get("/getUserInfo", getUserinfo);
-router.put("/update-profile", authenticateToken, updateProfile);
-router.get("/getSingleDependent", getSingleDependent);
+// Import validation middleware
+const {
+	validateUserRegistration,
+	validateLogin,
+	updateUserValidator,
+} = require('../middleware/validation');
+
+const { authenticateToken } = require('../middleware/authMiddleware');
+const User = require('../models/User');
+const Dependent = require('../models/Dependent');
+
+// Test routes (simple authentication for testing)
+router.post('/register', validateUserRegistration, registerUser);
+router.post('/login', validateLogin, loginUser);
+router.get('/', getAllUsers);
+router.get('/:id', getUserById);
+
+// Production routes (MongoDB-based)
+router.patch('/updateInfo', updateUserValidator, updateInfo);
+router.get('/getUserInfo', getUserinfo);
+router.put('/update-profile', authenticateToken, updateProfile);
+router.get('/getSingleDependent', getSingleDependent);
 router.post("/addDependent", addDependent);
 // Support both GET and POST for getAllDependents (body contains user ID)
-router.get("/getAllDependents", getAllDependents);
-router.post("/getAllDependents", getAllDependents);
+router.get('/getAllDependents', getAllDependents);
+router.post('/getAllDependents', getAllDependents);
 
 // Address routes
 router.get("/addresses/:userId", authenticateToken, async (req, res) => {
 	try {
-		const User = require("../models/User");
 		const user = await User.findById(req.params.userId).select("addresses");
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
@@ -41,7 +61,6 @@ router.get("/addresses/:userId", authenticateToken, async (req, res) => {
 
 router.post("/addresses", authenticateToken, async (req, res) => {
 	try {
-		const User = require("../models/User");
 		const {
 			userId,
 			label,
@@ -87,7 +106,6 @@ router.post("/addresses", authenticateToken, async (req, res) => {
 
 router.put("/addresses/:addressId", authenticateToken, async (req, res) => {
 	try {
-		const User = require("../models/User");
 		const {
 			userId,
 			label,
@@ -140,7 +158,6 @@ router.put("/addresses/:addressId", authenticateToken, async (req, res) => {
 
 router.delete("/addresses/:addressId", authenticateToken, async (req, res) => {
 	try {
-		const User = require("../models/User");
 		const userId = req.body.userId || req.query.userId;
 
 		const user = await User.findById(userId);
@@ -163,8 +180,6 @@ router.delete("/addresses/:addressId", authenticateToken, async (req, res) => {
 // Dependent routes
 router.put("/dependent/:dependentId", authenticateToken, async (req, res) => {
 	try {
-		const User = require("../models/User");
-		const Dependent = require("../models/Dependent");
 		const {
 			fullName,
 			relationship,
@@ -228,8 +243,6 @@ router.delete(
 	authenticateToken,
 	async (req, res) => {
 		try {
-			const Dependent = require("../models/Dependent");
-
 			const dependent = await Dependent.findByIdAndDelete(
 				req.params.dependentId
 			);

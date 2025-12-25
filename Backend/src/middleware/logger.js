@@ -1,11 +1,10 @@
-// used to log requests that come into the server
+/**
+ * Request logging middleware - Enhanced version with file logging
+ */
+
 const { format } = require('date-fns');
-// to generate unique IDs for each request
 const { v4: uuid } = require('uuid');
-// to write logs to a file
 const fs = require('fs');
-// to use promises with file system operations 
-// , promises are easier to work with using async/await 
 const fsPromises = require('fs').promises;
 const path = require('path');
 
@@ -20,11 +19,19 @@ const logEvents = async (message, logFileName) => {
     } catch (err) {
         console.log(err);
     }
-}
+};
 
 const logger = (req, res, next) => {
+    const timestamp = new Date().toISOString();
+    const { method, url } = req;
+
+    // Log to console
+    console.log(`[${timestamp}] ${method} ${url}`);
+
+    // Log to file
     logEvents(`${req.method}\t${req.url}\t${req.headers.origin}`, 'reqLog.txt');
-    console.log(`${req.method} ${req.path}`);
+
     next();
-}
+};
+
 module.exports = { logger, logEvents };
