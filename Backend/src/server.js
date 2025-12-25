@@ -1,4 +1,5 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -30,6 +31,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/otp", require("./routes/otpRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
 app.use("/api/bookings", require("./routes/bookingRoutes"));
+app.use("/api/admin/insights", require("./routes/insightsRoutes"));
 
 app.use((req, res) => res.status(404).json({ message: "404 Not Found" }));
 

@@ -10,6 +10,13 @@ const dependentSchema = new mongoose.Schema(
       index: true
     },
 
+    // Link to existing user account (for invitation flow - Scenario 4)
+    linkedUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      index: true
+    },
+
     fullName: {
         type: String,
         required: [true, "Full name is required"],
@@ -45,6 +52,13 @@ const dependentSchema = new mongoose.Schema(
         match: [/^01[0125][0-9]{8}$/, "Invalid Egyptian mobile number"],
     },
 
+    address: {
+        street: String,
+        area: String,
+        city: String,
+        state: String
+    },
+
     chronicConditions: {
         type: [String],
         default: []
@@ -65,6 +79,45 @@ const dependentSchema = new mongoose.Schema(
         type: String,
         trim: true,
         match: [/^[0-9]{9,20}$/, "Invalid birth certificate ID"] 
+    },
+
+    // Verification Status
+    idDocumentUrl: {
+        type: String,
+        trim: true
+    },
+
+    verificationStatus: {
+        type: String,
+        enum: ["pending", "approved", "rejected"],
+        default: "pending"
+    },
+
+    approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    },
+
+    approvedAt: {
+        type: Date
+    },
+
+    rejectionReason: {
+        type: String,
+        trim: true
+    },
+
+    // Default Patient Flag
+    isDefault: {
+        type: Boolean,
+        default: false
+    },
+
+    // Permission Level (for linked accounts - Scenario 4)
+    permissionLevel: {
+        type: String,
+        enum: ["view", "book", "full"],
+        default: "full"
     }
 },
 {
@@ -78,5 +131,8 @@ dependentSchema.pre("validate", function(next) {
     }
     next();
 });
+
+// Index for quick lookup
+dependentSchema.index({ responsibleUser: 1, isDefault: 1 });
 
 module.exports = mongoose.model("Dependent",dependentSchema)
