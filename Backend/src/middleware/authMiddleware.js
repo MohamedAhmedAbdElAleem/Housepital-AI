@@ -1,8 +1,29 @@
-
+const jwt = require('jsonwebtoken');
 const { logEvents } = require('./logger');
 
 const authenticateToken = async (req, res, next) => {
     try {
+        // Get token from header
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authenticated'
+            });
+        }
+
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        
+        // Set user info in request
+        req.user = {
+            id: decoded.id,
+            email: decoded.email,
+            role: decoded.role
+        };
+
         next();
     } catch (error) {
         logEvents(
@@ -10,7 +31,21 @@ const authenticateToken = async (req, res, next) => {
             'authErrLog.log'
         );
 
-        res.status(500).json({
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(403).json({
+                success: false,
+                message: 'Invalid token'
+            });
+        }
+
+        if (error.name === 'TokenExpiredError') {
+            return res.status(403).json({
+                success: false,
+                message: 'Token expired'
+            });
+        }
+
+        return res.status(500).json({
             success: false,
             message: 'Authentication error'
         });

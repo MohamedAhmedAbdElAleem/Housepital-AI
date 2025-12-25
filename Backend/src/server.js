@@ -12,20 +12,22 @@ const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
-// CORS configuration
-app.use(cors({
-    origin: '*',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// CORS configuration to allow Flutter app connections
+app.use(
+    cors({
+        origin: "*", // Allow all origins for development
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+    })
+);
 
 // Middleware
 app.use(logger);
 app.use(express.json());
 app.use(cookieParser());
 
-// Health check endpoint
+// Health check endpoint (always available)
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'healthy', timestamp: new Date() });
 });
@@ -45,16 +47,22 @@ if (process.env.NODE_ENV !== 'test') {
         // Additional production routes
         app.use("/api/auth", require("./routes/authRoutes"));
         app.use("/api/otp", require("./routes/otpRoutes"));
+        app.use("/api/bookings", require("./routes/bookingRoutes"));
 
         // MongoDB connection handlers
         mongoose.connection.once("open", () => {
             console.log("Connected to MongoDB");
             const PORT = process.env.PORT || 3500;
-            app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
+            app.listen(PORT, "0.0.0.0", () =>
+                console.log(`Server running on port ${PORT}`)
+            );
         });
 
-        mongoose.connection.on("error", err =>
-            logEvents(`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`, "mongoErrLog.log")
+        mongoose.connection.on("error", (err) =>
+            logEvents(
+                `${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
+                "mongoErrLog.log"
+            )
         );
     } catch (err) {
         console.log("MongoDB setup skipped (test mode or missing dependencies)");

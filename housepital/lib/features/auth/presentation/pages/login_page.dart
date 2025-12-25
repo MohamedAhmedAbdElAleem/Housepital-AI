@@ -4,6 +4,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/network/api_service.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/widgets/custom_popup.dart';
+import '../../../../core/utils/token_manager.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/models/login_request.dart';
@@ -94,8 +95,40 @@ class _LoginPageState extends State<LoginPage> {
 
         if (response.success) {
           print('🎉 Login successful!');
+
+          // Save the token if available
+          if (response.token != null) {
+            await TokenManager.saveToken(response.token!);
+            print('🔑 Token saved successfully');
+          }
+
+          // Save the user ID if available
+          if (response.user != null && response.user!.id.isNotEmpty) {
+            await TokenManager.saveUserId(response.user!.id);
+            print('🆔 User ID saved successfully: ${response.user!.id}');
+          }
+
           CustomPopup.success(context, response.message);
-          // TODO: Navigate to home page
+
+          // Navigate based on user role
+          if (response.user != null) {
+            final role = response.user!.role;
+            print('👤 User role: $role');
+
+            // Navigate and remove all previous routes
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              _getHomeRouteForRole(role),
+              (route) => false,
+            );
+          } else {
+            // Default to customer home if no user data
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              AppRoutes.customerHome,
+              (route) => false,
+            );
+          }
         } else {
           print('❌ Login failed: ${response.message}');
           CustomPopup.error(context, 'Invalid email or password');
@@ -133,6 +166,21 @@ class _LoginPageState extends State<LoginPage> {
         });
         CustomPopup.error(context, 'Something went wrong');
       }
+    }
+  }
+
+  String _getHomeRouteForRole(String role) {
+    switch (role.toLowerCase()) {
+      case 'customer':
+        return AppRoutes.customerHome;
+      case 'nurse':
+        return AppRoutes.nurseHome;
+      case 'doctor':
+        return AppRoutes.doctorHome;
+      case 'admin':
+        return AppRoutes.customerHome; // Or create admin route
+      default:
+        return AppRoutes.customerHome;
     }
   }
 

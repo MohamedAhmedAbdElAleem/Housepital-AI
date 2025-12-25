@@ -3,19 +3,31 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'api_constants.dart';
 import '../error/exceptions.dart';
+import '../utils/token_manager.dart';
 
 class ApiService {
   final http.Client client;
 
   ApiService({http.Client? client}) : client = client ?? http.Client();
 
+  /// Get headers with authentication token
+  Future<Map<String, String>> _getHeaders() async {
+    final headers = Map<String, String>.from(ApiConstants.headers);
+    final token = await TokenManager.getToken();
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    return headers;
+  }
+
   /// GET request
   Future<dynamic> get(String endpoint) async {
     try {
       final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final headers = await _getHeaders();
 
       final response = await client
-          .get(url, headers: ApiConstants.headers)
+          .get(url, headers: headers)
           .timeout(ApiConstants.connectionTimeout);
 
       return _handleResponse(response);
@@ -40,11 +52,12 @@ class ApiService {
   Future<dynamic> post(String endpoint, {Map<String, dynamic>? body}) async {
     try {
       final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final headers = await _getHeaders();
 
       final response = await client
           .post(
             url,
-            headers: ApiConstants.headers,
+            headers: headers,
             body: body != null ? jsonEncode(body) : null,
           )
           .timeout(ApiConstants.connectionTimeout);
@@ -71,11 +84,12 @@ class ApiService {
   Future<dynamic> put(String endpoint, {Map<String, dynamic>? body}) async {
     try {
       final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final headers = await _getHeaders();
 
       final response = await client
           .put(
             url,
-            headers: ApiConstants.headers,
+            headers: headers,
             body: body != null ? jsonEncode(body) : null,
           )
           .timeout(ApiConstants.connectionTimeout);
