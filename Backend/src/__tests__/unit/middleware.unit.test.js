@@ -3,7 +3,7 @@
  */
 
 const errorHandler = require('../../middleware/errorHandler');
-const logger = require('../../middleware/logger');
+const { logger } = require('../../middleware/logger');
 
 describe('Middleware - Unit Tests', () => {
     describe('errorHandler', () => {
@@ -35,6 +35,7 @@ describe('Middleware - Unit Tests', () => {
             expect(mockRes.status).toHaveBeenCalledWith(400);
             expect(mockRes.json).toHaveBeenCalledWith({
                 success: false,
+                message: 'Test error',
                 error: 'Test error',
                 stack: undefined,
             });
@@ -56,6 +57,7 @@ describe('Middleware - Unit Tests', () => {
 
             expect(mockRes.json).toHaveBeenCalledWith({
                 success: false,
+                message: 'Dev error',
                 error: 'Dev error',
                 stack: error.stack,
             });
@@ -81,6 +83,9 @@ describe('Middleware - Unit Tests', () => {
             mockReq = {
                 method: 'GET',
                 url: '/api/test',
+                headers: {
+                    origin: 'http://localhost:3000'
+                }
             };
             mockRes = {};
             mockNext = jest.fn();
