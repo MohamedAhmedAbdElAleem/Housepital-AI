@@ -27,6 +27,6 @@ module.exports = {
         }],
     ],
     transformIgnorePatterns: [
-        'node_modules/(?!(uuid|date-fns)/)',
+        'node_modules/(?!(uuid|date-fns))',
     ],
 };
