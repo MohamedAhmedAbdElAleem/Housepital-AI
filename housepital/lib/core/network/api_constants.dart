@@ -1,10 +1,15 @@
 class ApiConstants {
   // Base URL for the API
+  // For Android Emulator: Use 10.0.2.2 (maps to localhost on your computer)
   // For Physical Device: Use your computer's actual IP address
+<<<<<<< HEAD
   // For Android Emulator: Use 10.0.2.2
   // For Physical Device: Use your computer's actual IP address
   // For Android Emulator: Use 10.0.2.2
   static const String baseUrl = 'http://192.168.1.140:3500';
+=======
+  static const String baseUrl = 'http://10.0.2.2:3500';
+>>>>>>> main
 
   // API Endpoints
   static const String register = '/api/auth/register';
@@ -15,6 +20,7 @@ class ApiConstants {
   static const String otpRequest = '/api/otp/request';
   static const String otpVerify = '/api/otp/verify';
   static const String otpResend = '/api/otp/resend';
+  static const String resetPassword = '/api/otp/reset-password';
 
   // Headers
   static Map<String, String> get headers => {

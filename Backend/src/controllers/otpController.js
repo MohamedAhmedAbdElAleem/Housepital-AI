@@ -355,7 +355,7 @@ const verifyOTP = async (req, res) => {
 
     // Find user
     let user = await User.findOne({ email: contact }).select("+resetOTP +otpExpires +otpAttempts");
-    
+
     if (!user) {
       user = await User.findOne({ mobile: contact }).select("+resetOTP +otpExpires +otpAttempts");
     }
@@ -393,7 +393,7 @@ const verifyOTP = async (req, res) => {
       user.otpExpires = undefined;
       user.otpAttempts = 0;
       await user.save();
-      
+
       return res.status(400).json({
         success: false,
         message: "OTP expired",
@@ -447,7 +447,7 @@ const verifyOTP = async (req, res) => {
 
     // OTP verified successfully
     const verificationToken = `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     user.resetOTP = undefined;
     user.otpExpires = undefined;
     user.otpAttempts = 0;
@@ -494,7 +494,7 @@ const resendOTP = async (req, res) => {
     // Find user
     let user = await User.findOne({ email: contact }).select("+resetOTP +otpExpires +otpAttempts");
     let contactType = "email";
-    
+
     if (!user) {
       user = await User.findOne({ mobile: contact }).select("+resetOTP +otpExpires +otpAttempts");
       contactType = "phone";
@@ -596,22 +596,21 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    // Validate password strength
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(newPassword)) {
+    // Simple password validation - minimum 6 characters
+    if (newPassword.length < 6) {
       return res.status(400).json({
         success: false,
-        message: "Password does not meet requirements",
+        message: "Password too short",
         errors: [
           {
             field: "newPassword",
-            message: "Password must be 8+ chars with uppercase, lowercase, digit, and special char"
+            message: "Password must be at least 6 characters"
           }
         ]
       });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -625,6 +624,17 @@ const resetPassword = async (req, res) => {
     user.otpExpires = undefined;
     user.otpAttempts = 0;
     await user.save();
+    console.log(`✅ Password updated for user: ${email.toLowerCase()}`);
+
+    // Try to clear Redis cache (optional - don't fail if Redis is down)
+    try {
+      const { createRedisClient } = require('../caching/redis');
+      const redis = createRedisClient();
+      await redis.del(email.toLowerCase());
+      console.log(`🗑️ Cleared Redis cache for user: ${email.toLowerCase()}`);
+    } catch (redisErr) {
+      console.log(`⚠️ Redis cache clear failed (optional): ${redisErr.message}`);
+    }
 
     res.status(200).json({
       success: true,

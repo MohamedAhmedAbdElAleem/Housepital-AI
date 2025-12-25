@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
 		password_hash: {
 			type: String,
 			required: [true, "Please provide a password"],
-			minlength: [8, "Password must be at least 8 characters"],
+			minlength: [6, "Password must be at least 6 characters"],
 			select: false, // Don't include password in queries by default
 		},
 		salt: {
@@ -55,8 +55,20 @@ const userSchema = new mongoose.Schema(
 		},
 		role: {
 			type: String,
-			enum: ["customer", "doctor", "admin"],
+			enum: ["customer", "nurse", "doctor", "admin"],
 			default: "customer",
+		},
+		wallet: {
+			type: Number,
+			default: 0,
+		},
+		totalVisits: {
+			type: Number,
+			default: 0,
+		},
+		savedServices: {
+			type: Number,
+			default: 0,
 		},
 		resetOTP: {
 			type: String,

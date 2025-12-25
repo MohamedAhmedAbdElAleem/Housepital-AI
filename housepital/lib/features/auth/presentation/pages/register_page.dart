@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/network/api_service.dart';
@@ -15,7 +16,8 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends State<RegisterPage>
+    with SingleTickerProviderStateMixin {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
@@ -26,9 +28,9 @@ class _RegisterPageState extends State<RegisterPage> {
   final _mobileController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  String _selectedCountryCode = '+20';
 
-  // Initialize repository
+  late AnimationController _animController;
+  late Animation<double> _fadeAnimation;
   late final AuthRepositoryImpl _authRepository;
 
   @override
@@ -37,6 +39,16 @@ class _RegisterPageState extends State<RegisterPage> {
     final apiService = ApiService();
     final remoteDataSource = AuthRemoteDataSourceImpl(apiService: apiService);
     _authRepository = AuthRepositoryImpl(remoteDataSource: remoteDataSource);
+
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+    _animController.forward();
   }
 
   @override
@@ -46,14 +58,12 @@ class _RegisterPageState extends State<RegisterPage> {
     _mobileController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _animController.dispose();
     super.dispose();
   }
 
   Future<void> _handleRegister() async {
-    // Add debug print
-    print('🔵 Register button pressed!');
-
-    // Manual validation with popup messages
+    // Validation
     if (_fullNameController.text.trim().isEmpty) {
       CustomPopup.warning(context, 'Please enter your full name');
       return;
@@ -62,7 +72,6 @@ class _RegisterPageState extends State<RegisterPage> {
       CustomPopup.warning(context, 'Name must be at least 3 characters');
       return;
     }
-
     if (_emailController.text.trim().isEmpty) {
       CustomPopup.warning(context, 'Please enter your email');
       return;
@@ -72,17 +81,18 @@ class _RegisterPageState extends State<RegisterPage> {
       CustomPopup.warning(context, 'Please enter a valid email');
       return;
     }
-
     if (_mobileController.text.trim().isEmpty) {
       CustomPopup.warning(context, 'Please enter your mobile number');
       return;
     }
     final phoneRegex = RegExp(r'^01[0125][0-9]{8}$');
     if (!phoneRegex.hasMatch(_mobileController.text.trim())) {
-      CustomPopup.warning(context, 'Invalid Egyptian mobile number');
+      CustomPopup.warning(
+        context,
+        'Please enter a valid Egyptian mobile (11 digits starting with 01)',
+      );
       return;
     }
-
     if (_passwordController.text.isEmpty) {
       CustomPopup.warning(context, 'Please enter your password');
       return;
@@ -91,7 +101,6 @@ class _RegisterPageState extends State<RegisterPage> {
       CustomPopup.warning(context, 'Password must be at least 6 characters');
       return;
     }
-
     if (_confirmPasswordController.text.isEmpty) {
       CustomPopup.warning(context, 'Please confirm your password');
       return;
@@ -100,49 +109,30 @@ class _RegisterPageState extends State<RegisterPage> {
       CustomPopup.warning(context, 'Passwords do not match');
       return;
     }
-
-    // Check terms agreement
     if (!_agreeToTerms) {
-      print('❌ Terms not agreed');
       CustomPopup.warning(context, 'Please agree to Terms of Service');
       return;
     }
 
-    print('✅ All validation passed');
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    print('🔄 Starting API call...');
+    setState(() => _isLoading = true);
 
     try {
-      // Create register request
       final request = RegisterRequest(
         name: _fullNameController.text.trim(),
         email: _emailController.text.trim(),
-        mobile: _mobileController.text.trim(), // Send without country code
+        mobile: _mobileController.text.trim(),
         password: _passwordController.text,
         confirmPassword: _confirmPasswordController.text,
       );
 
-      print('📤 Sending request: ${request.toString()}');
-
-      // Call API
       final response = await _authRepository.register(request);
 
-      print('📥 Response received: ${response.toString()}');
-
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-
+        setState(() => _isLoading = false);
         if (response.success) {
-          print('🎉 Registration successful!');
           CustomPopup.success(
             context,
-            'Registration successful! Please verify your email',
+            'Registration successful! Verify your email',
           );
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted) {
@@ -153,43 +143,27 @@ class _RegisterPageState extends State<RegisterPage> {
             }
           });
         } else {
-          print('❌ Registration failed: ${response.message}');
-          // Show the actual error message from server
           CustomPopup.error(context, response.message);
         }
       }
     } on ValidationException catch (e) {
-      print('❌ Validation error: ${e.toString()}');
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        // Show the actual validation error
-        CustomPopup.error(context, 'Please check your information');
+        setState(() => _isLoading = false);
+        CustomPopup.error(context, e.message);
       }
-    } on NetworkException catch (e) {
-      print('❌ Network error: ${e.message}');
+    } on NetworkException {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
         CustomPopup.error(context, 'No internet connection');
       }
-    } on ServerException catch (e) {
-      print('❌ Server error: ${e.message}');
+    } on ServerException {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        // Show the actual server error message
+        setState(() => _isLoading = false);
         CustomPopup.error(context, 'Server error. Please try again');
       }
     } catch (e) {
-      print('❌ Unexpected error: ${e.toString()}');
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
         CustomPopup.error(context, 'Something went wrong');
       }
     }
@@ -198,419 +172,293 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // الموجة الخضراء
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: MediaQuery.of(context).size.height * 0.40,
-            child: CustomPaint(painter: SplashWavePainter()),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.primary500,
+              AppColors.primary500.withOpacity(0.8),
+              const Color(0xFF0D9F6E),
+            ],
           ),
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
 
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 5),
+                    // Header
+                    _buildHeader(),
 
-                      // Logo
-                      Image.asset(
-                        'assets/images/WhiteLogo.png',
-                        width: 110,
-                        height: 110,
-                        fit: BoxFit.contain,
-                      ),
+                    const SizedBox(height: 24),
 
-                      const SizedBox(height: 4),
+                    // Register Card
+                    _buildRegisterCard(),
 
-                      // App Name
-                      const Text(
-                        'Housepital',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
+                    const SizedBox(height: 20),
 
-                      const SizedBox(height: 2),
+                    // Login Link
+                    _buildLoginLink(),
 
-                      // Tagline
-                      const Text(
-                        'AI-Powered Home Nursing',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // White Container
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 30,
-                              offset: const Offset(0, 15),
-                              spreadRadius: 5,
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Full Name
-                            _buildTextField(
-                              label: 'Full Name',
-                              hint: 'Enter your full name',
-                              controller: _fullNameController,
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            // Email
-                            _buildTextField(
-                              label: 'Email',
-                              hint: 'You@example.com',
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            // Mobile Number
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Mobile Number',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      width: 70,
-                                      height: 48,
-                                      alignment: Alignment.center,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                          width: 1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: DropdownButtonHideUnderline(
-                                        child: DropdownButton<String>(
-                                          value: _selectedCountryCode,
-                                          isExpanded: true,
-                                          items:
-                                              [
-                                                    '+20',
-                                                    '+1',
-                                                    '+44',
-                                                    '+971',
-                                                    '+966',
-                                                  ]
-                                                  .map(
-                                                    (code) => DropdownMenuItem(
-                                                      value: code,
-                                                      child: Text(
-                                                        code,
-                                                        style: TextStyle(
-                                                          fontSize: 13,
-                                                          color:
-                                                              Colors
-                                                                  .grey
-                                                                  .shade700,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  )
-                                                  .toList(),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _selectedCountryCode = value!;
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: _mobileController,
-                                        keyboardType: TextInputType.phone,
-                                        decoration: InputDecoration(
-                                          hintText: '1012345678',
-                                          hintStyle: TextStyle(
-                                            color: Colors.grey.shade400,
-                                            fontSize: 14,
-                                          ),
-                                          filled: true,
-                                          fillColor: Colors.grey.shade50,
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            borderSide: BorderSide(
-                                              color: Colors.grey.shade300,
-                                              width: 1,
-                                            ),
-                                          ),
-                                          enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            borderSide: BorderSide(
-                                              color: Colors.grey.shade300,
-                                              width: 1,
-                                            ),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            borderSide: BorderSide(
-                                              color: AppColors.primary500,
-                                              width: 2,
-                                            ),
-                                          ),
-                                          errorBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            borderSide: const BorderSide(
-                                              color: Colors.red,
-                                              width: 1,
-                                            ),
-                                          ),
-                                          focusedErrorBorder:
-                                              OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                borderSide: const BorderSide(
-                                                  color: Colors.red,
-                                                  width: 2,
-                                                ),
-                                              ),
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                horizontal: 16,
-                                                vertical: 12,
-                                              ),
-                                          errorStyle: const TextStyle(
-                                            fontSize: 11,
-                                            height: 0.8,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            // Password
-                            _buildPasswordField(
-                              label: 'Password',
-                              hint: 'Enter Your password',
-                              controller: _passwordController,
-                              obscure: _obscurePassword,
-                              onToggle: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            // Confirm Password
-                            _buildPasswordField(
-                              label: 'Confirm Password',
-                              hint: 'Confirm your password',
-                              controller: _confirmPasswordController,
-                              obscure: _obscureConfirmPassword,
-                              onToggle: () {
-                                setState(() {
-                                  _obscureConfirmPassword =
-                                      !_obscureConfirmPassword;
-                                });
-                              },
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            // Terms Checkbox
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Checkbox(
-                                  value: _agreeToTerms,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _agreeToTerms = value ?? false;
-                                    });
-                                  },
-                                  activeColor: AppColors.primary500,
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                                Expanded(
-                                  child: RichText(
-                                    text: TextSpan(
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black87,
-                                      ),
-                                      children: [
-                                        const TextSpan(text: 'I agree to the '),
-                                        TextSpan(
-                                          text: 'terms of Service',
-                                          style: TextStyle(
-                                            color: AppColors.primary500,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        const TextSpan(text: ' and '),
-                                        TextSpan(
-                                          text: 'Privacy Policy.',
-                                          style: TextStyle(
-                                            color: AppColors.primary500,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 12),
-
-                            // Create Account Button
-                            SizedBox(
-                              width: double.infinity,
-                              height: 46,
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleRegister,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary500,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  disabledBackgroundColor: AppColors.primary500
-                                      .withOpacity(0.6),
-                                ),
-                                child:
-                                    _isLoading
-                                        ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                        : const Text(
-                                          'Create Account',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 6),
-
-                            // Login Link
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  'Already has account ?',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(
-                                      context,
-                                    ).pushNamed(AppRoutes.login);
-                                  },
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.only(left: 4),
-                                    minimumSize: const Size(0, 0),
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: Text(
-                                    'Log In',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.primary500,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                  ),
+                    const SizedBox(height: 30),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildHeader() {
+    return Column(
+      children: [
+        // Back Button + Logo Row
+        Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset(
+                'assets/images/WhiteLogo.png',
+                width: 40,
+                height: 40,
+              ),
+            ),
+            const Spacer(),
+            const SizedBox(width: 48), // Balance for back button
+          ],
+        ),
+
+        const SizedBox(height: 20),
+
+        // Title
+        const Text(
+          'Create Account',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        const Text(
+          'Join us for better healthcare',
+          style: TextStyle(fontSize: 16, color: Colors.white70),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRegisterCard() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
+          ),
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            // Full Name
+            _buildInputField(
+              label: 'Full Name',
+              hint: 'Enter your full name',
+              controller: _fullNameController,
+              icon: Icons.person_outline,
+            ),
+
+            const SizedBox(height: 16),
+
+            // Email
+            _buildInputField(
+              label: 'Email Address',
+              hint: 'you@example.com',
+              controller: _emailController,
+              icon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+            ),
+
+            const SizedBox(height: 16),
+
+            // Mobile Number
+            _buildMobileField(),
+
+            const SizedBox(height: 16),
+
+            // Password
+            _buildPasswordField(
+              label: 'Password',
+              hint: 'Create a password',
+              controller: _passwordController,
+              obscure: _obscurePassword,
+              onToggle:
+                  () => setState(() => _obscurePassword = !_obscurePassword),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Confirm Password
+            _buildPasswordField(
+              label: 'Confirm Password',
+              hint: 'Re-enter your password',
+              controller: _confirmPasswordController,
+              obscure: _obscureConfirmPassword,
+              onToggle:
+                  () => setState(
+                    () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                  ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Terms Checkbox
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: _agreeToTerms,
+                    onChanged: (val) => setState(() => _agreeToTerms = val!),
+                    activeColor: AppColors.primary500,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _agreeToTerms = !_agreeToTerms),
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF64748B),
+                        ),
+                        children: [
+                          const TextSpan(text: 'I agree to the '),
+                          TextSpan(
+                            text: 'Terms of Service',
+                            style: TextStyle(
+                              color: AppColors.primary500,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const TextSpan(text: ' and '),
+                          TextSpan(
+                            text: 'Privacy Policy',
+                            style: TextStyle(
+                              color: AppColors.primary500,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Register Button
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _handleRegister,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary500,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  disabledBackgroundColor: AppColors.primary500.withOpacity(
+                    0.6,
+                  ),
+                ),
+                child:
+                    _isLoading
+                        ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                        : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Create Account',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward, size: 20),
+                          ],
+                        ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField({
     required String label,
     required String hint,
     required TextEditingController controller,
+    required IconData icon,
     TextInputType? keyboardType,
-    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -619,45 +467,115 @@ class _RegisterPageState extends State<RegisterPage> {
           label,
           style: const TextStyle(
             fontSize: 14,
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF374151),
           ),
         ),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          validator: validator,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-            filled: true,
-            fillColor: Colors.grey.shade50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            style: const TextStyle(fontSize: 15, color: Color(0xFF1E293B)),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(
+                color: Color(0xFF94A3B8),
+                fontSize: 14,
+              ),
+              prefixIcon: Icon(icon, color: AppColors.primary500, size: 20),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Mobile Number',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF374151),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: TextField(
+            controller: _mobileController,
+            keyboardType: TextInputType.phone,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(11),
+            ],
+            style: const TextStyle(fontSize: 15, color: Color(0xFF1E293B)),
+            decoration: InputDecoration(
+              hintText: '01012345678',
+              hintStyle: const TextStyle(
+                color: Color(0xFF94A3B8),
+                fontSize: 14,
+              ),
+              prefixIcon: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.phone_android,
+                      color: AppColors.primary500,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary500.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '+20',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.primary500,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 0,
+                minHeight: 0,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppColors.primary500, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.red, width: 1),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            errorStyle: const TextStyle(fontSize: 11, height: 0.8),
           ),
         ),
       ],
@@ -670,7 +588,6 @@ class _RegisterPageState extends State<RegisterPage> {
     required TextEditingController controller,
     required bool obscure,
     required VoidCallback onToggle,
-    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -679,192 +596,88 @@ class _RegisterPageState extends State<RegisterPage> {
           label,
           style: const TextStyle(
             fontSize: 14,
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF374151),
           ),
         ),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          obscureText: obscure,
-          validator: validator,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-            filled: true,
-            fillColor: Colors.grey.shade50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppColors.primary500, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.red, width: 1),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            errorStyle: const TextStyle(fontSize: 11, height: 0.8),
-            suffixIcon: IconButton(
-              icon: Icon(
-                obscure
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-                color: Colors.grey.shade600,
-                size: 22,
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: TextField(
+            controller: controller,
+            obscureText: obscure,
+            style: const TextStyle(fontSize: 15, color: Color(0xFF1E293B)),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(
+                color: Color(0xFF94A3B8),
+                fontSize: 14,
               ),
-              onPressed: onToggle,
+              prefixIcon: Icon(
+                Icons.lock_outline,
+                color: AppColors.primary500,
+                size: 20,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  obscure
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: const Color(0xFF94A3B8),
+                  size: 20,
+                ),
+                onPressed: onToggle,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
           ),
         ),
       ],
     );
   }
-}
 
-// Wave Painter
-class SplashWavePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = Path();
-    path.moveTo(0, 0);
-    path.lineTo(size.width, 0);
-    path.lineTo(size.width, size.height * 0.7);
-
-    path.cubicTo(
-      size.width * 0.95,
-      size.height * 0.75,
-      size.width * 0.85,
-      size.height * 0.82,
-      size.width * 0.7,
-      size.height * 0.86,
-    );
-
-    path.cubicTo(
-      size.width * 0.55,
-      size.height * 0.90,
-      size.width * 0.45,
-      size.height * 0.91,
-      size.width * 0.3,
-      size.height * 0.88,
-    );
-
-    path.cubicTo(
-      size.width * 0.2,
-      size.height * 0.86,
-      size.width * 0.1,
-      size.height * 0.78,
-      0,
-      size.height * 0.65,
-    );
-
-    path.close();
-
-    final paint =
-        Paint()
-          ..shader = const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF2ECC71), Color(0xFF27AE60)],
-          ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-          ..style = PaintingStyle.fill;
-
-    canvas.drawPath(path, paint);
-
-    // Border
-    final borderPath = Path();
-    borderPath.moveTo(size.width, size.height * 0.7);
-    borderPath.cubicTo(
-      size.width * 0.95,
-      size.height * 0.75,
-      size.width * 0.85,
-      size.height * 0.82,
-      size.width * 0.7,
-      size.height * 0.86,
-    );
-    borderPath.cubicTo(
-      size.width * 0.55,
-      size.height * 0.90,
-      size.width * 0.45,
-      size.height * 0.91,
-      size.width * 0.3,
-      size.height * 0.88,
-    );
-    borderPath.cubicTo(
-      size.width * 0.2,
-      size.height * 0.86,
-      size.width * 0.1,
-      size.height * 0.78,
-      0,
-      size.height * 0.65,
-    );
-
-    final borderPaint =
-        Paint()
-          ..color = Colors.black.withOpacity(0.5)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5;
-
-    canvas.drawPath(borderPath, borderPaint);
-
-    // Overlay
-    final overlayPath = Path();
-    overlayPath.moveTo(0, size.height * 0.1);
-    overlayPath.cubicTo(
-      size.width * 0.3,
-      size.height * 0.15,
-      size.width * 0.7,
-      size.height * 0.05,
-      size.width,
-      size.height * 0.12,
-    );
-    overlayPath.lineTo(size.width, 0);
-    overlayPath.lineTo(0, 0);
-    overlayPath.close();
-
-    final overlayPaint =
-        Paint()
-          ..color = Colors.white.withOpacity(0.15)
-          ..style = PaintingStyle.fill;
-
-    canvas.drawPath(overlayPath, overlayPaint);
-
-    // Decorative circles
-    final circlePaint =
-        Paint()
-          ..color = Colors.white.withOpacity(0.1)
-          ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(
-      Offset(size.width * 0.85, size.height * 0.15),
-      30,
-      circlePaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.15, size.height * 0.25),
-      20,
-      circlePaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.75, size.height * 0.55),
-      25,
-      circlePaint,
+  Widget _buildLoginLink() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'Already have an account?',
+            style: TextStyle(fontSize: 15, color: Colors.white),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.only(left: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text(
+              'Sign In',
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                decoration: TextDecoration.underline,
+                decorationColor: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

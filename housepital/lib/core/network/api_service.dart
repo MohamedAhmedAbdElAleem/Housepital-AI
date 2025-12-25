@@ -112,6 +112,38 @@ class ApiService {
     }
   }
 
+  /// PATCH request
+  Future<dynamic> patch(String endpoint, {Map<String, dynamic>? body}) async {
+    try {
+      final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final headers = await _getHeaders();
+
+      final response = await client
+          .patch(
+            url,
+            headers: headers,
+            body: body != null ? jsonEncode(body) : null,
+          )
+          .timeout(ApiConstants.connectionTimeout);
+
+      return _handleResponse(response);
+    } on SocketException {
+      throw NetworkException('No internet connection');
+    } on http.ClientException {
+      throw NetworkException('Failed to connect to server');
+    } on UnauthorizedException {
+      rethrow;
+    } on ValidationException {
+      rethrow;
+    } on NetworkException {
+      rethrow;
+    } on ServerException {
+      rethrow;
+    } catch (e) {
+      throw ServerException('Unexpected error: ${e.toString()}');
+    }
+  }
+
   /// DELETE request
   Future<dynamic> delete(String endpoint) async {
     try {

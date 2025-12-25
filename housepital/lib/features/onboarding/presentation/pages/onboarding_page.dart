@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/utils/token_manager.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({Key? key}) : super(key: key);
@@ -45,8 +46,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
   }
 
-  void _navigateToLogin() {
-    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+  Future<void> _navigateToLogin() async {
+    // Mark onboarding as seen so it won't show again
+    await TokenManager.setOnboardingSeen();
+    if (mounted) {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+    }
   }
 
   @override

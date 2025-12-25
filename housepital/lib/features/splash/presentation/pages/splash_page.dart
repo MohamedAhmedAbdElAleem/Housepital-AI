@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/utils/token_manager.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);
@@ -47,12 +48,28 @@ class _SplashPageState extends State<SplashPage>
     _navigateToNext();
   }
 
-  void _navigateToNext() {
-    Timer(const Duration(seconds: 3), () {
-      // TODO: Check if user is logged in or first time
-      // For now, navigate to onboarding
+  Future<void> _navigateToNext() async {
+    await Future.delayed(const Duration(seconds: 3));
+
+    if (!mounted) return;
+
+    // Check if user has a valid token (already logged in)
+    final hasToken = await TokenManager.hasToken();
+    if (hasToken) {
+      // User is logged in, go to home
+      Navigator.of(context).pushReplacementNamed(AppRoutes.customerHome);
+      return;
+    }
+
+    // Check if this is first launch (onboarding not seen yet)
+    final isFirstLaunch = await TokenManager.isFirstLaunch();
+    if (isFirstLaunch) {
+      // First time user, show onboarding
       Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
-    });
+    } else {
+      // Returning user, go directly to login
+      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+    }
   }
 
   @override

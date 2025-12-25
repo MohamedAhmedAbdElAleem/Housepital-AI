@@ -14,6 +14,9 @@ class AppRoutes {
   static const String verifyEmail = '/verify-email';
   static const String verifyOTP = '/verify-otp';
   static const String forgotPassword = '/forgot-password';
+  static const String resetPasswordOtp = '/reset-password-otp';
+  static const String newPassword = '/new-password';
+  static const String resetPasswordSuccess = '/reset-password-success';
 
   // Customer
   static const String customerHome = '/customer/home';
