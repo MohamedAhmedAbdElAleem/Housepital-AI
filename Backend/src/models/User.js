@@ -10,6 +10,17 @@ const userSchema = new mongoose.Schema(
 			minlength: [2, "Name must be at least 2 characters"],
 			maxlength: [50, "Name cannot exceed 50 characters"],
 		},
+		gender: {
+			type: String,
+			enum: ["male", "female"],
+		},
+		dateOfBirth: {
+			type: Date,
+		},
+		profilePictureUrl: {
+			type: String,
+			trim: true,
+		},
 		email: {
 			type: String,
 			required: [true, "Please provide an email"],
@@ -57,6 +68,44 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			enum: ["customer", "nurse", "doctor", "admin"],
 			default: "customer",
+		},
+		// Account Status & Verification
+		status: {
+			type: String,
+			enum: ["pending", "approved", "rejected", "suspended"],
+			default: "pending",
+		},
+		verificationStatus: {
+			type: String,
+			enum: ["unverified", "pending", "verified", "rejected"],
+			default: "unverified",
+		},
+		idDocumentUrl: {
+			type: String,
+			trim: true,
+		},
+		approvedBy: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+		},
+		approvedAt: {
+			type: Date,
+		},
+		rejectionReason: {
+			type: String,
+			trim: true,
+		},
+		// Activity Tracking
+		lastActiveAt: {
+			type: Date,
+			default: Date.now,
+		},
+		isOnline: {
+			type: Boolean,
+			default: false,
+		},
+		profileCompletedAt: {
+			type: Date,
 		},
 		wallet: {
 			type: Number,

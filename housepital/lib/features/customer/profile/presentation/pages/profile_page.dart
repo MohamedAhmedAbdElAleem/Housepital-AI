@@ -148,6 +148,7 @@ class _ProfilePageState extends State<ProfilePage>
     if (confirmed == true && mounted) {
       await TokenManager.deleteToken();
       await TokenManager.deleteUserId();
+      await TokenManager.deleteUserRole();
 
       if (mounted) {
         Navigator.pushAndRemoveUntil(

@@ -64,6 +64,12 @@ dependencies:
   # Utils
   flutter_svg: ^2.0.9
   url_launcher: ^6.2.4
+  
+  # PDF Generation
+  pdf: ^3.10.8
+  printing: ^5.12.0
+  path_provider: ^2.1.2
+  open_file: ^3.3.2
 
 dev_dependencies:
   flutter_test:

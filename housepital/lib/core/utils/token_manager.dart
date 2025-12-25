@@ -4,6 +4,7 @@ import 'dart:convert';
 class TokenManager {
   static const String _tokenKey = 'auth_token';
   static const String _userIdKey = 'user_id';
+  static const String _userRoleKey = 'user_role';
   static const String _rememberMeKey = 'remember_me';
   static const String _savedEmailKey = 'saved_email';
   static const String _onboardingSeenKey = 'onboarding_seen';
@@ -43,6 +44,22 @@ class TokenManager {
   static Future<void> deleteUserId() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userIdKey);
+  }
+
+  // ========== User Role Management ==========
+  static Future<String?> getUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userRoleKey);
+  }
+
+  static Future<void> saveUserRole(String role) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userRoleKey, role);
+  }
+
+  static Future<void> deleteUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_userRoleKey);
   }
 
   // ========== Remember Me ==========
