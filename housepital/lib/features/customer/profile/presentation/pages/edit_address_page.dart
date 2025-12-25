@@ -4,25 +4,48 @@ import '../../../../../core/utils/token_manager.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/widgets/custom_popup.dart';
 
-class AddAddressPage extends StatefulWidget {
-  const AddAddressPage({super.key});
+class EditAddressPage extends StatefulWidget {
+  final Map<String, dynamic> address;
+
+  const EditAddressPage({super.key, required this.address});
 
   @override
-  State<AddAddressPage> createState() => _AddAddressPageState();
+  State<EditAddressPage> createState() => _EditAddressPageState();
 }
 
-class _AddAddressPageState extends State<AddAddressPage> {
+class _EditAddressPageState extends State<EditAddressPage> {
   final _formKey = GlobalKey<FormState>();
-  final _labelController = TextEditingController();
-  final _streetController = TextEditingController();
-  final _areaController = TextEditingController();
-  final _cityController = TextEditingController();
-  final _stateController = TextEditingController();
-  final _zipCodeController = TextEditingController();
+  late TextEditingController _labelController;
+  late TextEditingController _streetController;
+  late TextEditingController _areaController;
+  late TextEditingController _cityController;
+  late TextEditingController _stateController;
+  late TextEditingController _zipCodeController;
 
-  String _selectedType = 'home';
-  bool _isDefault = false;
+  late String _selectedType;
+  late bool _isDefault;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _labelController = TextEditingController(
+      text: widget.address['label'] ?? '',
+    );
+    _streetController = TextEditingController(
+      text: widget.address['street'] ?? '',
+    );
+    _areaController = TextEditingController(text: widget.address['area'] ?? '');
+    _cityController = TextEditingController(text: widget.address['city'] ?? '');
+    _stateController = TextEditingController(
+      text: widget.address['state'] ?? '',
+    );
+    _zipCodeController = TextEditingController(
+      text: widget.address['zipCode'] ?? '',
+    );
+    _selectedType = widget.address['type'] ?? 'home';
+    _isDefault = widget.address['isDefault'] ?? false;
+  }
 
   @override
   void dispose() {
@@ -35,7 +58,7 @@ class _AddAddressPageState extends State<AddAddressPage> {
     super.dispose();
   }
 
-  Future<void> _saveAddress() async {
+  Future<void> _updateAddress() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -50,8 +73,8 @@ class _AddAddressPageState extends State<AddAddressPage> {
       }
 
       final apiService = ApiService();
-      final response = await apiService.post(
-        '/api/user/addresses',
+      final response = await apiService.put(
+        '/api/user/addresses/${widget.address['_id']}',
         body: {
           'userId': userId,
           'label': _labelController.text.trim(),
@@ -68,11 +91,11 @@ class _AddAddressPageState extends State<AddAddressPage> {
       if (mounted) {
         setState(() => _isLoading = false);
         if (response['message'] != null) {
-          CustomPopup.success(context, 'Address added successfully!');
+          CustomPopup.success(context, 'Address updated successfully!');
           await Future.delayed(const Duration(seconds: 1));
           if (mounted) Navigator.pop(context, true);
         } else {
-          CustomPopup.error(context, 'Failed to add address');
+          CustomPopup.error(context, 'Failed to update address');
         }
       }
     } catch (e) {
@@ -103,7 +126,7 @@ class _AddAddressPageState extends State<AddAddressPage> {
           ),
         ),
         title: const Text(
-          'Add New Address',
+          'Edit Address',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
@@ -269,7 +292,7 @@ class _AddAddressPageState extends State<AddAddressPage> {
               ),
             ),
 
-            // Save Button
+            // Update Button
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -287,7 +310,7 @@ class _AddAddressPageState extends State<AddAddressPage> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _saveAddress,
+                    onPressed: _isLoading ? null : _updateAddress,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary500,
                       foregroundColor: Colors.white,
@@ -308,7 +331,7 @@ class _AddAddressPageState extends State<AddAddressPage> {
                               ),
                             )
                             : const Text(
-                              'Save Address',
+                              'Update Address',
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w600,

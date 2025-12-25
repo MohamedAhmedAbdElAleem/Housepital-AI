@@ -5,7 +5,7 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/widgets/custom_popup.dart';
 
 class AddDependentPage extends StatefulWidget {
-  const AddDependentPage({Key? key}) : super(key: key);
+  const AddDependentPage({super.key});
 
   @override
   State<AddDependentPage> createState() => _AddDependentPageState();

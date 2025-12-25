@@ -248,3 +248,92 @@ exports.getAllDependents = async (req, res) => {
 			.json({ message: "An error occurred", error: err.message });
 	}
 };
+
+exports.updateDependent = async (req, res) => {
+	try {
+		const { id, ...updateData } = req.body;
+
+		if (!id) {
+			return res.status(400).json({
+				success: false,
+				message: "Dependent ID is required",
+			});
+		}
+
+		// Handle chronic conditions and allergies arrays
+		if (updateData.chronicConditions && typeof updateData.chronicConditions === "string") {
+			updateData.chronicConditions = updateData.chronicConditions
+				.split(",")
+				.map((c) => c.trim())
+				.filter((c) => c);
+		}
+
+		if (updateData.allergies && typeof updateData.allergies === "string") {
+			updateData.allergies = updateData.allergies
+				.split(",")
+				.map((a) => a.trim())
+				.filter((a) => a);
+		}
+
+		const updatedDependent = await Dependent.findByIdAndUpdate(
+			id,
+			updateData,
+			{ new: true, runValidators: true }
+		);
+
+		if (!updatedDependent) {
+			return res.status(404).json({
+				success: false,
+				message: "Dependent not found",
+			});
+		}
+
+		return res.status(200).json({
+			success: true,
+			message: "Dependent updated successfully",
+			dependent: updatedDependent,
+		});
+	} catch (err) {
+		console.error("Update Dependent Error:", err);
+		return res.status(500).json({
+			success: false,
+			message: "An error occurred",
+			error: err.message,
+		});
+	}
+};
+
+exports.deleteDependent = async (req, res) => {
+	try {
+		const id = req.query.id || req.body.id;
+
+		if (!id) {
+			return res.status(400).json({
+				success: false,
+				message: "Dependent ID is required",
+			});
+		}
+
+		const deletedDependent = await Dependent.findByIdAndDelete(id);
+
+		if (!deletedDependent) {
+			return res.status(404).json({
+				success: false,
+				message: "Dependent not found",
+			});
+		}
+
+		return res.status(200).json({
+			success: true,
+			message: "Dependent deleted successfully",
+		});
+	} catch (err) {
+		console.error("Delete Dependent Error:", err);
+		return res.status(500).json({
+			success: false,
+			message: "An error occurred",
+			error: err.message,
+		});
+	}
+};
+

@@ -6,7 +6,7 @@ import 'add_dependent_page.dart';
 import 'edit_dependent_page.dart';
 
 class FamilyPage extends StatefulWidget {
-  const FamilyPage({Key? key}) : super(key: key);
+  const FamilyPage({super.key});
 
   @override
   State<FamilyPage> createState() => _FamilyPageState();

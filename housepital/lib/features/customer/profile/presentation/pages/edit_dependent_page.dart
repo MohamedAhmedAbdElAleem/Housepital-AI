@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../../../../../core/network/api_service.dart';
+import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/widgets/custom_popup.dart';
 
 class EditDependentPage extends StatefulWidget {
   final Map<String, dynamic> dependent;
 
-  const EditDependentPage({Key? key, required this.dependent})
-    : super(key: key);
+  const EditDependentPage({super.key, required this.dependent});
 
   @override
   State<EditDependentPage> createState() => _EditDependentPageState();
@@ -15,131 +14,79 @@ class EditDependentPage extends StatefulWidget {
 
 class _EditDependentPageState extends State<EditDependentPage> {
   final _formKey = GlobalKey<FormState>();
-  final _fullNameController = TextEditingController();
-  final _chronicController = TextEditingController();
-  final _allergiesController = TextEditingController();
+  late TextEditingController _fullNameController;
+  late TextEditingController _mobileController;
+  late TextEditingController _nationalIdController;
+  late TextEditingController _birthCertificateIdController;
 
+  bool _isLoading = false;
   String? _selectedRelationship;
   String _selectedGender = 'male';
   DateTime? _selectedDate;
-  bool _isSubmitting = false;
-  File? _profileImage;
   List<String> _chronicDiseases = [];
   List<String> _allergies = [];
+
+  final List<String> _relationships = [
+    'Father',
+    'Mother',
+    'Son',
+    'Daughter',
+    'Brother',
+    'Sister',
+    'Spouse',
+    'Grandparent',
+    'Grandchild',
+    'Other',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _fullNameController.text = widget.dependent['fullName'] ?? '';
+    _fullNameController = TextEditingController(
+      text: widget.dependent['fullName'] ?? '',
+    );
+    _mobileController = TextEditingController(
+      text: widget.dependent['mobile'] ?? '',
+    );
+    _nationalIdController = TextEditingController(
+      text: widget.dependent['nationalId'] ?? '',
+    );
+    _birthCertificateIdController = TextEditingController(
+      text: widget.dependent['birthCertificateId'] ?? '',
+    );
+
     _selectedRelationship =
-        widget.dependent['relationship']?.toString().toLowerCase();
+        widget.dependent['relationship'] != null
+            ? _capitalizeFirst(widget.dependent['relationship'])
+            : null;
     _selectedGender = widget.dependent['gender'] ?? 'male';
 
-    // Load chronic conditions
-    if (widget.dependent['chronicConditions'] != null) {
-      if (widget.dependent['chronicConditions'] is List) {
-        _chronicDiseases =
-            List<String>.from(widget.dependent['chronicConditions'])
-                .map((e) => e.toString().trim())
-                .where((e) => e.isNotEmpty && e != '[]')
-                .toList();
-      } else {
-        final conditions = widget.dependent['chronicConditions'].toString();
-        if (conditions.isNotEmpty &&
-            conditions != '[]' &&
-            conditions != 'null') {
-          // Remove brackets if present and split
-          final cleaned = conditions.replaceAll('[', '').replaceAll(']', '');
-          _chronicDiseases =
-              cleaned
-                  .split(',')
-                  .map((e) => e.trim())
-                  .where((e) => e.isNotEmpty)
-                  .toList();
-        }
-      }
-    }
-
-    // Load allergies
-    if (widget.dependent['allergies'] != null) {
-      if (widget.dependent['allergies'] is List) {
-        _allergies =
-            List<String>.from(widget.dependent['allergies'])
-                .map((e) => e.toString().trim())
-                .where((e) => e.isNotEmpty && e != '[]')
-                .toList();
-      } else {
-        final allergies = widget.dependent['allergies'].toString();
-        if (allergies.isNotEmpty && allergies != '[]' && allergies != 'null') {
-          // Remove brackets if present and split
-          final cleaned = allergies.replaceAll('[', '').replaceAll(']', '');
-          _allergies =
-              cleaned
-                  .split(',')
-                  .map((e) => e.trim())
-                  .where((e) => e.isNotEmpty)
-                  .toList();
-        }
-      }
-    }
-
-    if (widget.dependent['dateOfBirth'] != null &&
-        widget.dependent['dateOfBirth'].isNotEmpty) {
+    if (widget.dependent['dateOfBirth'] != null) {
       try {
         _selectedDate = DateTime.parse(widget.dependent['dateOfBirth']);
       } catch (e) {
         _selectedDate = null;
       }
     }
+
+    _chronicDiseases = List<String>.from(
+      widget.dependent['chronicConditions'] ?? [],
+    );
+    _allergies = List<String>.from(widget.dependent['allergies'] ?? []);
+  }
+
+  String _capitalizeFirst(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 
   @override
   void dispose() {
     _fullNameController.dispose();
-    _chronicController.dispose();
-    _allergiesController.dispose();
+    _mobileController.dispose();
+    _nationalIdController.dispose();
+    _birthCertificateIdController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
-    }
-  }
-
-  void _addChronicDisease() {
-    if (_chronicController.text.trim().isNotEmpty) {
-      setState(() {
-        _chronicDiseases.add(_chronicController.text.trim());
-        _chronicController.clear();
-      });
-    }
-  }
-
-  void _removeChronicDisease(int index) {
-    setState(() {
-      _chronicDiseases.removeAt(index);
-    });
-  }
-
-  void _addAllergy() {
-    if (_allergiesController.text.trim().isNotEmpty) {
-      setState(() {
-        _allergies.add(_allergiesController.text.trim());
-        _allergiesController.clear();
-      });
-    }
-  }
-
-  void _removeAllergy(int index) {
-    setState(() {
-      _allergies.removeAt(index);
-    });
   }
 
   Future<void> _pickDate() async {
@@ -152,10 +99,11 @@ class _EditDependentPageState extends State<EditDependentPage> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF17C47F),
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary500,
               onPrimary: Colors.white,
-              onSurface: Color(0xFF1E293B),
+              surface: Colors.white,
+              onSurface: Colors.black,
             ),
           ),
           child: child!,
@@ -163,89 +111,161 @@ class _EditDependentPageState extends State<EditDependentPage> {
       },
     );
     if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
+      setState(() => _selectedDate = picked);
     }
   }
 
+  void _addChronicDisease() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Add Chronic Disease'),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: 'e.g., Diabetes',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  setState(() => _chronicDiseases.add(controller.text.trim()));
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary500,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _addAllergy() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Add Allergy'),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: 'e.g., Penicillin',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  setState(() => _allergies.add(controller.text.trim()));
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary500,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _updateDependent() async {
-    if (!_formKey.currentState!.validate()) {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedRelationship == null) {
+      CustomPopup.warning(context, 'Please select a relationship');
       return;
     }
 
     if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select date of birth'),
-          backgroundColor: Color(0xFFEF4444),
-        ),
+      CustomPopup.warning(context, 'Please select date of birth');
+      return;
+    }
+
+    if (_nationalIdController.text.trim().isEmpty &&
+        _birthCertificateIdController.text.trim().isEmpty) {
+      CustomPopup.warning(
+        context,
+        'Please provide either National ID or Birth Certificate ID',
       );
       return;
     }
 
-    if (_selectedGender.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select gender'),
-          backgroundColor: Color(0xFFEF4444),
-        ),
-      );
-      return;
-    }
-
-    if (_selectedRelationship == null || _selectedRelationship!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select relationship'),
-          backgroundColor: Color(0xFFEF4444),
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final apiService = ApiService();
-      final dependentId = widget.dependent['_id'] ?? widget.dependent['id'];
-
-      final dependentData = {
-        'fullName': _fullNameController.text.trim(),
-        'relationship': _selectedRelationship ?? '',
-        'gender': _selectedGender,
-        'dateOfBirth': _selectedDate!.toIso8601String(),
-        'chronicConditions': _chronicDiseases,
-        'allergies': _allergies,
-      };
-
-      await apiService.put(
-        '/api/user/dependent/$dependentId',
-        body: dependentData,
+      final response = await apiService.put(
+        '/api/user/updateDependent',
+        body: {
+          'id': widget.dependent['_id'],
+          'fullName': _fullNameController.text.trim(),
+          'relationship': _selectedRelationship!.toLowerCase(),
+          'dateOfBirth': _selectedDate!.toIso8601String().substring(0, 10),
+          'gender': _selectedGender,
+          'mobile': _mobileController.text.trim(),
+          'chronicConditions': _chronicDiseases,
+          'allergies': _allergies,
+          'nationalId': _nationalIdController.text.trim(),
+          'birthCertificateId': _birthCertificateIdController.text.trim(),
+        },
       );
 
       if (mounted) {
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Dependent updated successfully'),
-            backgroundColor: Color(0xFF17C47F),
-          ),
-        );
+        setState(() => _isLoading = false);
+        if (response['success'] == true) {
+          CustomPopup.success(context, 'Family member updated successfully!');
+          await Future.delayed(const Duration(seconds: 1));
+          if (mounted) Navigator.pop(context, true);
+        } else {
+          CustomPopup.error(
+            context,
+            response['message'] ?? 'Failed to update member',
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating dependent: ${e.toString()}'),
-            backgroundColor: const Color(0xFFEF4444),
-          ),
-        );
+        setState(() => _isLoading = false);
+        CustomPopup.error(context, 'Error: ${e.toString()}');
       }
     }
   }
@@ -256,21 +276,24 @@ class _EditDependentPageState extends State<EditDependentPage> {
       builder:
           (context) => AlertDialog(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
             ),
-            title: const Text('Delete Dependent'),
-            content: Text(
-              'Are you sure you want to delete ${widget.dependent['fullName']}?',
+            title: const Text('Delete Family Member'),
+            content: const Text(
+              'Are you sure you want to delete this family member? This action cannot be undone.',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: const Text('Cancel'),
               ),
-              TextButton(
+              ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
-                style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFFEF4444),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text('Delete'),
               ),
@@ -280,36 +303,31 @@ class _EditDependentPageState extends State<EditDependentPage> {
 
     if (confirmed != true) return;
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final apiService = ApiService();
-      final dependentId = widget.dependent['_id'] ?? widget.dependent['id'];
-
-      await apiService.delete('/api/user/dependent/$dependentId');
+      final response = await apiService.delete(
+        '/api/user/deleteDependent?id=${widget.dependent['_id']}',
+      );
 
       if (mounted) {
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Dependent deleted successfully'),
-            backgroundColor: Color(0xFF17C47F),
-          ),
-        );
+        setState(() => _isLoading = false);
+        if (response['success'] == true) {
+          CustomPopup.success(context, 'Family member deleted successfully');
+          await Future.delayed(const Duration(seconds: 1));
+          if (mounted) Navigator.pop(context, true);
+        } else {
+          CustomPopup.error(
+            context,
+            response['message'] ?? 'Failed to delete member',
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error deleting dependent: ${e.toString()}'),
-            backgroundColor: const Color(0xFFEF4444),
-          ),
-        );
+        setState(() => _isLoading = false);
+        CustomPopup.error(context, 'Error: ${e.toString()}');
       }
     }
   }
@@ -317,18 +335,40 @@ class _EditDependentPageState extends State<EditDependentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.primary500,
         elevation: 0,
-        title: const Text(
-          'Edit Profile',
-          style: TextStyle(
-            color: Color(0xFF2C3E50),
-            fontWeight: FontWeight.bold,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+            color: Colors.white,
+            onPressed: () => Navigator.pop(context),
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFF2C3E50)),
+        title: const Text(
+          'Edit Family Member',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.delete_outline, size: 22),
+              color: Colors.white,
+              onPressed: _deleteDependent,
+            ),
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -336,393 +376,152 @@ class _EditDependentPageState extends State<EditDependentPage> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(20),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Avatar Section
-                    Center(
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: 96,
-                            height: 96,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF3F4F6),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 4),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child:
-                                _profileImage != null
-                                    ? ClipOval(
-                                      child: Image.file(
-                                        _profileImage!,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )
-                                    : const Icon(
-                                      Icons.person_outline,
-                                      size: 40,
-                                      color: Color(0xFF9CA3AF),
-                                    ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: _pickImage,
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF2ECC71),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  size: 14,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Full Name
-                    _buildLabel('Full Name'),
-                    _buildTextField(_fullNameController, 'E.g., Sarah Ali'),
-                    const SizedBox(height: 20),
-
-                    // Relationship & Gender Row
-                    Row(
+                    // Basic Information Card
+                    _buildCard(
+                      title: 'Basic Information',
+                      icon: Icons.person_outline,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildLabel('Relation'),
-                              DropdownButtonFormField<String>(
-                                value: _selectedRelationship,
-                                decoration: _buildInputDecoration('Select'),
-                                items:
-                                    [
-                                          'Father',
-                                          'Mother',
-                                          'Son',
-                                          'Daughter',
-                                          'Brother',
-                                          'Sister',
-                                          'Grandparent',
-                                          'Grandchild',
-                                          'Spouse',
-                                          'Other',
-                                        ]
-                                        .map(
-                                          (rel) => DropdownMenuItem(
-                                            value: rel.toLowerCase(),
-                                            child: Text(rel),
-                                          ),
-                                        )
-                                        .toList(),
-                                onChanged:
-                                    (val) => setState(
-                                      () => _selectedRelationship = val,
-                                    ),
-                                validator:
-                                    (v) =>
-                                        v == null || v.isEmpty
-                                            ? 'Required'
-                                            : null,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildLabel('Gender'),
-                              DropdownButtonFormField<String>(
-                                value: _selectedGender,
-                                decoration: _buildInputDecoration('Select'),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: 'male',
-                                    child: Text('Male'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'female',
-                                    child: Text('Female'),
-                                  ),
-                                ],
-                                onChanged: (val) {
-                                  setState(() {
-                                    _selectedGender = val ?? 'male';
-                                  });
-                                },
-                                validator:
-                                    (v) =>
-                                        v == null || v.isEmpty
-                                            ? 'Required'
-                                            : null,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Date of Birth
-                    _buildLabel('Date of Birth'),
-                    GestureDetector(
-                      onTap: _pickDate,
-                      child: AbsorbPointer(
-                        child: TextFormField(
-                          decoration: _buildInputDecoration(
-                            _selectedDate != null
-                                ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
-                                : 'Select date',
-                          ),
+                        _buildTextField(
+                          controller: _fullNameController,
+                          label: 'Full Name',
+                          icon: Icons.badge_outlined,
                           validator:
-                              (v) => _selectedDate == null ? 'Required' : null,
+                              (v) => v?.isEmpty ?? true ? 'Required' : null,
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Chronic Diseases
-                    _buildLabel('Chronic Diseases'),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _chronicController,
-                            decoration: _buildInputDecoration('E.g., Diabetes'),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: _addChronicDisease,
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2ECC71),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
+                        const SizedBox(height: 16),
+                        _buildDropdown(),
+                        const SizedBox(height: 16),
+                        _buildGenderSelector(),
+                        const SizedBox(height: 16),
+                        _buildDatePicker(),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _mobileController,
+                          label: 'Mobile Number (Optional)',
+                          icon: Icons.phone_outlined,
+                          keyboardType: TextInputType.phone,
                         ),
                       ],
                     ),
-                    if (_chronicDiseases.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children:
-                            _chronicDiseases
-                                .asMap()
-                                .entries
-                                .map(
-                                  (entry) => Chip(
-                                    label: Text(entry.value),
-                                    deleteIcon: const Icon(
-                                      Icons.close,
-                                      size: 16,
-                                    ),
-                                    onDeleted:
-                                        () => _removeChronicDisease(entry.key),
-                                    backgroundColor: const Color(0xFFFEF2F2),
-                                    labelStyle: const TextStyle(
-                                      color: Color(0xFFEF4444),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    deleteIconColor: const Color(0xFFEF4444),
-                                    side: const BorderSide(
-                                      color: Color(0xFFFECACA),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                      ),
-                    ],
-                    if (_chronicDiseases.isEmpty) ...[
-                      const SizedBox(height: 8),
-                      const Text(
-                        'No chronic diseases listed.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF9CA3AF),
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
+
                     const SizedBox(height: 20),
 
-                    // Known Allergies
-                    _buildLabel('Known Allergies'),
-                    Row(
+                    // Identification Card
+                    _buildCard(
+                      title: 'Identification',
+                      icon: Icons.credit_card_outlined,
                       children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _allergiesController,
-                            decoration: _buildInputDecoration(
-                              'E.g., Penicillin, Peanuts...',
-                            ),
+                        Text(
+                          'Provide at least one ID',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: _addAllergy,
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2ECC71),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
+                        const SizedBox(height: 12),
+                        _buildTextField(
+                          controller: _nationalIdController,
+                          label: 'National ID',
+                          icon: Icons.badge_outlined,
+                          keyboardType: TextInputType.number,
+                          maxLength: 14,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _birthCertificateIdController,
+                          label: 'Birth Certificate ID',
+                          icon: Icons.description_outlined,
+                          keyboardType: TextInputType.number,
+                          maxLength: 20,
                         ),
                       ],
                     ),
-                    if (_allergies.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children:
-                            _allergies
-                                .asMap()
-                                .entries
-                                .map(
-                                  (entry) => Chip(
-                                    label: Text(entry.value),
-                                    deleteIcon: const Icon(
-                                      Icons.close,
-                                      size: 16,
-                                    ),
-                                    onDeleted: () => _removeAllergy(entry.key),
-                                    backgroundColor: const Color(0xFFFEF2F2),
-                                    labelStyle: const TextStyle(
-                                      color: Color(0xFFEF4444),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    deleteIconColor: const Color(0xFFEF4444),
-                                    side: const BorderSide(
-                                      color: Color(0xFFFECACA),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                      ),
-                    ],
-                    if (_allergies.isEmpty) ...[
-                      const SizedBox(height: 8),
-                      const Text(
-                        'No allergies listed.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF9CA3AF),
-                          fontStyle: FontStyle.italic,
+
+                    const SizedBox(height: 20),
+
+                    // Medical Information Card
+                    _buildCard(
+                      title: 'Medical Information',
+                      icon: Icons.medical_information_outlined,
+                      children: [
+                        _buildChipSection(
+                          title: 'Chronic Diseases',
+                          items: _chronicDiseases,
+                          onAdd: _addChronicDisease,
+                          onRemove:
+                              (i) =>
+                                  setState(() => _chronicDiseases.removeAt(i)),
+                          color: Colors.orange,
                         ),
-                      ),
-                    ],
-                    const SizedBox(height: 80),
+                        const SizedBox(height: 20),
+                        _buildChipSection(
+                          title: 'Allergies',
+                          items: _allergies,
+                          onAdd: _addAllergy,
+                          onRemove:
+                              (i) => setState(() => _allergies.removeAt(i)),
+                          color: Colors.red,
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
             ),
 
-            // Bottom Button Section
+            // Update Button
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: const Border(
-                  top: BorderSide(color: Color(0xFFE5E7EB), width: 1),
-                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 15,
-                    offset: const Offset(0, -5),
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
                   ),
                 ],
               ),
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _isSubmitting ? null : _updateDependent,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2ECC71),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        disabledBackgroundColor: const Color(0xFFE5E7EB),
+              child: SafeArea(
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _updateDependent,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary500,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[300],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child:
-                          _isSubmitting
-                              ? const CircularProgressIndicator(
+                      elevation: 0,
+                    ),
+                    child:
+                        _isLoading
+                            ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
                                 color: Colors.white,
-                              )
-                              : const Text(
-                                'Save Profile',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                                strokeWidth: 2.5,
                               ),
-                    ),
+                            )
+                            : const Text(
+                              'Update Family Member',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                   ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _isSubmitting ? null : _deleteDependent,
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.delete, size: 16, color: Color(0xFFEF4444)),
-                        SizedBox(width: 8),
-                        Text(
-                          'Remove Member',
-                          style: TextStyle(
-                            color: Color(0xFFEF4444),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ],
@@ -731,51 +530,284 @@ class _EditDependentPageState extends State<EditDependentPage> {
     );
   }
 
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF374151),
+  Widget _buildCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary500.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: AppColors.primary500, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+    int? maxLength,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLength: maxLength,
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: AppColors.primary500),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        counterText: '',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.primary500, width: 2),
         ),
       ),
     );
   }
 
-  InputDecoration _buildInputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
-      filled: true,
-      fillColor: const Color(0xFFE5E7EB),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
+  Widget _buildDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _selectedRelationship,
+      decoration: InputDecoration(
+        labelText: 'Relationship',
+        prefixIcon: Icon(Icons.family_restroom, color: AppColors.primary500),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.primary500, width: 2),
+        ),
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFF2ECC71), width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
+      items:
+          _relationships
+              .map((rel) => DropdownMenuItem(value: rel, child: Text(rel)))
+              .toList(),
+      onChanged: (val) => setState(() => _selectedRelationship = val),
+    );
+  }
+
+  Widget _buildGenderSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Gender',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[700],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildGenderOption(
+                'Male',
+                'male',
+                Icons.male,
+                Colors.blue,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildGenderOption(
+                'Female',
+                'female',
+                Icons.female,
+                Colors.pink,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenderOption(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    final isSelected = _selectedGender == value;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedGender = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.1) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : const Color(0xFFE2E8F0),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: isSelected ? color : Colors.grey, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? color : Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint) {
-    return TextFormField(
-      controller: controller,
-      decoration: _buildInputDecoration(hint),
-      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+  Widget _buildDatePicker() {
+    return GestureDetector(
+      onTap: _pickDate,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.cake_outlined, color: AppColors.primary500),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _selectedDate == null
+                    ? 'Select Date of Birth'
+                    : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                style: TextStyle(
+                  fontSize: 16,
+                  color:
+                      _selectedDate == null ? Colors.grey[600] : Colors.black,
+                ),
+              ),
+            ),
+            Icon(Icons.calendar_today, size: 18, color: Colors.grey[400]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChipSection({
+    required String title,
+    required List<String> items,
+    required VoidCallback onAdd,
+    required Function(int) onRemove,
+    required Color color,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.add_circle_outline, size: 18),
+              label: const Text('Add'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        items.isEmpty
+            ? Text(
+              'No $title added',
+              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+            )
+            : Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  items.asMap().entries.map((entry) {
+                    return Chip(
+                      label: Text(entry.value),
+                      deleteIcon: const Icon(Icons.close, size: 16),
+                      onDeleted: () => onRemove(entry.key),
+                      backgroundColor: color.withOpacity(0.1),
+                      labelStyle: TextStyle(
+                        color: color.withOpacity(0.9),
+                        fontWeight: FontWeight.w600,
+                      ),
+                      deleteIconColor: color,
+                      side: BorderSide(color: color.withOpacity(0.3)),
+                    );
+                  }).toList(),
+            ),
+      ],
     );
   }
 }

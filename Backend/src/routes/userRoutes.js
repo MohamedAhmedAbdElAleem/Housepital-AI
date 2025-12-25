@@ -13,6 +13,8 @@ const {
 	getSingleDependent,
 	addDependent,
 	getAllDependents,
+	updateDependent,
+	deleteDependent,
 } = require("../controllers/userController");
 const { authenticateToken } = require("../middleware/authMiddleware");
 
@@ -21,6 +23,8 @@ router.get("/getUserInfo", getUserinfo);
 router.put("/update-profile", authenticateToken, updateProfile);
 router.get("/getSingleDependent", getSingleDependent);
 router.post("/addDependent", addDependent);
+router.put("/updateDependent", updateDependent);
+router.delete("/deleteDependent", deleteDependent);
 // Support both GET and POST for getAllDependents (body contains user ID)
 router.get("/getAllDependents", getAllDependents);
 router.post("/getAllDependents", getAllDependents);
@@ -75,7 +79,7 @@ router.post("/addresses", authenticateToken, async (req, res) => {
 			isDefault: isDefault || false,
 		});
 
-		await user.save();
+		await user.save({ validateBeforeSave: false });
 		res.status(201).json({
 			message: "Address added successfully",
 			addresses: user.addresses,
@@ -128,7 +132,7 @@ router.put("/addresses/:addressId", authenticateToken, async (req, res) => {
 		address.zipCode = zipCode || address.zipCode;
 		address.isDefault = isDefault;
 
-		await user.save();
+		await user.save({ validateBeforeSave: false });
 		res.json({
 			message: "Address updated successfully",
 			addresses: user.addresses,
@@ -149,7 +153,7 @@ router.delete("/addresses/:addressId", authenticateToken, async (req, res) => {
 		}
 
 		user.addresses.pull(req.params.addressId);
-		await user.save();
+		await user.save({ validateBeforeSave: false });
 
 		res.json({
 			message: "Address deleted successfully",
