@@ -1,84 +1,59 @@
-# 🏥 Housepital AI Medical Triage - Clinical BERT Training
+# 🏥 Housepital AI Medical Triage System
 
-## Quick Start (Google Colab)
+**92.55% Accuracy | 99.4% Emergency Recall**
 
-### Step 1: Install Dependencies
-```python
-!pip install transformers datasets torch scikit-learn accelerate -q
+## Quick Start
+
+```bash
+# Clone
+git clone https://github.com/iOmarSh/Housepital_Triage.git
+cd Housepital_Triage
+
+# Install
+pip install pandas scikit-learn
+
+# Train (30 seconds)
+python train_final_production.py
 ```
 
-### Step 2: Upload Data
-Upload `generated_symptom_texts_clean.csv` to Colab (use the file upload button)
-
-### Step 3: Upload Training Script
-Upload `train_clinical_bert.py` to Colab
-
-### Step 4: Run Training
-```python
-!python train_clinical_bert.py
-```
-
-Training takes ~30-45 minutes on Colab GPU (T4).
-
----
-
-## Expected Output
-
-```
-🏥 HOUSEPITAL AI - CLINICAL BERT TRIAGE TRAINING
-============================================================
-Model: emilyalsentzer/Bio_ClinicalBERT
-Target: 90%+ accuracy on 4-class classification
-Device: cuda
-
-📊 Loading data...
-   Total samples: 13,439
-
-📊 Class Distribution:
-   Emergency   : 2,316 (17.2%)
-   High        : 2,090 (15.6%)
-   Medium      : 3,855 (28.7%)
-   Low         : 5,178 (38.5%)
-
-✂️ Data Split:
-   Train: 10,751
-   Val:   1,344
-   Test:  1,344
-
-🚀 Starting training...
-[Training progress bars...]
-
-📊 FINAL EVALUATION ON TEST SET
-🎯 ACCURACY: XX.XX%
-🎯 MACRO F1: X.XXXX
-
-✅ TRAINING COMPLETE
-```
-
----
-
-## After Training
-
-1. Download the `triage_model/` folder
-2. Use `inference_clinical_bert.py` for predictions
-
-### Usage:
-```python
-from inference_clinical_bert import TriageClassifier
-
-classifier = TriageClassifier("./triage_model")
-result = classifier.predict("I have severe chest pain")
-print(result['risk_level'])  # "Emergency"
-```
-
----
-
-## Files in This Project
+## Files
 
 | File | Description |
 |------|-------------|
-| `generated_symptom_texts_clean.csv` | Balanced training data (13,439 samples) |
-| `train_clinical_bert.py` | Training script (run on Colab) |
-| `inference_clinical_bert.py` | Production inference |
-| `augment_high_risk_data.py` | Data augmentation script |
-| `triage_model/` | Trained model (created after training) |
+| `generated_symptom_texts_clean.csv` | Original dataset (15K samples) |
+| `fix_labels.py` | Corrects medical labels |
+| `triage_dataset_corrected.csv` | Corrected dataset (10K balanced) |
+| `train_final_production.py` | Training script (RandomForest + Rules) |
+| `triage_production_model.pkl` | Trained model |
+
+## Results
+
+```
+🎯 ACCURACY:         92.55%
+⚠️ EMERGENCY RECALL: 99.40%
+
+Per-class:
+- Emergency: 99.4%
+- High:      81.8%
+- Medium:    89.0%
+- Low:       100%
+```
+
+## Usage
+
+```python
+import pickle
+
+# Load model
+with open('triage_production_model.pkl', 'rb') as f:
+    data = pickle.load(f)
+    vectorizer = data['vectorizer']
+    model = data['model']
+    reverse_map = data['reverse_map']
+
+# Predict
+text = "I have severe chest pain"
+X = vectorizer.transform([text])
+pred = reverse_map[model.predict(X)[0]]
+print(pred)  # "Emergency"
+```
