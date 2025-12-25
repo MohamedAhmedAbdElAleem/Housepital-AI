@@ -83,65 +83,28 @@ class TriageDataset(Dataset):
         }
 
 
-def balance_data_by_oversampling(df, target_per_class=2500):
-    """
-    Balance dataset by OVERSAMPLING minority classes (not removing duplicates).
-    This ensures we have enough High samples.
-    """
-    print("\n📊 Balancing data by oversampling...")
-    
-    balanced_dfs = []
-    
-    for risk_level in ['Emergency', 'High', 'Medium', 'Low']:
-        subset = df[df['risk_level'] == risk_level].copy()
-        original_count = len(subset)
-        
-        if len(subset) < target_per_class:
-            # Oversample to target
-            multiplier = (target_per_class // len(subset)) + 1
-            oversampled = pd.concat([subset] * multiplier, ignore_index=True)
-            oversampled = oversampled.sample(n=target_per_class, random_state=CONFIG['random_seed'])
-            print(f"   {risk_level:12}: {original_count:,} → {len(oversampled):,} (oversampled)")
-            balanced_dfs.append(oversampled)
-        else:
-            # Undersample to target
-            undersampled = subset.sample(n=target_per_class, random_state=CONFIG['random_seed'])
-            print(f"   {risk_level:12}: {original_count:,} → {len(undersampled):,} (undersampled)")
-            balanced_dfs.append(undersampled)
-    
-    balanced = pd.concat(balanced_dfs, ignore_index=True)
-    balanced = balanced.sample(frac=1, random_state=CONFIG['random_seed']).reset_index(drop=True)
-    
-    return balanced
-
-
 def load_and_prepare_data():
     print("\n📊 Loading data...")
     
     df = pd.read_csv(CONFIG['data_path'])
-    print(f"   Raw samples: {len(df):,}")
+    print(f"   Total samples: {len(df):,}")
     
-    # Show original distribution
-    print("\n📊 Original Distribution:")
+    # Show distribution (already balanced)
+    print("\n📊 Class Distribution:")
     for risk, count in df['risk_level'].value_counts().sort_index().items():
         pct = count / len(df) * 100
         print(f"   {risk:12}: {count:5,} ({pct:5.1f}%)")
     
-    # Balance by oversampling
-    df_balanced = balance_data_by_oversampling(df, target_per_class=2500)
-    
-    print(f"\n📊 Balanced Dataset: {len(df_balanced):,} samples")
-    for risk, count in df_balanced['risk_level'].value_counts().sort_index().items():
-        pct = count / len(df_balanced) * 100
-        print(f"   {risk:12}: {count:5,} ({pct:5.1f}%)")
-    
     # Map labels
-    df_balanced['label'] = df_balanced['risk_level'].map(LABEL2ID)
+    df['label'] = df['risk_level'].map(LABEL2ID)
     
-    texts = df_balanced['text'].values
-    labels = df_balanced['label'].values
+    # Shuffle
+    df = df.sample(frac=1, random_state=CONFIG['random_seed']).reset_index(drop=True)
     
-    # Split
+    texts = df['text'].values
+    labels = df['label'].values
+    
+    # Split: 70% train, 15% val, 15% test
     X_temp, X_test, y_temp, y_test = train_test_split(
         texts, labels, 
         test_size=CONFIG['test_size'], 
