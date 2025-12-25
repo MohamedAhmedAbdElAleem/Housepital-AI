@@ -8,6 +8,8 @@ const Service = require("../models/Service");
 const Transaction = require("../models/Transaction");
 const Rating = require("../models/Rating");
 
+const AuditLog = require("../models/audit-logging");
+
 /**
  * @desc    Get comprehensive admin dashboard insights
  * @route   GET /api/admin/insights
@@ -612,10 +614,44 @@ const getAllUsers = async (req, res) => {
     }
 };
 
+/**
+ * @desc    Get system audit logs
+ * @route   GET /api/admin/insights/logs
+ * @access  Private (Admin only)
+ */
+const getAuditLogs = async (req, res) => {
+    try {
+        const { limit = 50, skip = 0 } = req.query;
+
+        const logs = await AuditLog.find()
+            .populate('performedBy', 'name email')
+            .sort({ timestamp: -1 })
+            .limit(parseInt(limit))
+            .skip(parseInt(skip));
+
+        const total = await AuditLog.countDocuments();
+
+        res.status(200).json({
+            success: true,
+            count: logs.length,
+            total,
+            logs
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching audit logs",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getDashboardInsights,
     getUserInsights,
     getBookingInsights,
     getFinancialInsights,
-    getAllUsers
+    getAllUsers,
+    getAuditLogs
 };

@@ -1,0 +1,14 @@
+{
+    "name": "housepital-monorepo",
+    "version": "1.0.0",
+    "description": "Monorepo for Housepital AI with Flutter, React, and Node.js",
+    "scripts": {
+        "backend": "cd Backend && npm run dev",
+        "admin": "cd housepital-admin && npm run dev",
+        "dev": "concurrently \"npm run backend\" \"npm run admin\"",
+        "install:all": "concurrently \"cd Backend && npm install\" \"cd housepital-admin && npm install\""
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

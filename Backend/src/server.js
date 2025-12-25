@@ -32,6 +32,8 @@ app.use("/api/otp", require("./routes/otpRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
 app.use("/api/bookings", require("./routes/bookingRoutes"));
 app.use("/api/admin/insights", require("./routes/insightsRoutes"));
+app.use("/api/admin/powerbi", require("./routes/powerBiRoutes"));
+
 
 app.use((req, res) => res.status(404).json({ message: "404 Not Found" }));
 

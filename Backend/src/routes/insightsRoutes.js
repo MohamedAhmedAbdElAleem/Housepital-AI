@@ -5,7 +5,8 @@ const {
     getUserInsights,
     getBookingInsights,
     getFinancialInsights,
-    getAllUsers
+    getAllUsers,
+    getAuditLogs
 } = require("../controllers/insightsController");
 const { authenticateToken, authorizeRole } = require("../middleware/authMiddleware");
 const User = require("../models/User");
@@ -35,6 +36,13 @@ router.get("/users", getUserInsights);
  * @access  Private (Admin only)
  */
 router.get("/all-users", getAllUsers);
+
+/**
+ * @route   GET /api/admin/insights/logs
+ * @desc    Get system audit logs
+ * @access  Private (Admin only)
+ */
+router.get("/logs", getAuditLogs);
 
 /**
  * @route   GET /api/admin/insights/bookings
