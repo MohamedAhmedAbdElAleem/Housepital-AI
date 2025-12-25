@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
+import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/widgets/custom_popup.dart';
 
 class AddDependentPage extends StatefulWidget {
   const AddDependentPage({Key? key}) : super(key: key);
@@ -14,22 +14,30 @@ class AddDependentPage extends StatefulWidget {
 class _AddDependentPageState extends State<AddDependentPage> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
-  final _relationshipController = TextEditingController();
-  final _dateOfBirthController = TextEditingController();
-  final _genderController = TextEditingController();
   final _mobileController = TextEditingController();
-  final _chronicController = TextEditingController();
-  final _allergiesController = TextEditingController();
   final _nationalIdController = TextEditingController();
   final _birthCertificateIdController = TextEditingController();
 
   bool _isLoading = false;
   String? _selectedRelationship;
+  String _selectedGender = 'male';
   DateTime? _selectedDate;
   String? _userId;
-  File? _profileImage;
-  List<String> _chronicDiseases = [];
-  List<String> _allergies = [];
+  final List<String> _chronicDiseases = [];
+  final List<String> _allergies = [];
+
+  final List<String> _relationships = [
+    'Father',
+    'Mother',
+    'Son',
+    'Daughter',
+    'Brother',
+    'Sister',
+    'Spouse',
+    'Grandparent',
+    'Grandchild',
+    'Other',
+  ];
 
   @override
   void initState() {
@@ -40,158 +48,174 @@ class _AddDependentPageState extends State<AddDependentPage> {
   Future<void> _loadUserId() async {
     _userId = await TokenManager.getUserId();
     if (_userId == null || _userId!.isEmpty) {
-      // Log an error and handle missing user ID
-      debugPrint('Error: User ID is missing or invalid.');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to retrieve user ID. Please try again.'),
-        ),
-      );
-    }
-    setState(() {});
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-        _dateOfBirthController.text = picked.toIso8601String().substring(0, 10);
-      });
+      if (mounted) {
+        CustomPopup.error(
+          context,
+          'Unable to retrieve user ID. Please try again.',
+        );
+      }
     }
   }
 
   @override
   void dispose() {
     _fullNameController.dispose();
-    _relationshipController.dispose();
-    _dateOfBirthController.dispose();
-    _genderController.dispose();
     _mobileController.dispose();
-    _chronicController.dispose();
-    _allergiesController.dispose();
     _nationalIdController.dispose();
     _birthCertificateIdController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().subtract(const Duration(days: 365)),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary500,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
     }
   }
 
   void _addChronicDisease() {
-    if (_chronicController.text.trim().isNotEmpty) {
-      setState(() {
-        _chronicDiseases.add(_chronicController.text.trim());
-        _chronicController.clear();
-      });
-    }
-  }
-
-  void _removeChronicDisease(int index) {
-    setState(() {
-      _chronicDiseases.removeAt(index);
-    });
+    showDialog(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Add Chronic Disease'),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: 'e.g., Diabetes',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  setState(() => _chronicDiseases.add(controller.text.trim()));
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary500,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _addAllergy() {
-    if (_allergiesController.text.trim().isNotEmpty) {
-      setState(() {
-        _allergies.add(_allergiesController.text.trim());
-        _allergiesController.clear();
-      });
-    }
-  }
-
-  void _removeAllergy(int index) {
-    setState(() {
-      _allergies.removeAt(index);
-    });
+    showDialog(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Add Allergy'),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: 'e.g., Penicillin',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  setState(() => _allergies.add(controller.text.trim()));
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary500,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_userId == null || _userId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User ID is missing. Cannot submit the form.'),
-        ),
-      );
+    if (_selectedRelationship == null) {
+      CustomPopup.warning(context, 'Please select a relationship');
       return;
     }
 
-    // Validate relationship
-    if (_selectedRelationship == null || _selectedRelationship!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a relationship'),
-          backgroundColor: Color(0xFFEF4444),
-        ),
-      );
+    if (_selectedDate == null) {
+      CustomPopup.warning(context, 'Please select date of birth');
       return;
     }
 
-    // Validate gender
-    if (_genderController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select gender'),
-          backgroundColor: Color(0xFFEF4444),
-        ),
-      );
-      return;
-    }
-
-    // Validate date of birth
-    if (_dateOfBirthController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select date of birth'),
-          backgroundColor: Color(0xFFEF4444),
-        ),
-      );
-      return;
-    }
-
-    // Validate that at least one ID is provided
     if (_nationalIdController.text.trim().isEmpty &&
         _birthCertificateIdController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please provide either National ID or Birth Certificate ID',
-          ),
-          backgroundColor: Color(0xFFEF4444),
-        ),
+      CustomPopup.warning(
+        context,
+        'Please provide either National ID or Birth Certificate ID',
       );
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
+
     try {
       final apiService = ApiService();
       final response = await apiService.post(
         '/api/user/addDependent',
         body: {
           'fullName': _fullNameController.text.trim(),
-          'relationship': _selectedRelationship ?? '',
-          'dateOfBirth': _dateOfBirthController.text.trim(),
-          'gender': _genderController.text.trim(),
+          'relationship': _selectedRelationship!.toLowerCase(),
+          'dateOfBirth': _selectedDate!.toIso8601String().substring(0, 10),
+          'gender': _selectedGender,
           'mobile': _mobileController.text.trim(),
           'chronicConditions': _chronicDiseases,
           'allergies': _allergies,
@@ -200,43 +224,51 @@ class _AddDependentPageState extends State<AddDependentPage> {
           'responsibleUser': _userId!,
         },
       );
-      setState(() {
-        _isLoading = false;
-      });
-      if (response['success'] == true) {
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['message'] ?? 'Failed to add dependent'),
-          ),
-        );
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+        if (response['success'] == true) {
+          CustomPopup.success(context, 'Family member added successfully!');
+          await Future.delayed(const Duration(seconds: 1));
+          if (mounted) Navigator.pop(context, true);
+        } else {
+          CustomPopup.error(
+            context,
+            response['message'] ?? 'Failed to add member',
+          );
+        }
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        setState(() => _isLoading = false);
+        CustomPopup.error(context, 'Error: ${e.toString()}');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.primary500,
         elevation: 0,
-        title: const Text(
-          'Add Member',
-          style: TextStyle(
-            color: Color(0xFF2C3E50),
-            fontWeight: FontWeight.bold,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+            color: Colors.white,
+            onPressed: () => Navigator.pop(context),
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFF2C3E50)),
+        title: const Text(
+          'Add Family Member',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
       ),
       body: Form(
         key: _formKey,
@@ -244,589 +276,151 @@ class _AddDependentPageState extends State<AddDependentPage> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(20),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Avatar Section
-                    Center(
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: 96,
-                            height: 96,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF3F4F6),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 4),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child:
-                                _profileImage != null
-                                    ? ClipOval(
-                                      child: Image.file(
-                                        _profileImage!,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )
-                                    : const Icon(
-                                      Icons.person_outline,
-                                      size: 40,
-                                      color: Color(0xFF9CA3AF),
-                                    ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: _pickImage,
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF2ECC71),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  size: 14,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Full Name (keep original)
-                    _buildTextField(
-                      _fullNameController,
-                      'Full Name',
-                      Icons.person,
-                    ),
-
-                    // Relationship (keep original)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedRelationship,
-                        decoration: InputDecoration(
-                          labelText: 'Relationship',
-                          prefixIcon: const Icon(
-                            Icons.group,
-                            color: Color(0xFF2ECC71),
-                          ),
-                          filled: true,
-                          fillColor: const Color(0xFFF8F9FA),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE2E8F0),
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE2E8F0),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF2ECC71),
-                            ),
-                          ),
-                        ),
-                        items:
-                            [
-                                  'father',
-                                  'mother',
-                                  'son',
-                                  'daughter',
-                                  'brother',
-                                  'sister',
-                                  'grandparent',
-                                  'grandchild',
-                                  'spouse',
-                                  'other',
-                                ]
-                                .map(
-                                  (rel) => DropdownMenuItem(
-                                    value: rel,
-                                    child: Text(rel),
-                                  ),
-                                )
-                                .toList(),
-                        onChanged:
-                            (val) =>
-                                setState(() => _selectedRelationship = val),
-                        validator:
-                            (v) => v == null || v.isEmpty ? 'Required' : null,
-                      ),
-                    ),
-
-                    // Gender Selection (keep original)
-                    Row(
+                    // Basic Information Card
+                    _buildCard(
+                      title: 'Basic Information',
+                      icon: Icons.person_outline,
                       children: [
-                        const Text(
-                          'Gender:',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        _buildTextField(
+                          controller: _fullNameController,
+                          label: 'Full Name',
+                          icon: Icons.badge_outlined,
+                          validator:
+                              (v) => v?.isEmpty ?? true ? 'Required' : null,
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              GestureDetector(
-                                onTap:
-                                    () => setState(
-                                      () => _genderController.text = 'male',
-                                    ),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        _genderController.text == 'male'
-                                            ? const Color(0xFF2ECC71)
-                                            : const Color(0xFFF8F9FA),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color:
-                                          _genderController.text == 'male'
-                                              ? const Color(0xFF2ECC71)
-                                              : const Color(0xFFE2E8F0),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Male',
-                                    style: TextStyle(
-                                      color:
-                                          _genderController.text == 'male'
-                                              ? Colors.white
-                                              : const Color(0xFF1E293B),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap:
-                                    () => setState(
-                                      () => _genderController.text = 'female',
-                                    ),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        _genderController.text == 'female'
-                                            ? const Color(0xFF2ECC71)
-                                            : const Color(0xFFF8F9FA),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color:
-                                          _genderController.text == 'female'
-                                              ? const Color(0xFF2ECC71)
-                                              : const Color(0xFFE2E8F0),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Female',
-                                    style: TextStyle(
-                                      color:
-                                          _genderController.text == 'female'
-                                              ? Colors.white
-                                              : const Color(0xFF1E293B),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                        const SizedBox(height: 16),
+                        _buildDropdown(),
+                        const SizedBox(height: 16),
+                        _buildGenderSelector(),
+                        const SizedBox(height: 16),
+                        _buildDatePicker(),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _mobileController,
+                          label: 'Mobile Number (Optional)',
+                          icon: Icons.phone_outlined,
+                          keyboardType: TextInputType.phone,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
 
-                    // Date of Birth (keep original)
-                    GestureDetector(
-                      onTap: _pickDate,
-                      child: AbsorbPointer(
-                        child: _buildTextField(
-                          _dateOfBirthController,
-                          'Date of Birth (YYYY-MM-DD)',
-                          Icons.cake,
-                        ),
-                      ),
-                    ),
-
-                    // Mobile (keep original)
-                    _buildTextField(_mobileController, 'Mobile', Icons.phone),
-
-                    // Chronic Diseases - New wireframe style
-                    const Text(
-                      'Chronic Diseases',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF374151),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _chronicController,
-                            decoration: InputDecoration(
-                              hintText: 'E.g., Diabetes',
-                              hintStyle: const TextStyle(
-                                color: Color(0xFF9CA3AF),
-                                fontSize: 16,
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFE5E7EB),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF2ECC71),
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: _addChronicDisease,
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2ECC71),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (_chronicDiseases.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children:
-                            _chronicDiseases
-                                .asMap()
-                                .entries
-                                .map(
-                                  (entry) => Chip(
-                                    label: Text(entry.value),
-                                    deleteIcon: const Icon(
-                                      Icons.close,
-                                      size: 16,
-                                    ),
-                                    onDeleted:
-                                        () => _removeChronicDisease(entry.key),
-                                    backgroundColor: const Color(0xFFFEF2F2),
-                                    labelStyle: const TextStyle(
-                                      color: Color(0xFFEF4444),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    deleteIconColor: const Color(0xFFEF4444),
-                                    side: const BorderSide(
-                                      color: Color(0xFFFECACA),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                      ),
-                    ],
-                    if (_chronicDiseases.isEmpty) ...[
-                      const SizedBox(height: 8),
-                      const Text(
-                        'No chronic diseases listed.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF9CA3AF),
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 20),
 
-                    // Known Allergies - New wireframe style
-                    const Text(
-                      'Known Allergies',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF374151),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
+                    // Identification Card
+                    _buildCard(
+                      title: 'Identification',
+                      icon: Icons.credit_card_outlined,
                       children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _allergiesController,
-                            decoration: InputDecoration(
-                              hintText: 'E.g., Penicillin, Peanuts...',
-                              hintStyle: const TextStyle(
-                                color: Color(0xFF9CA3AF),
-                                fontSize: 16,
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFE5E7EB),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF2ECC71),
-                                  width: 2,
-                                ),
-                              ),
-                            ),
+                        Text(
+                          'Provide at least one ID',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: _addAllergy,
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2ECC71),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
+                        const SizedBox(height: 12),
+                        _buildTextField(
+                          controller: _nationalIdController,
+                          label: 'National ID',
+                          icon: Icons.badge_outlined,
+                          keyboardType: TextInputType.number,
+                          maxLength: 14,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _birthCertificateIdController,
+                          label: 'Birth Certificate ID',
+                          icon: Icons.description_outlined,
+                          keyboardType: TextInputType.number,
+                          maxLength: 20,
                         ),
                       ],
                     ),
-                    if (_allergies.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children:
-                            _allergies
-                                .asMap()
-                                .entries
-                                .map(
-                                  (entry) => Chip(
-                                    label: Text(entry.value),
-                                    deleteIcon: const Icon(
-                                      Icons.close,
-                                      size: 16,
-                                    ),
-                                    onDeleted: () => _removeAllergy(entry.key),
-                                    backgroundColor: const Color(0xFFFEF2F2),
-                                    labelStyle: const TextStyle(
-                                      color: Color(0xFFEF4444),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    deleteIconColor: const Color(0xFFEF4444),
-                                    side: const BorderSide(
-                                      color: Color(0xFFFECACA),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                      ),
-                    ],
-                    if (_allergies.isEmpty) ...[
-                      const SizedBox(height: 8),
-                      const Text(
-                        'No allergies listed.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF9CA3AF),
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 24),
 
-                    // National ID or Birth Certificate ID Section
-                    const Text(
-                      'Identification (One Required)',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF374151),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Please provide either National ID or Birth Certificate ID',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
-                    ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 20),
 
-                    // National ID
-                    TextFormField(
-                      controller: _nationalIdController,
-                      keyboardType: TextInputType.number,
-                      maxLength: 14,
-                      decoration: InputDecoration(
-                        labelText: 'National ID',
-                        hintText: '14 digits',
-                        prefixIcon: const Icon(
-                          Icons.badge,
-                          color: Color(0xFF2ECC71),
+                    // Medical Information Card
+                    _buildCard(
+                      title: 'Medical Information',
+                      icon: Icons.medical_information_outlined,
+                      children: [
+                        _buildChipSection(
+                          title: 'Chronic Diseases',
+                          items: _chronicDiseases,
+                          onAdd: _addChronicDisease,
+                          onRemove:
+                              (i) =>
+                                  setState(() => _chronicDiseases.removeAt(i)),
+                          color: Colors.orange,
                         ),
-                        filled: true,
-                        fillColor: const Color(0xFFE5E7EB),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
+                        const SizedBox(height: 20),
+                        _buildChipSection(
+                          title: 'Allergies',
+                          items: _allergies,
+                          onAdd: _addAllergy,
+                          onRemove:
+                              (i) => setState(() => _allergies.removeAt(i)),
+                          color: Colors.red,
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF2ECC71),
-                            width: 2,
-                          ),
-                        ),
-                        counterText: '',
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
 
-                    // Birth Certificate ID
-                    TextFormField(
-                      controller: _birthCertificateIdController,
-                      keyboardType: TextInputType.number,
-                      maxLength: 20,
-                      decoration: InputDecoration(
-                        labelText: 'Birth Certificate ID',
-                        hintText: '9-20 digits',
-                        prefixIcon: const Icon(
-                          Icons.description,
-                          color: Color(0xFF2ECC71),
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFFE5E7EB),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF2ECC71),
-                            width: 2,
-                          ),
-                        ),
-                        counterText: '',
-                      ),
-                    ),
-                    const SizedBox(height: 80),
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
             ),
 
-            // Bottom Button Section
+            // Submit Button
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: const Border(
-                  top: BorderSide(color: Color(0xFFE5E7EB), width: 1),
-                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 15,
-                    offset: const Offset(0, -5),
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
                   ),
                 ],
               ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2ECC71),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              child: SafeArea(
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary500,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[300],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
                     ),
-                    disabledBackgroundColor: const Color(0xFFE5E7EB),
-                  ),
-                  child:
-                      _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                            'Save Profile',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                    child:
+                        _isLoading
+                            ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                            : const Text(
+                              'Add Family Member',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
+                  ),
                 ),
               ),
             ),
@@ -836,35 +430,284 @@ class _AddDependentPageState extends State<AddDependentPage> {
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label,
-    IconData icon,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(icon, color: const Color(0xFF2ECC71)),
-          filled: true,
-          fillColor: const Color(0xFFF8F9FA),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+  Widget _buildCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary500.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: AppColors.primary500, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: Color(0xFF2ECC71)),
+          const SizedBox(height: 20),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+    int? maxLength,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLength: maxLength,
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: AppColors.primary500),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        counterText: '',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.primary500, width: 2),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _selectedRelationship,
+      decoration: InputDecoration(
+        labelText: 'Relationship',
+        prefixIcon: Icon(Icons.family_restroom, color: AppColors.primary500),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.primary500, width: 2),
+        ),
+      ),
+      items:
+          _relationships
+              .map((rel) => DropdownMenuItem(value: rel, child: Text(rel)))
+              .toList(),
+      onChanged: (val) => setState(() => _selectedRelationship = val),
+    );
+  }
+
+  Widget _buildGenderSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Gender',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[700],
           ),
         ),
-        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildGenderOption(
+                'Male',
+                'male',
+                Icons.male,
+                Colors.blue,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildGenderOption(
+                'Female',
+                'female',
+                Icons.female,
+                Colors.pink,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenderOption(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    final isSelected = _selectedGender == value;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedGender = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.1) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : const Color(0xFFE2E8F0),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: isSelected ? color : Colors.grey, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? color : Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildDatePicker() {
+    return GestureDetector(
+      onTap: _pickDate,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.cake_outlined, color: AppColors.primary500),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _selectedDate == null
+                    ? 'Select Date of Birth'
+                    : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                style: TextStyle(
+                  fontSize: 16,
+                  color:
+                      _selectedDate == null ? Colors.grey[600] : Colors.black,
+                ),
+              ),
+            ),
+            Icon(Icons.calendar_today, size: 18, color: Colors.grey[400]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChipSection({
+    required String title,
+    required List<String> items,
+    required VoidCallback onAdd,
+    required Function(int) onRemove,
+    required Color color,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.add_circle_outline, size: 18),
+              label: const Text('Add'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        items.isEmpty
+            ? Text(
+              'No $title added',
+              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+            )
+            : Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  items.asMap().entries.map((entry) {
+                    return Chip(
+                      label: Text(entry.value),
+                      deleteIcon: const Icon(Icons.close, size: 16),
+                      onDeleted: () => onRemove(entry.key),
+                      backgroundColor: color.withOpacity(0.1),
+                      labelStyle: TextStyle(
+                        color: color.withOpacity(0.9),
+                        fontWeight: FontWeight.w600,
+                      ),
+                      deleteIconColor: color,
+                      side: BorderSide(color: color.withOpacity(0.3)),
+                    );
+                  }).toList(),
+            ),
+      ],
     );
   }
 }

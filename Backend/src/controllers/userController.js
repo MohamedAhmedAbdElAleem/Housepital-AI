@@ -66,55 +66,49 @@ exports.getUserinfo = async (req, res) => {
  */
 exports.updateProfile = async (req, res) => {
 	try {
-		const { name, email, mobile } = req.body;
+		const { name, mobile } = req.body;
 		const userId = req.user.id;
 
-		// Validate inputs
-		if (!name || !email || !mobile) {
+		// Build update object - only include fields that were provided
+		const updateData = {};
+
+		if (name && name.trim()) {
+			updateData.name = name.trim();
+		}
+
+		if (mobile && mobile.trim()) {
+			// Normalize mobile - remove spaces and special chars
+			const normalizedMobile = mobile.trim().replace(/[\s-]/g, '');
+
+			// Check if mobile is already used by another user
+			const existingMobile = await User.findOne({
+				mobile: normalizedMobile,
+				_id: { $ne: userId },
+			});
+
+			if (existingMobile) {
+				return res.status(400).json({
+					success: false,
+					message: "Mobile number is already in use by another account",
+				});
+			}
+
+			updateData.mobile = normalizedMobile;
+		}
+
+		// If nothing to update
+		if (Object.keys(updateData).length === 0) {
 			return res.status(400).json({
 				success: false,
-				message: "Name, email, and mobile are required",
+				message: "No valid fields to update",
 			});
 		}
 
-		// Convert email to lowercase
-		const emailLowerCase = email.toLowerCase();
-
-		// Check if email is already used by another user
-		const existingUser = await User.findOne({
-			email: emailLowerCase,
-			_id: { $ne: userId },
-		});
-
-		if (existingUser) {
-			return res.status(400).json({
-				success: false,
-				message: "Email is already in use by another account",
-			});
-		}
-
-		// Check if mobile is already used by another user
-		const existingMobile = await User.findOne({
-			mobile: mobile,
-			_id: { $ne: userId },
-		});
-
-		if (existingMobile) {
-			return res.status(400).json({
-				success: false,
-				message: "Mobile number is already in use by another account",
-			});
-		}
-
-		// Update user
+		// Update user without validators for partial updates
 		const user = await User.findByIdAndUpdate(
 			userId,
-			{
-				name: name.trim(),
-				email: emailLowerCase,
-				mobile: mobile.trim(),
-			},
-			{ new: true, runValidators: true }
+			{ $set: updateData },
+			{ new: true }
 		);
 
 		if (!user) {

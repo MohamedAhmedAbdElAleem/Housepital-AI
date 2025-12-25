@@ -14,9 +14,10 @@ const authenticateToken = async (req, res, next) => {
             });
         }
 
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-        
+        // Verify token - use same fallback key as authController
+        const secretKey = process.env.JWT_SECRET_KEY || 'housepital_secret_key_2024';
+        const decoded = jwt.verify(token, secretKey);
+
         // Set user info in request
         req.user = {
             id: decoded.id,

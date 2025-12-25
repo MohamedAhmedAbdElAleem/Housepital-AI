@@ -10,7 +10,7 @@ import '../../features/auth/presentation/pages/scan_national_id_page.dart';
 import '../../features/auth/presentation/pages/verifying_identity_page.dart';
 import '../../features/auth/presentation/pages/verification_success_page.dart';
 import '../../features/auth/presentation/pages/verify_email_page.dart';
-import '../../features/auth/presentation/pages/verify_otp_page.dart';
+// import '../../features/auth/presentation/pages/verify_otp_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/reset_password_otp_page.dart';
 import '../../features/auth/presentation/pages/new_password_page.dart';
@@ -56,8 +56,8 @@ class AppRouter {
       case AppRoutes.verifyEmail:
         return MaterialPageRoute(builder: (_) => const VerifyEmailPage());
 
-      case AppRoutes.verifyOTP:
-        return MaterialPageRoute(builder: (_) => const VerifyOTPPage());
+      // case AppRoutes.verifyOTP:
+      //   return MaterialPageRoute(builder: (_) => const VerifyOTPPage());
 
       case AppRoutes.forgotPassword:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordPage());
