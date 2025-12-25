@@ -26,4 +26,7 @@ module.exports = {
             outputName: 'junit.xml',
         }],
     ],
+    transformIgnorePatterns: [
+        'node_modules/(?!(uuid|date-fns)/)',
+    ],
 };
