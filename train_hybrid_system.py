@@ -97,7 +97,7 @@ def clean_dataset():
     """Fix mislabeled samples based on keyword analysis."""
     print("\n📊 STEP 1: Cleaning dataset...")
     
-    df = pd.read_csv('generated_symptom_texts_clean.csv')
+    df = pd.read_csv('Housepital_Triage/generated_symptom_texts_clean.csv')
     print(f"   Original samples: {len(df):,}")
     
     fixes = {'Emergency': 0, 'High': 0, 'Medium': 0, 'Low': 0}
