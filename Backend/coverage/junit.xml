@@ -1,71 +1,105 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="31" failures="0" errors="0" time="12.773">
-  <testsuite name="Validators - Unit Tests" errors="0" failures="0" skipped="0" timestamp="2025-12-25T01:57:23" time="5.643" tests="15">
-    <testcase classname="Validators - Unit Tests isValidEmail should return true for valid email addresses" name="Validators - Unit Tests isValidEmail should return true for valid email addresses" time="0.041">
+<testsuites name="jest tests" tests="47" failures="0" errors="0" time="13.537">
+  <testsuite name="Middleware - Unit Tests" errors="0" failures="0" skipped="0" timestamp="2025-12-25T02:04:23" time="2.659" tests="7">
+    <testcase classname="Middleware - Unit Tests errorHandler should handle errors with status code" name="Middleware - Unit Tests errorHandler should handle errors with status code" time="0.066">
     </testcase>
-    <testcase classname="Validators - Unit Tests isValidEmail should return false for invalid email addresses" name="Validators - Unit Tests isValidEmail should return false for invalid email addresses" time="0.006">
+    <testcase classname="Middleware - Unit Tests errorHandler should default to 500 status code" name="Middleware - Unit Tests errorHandler should default to 500 status code" time="0.003">
+    </testcase>
+    <testcase classname="Middleware - Unit Tests errorHandler should include stack trace in development mode" name="Middleware - Unit Tests errorHandler should include stack trace in development mode" time="0.006">
+    </testcase>
+    <testcase classname="Middleware - Unit Tests errorHandler should log error message" name="Middleware - Unit Tests errorHandler should log error message" time="0.004">
+    </testcase>
+    <testcase classname="Middleware - Unit Tests logger should log request method and URL" name="Middleware - Unit Tests logger should log request method and URL" time="0.005">
+    </testcase>
+    <testcase classname="Middleware - Unit Tests logger should call next middleware" name="Middleware - Unit Tests logger should call next middleware" time="0.003">
+    </testcase>
+    <testcase classname="Middleware - Unit Tests logger should log POST requests" name="Middleware - Unit Tests logger should log POST requests" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="Validators - Unit Tests" errors="0" failures="0" skipped="0" timestamp="2025-12-25T02:04:25" time="0.476" tests="15">
+    <testcase classname="Validators - Unit Tests isValidEmail should return true for valid email addresses" name="Validators - Unit Tests isValidEmail should return true for valid email addresses" time="0.022">
+    </testcase>
+    <testcase classname="Validators - Unit Tests isValidEmail should return false for invalid email addresses" name="Validators - Unit Tests isValidEmail should return false for invalid email addresses" time="0.007">
     </testcase>
     <testcase classname="Validators - Unit Tests isValidEmail should return false for non-string inputs" name="Validators - Unit Tests isValidEmail should return false for non-string inputs" time="0.002">
     </testcase>
-    <testcase classname="Validators - Unit Tests isValidPassword should return true for valid passwords" name="Validators - Unit Tests isValidPassword should return true for valid passwords" time="0.002">
+    <testcase classname="Validators - Unit Tests isValidPassword should return true for valid passwords" name="Validators - Unit Tests isValidPassword should return true for valid passwords" time="0.003">
     </testcase>
-    <testcase classname="Validators - Unit Tests isValidPassword should return false for passwords without uppercase" name="Validators - Unit Tests isValidPassword should return false for passwords without uppercase" time="0.002">
+    <testcase classname="Validators - Unit Tests isValidPassword should return false for passwords without uppercase" name="Validators - Unit Tests isValidPassword should return false for passwords without uppercase" time="0.007">
     </testcase>
-    <testcase classname="Validators - Unit Tests isValidPassword should return false for passwords without lowercase" name="Validators - Unit Tests isValidPassword should return false for passwords without lowercase" time="0.001">
+    <testcase classname="Validators - Unit Tests isValidPassword should return false for passwords without lowercase" name="Validators - Unit Tests isValidPassword should return false for passwords without lowercase" time="0">
     </testcase>
-    <testcase classname="Validators - Unit Tests isValidPassword should return false for passwords without numbers" name="Validators - Unit Tests isValidPassword should return false for passwords without numbers" time="0.002">
+    <testcase classname="Validators - Unit Tests isValidPassword should return false for passwords without numbers" name="Validators - Unit Tests isValidPassword should return false for passwords without numbers" time="0">
     </testcase>
     <testcase classname="Validators - Unit Tests isValidPassword should return false for passwords shorter than 8 characters" name="Validators - Unit Tests isValidPassword should return false for passwords shorter than 8 characters" time="0.001">
     </testcase>
-    <testcase classname="Validators - Unit Tests isValidPassword should return false for invalid input types" name="Validators - Unit Tests isValidPassword should return false for invalid input types" time="0.001">
+    <testcase classname="Validators - Unit Tests isValidPassword should return false for invalid input types" name="Validators - Unit Tests isValidPassword should return false for invalid input types" time="0.013">
     </testcase>
-    <testcase classname="Validators - Unit Tests isValidPhoneNumber should return true for valid phone numbers" name="Validators - Unit Tests isValidPhoneNumber should return true for valid phone numbers" time="0.006">
+    <testcase classname="Validators - Unit Tests isValidPhoneNumber should return true for valid phone numbers" name="Validators - Unit Tests isValidPhoneNumber should return true for valid phone numbers" time="0.002">
     </testcase>
-    <testcase classname="Validators - Unit Tests isValidPhoneNumber should return false for invalid phone numbers" name="Validators - Unit Tests isValidPhoneNumber should return false for invalid phone numbers" time="0.002">
+    <testcase classname="Validators - Unit Tests isValidPhoneNumber should return false for invalid phone numbers" name="Validators - Unit Tests isValidPhoneNumber should return false for invalid phone numbers" time="0.001">
     </testcase>
-    <testcase classname="Validators - Unit Tests sanitizeString should trim whitespace" name="Validators - Unit Tests sanitizeString should trim whitespace" time="0.003">
+    <testcase classname="Validators - Unit Tests sanitizeString should trim whitespace" name="Validators - Unit Tests sanitizeString should trim whitespace" time="0.001">
     </testcase>
-    <testcase classname="Validators - Unit Tests sanitizeString should remove HTML tags" name="Validators - Unit Tests sanitizeString should remove HTML tags" time="0.002">
+    <testcase classname="Validators - Unit Tests sanitizeString should remove HTML tags" name="Validators - Unit Tests sanitizeString should remove HTML tags" time="0">
     </testcase>
-    <testcase classname="Validators - Unit Tests sanitizeString should return empty string for invalid inputs" name="Validators - Unit Tests sanitizeString should return empty string for invalid inputs" time="0.001">
+    <testcase classname="Validators - Unit Tests sanitizeString should return empty string for invalid inputs" name="Validators - Unit Tests sanitizeString should return empty string for invalid inputs" time="0">
     </testcase>
-    <testcase classname="Validators - Unit Tests sanitizeString should handle normal strings" name="Validators - Unit Tests sanitizeString should handle normal strings" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="Middleware - Unit Tests" errors="0" failures="0" skipped="0" timestamp="2025-12-25T01:57:23" time="9.696" tests="7">
-    <testcase classname="Middleware - Unit Tests errorHandler should handle errors with status code" name="Middleware - Unit Tests errorHandler should handle errors with status code" time="0.07">
-    </testcase>
-    <testcase classname="Middleware - Unit Tests errorHandler should default to 500 status code" name="Middleware - Unit Tests errorHandler should default to 500 status code" time="0.004">
-    </testcase>
-    <testcase classname="Middleware - Unit Tests errorHandler should include stack trace in development mode" name="Middleware - Unit Tests errorHandler should include stack trace in development mode" time="0.003">
-    </testcase>
-    <testcase classname="Middleware - Unit Tests errorHandler should log error message" name="Middleware - Unit Tests errorHandler should log error message" time="0.01">
-    </testcase>
-    <testcase classname="Middleware - Unit Tests logger should log request method and URL" name="Middleware - Unit Tests logger should log request method and URL" time="0.004">
-    </testcase>
-    <testcase classname="Middleware - Unit Tests logger should call next middleware" name="Middleware - Unit Tests logger should call next middleware" time="0.006">
-    </testcase>
-    <testcase classname="Middleware - Unit Tests logger should log POST requests" name="Middleware - Unit Tests logger should log POST requests" time="0.002">
+    <testcase classname="Validators - Unit Tests sanitizeString should handle normal strings" name="Validators - Unit Tests sanitizeString should handle normal strings" time="0">
     </testcase>
   </testsuite>
-  <testsuite name="UserController - Unit Tests" errors="0" failures="0" skipped="0" timestamp="2025-12-25T01:57:23" time="11.768" tests="9">
-    <testcase classname="UserController - Unit Tests registerUser should register a new user successfully" name="UserController - Unit Tests registerUser should register a new user successfully" time="0.048">
+  <testsuite name="UserController - Unit Tests" errors="0" failures="0" skipped="0" timestamp="2025-12-25T02:04:23" time="5.943" tests="9">
+    <testcase classname="UserController - Unit Tests registerUser should register a new user successfully" name="UserController - Unit Tests registerUser should register a new user successfully" time="0.029">
     </testcase>
-    <testcase classname="UserController - Unit Tests registerUser should reject duplicate email registration" name="UserController - Unit Tests registerUser should reject duplicate email registration" time="0.009">
+    <testcase classname="UserController - Unit Tests registerUser should reject duplicate email registration" name="UserController - Unit Tests registerUser should reject duplicate email registration" time="0.004">
     </testcase>
-    <testcase classname="UserController - Unit Tests loginUser should login with valid credentials" name="UserController - Unit Tests loginUser should login with valid credentials" time="0.01">
+    <testcase classname="UserController - Unit Tests loginUser should login with valid credentials" name="UserController - Unit Tests loginUser should login with valid credentials" time="0.003">
     </testcase>
-    <testcase classname="UserController - Unit Tests loginUser should reject invalid credentials" name="UserController - Unit Tests loginUser should reject invalid credentials" time="0.007">
+    <testcase classname="UserController - Unit Tests loginUser should reject invalid credentials" name="UserController - Unit Tests loginUser should reject invalid credentials" time="0.002">
     </testcase>
-    <testcase classname="UserController - Unit Tests loginUser should reject non-existent user" name="UserController - Unit Tests loginUser should reject non-existent user" time="0.005">
+    <testcase classname="UserController - Unit Tests loginUser should reject non-existent user" name="UserController - Unit Tests loginUser should reject non-existent user" time="0.002">
     </testcase>
-    <testcase classname="UserController - Unit Tests getAllUsers should return empty array when no users" name="UserController - Unit Tests getAllUsers should return empty array when no users" time="0.005">
+    <testcase classname="UserController - Unit Tests getAllUsers should return empty array when no users" name="UserController - Unit Tests getAllUsers should return empty array when no users" time="0.002">
     </testcase>
-    <testcase classname="UserController - Unit Tests getAllUsers should return all users without passwords" name="UserController - Unit Tests getAllUsers should return all users without passwords" time="0.01">
+    <testcase classname="UserController - Unit Tests getAllUsers should return all users without passwords" name="UserController - Unit Tests getAllUsers should return all users without passwords" time="0.007">
     </testcase>
-    <testcase classname="UserController - Unit Tests getUserById should return user by id" name="UserController - Unit Tests getUserById should return user by id" time="0.007">
+    <testcase classname="UserController - Unit Tests getUserById should return user by id" name="UserController - Unit Tests getUserById should return user by id" time="0.002">
     </testcase>
-    <testcase classname="UserController - Unit Tests getUserById should return 404 for non-existent user" name="UserController - Unit Tests getUserById should return 404 for non-existent user" time="0.005">
+    <testcase classname="UserController - Unit Tests getUserById should return 404 for non-existent user" name="UserController - Unit Tests getUserById should return 404 for non-existent user" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="User API - Integration Tests" errors="0" failures="0" skipped="0" timestamp="2025-12-25T02:04:23" time="11.631" tests="16">
+    <testcase classname="User API - Integration Tests GET /health should return health status" name="User API - Integration Tests GET /health should return health status" time="0.166">
+    </testcase>
+    <testcase classname="User API - Integration Tests POST /api/users/register should register a new user successfully" name="User API - Integration Tests POST /api/users/register should register a new user successfully" time="0.067">
+    </testcase>
+    <testcase classname="User API - Integration Tests POST /api/users/register should reject registration with missing name" name="User API - Integration Tests POST /api/users/register should reject registration with missing name" time="0.02">
+    </testcase>
+    <testcase classname="User API - Integration Tests POST /api/users/register should reject registration with invalid email" name="User API - Integration Tests POST /api/users/register should reject registration with invalid email" time="0.018">
+    </testcase>
+    <testcase classname="User API - Integration Tests POST /api/users/register should reject registration with short password" name="User API - Integration Tests POST /api/users/register should reject registration with short password" time="0.019">
+    </testcase>
+    <testcase classname="User API - Integration Tests POST /api/users/register should reject duplicate email registration" name="User API - Integration Tests POST /api/users/register should reject duplicate email registration" time="0.031">
+    </testcase>
+    <testcase classname="User API - Integration Tests POST /api/users/login should login successfully with valid credentials" name="User API - Integration Tests POST /api/users/login should login successfully with valid credentials" time="0.034">
+    </testcase>
+    <testcase classname="User API - Integration Tests POST /api/users/login should reject login with invalid password" name="User API - Integration Tests POST /api/users/login should reject login with invalid password" time="0.037">
+    </testcase>
+    <testcase classname="User API - Integration Tests POST /api/users/login should reject login with non-existent email" name="User API - Integration Tests POST /api/users/login should reject login with non-existent email" time="0.039">
+    </testcase>
+    <testcase classname="User API - Integration Tests POST /api/users/login should reject login with invalid email format" name="User API - Integration Tests POST /api/users/login should reject login with invalid email format" time="0.037">
+    </testcase>
+    <testcase classname="User API - Integration Tests POST /api/users/login should reject login without password" name="User API - Integration Tests POST /api/users/login should reject login without password" time="0.055">
+    </testcase>
+    <testcase classname="User API - Integration Tests GET /api/users should return empty array when no users exist" name="User API - Integration Tests GET /api/users should return empty array when no users exist" time="0.021">
+    </testcase>
+    <testcase classname="User API - Integration Tests GET /api/users should return all users" name="User API - Integration Tests GET /api/users should return all users" time="0.063">
+    </testcase>
+    <testcase classname="User API - Integration Tests GET /api/users/:id should get user by id" name="User API - Integration Tests GET /api/users/:id should get user by id" time="0.091">
+    </testcase>
+    <testcase classname="User API - Integration Tests GET /api/users/:id should return 404 for non-existent user" name="User API - Integration Tests GET /api/users/:id should return 404 for non-existent user" time="0.047">
+    </testcase>
+    <testcase classname="User API - Integration Tests Complete workflow integration test should complete full user registration, login, and retrieval flow" name="User API - Integration Tests Complete workflow integration test should complete full user registration, login, and retrieval flow" time="0.108">
     </testcase>
   </testsuite>
 </testsuites>
