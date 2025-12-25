@@ -1,7 +1,7 @@
 class ApiConstants {
   // Base URL for the API
   // Use 10.0.2.2 for Android Emulator (localhost on host machine)
-  static const String baseUrl = 'http://10.0.2.2:3500';
+  static const String baseUrl = 'http://172.20.10.3:3500';
 
   // API Endpoints
   static const String register = '/api/auth/register';
