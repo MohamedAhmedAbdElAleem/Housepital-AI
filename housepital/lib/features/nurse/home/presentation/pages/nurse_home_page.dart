@@ -1,21 +1,52 @@
 import 'package:flutter/material.dart';
 
 class NurseHomePage extends StatelessWidget {
-  const NurseHomePage({Key? key}) : super(key: key);
+  const NurseHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Add nurse home with new requests, current services
     return Scaffold(
-      appBar: AppBar(title: const Text('Home - Nurse')),
-      body: const Center(child: Text('Nurse Home Page - New Requests')),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Services'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF2ECC71),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Nurse Dashboard',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () {},
+          ),
         ],
+      ),
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.medical_services_rounded,
+              size: 80,
+              color: Color(0xFF2ECC71),
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Nurse Home Page',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Coming Soon',
+              style: TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+            ),
+          ],
+        ),
       ),
     );
   }
