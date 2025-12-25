@@ -653,5 +653,6 @@ module.exports = {
     getBookingInsights,
     getFinancialInsights,
     getAllUsers,
-    getAuditLogs
+    getAuditLogs,
+    getAllUsers
 };

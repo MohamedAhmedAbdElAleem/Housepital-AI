@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../../../../../core/constants/app_routes.dart';
-import 'personal_info_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -73,20 +72,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
             // ACCOUNT SECTION
             _buildSectionLabel('Account'),
-            const SizedBox(height: 12),
-            _buildSettingsItem(
-              icon: Icons.person_outline,
-              iconColor: const Color(0xFF2ECC71),
-              title: 'Personal Info',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const PersonalInfoPage(),
-                  ),
-                );
-              },
-            ),
             const SizedBox(height: 12),
             _buildSettingsItem(
               icon: Icons.link,

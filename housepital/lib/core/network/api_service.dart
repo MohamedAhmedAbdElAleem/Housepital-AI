@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'api_constants.dart';
 import '../error/exceptions.dart';
@@ -26,9 +27,15 @@ class ApiService {
       final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
       final headers = await _getHeaders();
 
+      debugPrint('📤 GET $url');
+
       final response = await client
           .get(url, headers: headers)
           .timeout(ApiConstants.connectionTimeout);
+
+      debugPrint(
+        '📥 Response [${response.statusCode}]: ${response.body.length > 500 ? response.body.substring(0, 500) : response.body}',
+      );
 
       return _handleResponse(response);
     } on SocketException {
@@ -54,6 +61,10 @@ class ApiService {
       final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
       final headers = await _getHeaders();
 
+      debugPrint('📤 POST $url');
+      debugPrint('   Headers: $headers');
+      debugPrint('   Body: $body');
+
       final response = await client
           .post(
             url,
@@ -61,6 +72,8 @@ class ApiService {
             body: body != null ? jsonEncode(body) : null,
           )
           .timeout(ApiConstants.connectionTimeout);
+
+      debugPrint('📥 Response [${response.statusCode}]: ${response.body}');
 
       return _handleResponse(response);
     } on SocketException {
@@ -86,6 +99,9 @@ class ApiService {
       final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
       final headers = await _getHeaders();
 
+      debugPrint('📤 PUT $url');
+      debugPrint('   Body: $body');
+
       final response = await client
           .put(
             url,
@@ -93,6 +109,8 @@ class ApiService {
             body: body != null ? jsonEncode(body) : null,
           )
           .timeout(ApiConstants.connectionTimeout);
+
+      debugPrint('📥 Response [${response.statusCode}]: ${response.body}');
 
       return _handleResponse(response);
     } on SocketException {
@@ -192,6 +210,12 @@ class ApiService {
       // Unauthorized
       final data = jsonDecode(response.body);
       throw UnauthorizedException(data['message'] ?? 'Unauthorized');
+    } else if (statusCode == 403) {
+      // Forbidden - Token invalid or expired
+      final data = jsonDecode(response.body);
+      throw UnauthorizedException(
+        data['message'] ?? 'Access forbidden - please login again',
+      );
     } else if (statusCode == 404) {
       // Not Found
       throw NotFoundException('Resource not found');
@@ -200,7 +224,15 @@ class ApiService {
       final data = jsonDecode(response.body);
       throw ServerException(data['message'] ?? 'Server error');
     } else {
-      throw ServerException('Unexpected error with status code: $statusCode');
+      // For other status codes, try to get the message from response
+      try {
+        final data = jsonDecode(response.body);
+        throw ServerException(
+          data['message'] ?? 'Error with status code: $statusCode',
+        );
+      } catch (_) {
+        throw ServerException('Unexpected error with status code: $statusCode');
+      }
     }
   }
 

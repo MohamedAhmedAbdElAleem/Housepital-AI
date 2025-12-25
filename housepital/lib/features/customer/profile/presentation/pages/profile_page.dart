@@ -11,6 +11,11 @@ import '../../../booking/presentation/pages/bookings_page.dart';
 import '../../../../../core/constants/app_colors.dart';
 import 'family_page.dart';
 import 'saved_addresses_page.dart';
+import 'edit_profile_page.dart';
+import 'wallet_page.dart';
+import 'subscription_page.dart';
+import 'medical_records_page.dart';
+import 'verify_account_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -222,7 +227,17 @@ class _ProfilePageState extends State<ProfilePage>
                       icon: Icons.person_outline,
                       title: 'Edit Profile',
                       subtitle: 'Update your personal information',
-                      onTap: () {},
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditProfilePage(user: _user),
+                          ),
+                        );
+                        if (result == true) {
+                          _loadUserData();
+                        }
+                      },
                     ),
                     _buildMenuItem(
                       icon: Icons.family_restroom,
@@ -262,19 +277,38 @@ class _ProfilePageState extends State<ProfilePage>
                       title: 'My Subscription',
                       subtitle: 'Premium member benefits',
                       iconColor: Colors.amber[700]!,
-                      onTap: () {},
+                      onTap:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => SubscriptionPage(user: _user),
+                            ),
+                          ),
                     ),
                     _buildMenuItem(
                       icon: Icons.account_balance_wallet_outlined,
                       title: 'Payments & Wallet',
                       subtitle: 'Manage payment methods',
-                      onTap: () {},
+                      onTap:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => WalletPage(user: _user),
+                            ),
+                          ),
                     ),
                     _buildMenuItem(
                       icon: Icons.folder_outlined,
                       title: 'Medical Records',
                       subtitle: 'View your health history',
-                      onTap: () {},
+                      onTap:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MedicalRecordsPage(),
+                            ),
+                          ),
                       showDivider: false,
                     ),
                   ]),
@@ -593,55 +627,84 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _buildVerificationWarning() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.orange.withOpacity(0.1),
-            Colors.orange.withOpacity(0.05),
+    return GestureDetector(
+      onTap: () async {
+        debugPrint('🔍 Verify button tapped');
+        debugPrint('   User email: ${_user?.email}');
+        debugPrint('   User verified: ${_user?.isVerified}');
+
+        if (_user?.email == null || _user!.email.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Email not found. Please update your profile.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VerifyAccountPage(email: _user!.email),
+          ),
+        );
+
+        if (result == true) {
+          debugPrint('✅ Verification successful, reloading user data');
+          _loadUserData();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.orange.withOpacity(0.1),
+              Colors.orange.withOpacity(0.05),
+            ],
+          ),
+          border: Border.all(color: Colors.orange.withOpacity(0.3)),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Verify Your Account',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Tap to verify and access all features',
+                    style: TextStyle(fontSize: 13, color: Colors.orange[700]),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.orange[400]),
           ],
         ),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.warning_amber_rounded,
-              color: Colors.orange,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Verify Your Account',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Complete verification to access all features',
-                  style: TextStyle(fontSize: 13, color: Colors.orange[700]),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.arrow_forward_ios, size: 16, color: Colors.orange[400]),
-        ],
       ),
     );
   }

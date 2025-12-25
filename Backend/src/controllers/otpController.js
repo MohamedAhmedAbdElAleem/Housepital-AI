@@ -274,10 +274,20 @@ const requestOTP = async (req, res) => {
     user.resetOTP = otp;
     user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
     user.otpAttempts = 0;
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
     // Send OTP via email or SMS
     if (contactType === "email") {
+      // Check if email is configured
+      if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.error("❌ Email not configured! Please set EMAIL_USER and EMAIL_PASS in .env");
+        return res.status(500).json({
+          success: false,
+          message: "Email service not configured. Please contact support.",
+          error: "EMAIL_USER or EMAIL_PASS not set"
+        });
+      }
+
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -286,7 +296,7 @@ const requestOTP = async (req, res) => {
         },
       });
 
-      const htmlContent = generateOTPEmailHTML(otp, user.firstName);
+      const htmlContent = generateOTPEmailHTML(otp, user.name);
 
       await transporter.sendMail({
         from: `"Housepital - AI Home Nursing" <${process.env.EMAIL_USER}>`,
@@ -295,6 +305,8 @@ const requestOTP = async (req, res) => {
         html: htmlContent,
         text: `Your verification code is: ${otp}\nValid for 10 minutes only.\n\nIf you didn't request this, please ignore this email.`,
       });
+
+      console.log(`✅ OTP sent to ${contact}`);
     }
     // TODO: Add SMS service for phone OTP
 
@@ -392,7 +404,7 @@ const verifyOTP = async (req, res) => {
       user.resetOTP = undefined;
       user.otpExpires = undefined;
       user.otpAttempts = 0;
-      await user.save();
+      await user.save({ validateBeforeSave: false });
 
       return res.status(400).json({
         success: false,
@@ -411,7 +423,7 @@ const verifyOTP = async (req, res) => {
       user.resetOTP = undefined;
       user.otpExpires = undefined;
       user.otpAttempts = 0;
-      await user.save();
+      await user.save({ validateBeforeSave: false });
 
       return res.status(429).json({
         success: false,
@@ -427,7 +439,7 @@ const verifyOTP = async (req, res) => {
     // Check if OTP matches
     if (user.resetOTP !== code) {
       user.otpAttempts += 1;
-      await user.save();
+      await user.save({ validateBeforeSave: false });
 
       return res.status(400).json({
         success: false,
@@ -451,7 +463,7 @@ const verifyOTP = async (req, res) => {
     user.resetOTP = undefined;
     user.otpExpires = undefined;
     user.otpAttempts = 0;
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
     res.status(200).json({
       success: true,
@@ -527,7 +539,7 @@ const resendOTP = async (req, res) => {
     user.resetOTP = otp;
     user.otpExpires = Date.now() + 10 * 60 * 1000;
     user.otpAttempts = 0;
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
     // Send OTP (email only for now)
     if (contactType === "email") {
@@ -539,7 +551,7 @@ const resendOTP = async (req, res) => {
         },
       });
 
-      const htmlContent = generateOTPEmailHTML(otp, user.firstName);
+      const htmlContent = generateOTPEmailHTML(otp, user.name);
 
       await transporter.sendMail({
         from: `"Housepital - AI Home Nursing" <${process.env.EMAIL_USER}>`,
@@ -623,7 +635,7 @@ const resetPassword = async (req, res) => {
     user.resetOTP = undefined;
     user.otpExpires = undefined;
     user.otpAttempts = 0;
-    await user.save();
+    await user.save({ validateBeforeSave: false });
     console.log(`✅ Password updated for user: ${email.toLowerCase()}`);
 
     // Try to clear Redis cache (optional - don't fail if Redis is down)
@@ -653,4 +665,114 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { requestOTP, verifyOTP, resendOTP, resetPassword };
+// ========== Verify Account ==========
+const verifyAccount = async (req, res) => {
+  const { code, email } = req.body;
+
+  try {
+    if (!code || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+        errors: [{ field: "code", message: "code and email are required" }]
+      });
+    }
+
+    // Validate OTP format
+    if (!/^\d{6}$/.test(code)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP format",
+        errors: [{ field: "code", message: "OTP must be 6 digits" }]
+      });
+    }
+
+    // Find user
+    const user = await User.findOne({ email: email.toLowerCase() }).select("+resetOTP +otpExpires +otpAttempts");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Check if already verified
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Account is already verified"
+      });
+    }
+
+    // Check if OTP exists
+    if (!user.resetOTP) {
+      return res.status(400).json({
+        success: false,
+        message: "No OTP found. Please request a new verification code."
+      });
+    }
+
+    // Check if OTP expired
+    if (Date.now() > user.otpExpires) {
+      user.resetOTP = undefined;
+      user.otpExpires = undefined;
+      user.otpAttempts = 0;
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired. Please request a new one."
+      });
+    }
+
+    // Check attempts
+    if (user.otpAttempts >= 5) {
+      user.resetOTP = undefined;
+      user.otpExpires = undefined;
+      user.otpAttempts = 0;
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(429).json({
+        success: false,
+        message: "Too many attempts. Please request a new code."
+      });
+    }
+
+    // Check if OTP matches
+    if (user.resetOTP !== code) {
+      user.otpAttempts += 1;
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+        data: { attempt: user.otpAttempts, maxAttempts: 5 }
+      });
+    }
+
+    // OTP verified - mark account as verified!
+    user.isVerified = true;
+    user.resetOTP = undefined;
+    user.otpExpires = undefined;
+    user.otpAttempts = 0;
+    await user.save({ validateBeforeSave: false });
+
+    console.log(`✅ Account verified: ${email}`);
+
+    res.status(200).json({
+      success: true,
+      message: "Account verified successfully! You now have full access.",
+      data: { isVerified: true }
+    });
+  } catch (err) {
+    console.error("Account Verification Error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Verification failed",
+      error: err.message
+    });
+  }
+};
+
+module.exports = { requestOTP, verifyOTP, resendOTP, resetPassword, verifyAccount };
