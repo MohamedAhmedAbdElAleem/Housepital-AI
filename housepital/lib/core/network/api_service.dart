@@ -236,6 +236,67 @@ class ApiService {
     }
   }
 
+  /// POST Multipart request (e.g. for image upload)
+  Future<dynamic> postMultipart(
+    String endpoint, {
+    Map<String, String>? fields,
+    File? file,
+    String? fileField,
+  }) async {
+    try {
+      final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final headers = await _getHeaders();
+      // Content-Type is set automatically by MultipartRequest
+      headers.remove('Content-Type');
+
+      debugPrint('📤 POST MULTIPART $url');
+      debugPrint('   Fields: $fields');
+      debugPrint('   File: $fileField -> ${file?.path}');
+
+      var request = http.MultipartRequest('POST', url);
+      request.headers.addAll(headers);
+
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      if (file != null && fileField != null) {
+        final stream = http.ByteStream(file.openRead());
+        final length = await file.length();
+        final multipartFile = http.MultipartFile(
+          fileField,
+          stream,
+          length,
+          filename: file.path.split('/').last,
+        );
+        request.files.add(multipartFile);
+      }
+
+      final streamedResponse = await client
+          .send(request)
+          .timeout(ApiConstants.connectionTimeout);
+      final response = await http.Response.fromStream(streamedResponse);
+
+      debugPrint('📥 Response [${response.statusCode}]: ${response.body}');
+
+      return _handleResponse(response);
+    } on SocketException {
+      throw NetworkException('No internet connection');
+    } on http.ClientException {
+      throw NetworkException('Failed to connect to server');
+    } on UnauthorizedException {
+      rethrow;
+    } on ValidationException {
+      rethrow;
+    } on NetworkException {
+      rethrow;
+    } on ServerException {
+      rethrow;
+    } catch (e) {
+      throw ServerException('Unexpected error: ${e.toString()}');
+    }
+  }
+
   /// Dispose client
   void dispose() {
     client.close();

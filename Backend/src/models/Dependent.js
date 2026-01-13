@@ -31,7 +31,7 @@ const dependentSchema = new mongoose.Schema(
         enum: [
             "father", "mother", "son", "daughter",
             "brother", "sister", "grandparent",
-            "grandchild", "spouse", "other"
+            "grandchild", "spouse", "other", "self"
         ]
     },
 
@@ -126,6 +126,7 @@ const dependentSchema = new mongoose.Schema(
 
 
 dependentSchema.pre("validate", function(next) {
+    if (this.relationship === 'self') return next();
     if (!this.nationalId && !this.birthCertificateId) {
         return next(new Error("Either national ID or birth certificate ID is required"));
     }
@@ -135,4 +136,5 @@ dependentSchema.pre("validate", function(next) {
 // Index for quick lookup
 dependentSchema.index({ responsibleUser: 1, isDefault: 1 });
 
-module.exports = mongoose.model("Dependent",dependentSchema)
+// Check if model exists before compiling to avoid OverwriteModelError
+module.exports = mongoose.models.Dependent || mongoose.model("Dependent", dependentSchema);

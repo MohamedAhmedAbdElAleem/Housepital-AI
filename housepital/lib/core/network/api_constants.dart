@@ -16,6 +16,11 @@ class ApiConstants {
   static const String otpResend = '/api/otp/resend';
   static const String resetPassword = '/api/otp/reset-password';
 
+  // AI Endpoints
+  static const String predictWoundType = '/api/ai/predict/wound-type';
+  static const String predictSeverity = '/api/ai/predict/severity';
+  static const String aiHealth = '/api/ai/health';
+
   // Headers
   static Map<String, String> get headers => {
     'Content-Type': 'application/json',

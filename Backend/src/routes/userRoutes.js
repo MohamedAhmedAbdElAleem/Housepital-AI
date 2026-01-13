@@ -18,18 +18,208 @@ const {
 } = require("../controllers/userController");
 const { authenticateToken } = require("../middleware/authMiddleware");
 
+/**
+ * @openapi
+ * /api/user/updateInfo:
+ *   patch:
+ *     tags:
+ *       - User
+ *     summary: Update User Info
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User info updated
+ */
 router.patch("/updateInfo", updateUserValidator, updateInfo);
+
+/**
+ * @openapi
+ * /api/user/getUserInfo:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Get User Info
+ *     responses:
+ *       200:
+ *         description: User info retrieved
+ */
 router.get("/getUserInfo", getUserinfo);
+
+/**
+ * @openapi
+ * /api/user/update-profile:
+ *   put:
+ *     tags:
+ *       - User
+ *     summary: Update User Profile
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ */
 router.put("/update-profile", authenticateToken, updateProfile);
+
+/**
+ * @openapi
+ * /api/user/getSingleDependent:
+ *   get:
+ *     tags:
+ *       - Dependents
+ *     summary: Get Single Dependent
+ *     parameters:
+ *       - in: query
+ *         name: dependentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Dependent details
+ */
 router.get("/getSingleDependent", getSingleDependent);
+
+/**
+ * @openapi
+ * /api/user/addDependent:
+ *   post:
+ *     tags:
+ *       - Dependents
+ *     summary: Add Dependent
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fullName
+ *               - relationship
+ *             properties:
+ *               fullName:
+ *                 type: string
+ *               relationship:
+ *                 type: string
+ *               dateOfBirth:
+ *                 type: string
+ *                 format: date
+ *     responses:
+ *       200:
+ *         description: Dependent added
+ */
 router.post("/addDependent", addDependent);
+
+/**
+ * @openapi
+ * /api/user/updateDependent:
+ *   put:
+ *     tags:
+ *       - Dependents
+ *     summary: Update Dependent (Legacy)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - dependentId
+ *             properties:
+ *               dependentId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Dependent updated
+ */
 router.put("/updateDependent", updateDependent);
+
+/**
+ * @openapi
+ * /api/user/deleteDependent:
+ *   delete:
+ *     tags:
+ *       - Dependents
+ *     summary: Delete Dependent (Legacy)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - dependentId
+ *             properties:
+ *               dependentId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Dependent deleted
+ */
 router.delete("/deleteDependent", deleteDependent);
-// Support both GET and POST for getAllDependents (body contains user ID)
+
+/**
+ * @openapi
+ * /api/user/getAllDependents:
+ *   get:
+ *     tags:
+ *       - Dependents
+ *     summary: Get All Dependents
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of dependents
+ */
 router.get("/getAllDependents", getAllDependents);
 router.post("/getAllDependents", getAllDependents);
 
 // Address routes
+/**
+ * @openapi
+ * /api/user/addresses/{userId}:
+ *   get:
+ *     tags:
+ *       - Addresses
+ *     summary: Get User Addresses
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of addresses
+ *       404:
+ *         description: User not found
+ */
 router.get("/addresses/:userId", authenticateToken, async (req, res) => {
 	try {
 		const User = require("../models/User");
@@ -43,6 +233,46 @@ router.get("/addresses/:userId", authenticateToken, async (req, res) => {
 	}
 });
 
+/**
+ * @openapi
+ * /api/user/addresses:
+ *   post:
+ *     tags:
+ *       - Addresses
+ *     summary: Add New Address
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - street
+ *               - city
+ *               - state
+ *               - zipCode
+ *             properties:
+ *               userId:
+ *                 type: string
+ *               label:
+ *                 type: string
+ *               street:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               zipCode:
+ *                 type: string
+ *               isDefault:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: Address added
+ */
 router.post("/addresses", authenticateToken, async (req, res) => {
 	try {
 		const User = require("../models/User");
@@ -89,6 +319,40 @@ router.post("/addresses", authenticateToken, async (req, res) => {
 	}
 });
 
+/**
+ * @openapi
+ * /api/user/addresses/{addressId}:
+ *   put:
+ *     tags:
+ *       - Addresses
+ *     summary: Update Address
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: addressId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *             properties:
+ *               userId:
+ *                 type: string
+ *               street:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Address updated
+ */
 router.put("/addresses/:addressId", authenticateToken, async (req, res) => {
 	try {
 		const User = require("../models/User");
@@ -142,6 +406,36 @@ router.put("/addresses/:addressId", authenticateToken, async (req, res) => {
 	}
 });
 
+/**
+ * @openapi
+ * /api/user/addresses/{addressId}:
+ *   delete:
+ *     tags:
+ *       - Addresses
+ *     summary: Delete Address
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: addressId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *             properties:
+ *               userId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Address deleted
+ */
 router.delete("/addresses/:addressId", authenticateToken, async (req, res) => {
 	try {
 		const User = require("../models/User");
@@ -165,6 +459,36 @@ router.delete("/addresses/:addressId", authenticateToken, async (req, res) => {
 });
 
 // Dependent routes
+/**
+ * @openapi
+ * /api/user/dependent/{dependentId}:
+ *   put:
+ *     tags:
+ *       - Dependents
+ *     summary: Update Specific Dependent
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: dependentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fullName:
+ *                 type: string
+ *               mobile:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Dependent updated
+ */
 router.put("/dependent/:dependentId", authenticateToken, async (req, res) => {
 	try {
 		const User = require("../models/User");
@@ -227,6 +551,25 @@ router.put("/dependent/:dependentId", authenticateToken, async (req, res) => {
 	}
 });
 
+/**
+ * @openapi
+ * /api/user/dependent/{dependentId}:
+ *   delete:
+ *     tags:
+ *       - Dependents
+ *     summary: Delete Specific Dependent
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: dependentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Dependent deleted
+ */
 router.delete(
 	"/dependent/:dependentId",
 	authenticateToken,

@@ -1,4 +1,13 @@
-extract_pdf.py
-Housepital-AI-Senarios ( updated ).pdf
-node_modules
-
+/dermnet_dataset_deep
+/dfu_dataset
+/housepital-admin/node_modules
+/venv
+/venv_gpu
+/Cv_model
+/AI_Pipeline_V2/data
+/Internet_images
+/housepital/windows
+housepital/pubspec.lock
+/housepital/images
+housepital/cloud_final_presentation - arabic.html
+/AI_Pipeline_V2/src/__pycache__

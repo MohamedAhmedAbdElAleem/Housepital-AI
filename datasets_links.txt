@@ -1,0 +1,4 @@
+https://www.kaggle.com/datasets/brendarangelolvera/human-skin-burns
+https://www.kaggle.com/datasets/shubhambaid/skin-burn-dataset
+https://universe.roboflow.com/clinicvision/basic-wound-classify-mpoys/dataset/2
+https://universe.roboflow.com/project-gq64d/wound-qr9o0/dataset/4
