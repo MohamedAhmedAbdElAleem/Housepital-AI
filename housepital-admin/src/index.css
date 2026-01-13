@@ -4,6 +4,18 @@
 
 :root {
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  /* Housepital Green Primary Colors (matching mobile app) */
+  --color-primary-50: #EAFAF1;
+  --color-primary-100: #BEEFD3;
+  --color-primary-200: #9FE8BE;
+  --color-primary-300: #73DDA0;
+  --color-primary-400: #58D68D;
+  --color-primary-500: #2ECC71;
+  --color-primary-600: #2ABA67;
+  --color-primary-700: #219150;
+  --color-primary-800: #19703E;
+  --color-primary-900: #13562F;
 }
 
 body {
@@ -16,4 +28,118 @@ body {
 
 #root {
   width: 100%;
+}
+
+/* Custom Animations for Branding */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out;
+  animation-delay: 0.1s;
+  animation-fill-mode: both;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Focus visible for accessibility - using green */
+*:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* Utility classes for Housepital green */
+.bg-primary {
+  background-color: var(--color-primary-500);
+}
+
+.bg-primary-hover:hover {
+  background-color: var(--color-primary-600);
+}
+
+.text-primary {
+  color: var(--color-primary-500);
+}
+
+.border-primary {
+  border-color: var(--color-primary-500);
+}
+
+.ring-primary {
+  --tw-ring-color: var(--color-primary-500);
 }
