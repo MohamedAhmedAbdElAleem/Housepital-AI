@@ -95,6 +95,50 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			trim: true,
 		},
+		// ID Document Images
+		idFrontImageUrl: {
+			type: String,
+			trim: true,
+		},
+		idBackImageUrl: {
+			type: String,
+			trim: true,
+		},
+		// Medical Information
+		medicalInfo: {
+			bloodType: {
+				type: String,
+				enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", null],
+				default: null,
+			},
+			chronicDiseases: [{
+				type: String,
+				trim: true,
+			}],
+			allergies: [{
+				type: String,
+				trim: true,
+			}],
+			otherConditions: {
+				type: String,
+				trim: true,
+			},
+			currentMedications: {
+				type: String,
+				trim: true,
+			},
+			hasNoChronicDiseases: {
+				type: Boolean,
+				default: false,
+			},
+			hasNoAllergies: {
+				type: Boolean,
+				default: false,
+			},
+			updatedAt: {
+				type: Date,
+			},
+		},
 		// Activity Tracking
 		lastActiveAt: {
 			type: Date,

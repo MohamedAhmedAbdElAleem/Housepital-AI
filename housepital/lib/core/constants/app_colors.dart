@@ -95,6 +95,18 @@ class AppColors {
   static const Color warning800 = Color(0xFF8A4C00);
   static const Color warning900 = Color(0xFF693A00);
 
+  // ℹ️ Info Palette (Blue)
+  static const Color info50 = Color(0xFFE3F2FD);
+  static const Color info100 = Color(0xFFBBDEFB);
+  static const Color info200 = Color(0xFF90CAF9);
+  static const Color info300 = Color(0xFF64B5F6);
+  static const Color info400 = Color(0xFF42A5F5);
+  static const Color info500 = Color(0xFF2196F3);
+  static const Color info600 = Color(0xFF1E88E5);
+  static const Color info700 = Color(0xFF1976D2);
+  static const Color info800 = Color(0xFF1565C0);
+  static const Color info900 = Color(0xFF0D47A1);
+
   // Common Defaults
   static const Color background = light100;
   static const Color surface = light50;
