@@ -1,5 +1,4 @@
-const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -31,19 +30,46 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/otp", require("./routes/otpRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
 app.use("/api/bookings", require("./routes/bookingRoutes"));
-app.use("/api/admin/insights", require("./routes/insightsRoutes"));
-app.use("/api/admin/powerbi", require("./routes/powerBiRoutes"));
 
+// Swagger Documentation
+const swaggerDocs = require("./config/swagger");
+swaggerDocs(app, PORT);
 
 app.use((req, res) => res.status(404).json({ message: "404 Not Found" }));
 
 app.use(errorHandler);
 
 mongoose.connection.once("open", () => {
-	console.log("Connected to MongoDB");
-	app.listen(PORT, "0.0.0.0", () =>
-		console.log(`Server running on port ${PORT}`)
-	);
+    console.log("Connected to MongoDB");
+    const server = app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+
+    // Graceful Shutdown Logic
+    const gracefulShutdown = () => {
+        console.log("Received kill signal, shutting down gracefully");
+        server.close(() => {
+            console.log("Closed out remaining connections");
+            mongoose.connection.close(false, () => {
+                console.log("MongoDb connection closed");
+                process.exit(0);
+            });
+        });
+    };
+
+    process.on("SIGTERM", gracefulShutdown);
+    process.on("SIGINT", gracefulShutdown);
+
+    // Handle Nodemon restart signal
+    process.once("SIGUSR2", () => {
+        console.log("Received SIGUSR2 (Nodemon restart)");
+        server.close(() => {
+             mongoose.connection.close(false, () => {
+                console.log("MongoDb connection closed");
+                process.kill(process.pid, "SIGUSR2");
+            });
+        });
+    });
 });
 
 mongoose.connection.on("error", (err) =>

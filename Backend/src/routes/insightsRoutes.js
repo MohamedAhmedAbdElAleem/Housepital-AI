@@ -6,8 +6,7 @@ const {
     getBookingInsights,
     getFinancialInsights,
     getAllUsers,
-    getAuditLogs,
-    getAllUsers
+    getAuditLogs
 } = require("../controllers/insightsController");
 const { authenticateToken, authorizeRole } = require("../middleware/authMiddleware");
 const User = require("../models/User");
