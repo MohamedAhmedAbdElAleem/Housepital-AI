@@ -17,12 +17,19 @@ build/
 
 # Model outputs (large files)
 triage_model/
+transformer_triage_model/
 *.pt
 *.bin
 *.onnx
-
-# Data artifacts
 *.pkl
+
+# Large data files (too big for GitHub)
+original_dataset.csv
+triage_dataset_egypt.csv
+triage_dataset_100k.csv
+triage_dataset_comprehensive.csv
+triage_dataset_corrected.csv
+generated_symptom_texts_clean.csv
 
 # Logs
 logs/
@@ -39,3 +46,10 @@ Thumbs.db
 
 # Environment
 .env
+
+# Old/unused files
+test_interactive.py
+fix_labels.py
+generate_100k_dataset.py
+generate_comprehensive_dataset.py
+train_final_production.py
