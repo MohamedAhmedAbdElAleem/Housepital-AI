@@ -4,13 +4,12 @@ import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/auth/presentation/pages/medical_history_page.dart';
 import '../../features/auth/presentation/pages/otp_page.dart';
 import '../../features/auth/presentation/pages/verify_identity_page.dart';
 import '../../features/auth/presentation/pages/scan_national_id_page.dart';
 import '../../features/auth/presentation/pages/verifying_identity_page.dart';
 import '../../features/auth/presentation/pages/verification_success_page.dart';
-import '../../features/auth/presentation/pages/verify_email_page.dart';
-// import '../../features/auth/presentation/pages/verify_otp_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/reset_password_otp_page.dart';
 import '../../features/auth/presentation/pages/new_password_page.dart';
@@ -35,6 +34,12 @@ class AppRouter {
       case AppRoutes.register:
         return MaterialPageRoute(builder: (_) => const RegisterPage());
 
+      case AppRoutes.medicalHistory:
+        final email = settings.arguments as String;
+        return MaterialPageRoute(
+          builder: (_) => MedicalHistoryPage(email: email),
+        );
+
       case AppRoutes.otp:
         final email = settings.arguments as String;
         return MaterialPageRoute(builder: (_) => OTPPage(email: email));
@@ -52,12 +57,6 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const VerificationSuccessPage(),
         );
-
-      case AppRoutes.verifyEmail:
-        return MaterialPageRoute(builder: (_) => const VerifyEmailPage());
-
-      // case AppRoutes.verifyOTP:
-      //   return MaterialPageRoute(builder: (_) => const VerifyOTPPage());
 
       case AppRoutes.forgotPassword:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordPage());

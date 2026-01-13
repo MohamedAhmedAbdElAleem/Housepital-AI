@@ -1,5 +1,5 @@
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+require("dotenv").config({ path: path.join(__dirname, ".", ".env") });
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -7,6 +7,9 @@ const cors = require("cors");
 const { logger, logEvents } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const connectDB = require("./config/dbConn");
+const cloudinaryRoutes = require('./routes/cloudinaryRoutes');
+
+
 
 const app = express();
 const PORT = process.env.PORT || 3500;
@@ -24,16 +27,21 @@ app.use(
 );
 
 app.use(logger);
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/otp", require("./routes/otpRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
+app.use("/api/profile", require("./routes/profileRoutes"));
 app.use("/api/bookings", require("./routes/bookingRoutes"));
 app.use("/api/admin/insights", require("./routes/insightsRoutes"));
 app.use("/api/admin/powerbi", require("./routes/powerBiRoutes"));
+app.use('/api/cloudinary', require('./routes/cloudinaryRoutes'));
 
+// Serve static files (for ID document images)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use((req, res) => res.status(404).json({ message: "404 Not Found" }));
 

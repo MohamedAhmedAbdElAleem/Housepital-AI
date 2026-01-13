@@ -22,12 +22,7 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
       duration: const Duration(seconds: 2),
     )..repeat();
 
-    // محاكاة عملية التحقق (3-5 ثواني)
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.verificationSuccess);
-      }
-    });
+    // No auto-navigation - user will click "Continue" button
   }
 
   @override
@@ -152,7 +147,7 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
 
                   // العنوان
                   const Text(
-                    'Verifying your identity...',
+                    'Documents Submitted!',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 26,
@@ -166,7 +161,7 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
 
                   // النص الوصفي
                   Text(
-                    'This should only take a moment.\nPlease wait...',
+                    'Your ID has been sent for review.\nOur team will verify it shortly.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -175,7 +170,44 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+
+                  // Admin Review Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.orange.shade200,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.admin_panel_settings_rounded,
+                          color: Colors.orange.shade700,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Pending Admin Review',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.orange.shade800,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
 
                   // مؤشر التقدم
                   Container(
@@ -202,7 +234,7 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Processing your documents',
+                          'Usually takes 24-48 hours',
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey.shade700,
@@ -215,35 +247,44 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
 
                   const SizedBox(height: 28),
 
-                  // زر Do in Background
-                  TextButton.icon(
+                  // زر Continue
+                  ElevatedButton.icon(
                     onPressed: () {
-                      // العودة للصفحة السابقة والتحميل في الخلفية
-                      Navigator.pushReplacementNamed(context, AppRoutes.login);
+                      Navigator.pushReplacementNamed(
+                        context,
+                        AppRoutes.verificationSuccess,
+                      );
                     },
-                    style: TextButton.styleFrom(
-                      minimumSize: const Size(0, 48),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary500,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 52),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
+                        horizontal: 24,
+                        vertical: 14,
                       ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 2,
                     ),
-                    icon: const Icon(
-                      Icons.layers_outlined,
-                      color: AppColors.primary500,
-                      size: 20,
-                    ),
+                    icon: const Icon(Icons.check_circle_rounded, size: 22),
                     label: const Text(
-                      'Do in Background',
+                      'Got it, Continue',
                       style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.primary500,
                         fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColors.primary500,
-                        decorationThickness: 2,
                       ),
                     ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // نص توضيحي
+                  Text(
+                    'You can start using the app while we review',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                   ),
                 ],
               ),

@@ -38,9 +38,7 @@ const validateRegister = [
     
     body('password')
         .notEmpty().withMessage('Password is required')
-        .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
-        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[a-zA-Z\d@$!%*?&]/)
-        .withMessage('Password must contain uppercase, lowercase, number, and special character'),
+        .isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
     
     body('confirmPassword')
         .notEmpty().withMessage('Confirm password is required')
@@ -91,9 +89,7 @@ const updateUserValidator = [
 
   body('password')
     .optional()
-    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
-    .withMessage('Password must contain uppercase, lowercase, number, and special character'),
+    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
 
   handleValidationErrors
 ];
