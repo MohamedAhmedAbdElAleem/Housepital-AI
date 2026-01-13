@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children }) => {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-primary-600/30 border-t-primary-600 rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -60,11 +60,7 @@ function App() {
                             <DashboardLayout><Activity /></DashboardLayout>
                         </ProtectedRoute>
                     } />
-                    <Route path="/settings" element={
-                        <ProtectedRoute>
-                            <DashboardLayout><Placeholder title="Global Configuration" /></DashboardLayout>
-                        </ProtectedRoute>
-                    } />
+
 
                     {/* Redirect any other route to home */}
                     <Route path="*" element={<Navigate to="/" replace />} />

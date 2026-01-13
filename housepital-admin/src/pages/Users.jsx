@@ -48,7 +48,7 @@ const Users = () => {
     const getRoleBadge = (role) => {
         const roles = {
             admin: 'bg-purple-100 text-purple-700 border-purple-200',
-            doctor: 'bg-blue-100 text-blue-700 border-blue-200',
+            doctor: 'bg-green-100 text-green-700 border-green-200',
             nurse: 'bg-green-100 text-green-700 border-green-200',
             customer: 'bg-orange-100 text-orange-700 border-orange-200',
         };
@@ -58,8 +58,11 @@ const Users = () => {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">User Management</h1>
-                <button className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">User Management</h1>
+                    <p className="text-slate-500 text-sm mt-1 font-medium">Manage and monitor all system users and staff members.</p>
+                </div>
+                <button className="bg-primary-600 text-white px-5 py-3 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-all shadow-sm hover:shadow-md active:scale-95 flex items-center gap-2">
                     <Shield size={18} />
                     <span>Invite Staff</span>
                 </button>
@@ -73,7 +76,7 @@ const Users = () => {
                             key={role}
                             onClick={() => setFilter(role)}
                             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filter === role
-                                ? 'bg-indigo-600 text-white'
+                                ? 'bg-primary-600 text-white'
                                 : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
                                 }`}
                         >
@@ -86,7 +89,7 @@ const Users = () => {
                     <input
                         type="text"
                         placeholder="Search by name, email or mobile..."
-                        className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                        className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={handleSearch}
@@ -129,7 +132,7 @@ const Users = () => {
                                     <tr key={user._id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shrink-0">
+                                                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold shrink-0">
                                                     {user.name.charAt(0)}
                                                 </div>
                                                 <div>
