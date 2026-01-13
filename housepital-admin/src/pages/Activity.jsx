@@ -41,7 +41,7 @@ const Activity = () => {
     const getActionIcon = (action) => {
         if (action.includes('APPROVE')) return <CheckCircle2 className="text-green-500" size={20} />;
         if (action.includes('REJECT')) return <XCircle className="text-red-500" size={20} />;
-        if (action.includes('REGISTER')) return <User className="text-blue-500" size={20} />;
+        if (action.includes('REGISTER')) return <User className="text-primary-500" size={20} />;
         return <ShieldAlert className="text-orange-500" size={20} />;
     };
 
@@ -49,28 +49,31 @@ const Activity = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">System Audit Logs</h1>
-                    <p className="text-slate-500 text-sm mt-1">Global activity monitoring for security and compliance.</p>
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">System Audit Logs</h1>
+                    <p className="text-slate-500 text-sm mt-1 font-medium">Global activity monitoring for security and compliance.</p>
                 </div>
                 <button
                     onClick={fetchLogs}
-                    className="p-2 bg-white border rounded-xl hover:bg-slate-50 transition-colors shadow-sm"
+                    className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-primary-300 transition-all shadow-sm hover:shadow-md active:scale-95 group"
                     title="Refresh Logs"
                 >
-                    <History size={20} className="text-slate-600" />
+                    <History size={20} className="text-slate-600 group-hover:text-primary-600 transition-colors" />
                 </button>
             </div>
 
             {/* Mini Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                    { label: 'Total Events', value: stats.total, color: 'indigo' },
-                    { label: 'Staff Approvals', value: stats.approvals, color: 'green' },
-                    { label: 'Security Alerts', value: stats.alerts, color: 'red' },
+                    { label: 'Total Events', value: stats.total, color: 'indigo', icon: '📊' },
+                    { label: 'Staff Approvals', value: stats.approvals, color: 'green', icon: '✅' },
+                    { label: 'Security Alerts', value: stats.alerts, color: 'red', icon: '🚨' },
                 ].map((s, i) => (
-                    <div key={i} className="bg-white p-4 rounded-2xl border shadow-sm flex items-center justify-between">
-                        <span className="text-sm font-medium text-slate-500">{s.label}</span>
-                        <span className={`text-xl font-bold text-${s.color}-600`}>{s.value}</span>
+                    <div key={i} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between group">
+                        <div>
+                            <span className="text-sm font-semibold text-slate-500 block mb-1">{s.label}</span>
+                            <span className={`text-3xl font-bold text-${s.color}-600`}>{s.value}</span>
+                        </div>
+                        <div className="text-3xl opacity-50 group-hover:scale-110 transition-transform">{s.icon}</div>
                     </div>
                 ))}
             </div>
@@ -130,7 +133,7 @@ const Activity = () => {
                                                     <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold">
                                                         {log.performedBy?.name?.charAt(0) || 'S'}
                                                     </div>
-                                                    <span className="text-xs font-semibold text-indigo-600">{log.performedBy?.name || 'System'}</span>
+                                                    <span className="text-xs font-semibold text-primary-600">{log.performedBy?.name || 'System'}</span>
                                                 </div>
                                             </div>
 
@@ -148,7 +151,7 @@ const Activity = () => {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
