@@ -5,6 +5,10 @@ import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/doctor/presentation/pages/doctor_profile_page.dart';
 
+import '../../features/doctor/presentation/pages/doctor_home_page.dart';
+import '../../features/nurse/presentation/pages/nurse_home_page.dart';
+import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
+
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -15,22 +19,16 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const LoginPage());
 
       case AppRoutes.nurseHome:
-        return MaterialPageRoute(
-          builder: (_) => const PlaceholderPage(title: 'Nurse Home'),
-        );
+        return MaterialPageRoute(builder: (_) => const NurseHomePage());
 
       case AppRoutes.doctorHome:
-        return MaterialPageRoute(
-          builder: (_) => const PlaceholderPage(title: 'Doctor Home'),
-        );
+        return MaterialPageRoute(builder: (_) => const DoctorHomePage());
 
       case AppRoutes.doctorProfile:
         return MaterialPageRoute(builder: (_) => const DoctorProfilePage());
 
       case AppRoutes.adminDashboard:
-        return MaterialPageRoute(
-          builder: (_) => const PlaceholderPage(title: 'Admin Dashboard'),
-        );
+        return MaterialPageRoute(builder: (_) => const AdminDashboardPage());
 
       default:
         return MaterialPageRoute(
