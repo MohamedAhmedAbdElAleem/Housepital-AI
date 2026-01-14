@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // 🟢 Primary Palette (Healing Green)
-  static const Color primary50 = Color(0xFFEAFAF1);
-  static const Color primary100 = Color(0xFFBEEFD3);
-  static const Color primary200 = Color(0xFF9FE8BE);
-  static const Color primary300 = Color(0xFF73DDA0);
-  static const Color primary400 = Color(0xFF58D68D);
-  static const Color primary500 = Color(0xFF2ECC71);
-  static const Color primary600 = Color(0xFF2ABA67);
-  static const Color primary700 = Color(0xFF219150);
-  static const Color primary800 = Color(0xFF19703E);
-  static const Color primary900 = Color(0xFF13562F);
+  // 🔵 Primary Palette (Staff Blue)
+  static const Color primary50 = Color(0xFFE4EBFC);
+  static const Color primary100 = Color(0xFFBCCDF8);
+  static const Color primary200 = Color(0xFF90ABF4);
+  static const Color primary300 = Color(0xFF6489EF);
+  static const Color primary400 = Color(0xFF436FEB);
+  static const Color primary500 = Color(0xFF2664EC); // Requested Blue 1
+  static const Color primary600 = Color(0xFF1E56D8);
+  static const Color primary700 = Color(0xFF1746C0);
+  static const Color primary800 = Color(0xFF1136A8);
+  static const Color primary900 = Color(0xFF091E7E);
 
   // Primary Default
   static const Color primary = primary500;
   static const Color primaryDark = primary700;
   static const Color primaryLight = primary300;
 
-  // 🔵 Secondary Palette (Trust Blue)
-  static const Color secondary50 = Color(0xFFEBF5F8);
-  static const Color secondary100 = Color(0xFFC0DFEA);
-  static const Color secondary200 = Color(0xFFA2D0E0);
-  static const Color secondary300 = Color(0xFF77BAD1);
-  static const Color secondary400 = Color(0xFF5DADC9);
-  static const Color secondary500 = Color(0xFF3498BB);
-  static const Color secondary600 = Color(0xFF2F8AAA);
-  static const Color secondary700 = Color(0xFF256C85);
+  // 💠 Secondary Palette (Medical Cyan)
+  static const Color secondary50 = Color(0xFFE6F3F7);
+  static const Color secondary100 = Color(0xFFC0E1EB);
+  static const Color secondary200 = Color(0xFF97CDDE);
+  static const Color secondary300 = Color(0xFF6EB8D0);
+  static const Color secondary400 = Color(0xFF4FA9C6);
+  static const Color secondary500 = Color(0xFF3498BB); // Requested Blue 2
+  static const Color secondary600 = Color(0xFF2D8AA3);
+  static const Color secondary700 = Color(0xFF24788D);
   static const Color secondary800 = Color(0xFF1D5467);
   static const Color secondary900 = Color(0xFF16404F);
 

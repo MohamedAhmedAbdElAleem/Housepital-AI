@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/placeholder_page.dart';
+import '../../features/splash/presentation/pages/splash_page.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case AppRoutes.splash:
-        return MaterialPageRoute(
-          builder: (_) => const PlaceholderPage(title: 'Splash'),
-        );
+        return MaterialPageRoute(builder: (_) => const SplashPage());
 
       case AppRoutes.login:
-        return MaterialPageRoute(
-          builder: (_) => const PlaceholderPage(title: 'Login'),
-        );
+        return MaterialPageRoute(builder: (_) => const LoginPage());
 
       case AppRoutes.nurseHome:
         return MaterialPageRoute(
