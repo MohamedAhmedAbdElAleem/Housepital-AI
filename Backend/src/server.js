@@ -1,5 +1,5 @@
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, ".", ".env") });
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -39,6 +39,7 @@ app.use("/api/bookings", require("./routes/bookingRoutes"));
 app.use("/api/admin/insights", require("./routes/insightsRoutes"));
 app.use("/api/admin/powerbi", require("./routes/powerBiRoutes"));
 app.use('/api/cloudinary', require('./routes/cloudinaryRoutes'));
+app.use('/api/triage', require('./routes/triageRoutes'));
 
 // Serve static files (for ID document images)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -58,14 +59,13 @@ mongoose.connection.once("open", () => {
     });
 
     // Graceful Shutdown Logic
-    const gracefulShutdown = () => {
+    const gracefulShutdown = async () => {
         console.log("Received kill signal, shutting down gracefully");
-        server.close(() => {
+        server.close(async () => {
             console.log("Closed out remaining connections");
-            mongoose.connection.close(false, () => {
-                console.log("MongoDb connection closed");
-                process.exit(0);
-            });
+            await mongoose.connection.close();
+            console.log("MongoDb connection closed");
+            process.exit(0);
         });
     };
 
@@ -73,13 +73,12 @@ mongoose.connection.once("open", () => {
     process.on("SIGINT", gracefulShutdown);
 
     // Handle Nodemon restart signal
-    process.once("SIGUSR2", () => {
+    process.once("SIGUSR2", async () => {
         console.log("Received SIGUSR2 (Nodemon restart)");
-        server.close(() => {
-             mongoose.connection.close(false, () => {
-                console.log("MongoDb connection closed");
-                process.kill(process.pid, "SIGUSR2");
-            });
+        server.close(async () => {
+            await mongoose.connection.close();
+            console.log("MongoDb connection closed");
+            process.kill(process.pid, "SIGUSR2");
         });
     });
 });

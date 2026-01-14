@@ -4,7 +4,7 @@ class ApiConstants {
   // For Physical Device: Use your computer's actual IP address
   // For Android Emulator: Use 10.0.2.2
   // For Physical Device: Use your computer's actual IP address
-  static const String baseUrl = 'http://172.20.10.3:3500';
+  static const String baseUrl = 'http://10.0.2.2:3500';
   // API Endpoints
   static const String register = '/api/auth/register';
   static const String login = '/api/auth/login';
@@ -20,6 +20,11 @@ class ApiConstants {
   static const String predictWoundType = '/api/ai/predict/wound-type';
   static const String predictSeverity = '/api/ai/predict/severity';
   static const String aiHealth = '/api/ai/health';
+
+  // Triage Chatbot Endpoints
+  static const String triageChat = '/api/triage/chat';
+  static const String triageServices = '/api/triage/services';
+  static const String triageReset = '/api/triage/reset';
 
   // Headers
   static Map<String, String> get headers => {
