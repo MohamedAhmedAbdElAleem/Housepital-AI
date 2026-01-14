@@ -329,4 +329,283 @@ router.post('/reset', async (req, res) => {
     res.json({ message: 'Session reset', sessionId });
 });
 
+// CV Pipeline URL
+const CV_PIPELINE_URL = process.env.CV_PIPELINE_URL || 'http://localhost:8000';
+
+// Wound type to service mapping
+const WOUND_TYPE_SERVICES = {
+    'abrasion': { service: 'Wound Care', urgency: 'Low', arabic: 'سحجة/خدش' },
+    'bruise': { service: 'Wound Care', urgency: 'Low', arabic: 'كدمة' },
+    'burn': { service: 'Wound Care', urgency: 'High', arabic: 'حرق' },
+    'cut': { service: 'Wound Care', urgency: 'Medium', arabic: 'قطع/جرح' },
+    'diabetic_foot': { service: 'Wound Care', urgency: 'High', arabic: 'قدم سكري' },
+    'laceration': { service: 'Wound Care', urgency: 'Medium', arabic: 'تمزق' },
+    'surgical': { service: 'Post-Op Care', urgency: 'Medium', arabic: 'جرح جراحي' }
+};
+
+// DFU Grade severity mapping
+const DFU_GRADE_URGENCY = {
+    'grade_1': { urgency: 'Medium', description: 'قرحة سطحية' },
+    'grade_2': { urgency: 'High', description: 'قرحة عميقة' },
+    'grade_3': { urgency: 'High', description: 'قرحة عميقة مع خراج أو عظم' },
+    'grade_4': { urgency: 'Emergency', description: 'غرغرينا موضعية - حالة طوارئ' }
+};
+
+/**
+ * @swagger
+ * /api/triage/analyze-image:
+ *   post:
+ *     summary: Process CV pipeline result and generate chatbot response
+ *     tags: [Triage]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - cvResult
+ *             properties:
+ *               cvResult:
+ *                 type: object
+ *                 description: Result from CV pipeline
+ *     responses:
+ *       200:
+ *         description: Triage response based on image analysis
+ */
+router.post('/analyze-image', async (req, res) => {
+    try {
+        const { cvResult } = req.body;
+        
+        if (!cvResult || !cvResult.final_verdict) {
+            return res.status(400).json({ error: 'CV result with final_verdict is required' });
+        }
+        
+        const finalVerdict = cvResult.final_verdict;
+        let result;
+        
+        // Handle irrelevant/background images
+        if (finalVerdict.toLowerCase().includes('irrelevant') || 
+            finalVerdict.toLowerCase().includes('background')) {
+            result = {
+                response: '🤔 مش قادر أتعرف على الصورة دي كويس.\n\nممكن تحاول تاني مع صورة أوضح للجرح أو المنطقة المصابة؟\n\nتأكد إن:\n• الإضاءة كويسة\n• الجرح باين واضح في الصورة\n• الصورة مش مهزوزة',
+                urgency: null,
+                showSos: false,
+                services: [],
+                serviceRoutes: [],
+                needsClarification: true,
+                source: 'cv_pipeline'
+            };
+            return res.json(result);
+        }
+        
+        // Handle healthy skin
+        if (finalVerdict.toLowerCase().includes('healthy')) {
+            result = {
+                response: '✅ الحمد لله! الصورة بتوضح إن الجلد سليم.\n\nلو عندك أي أعراض تانية أو حاسس بحاجة مش طبيعية، قولي وأنا هساعدك.',
+                urgency: 'Low',
+                showSos: false,
+                services: [],
+                serviceRoutes: [],
+                needsClarification: false,
+                source: 'cv_pipeline'
+            };
+            return res.json(result);
+        }
+        
+        // Handle wound detected
+        if (finalVerdict.toLowerCase().includes('wound detected')) {
+            // Extract wound type from verdict
+            let woundType = 'unknown';
+            let dfuGrade = null;
+            
+            // Check for specific wound types
+            for (const [type, info] of Object.entries(WOUND_TYPE_SERVICES)) {
+                if (finalVerdict.toLowerCase().includes(type.replace('_', ' '))) {
+                    woundType = type;
+                    break;
+                }
+            }
+            
+            // Check for DFU grade
+            for (const grade of Object.keys(DFU_GRADE_URGENCY)) {
+                if (finalVerdict.toLowerCase().includes(grade.replace('_', ' '))) {
+                    dfuGrade = grade;
+                    break;
+                }
+            }
+            
+            // Build response based on wound type
+            let urgency = 'Medium';
+            let response = '';
+            let services = [];
+            let showSos = false;
+            
+            if (woundType !== 'unknown') {
+                const woundInfo = WOUND_TYPE_SERVICES[woundType];
+                urgency = woundInfo.urgency;
+                services = [woundInfo.service];
+                
+                if (dfuGrade) {
+                    const gradeInfo = DFU_GRADE_URGENCY[dfuGrade];
+                    urgency = gradeInfo.urgency;
+                    
+                    if (urgency === 'Emergency') {
+                        showSos = true;
+                        response = `🚨 **حالة طوارئ - قدم سكري ${gradeInfo.description}**\n\n` +
+                            `تم اكتشاف ${woundInfo.arabic} بدرجة خطورة عالية.\n\n` +
+                            `⚠️ لازم تروح المستشفى فوراً!\n` +
+                            `📞 اتصل بالإسعاف: 123\n\n` +
+                            `لحين وصول المساعدة، حافظ على القدم مرفوعة ونظيفة.`;
+                    } else {
+                        response = `⚠️ **تم اكتشاف ${woundInfo.arabic}**\n\n` +
+                            `الدرجة: ${gradeInfo.description}\n` +
+                            `مستوى الخطورة: ${urgency === 'High' ? 'عالي ⚠️' : 'متوسط'}\n\n` +
+                            `🏥 ننصح بزيارة متخصص في أقرب وقت.\n\n` +
+                            `👇 الخدمة المناسبة ليك:`;
+                    }
+                } else {
+                    const urgencyText = {
+                        'High': 'عالي ⚠️',
+                        'Medium': 'متوسط',
+                        'Low': 'بسيط'
+                    };
+                    
+                    response = `🩹 **تم تحليل الصورة**\n\n` +
+                        `نوع الإصابة: ${woundInfo.arabic}\n` +
+                        `مستوى الخطورة: ${urgencyText[urgency] || 'متوسط'}\n\n`;
+                    
+                    if (urgency === 'High') {
+                        response += `⚠️ ننصح بالعناية الفورية.\n\n`;
+                    }
+                    
+                    response += `👇 الخدمة المناسبة ليك:`;
+                }
+            } else {
+                // Generic wound response
+                services = ['Wound Care'];
+                response = `🩹 **تم اكتشاف جرح**\n\n` +
+                    `ننصح بعرض الجرح على متخصص للعناية المناسبة.\n\n` +
+                    `👇 الخدمة المناسبة ليك:`;
+            }
+            
+            // Map services to routes
+            const serviceRoutes = services.map(s => SERVICES[s]).filter(Boolean);
+            
+            result = {
+                response,
+                urgency,
+                showSos,
+                services,
+                serviceRoutes,
+                woundType,
+                dfuGrade,
+                needsClarification: false,
+                source: 'cv_pipeline'
+            };
+            
+            return res.json(result);
+        }
+        
+        // Default fallback
+        result = {
+            response: '🤔 مش متأكد من الصورة دي.\n\nممكن توصفلي اللي بتحس بيه؟ أو تبعت صورة تانية أوضح؟',
+            urgency: null,
+            showSos: false,
+            services: [],
+            serviceRoutes: [],
+            needsClarification: true,
+            source: 'cv_pipeline'
+        };
+        
+        res.json(result);
+        
+    } catch (error) {
+        console.error('Image analysis error:', error);
+        res.status(500).json({ error: 'Failed to analyze image result' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/triage/upload-image:
+ *   post:
+ *     summary: Upload image to CV pipeline and get triage response
+ *     tags: [Triage]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - image
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Triage response based on image analysis
+ */
+const multer = require('multer');
+const FormData = require('form-data');
+
+const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+
+router.post('/upload-image', upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No image file provided' });
+        }
+        
+        // Send image to CV pipeline
+        const formData = new FormData();
+        formData.append('file', req.file.buffer, {
+            filename: req.file.originalname || 'image.jpg',
+            contentType: req.file.mimetype
+        });
+        
+        try {
+            const cvResponse = await axios.post(`${CV_PIPELINE_URL}/predict`, formData, {
+                headers: formData.getHeaders(),
+                timeout: 30000 // 30 second timeout for model inference
+            });
+            
+            // Process CV result through our analyze-image logic
+            const cvResult = cvResponse.data;
+            
+            // Forward to analyze-image endpoint logic
+            const analyzeResponse = await axios.post(
+                `http://localhost:${process.env.PORT || 3500}/api/triage/analyze-image`,
+                { cvResult }
+            );
+            
+            res.json(analyzeResponse.data);
+            
+        } catch (cvError) {
+            console.log('CV Pipeline unavailable:', cvError.message);
+            
+            // Fallback response when CV pipeline is not available
+            res.json({
+                response: '⚠️ خدمة تحليل الصور غير متاحة حالياً.\n\nممكن توصفلي الأعراض أو الإصابة اللي عندك وأنا هساعدك.',
+                urgency: null,
+                showSos: false,
+                services: [],
+                serviceRoutes: [],
+                needsClarification: true,
+                source: 'fallback',
+                error: 'cv_pipeline_unavailable'
+            });
+        }
+        
+    } catch (error) {
+        console.error('Image upload error:', error);
+        res.status(500).json({ error: 'Failed to process image' });
+    }
+});
+
 module.exports = router;
