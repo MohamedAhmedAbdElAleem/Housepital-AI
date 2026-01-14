@@ -8,6 +8,9 @@ import 'core/network/api_client.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
+import 'features/doctor/data/datasources/doctor_remote_datasource.dart';
+import 'features/doctor/data/repositories/doctor_repository_impl.dart';
+import 'features/doctor/presentation/cubit/doctor_cubit.dart';
 
 void main() {
   // Ensure Flutter bindings are initialized
@@ -18,10 +21,17 @@ void main() {
   final authDataSource = AuthRemoteDataSourceImpl(apiClient: apiClient);
   final authRepository = AuthRepositoryImpl(remoteDataSource: authDataSource);
 
+  // Doctor Dependencies
+  final doctorDataSource = DoctorRemoteDataSourceImpl(apiClient: apiClient);
+  final doctorRepository = DoctorRepositoryImpl(
+    remoteDataSource: doctorDataSource,
+  );
+
   runApp(
     MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => AuthCubit(repository: authRepository)),
+        BlocProvider(create: (_) => DoctorCubit(repository: doctorRepository)),
       ],
       child: const HousepitalStaffApp(),
     ),

@@ -13,6 +13,7 @@ class AppRoutes {
 
   // Doctor
   static const String doctorHome = '/doctor/home';
+  static const String doctorProfile = '/doctor/profile';
 
   // Admin
   static const String adminDashboard = '/admin/dashboard';
