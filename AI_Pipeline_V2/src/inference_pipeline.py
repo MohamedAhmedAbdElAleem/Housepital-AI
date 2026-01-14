@@ -9,11 +9,12 @@ import timm
 
 
 # Config
-# Ideally these should be loaded from a config file
-STAGE0_MODEL_PATH = Path("F:/Housepital-AI/Housepital-AI/AI_Pipeline_V2/models/stage0_yolo_v11/weights/best.pt")
-STAGE1_MODEL_PATH = Path("F:/Housepital-AI/Housepital-AI/AI_Pipeline_V2/models/stage1_binary/best_model_fold_0.pth")
-STAGE2_MODEL_PATH = Path("F:/Housepital-AI/Housepital-AI/AI_Pipeline_V2/models/stage2_type/best_model.pth")
-STAGE3_MODEL_PATH = Path("F:/Housepital-AI/Housepital-AI/AI_Pipeline_V2/models/stage3_severity/best_model.pth")
+# Get the base path relative to this file
+BASE_PATH = Path(__file__).parent.parent
+STAGE0_MODEL_PATH = BASE_PATH / "models/stage0_yolo_v11/weights/best.pt"
+STAGE1_MODEL_PATH = BASE_PATH / "models/stage1_binary/best_model_fold_0.pth"
+STAGE2_MODEL_PATH = BASE_PATH / "models/stage2_type/best_model.pth"
+STAGE3_MODEL_PATH = BASE_PATH / "models/stage3_severity/best_model.pth"
 
 # Stage 2 Classes (Must match training order)
 STAGE2_CLASSES = ['abrasion', 'bruise', 'burn', 'cut', 'diabetic_foot', 'laceration', 'surgical']

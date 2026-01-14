@@ -43,6 +43,9 @@ class TriageResponse {
   final List<String> services;
   final List<TriageServiceRoute> serviceRoutes;
   final String source;
+  final bool needsClarification;
+  final String? woundType;
+  final String? dfuGrade;
 
   TriageResponse({
     required this.response,
@@ -51,6 +54,9 @@ class TriageResponse {
     required this.services,
     required this.serviceRoutes,
     required this.source,
+    this.needsClarification = false,
+    this.woundType,
+    this.dfuGrade,
   });
 
   factory TriageResponse.fromJson(Map<String, dynamic> json) {
@@ -65,6 +71,9 @@ class TriageResponse {
               .toList() ??
           [],
       source: json['source'] ?? 'unknown',
+      needsClarification: json['needsClarification'] ?? false,
+      woundType: json['woundType'],
+      dfuGrade: json['dfuGrade'],
     );
   }
 
@@ -73,6 +82,7 @@ class TriageResponse {
   bool get isMediumUrgency => urgency == 'Medium';
   bool get isLowUrgency => urgency == 'Low';
   bool get hasRecommendedServices => serviceRoutes.isNotEmpty;
+  bool get isFromImage => source == 'cv_pipeline';
 }
 
 /// Triage service for AI health assistant chatbot
@@ -112,6 +122,75 @@ class TriageService {
       print('Triage service error: $e');
       return _getFallbackResponse(message);
     }
+  }
+
+  /// Upload image for analysis
+  Future<TriageResponse> analyzeImage(String imagePath) async {
+    try {
+      final url = Uri.parse('${ApiConstants.baseUrl}/api/triage/upload-image');
+
+      final request = http.MultipartRequest('POST', url);
+      request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+
+      final streamedResponse = await request.send().timeout(
+        const Duration(seconds: 45),
+      );
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return TriageResponse.fromJson(data);
+      } else {
+        return _getImageFallbackResponse();
+      }
+    } catch (e) {
+      print('Image analysis error: $e');
+      return _getImageFallbackResponse();
+    }
+  }
+
+  /// Analyze image from bytes (for camera)
+  Future<TriageResponse> analyzeImageBytes(
+    List<int> imageBytes,
+    String filename,
+  ) async {
+    try {
+      final url = Uri.parse('${ApiConstants.baseUrl}/api/triage/upload-image');
+
+      final request = http.MultipartRequest('POST', url);
+      request.files.add(
+        http.MultipartFile.fromBytes('image', imageBytes, filename: filename),
+      );
+
+      final streamedResponse = await request.send().timeout(
+        const Duration(seconds: 45),
+      );
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return TriageResponse.fromJson(data);
+      } else {
+        return _getImageFallbackResponse();
+      }
+    } catch (e) {
+      print('Image analysis error: $e');
+      return _getImageFallbackResponse();
+    }
+  }
+
+  /// Fallback response when image analysis is unavailable
+  TriageResponse _getImageFallbackResponse() {
+    return TriageResponse(
+      response:
+          '⚠️ معرفتش أحلل الصورة دلوقتي.\n\nممكن توصفلي الأعراض أو الإصابة اللي عندك؟',
+      urgency: null,
+      showSos: false,
+      services: [],
+      serviceRoutes: [],
+      source: 'fallback',
+      needsClarification: true,
+    );
   }
 
   /// Reset the conversation session

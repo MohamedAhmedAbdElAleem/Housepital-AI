@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/triage_service.dart';
 import '../../../customer/services/presentation/pages/service_details_page.dart';
@@ -15,7 +17,9 @@ class _ChatbotPageState extends State<ChatbotPage> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   final TriageService _triageService = TriageService();
+  final ImagePicker _imagePicker = ImagePicker();
   bool _isTyping = false;
+  bool _isAnalyzingImage = false;
 
   @override
   void initState() {
@@ -24,7 +28,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _messages.add(
       ChatMessage(
         text:
-            'أهلاً بيك! 👋\n\nأنا المساعد الذكي بتاع Housepital.\n\nإزيك؟ بتحس بإيه النهارده؟ قولي وأنا هساعدك تلاقي الخدمة المناسبة.',
+            'أهلاً بيك! 👋\n\nأنا المساعد الذكي بتاع Housepital.\n\nإزيك؟ بتحس بإيه النهارده؟ قولي أو ابعتلي صورة وأنا هساعدك تلاقي الخدمة المناسبة. 📸',
         isBot: true,
         time: DateTime.now(),
       ),
@@ -78,6 +82,154 @@ class _ChatbotPageState extends State<ChatbotPage> {
           _messages.add(
             ChatMessage(
               text: 'عذراً، حدث خطأ. حاول مرة تانية.',
+              isBot: true,
+              time: DateTime.now(),
+            ),
+          );
+        });
+        _scrollToBottom();
+      }
+    }
+  }
+
+  /// Show image source picker dialog
+  void _showImageSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const Text(
+                  'إضافة صورة',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildImageSourceOption(
+                      icon: Icons.camera_alt_rounded,
+                      label: 'الكاميرا',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickImage(ImageSource.camera);
+                      },
+                    ),
+                    _buildImageSourceOption(
+                      icon: Icons.photo_library_rounded,
+                      label: 'المعرض',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickImage(ImageSource.gallery);
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Widget _buildImageSourceOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: AppColors.primary500.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Icon(icon, size: 30, color: AppColors.primary500),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontSize: 14)),
+        ],
+      ),
+    );
+  }
+
+  /// Pick and analyze image
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) return;
+
+      setState(() {
+        // Add image message
+        _messages.add(
+          ChatMessage(
+            text: '📷 جاري تحليل الصورة...',
+            isBot: false,
+            time: DateTime.now(),
+            imagePath: pickedFile.path,
+          ),
+        );
+        _isAnalyzingImage = true;
+        _isTyping = true;
+      });
+      _scrollToBottom();
+
+      // Analyze the image
+      final response = await _triageService.analyzeImage(pickedFile.path);
+
+      if (mounted) {
+        setState(() {
+          _isAnalyzingImage = false;
+          _isTyping = false;
+          _messages.add(
+            ChatMessage(
+              text: response.response,
+              isBot: true,
+              time: DateTime.now(),
+              urgency: response.urgency,
+              showSos: response.showSos,
+              serviceRoutes: response.serviceRoutes,
+            ),
+          );
+        });
+        _scrollToBottom();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isAnalyzingImage = false;
+          _isTyping = false;
+          _messages.add(
+            ChatMessage(
+              text:
+                  '⚠️ حصل مشكلة في تحليل الصورة. ممكن توصفلي الإصابة بالكتابة؟',
               isBot: true,
               time: DateTime.now(),
             ),
@@ -274,6 +426,25 @@ class _ChatbotPageState extends State<ChatbotPage> {
               top: false,
               child: Row(
                 children: [
+                  // Camera button
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F7FA),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.camera_alt_rounded,
+                        color:
+                            _isAnalyzingImage
+                                ? Colors.grey
+                                : AppColors.primary500,
+                      ),
+                      onPressed:
+                          _isAnalyzingImage ? null : _showImageSourceDialog,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -287,7 +458,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                         textDirection: TextDirection.rtl,
                         style: const TextStyle(fontSize: 16),
                         decoration: const InputDecoration(
-                          hintText: 'اكتب رسالتك هنا...',
+                          hintText: 'اكتب رسالتك أو ابعت صورة...',
                           hintTextDirection: TextDirection.rtl,
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 12),
@@ -296,7 +467,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.primary500,
@@ -330,6 +501,34 @@ class _ChatbotPageState extends State<ChatbotPage> {
           children: [
             // Urgency badge
             if (message.urgency != null) _buildUrgencyBadge(message.urgency!),
+
+            // Image if present
+            if (message.hasImage) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.file(
+                  File(message.imagePath!),
+                  width: 200,
+                  height: 200,
+                  fit: BoxFit.cover,
+                  errorBuilder:
+                      (context, error, stackTrace) => Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.broken_image,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
+                      ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
 
             Container(
               padding: const EdgeInsets.all(16),
@@ -675,6 +874,7 @@ class ChatMessage {
   final String? urgency;
   final bool showSos;
   final List<TriageServiceRoute> serviceRoutes;
+  final String? imagePath;
 
   ChatMessage({
     required this.text,
@@ -683,5 +883,8 @@ class ChatMessage {
     this.urgency,
     this.showSos = false,
     this.serviceRoutes = const [],
+    this.imagePath,
   });
+
+  bool get hasImage => imagePath != null;
 }
