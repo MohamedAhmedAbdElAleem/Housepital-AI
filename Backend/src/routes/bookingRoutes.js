@@ -7,9 +7,58 @@ const {
 	getBookingById,
 	cancelBooking,
 	updateBookingStatus,
+    getDoctorAppointments,
+    getBookedSlots,
+    checkInPatient
 } = require("../controllers/bookingController");
 
-// All booking routes require authentication
+// PUBLIC route - no auth needed
+router.get("/slots", getBookedSlots);
+
+// All other booking routes require authentication
+/**
+ * @openapi
+ * /api/bookings/create:
+ *   post:
+ *     tags:
+ *       - Bookings
+ *     summary: Create New Booking
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - serviceType
+ *               - startDate
+ *             properties:
+ *               serviceType:
+ *                 type: string
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *     responses:
+ *       201:
+ *         description: Booking created
+ */
+/**
+ * @openapi
+ * /api/bookings/doctor-appointments:
+ *   get:
+ *     tags:
+ *       - Bookings
+ *     summary: Get Doctor Appointments
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of bookings for doctor
+ */
+router.get("/doctor-appointments", authenticateToken, getDoctorAppointments);
+
 /**
  * @openapi
  * /api/bookings/create:
@@ -130,5 +179,8 @@ router.put("/:id/cancel", authenticateToken, cancelBooking);
  *         description: Booking status updated
  */
 router.put("/:id/status", authenticateToken, updateBookingStatus);
+
+// Check-in patient using PIN
+router.put("/:id/check-in", authenticateToken, checkInPatient);
 
 module.exports = router;

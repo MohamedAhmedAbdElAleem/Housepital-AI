@@ -5,6 +5,7 @@ import '../../../../core/error/exceptions.dart';
 import '../models/doctor_model.dart';
 import '../models/clinic_model.dart';
 import '../models/service_model.dart';
+import '../models/appointment_model.dart';
 
 abstract class DoctorRemoteDataSource {
   Future<DoctorModel> createProfile(DoctorModel doctor);
@@ -16,6 +17,14 @@ abstract class DoctorRemoteDataSource {
   Future<ClinicModel> updateClinic(ClinicModel clinic);
   Future<void> deleteClinic(String clinicId);
   Future<String> uploadImage(File file);
+
+  // Services
+  Future<ServiceModel> addService(ServiceModel service);
+  Future<List<ServiceModel>> getMyServices();
+  Future<ServiceModel> updateService(ServiceModel service);
+  Future<void> deleteService(String serviceId);
+
+  Future<List<AppointmentModel>> getAppointments();
 }
 
 class DoctorRemoteDataSourceImpl implements DoctorRemoteDataSource {
@@ -127,21 +136,77 @@ class DoctorRemoteDataSourceImpl implements DoctorRemoteDataSource {
         '/cloudinary/uploadFile',
         body: formData,
       );
-
-      // Assumption: Cloudinary controller returns { url: "...", ... }
-      // I should double check the controller return value.
-      // Usually it returns the full cloudinary response.
-      // Let's assume response['url'] or response['secure_url'].
-      // To be safe, I'll log the response first if I could, but I can't.
-      // Based on standard Housepital backend patterns, it likely returns { success: true, url: "..." }
-      // I'll check the controller code in next step to be sure, but for now I'll anticipate standard structure.
-
-      // Checking CloudinaryController in next step...
-      // For now, I'll write the method accessing `url`.
       return response['url'];
     } on DioException catch (e) {
       throw ServerException(
         e.response?.data['message'] ?? 'Failed to upload image',
+      );
+    }
+  }
+
+  @override
+  Future<ServiceModel> addService(ServiceModel service) async {
+    try {
+      final response = await apiClient.post(
+        '/services',
+        body: service.toJson(),
+      );
+      return ServiceModel.fromJson(response['data']);
+    } on DioException catch (e) {
+      throw ServerException(
+        e.response?.data['message'] ?? 'Failed to add service',
+      );
+    }
+  }
+
+  @override
+  Future<List<ServiceModel>> getMyServices() async {
+    try {
+      final response = await apiClient.get('/services/my-services');
+      final List<dynamic> data = response['data'];
+      return data.map((e) => ServiceModel.fromJson(e)).toList();
+    } on DioException catch (e) {
+      throw ServerException(
+        e.response?.data['message'] ?? 'Failed to fetch services',
+      );
+    }
+  }
+
+  @override
+  Future<ServiceModel> updateService(ServiceModel service) async {
+    try {
+      final response = await apiClient.put(
+        '/services/${service.id}',
+        body: service.toJson(),
+      );
+      return ServiceModel.fromJson(response['data']);
+    } on DioException catch (e) {
+      throw ServerException(
+        e.response?.data['message'] ?? 'Failed to update service',
+      );
+    }
+  }
+
+  @override
+  Future<void> deleteService(String serviceId) async {
+    try {
+      await apiClient.delete('/services/$serviceId');
+    } on DioException catch (e) {
+      throw ServerException(
+        e.response?.data['message'] ?? 'Failed to delete service',
+      );
+    }
+  }
+  @override
+  Future<List<AppointmentModel>> getAppointments() async {
+    try {
+      final response = await apiClient.get('/bookings/doctor-appointments');
+      // Backend returns { success: true, bookings: [...] }
+      final List<dynamic> data = response['bookings']; 
+      return data.map((e) => AppointmentModel.fromJson(e)).toList();
+    } on DioException catch (e) {
+      throw ServerException(
+        e.response?.data['message'] ?? 'Failed to fetch appointments',
       );
     }
   }

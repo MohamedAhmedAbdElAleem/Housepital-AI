@@ -34,30 +34,30 @@ Based on "Housepital AI Scenarios - Part 4: Doctor Journey & Clinic Booking" (Sc
         - [ ] Block access to main features until approved by Admin.
 
 
-- [ ] **Scenario 18: Service Management**  <-- **(NEXT PRIORITY)**
-    - [ ] **Backend API**:
-        - [ ] Create `serviceController.js` (addService, getServices, updateService).
-        - [ ] Create `serviceRoutes.js`.
-    - [ ] **Flutter App**:
-        - [ ] **Create Service**:
-            - [ ] Service Name (e.g., "Consultation", "Follow-up").
-            - [ ] Price (EGP).
-            - [ ] Duration (Minutes).
-        - [ ] **Multi-Clinic Assignment**:
-            - [ ] Checklist to apply this service to Clinic A, Clinic B, etc.
+- [x] **Scenario 18: Service Management**  <-- **(DONE)**
+    - [x] **Backend API**:
+        - [x] Create `serviceController.js` (addService, getServices, updateService).
+        - [x] Create `serviceRoutes.js`.
+    - [x] **Flutter App**:
+        - [x] **Create Service**:
+            - [x] Service Name (e.g., "Consultation", "Follow-up").
+            - [x] Price (EGP).
+            - [x] Duration (Minutes).
+        - [x] **Multi-Clinic Assignment**:
+            - [x] Checklist to apply this service to Clinic A, Clinic B, etc.
 
 ## Phase 2: Scheduling & Availability (The Engine)
 **Goal:** Give doctors control over their time using flexible booking systems.
 
-- [ ] **Scenario 19: Schedule Configuration**
+- [x] **Scenario 19: Schedule Configuration**
     - [x] **Booking Mode Selection** (Implemented in Clinic Form):
         - [x] Option A: **Time Slots** (Specific times, e.g., 5:00 PM, 5:30 PM).
         - [x] Option B: **Queue System** (First come first served window).
     - [x] **Working Hours**:
         - [x] Define days of week and hours per clinic.
-    - [ ] **Advanced Settings**:
-        - [ ] **Min Advance Booking**: (e.g., "No bookings less than 3 hours before").
-        - [ ] **Urgent Booking**: Toggle to allow last-minute bookings at a premium price (+%).
+    - [x] **Advanced Settings**:
+        - [x] **Min Advance Booking**: (e.g., "No bookings less than 3 hours before").
+        - [x] **Urgent Booking**: Toggle to allow last-minute bookings at a premium price (+%).
 
 ## Phase 3: Appointment Operations (The Core Loop)
 **Goal:** Manage the lifecycle of a patient visit from booking to completion.
@@ -101,11 +101,17 @@ Based on "Housepital AI Scenarios - Part 4: Doctor Journey & Clinic Booking" (Sc
 - **Backend (New)**:
     - [x] `doctorRoutes` & `doctorController`.
     - [x] `clinicRoutes` & `clinicController`.
-    - [ ] `serviceRoutes` & `serviceController`.
-    - [ ] `bookingRoutes` (Update for Doctor logic).
+    - [x] `serviceRoutes` & `serviceController`.
+    - [x] `bookingRoutes` (Updated for Doctor/Clinic logic, includes `getBookedSlots`).
 - **Backend (Existing)**:
-    - [x] `Doctor`, `Clinic`, `Service` models (Already exist).
-- **Flutter**:
+    - [x] `Doctor`, `Clinic`, `Service`, `Booking` models.
+- **Flutter (Doctor App)**:
     - [x] `image_picker` for documents.
     - [ ] `google_maps_flutter` for clinic location.
     - [ ] `qr_code_scanner` or `mobile_scanner` for Check-in.
+- **Flutter (Customer App)**:
+    - [x] Browse Clinics page.
+    - [x] Browse Services page.
+    - [x] Booking flow with real Services/Clinics.
+    - [x] Slot availability filtering.
+

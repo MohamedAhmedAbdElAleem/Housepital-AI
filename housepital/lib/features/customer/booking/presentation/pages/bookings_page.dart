@@ -7,6 +7,7 @@ import 'booking_tracking_page.dart';
 import '../../../home/presentation/widgets/custom_bottom_nav_bar.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../widgets/booking_cancellation_modal.dart';
+import 'customer_booking_details_page.dart';
 
 import '../../utils/booking_utils.dart';
 
@@ -479,6 +480,8 @@ class _BookingsPageState extends State<BookingsPage>
     final patientName = booking['patientName'] ?? 'Patient';
     final nurseName = booking['nurseName'];
     final price = (booking['servicePrice'] ?? 0).toDouble();
+    final bookingType = booking['type'] ?? 'home_nursing'; // Key fix: use 'type' field
+    final isClinicAppointment = bookingType == 'clinic_appointment';
 
     Color statusColor;
     String statusLabel;
@@ -488,7 +491,7 @@ class _BookingsPageState extends State<BookingsPage>
       case 'in-progress':
         statusColor = const Color(0xFF00B870);
         statusLabel = 'In Progress';
-        statusIcon = Icons.directions_car_rounded;
+        statusIcon = isClinicAppointment ? Icons.local_hospital_rounded : Icons.directions_car_rounded;
         break;
       case 'confirmed':
       case 'assigned':
@@ -499,8 +502,8 @@ class _BookingsPageState extends State<BookingsPage>
       case 'searching':
       case 'pending':
         statusColor = const Color(0xFFF59E0B);
-        statusLabel = 'Finding Nurse';
-        statusIcon = Icons.search_rounded;
+        statusLabel = isClinicAppointment ? 'Awaiting Confirmation' : 'Finding Nurse';
+        statusIcon = isClinicAppointment ? Icons.schedule_rounded : Icons.search_rounded;
         break;
       default:
         statusColor = const Color(0xFF64748B);
@@ -518,7 +521,17 @@ class _BookingsPageState extends State<BookingsPage>
           child: Opacity(opacity: value, child: child),
         );
       },
-      child: Container(
+      child: GestureDetector(
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CustomerBookingDetailsPage(booking: booking),
+            ),
+          );
+          _fetchBookings(); // Refresh on return
+        },
+        child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -751,25 +764,38 @@ class _BookingsPageState extends State<BookingsPage>
                   // Actions
                   Row(
                     children: [
-                      if (status == 'in-progress' || status == 'confirmed')
+                      // For clinic appointments: Show "View PIN" button
+                      if (isClinicAppointment && status == 'confirmed')
+                        Expanded(
+                          child: _buildActionButton(
+                            label: 'View PIN',
+                            icon: Icons.qr_code_rounded,
+                            color: const Color(0xFF8B5CF6),
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CustomerBookingDetailsPage(booking: booking),
+                              ),
+                            ),
+                          ),
+                        ),
+                      // For home nursing: Show "Track" button
+                      if (!isClinicAppointment && (status == 'in-progress' || status == 'confirmed'))
                         Expanded(
                           child: _buildActionButton(
                             label: 'Track',
                             icon: Icons.location_on_rounded,
                             color: const Color(0xFF00B870),
-                            onTap:
-                                () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (_) => BookingTrackingPage(
-                                          booking: booking,
-                                        ),
-                                  ),
-                                ),
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BookingTrackingPage(booking: booking),
+                              ),
+                            ),
                           ),
                         ),
-                      if (status == 'in-progress' || status == 'confirmed')
+                      if ((isClinicAppointment && status == 'confirmed') || 
+                          (!isClinicAppointment && (status == 'in-progress' || status == 'confirmed')))
                         const SizedBox(width: 10),
                       Expanded(
                         child: _buildActionButton(
@@ -787,6 +813,7 @@ class _BookingsPageState extends State<BookingsPage>
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -1053,7 +1080,7 @@ class _BookingsPageState extends State<BookingsPage>
             isLateCancel: isLate,
             onConfirm: () {
               Navigator.pop(context);
-              _performCancelBooking(booking['id']);
+              _performCancelBooking(booking['_id'] ?? booking['id'] ?? '');
             },
             onCancel: () => Navigator.pop(context),
           ),

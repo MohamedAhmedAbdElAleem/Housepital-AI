@@ -2,9 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../features/auth/presentation/cubit/auth_cubit.dart';
+import 'my_services_page.dart';
+import 'booking_settings_page.dart';
+import 'appointments_page.dart';
 
-class DoctorHomePage extends StatelessWidget {
+import '../../presentation/cubit/doctor_cubit.dart';
+
+class DoctorHomePage extends StatefulWidget {
   const DoctorHomePage({super.key});
+
+  @override
+  State<DoctorHomePage> createState() => _DoctorHomePageState();
+}
+
+class _DoctorHomePageState extends State<DoctorHomePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch profile and clinics to ensure data is fresh
+    context.read<DoctorCubit>().fetchProfile();
+    context.read<DoctorCubit>().fetchClinics();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,14 +116,24 @@ class DoctorHomePage extends StatelessWidget {
                   title: 'Appointments',
                   icon: Icons.calendar_month_outlined,
                   color: Colors.orange,
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AppointmentsPage()),
+                    );
+                  },
                 ),
                 _buildActionCard(
                   context,
                   title: 'Services',
                   icon: Icons.medical_services_outlined,
                   color: Colors.purple,
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MyServicesPage()),
+                    );
+                  },
                 ),
                 _buildActionCard(
                   context,
@@ -119,7 +147,14 @@ class DoctorHomePage extends StatelessWidget {
                   title: 'Settings',
                   icon: Icons.settings_outlined,
                   color: Colors.grey,
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const BookingSettingsPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

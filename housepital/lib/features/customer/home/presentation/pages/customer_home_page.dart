@@ -11,6 +11,9 @@ import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../pages/all_nursing_services_page.dart';
+import 'clinics_page.dart';
+import 'browse_clinics_page.dart';
+import 'browse_services_page.dart';
 
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key});
@@ -37,6 +40,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>
       'icon': Icons.local_hospital_rounded,
       'label': 'Clinics',
       'color': Color(0xFF3B82F6),
+      'page': 'browse_clinics',
     },
     {
       'icon': Icons.science_rounded,
@@ -412,8 +416,20 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                     final category = _categories[index];
                     final isSelected = _selectedCategoryIndex == index;
                     return GestureDetector(
-                      onTap:
-                          () => setState(() => _selectedCategoryIndex = index),
+                      onTap: () {
+                        setState(() => _selectedCategoryIndex = index);
+                        if (category['label'] == 'Clinics') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const BrowseClinicsPage()),
+                          );
+                        } else if (category['label'] == 'Home Care') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const AllNursingServicesPage()),
+                          );
+                        }
+                      },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         margin: const EdgeInsets.only(right: 12),

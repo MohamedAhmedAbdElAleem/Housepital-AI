@@ -166,7 +166,56 @@ const deleteClinic = async (req, res) => {
     }
 };
 
+// @desc    Get all active clinics (Public)
+// @route   GET /api/clinics
+// @access  Public
+const getAllClinics = async (req, res) => {
+    try {
+        const { city, area, specialization } = req.query;
+        
+        let query = { isActive: true };
+        
+        // Filter by city
+        if (city) {
+            query['address.city'] = { $regex: city, $options: 'i' };
+        }
+        // Filter by area
+        if (area) {
+            query['address.area'] = { $regex: area, $options: 'i' };
+        }
+
+        const clinics = await Clinic.find(query)
+            .populate({
+                path: 'doctor',
+                select: 'specialization rating yearsOfExperience',
+                populate: {
+                    path: 'user',
+                    select: 'name profilePictureUrl'
+                }
+            })
+            .sort({ createdAt: -1 });
+
+        // Optionally filter by specialization (via populated doctor)
+        let filteredClinics = clinics;
+        if (specialization) {
+            filteredClinics = clinics.filter(c => 
+                c.doctor?.specialization?.toLowerCase().includes(specialization.toLowerCase())
+            );
+        }
+
+        res.json({
+            success: true,
+            count: filteredClinics.length,
+            data: filteredClinics
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
 module.exports = {
+    getAllClinics,
     addClinic,
     getMyClinics,
     updateClinic,

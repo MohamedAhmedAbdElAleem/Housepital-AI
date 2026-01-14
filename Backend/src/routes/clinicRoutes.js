@@ -3,13 +3,17 @@ const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/authMiddleware');
 const {
+    getAllClinics,
     addClinic,
     getMyClinics,
     updateClinic,
     deleteClinic
 } = require('../controllers/clinicController');
 
-// All routes require authentication
+// PUBLIC route (no auth needed)
+router.get('/', getAllClinics);
+
+// Protected routes (require authentication)
 router.use(authenticateToken);
 
 router.post('/', addClinic);

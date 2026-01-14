@@ -11,6 +11,8 @@ import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/doctor/data/datasources/doctor_remote_datasource.dart';
 import 'features/doctor/data/repositories/doctor_repository_impl.dart';
 import 'features/doctor/presentation/cubit/doctor_cubit.dart';
+import 'features/doctor/presentation/cubit/service_cubit.dart';
+import 'features/doctor/presentation/cubit/appointment_cubit.dart';
 
 void main() {
   // Ensure Flutter bindings are initialized
@@ -32,6 +34,8 @@ void main() {
       providers: [
         BlocProvider(create: (_) => AuthCubit(repository: authRepository)),
         BlocProvider(create: (_) => DoctorCubit(repository: doctorRepository)),
+        BlocProvider(create: (_) => ServiceCubit(repository: doctorRepository)),
+        BlocProvider(create: (_) => AppointmentCubit(repository: doctorRepository)),
       ],
       child: const HousepitalStaffApp(),
     ),

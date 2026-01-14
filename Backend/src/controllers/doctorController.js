@@ -144,8 +144,92 @@ const updateProfile = async (req, res) => {
     }
 };
 
+
+// @desc    Get all doctors (Public with filters)
+// @route   GET /api/doctors
+// @access  Public
+const getAllDoctors = async (req, res) => {
+    try {
+        const { specialization, name, clinicArea } = req.query;
+        let query = { verificationStatus: 'approved' }; // Only approved doctors
+
+        if (specialization) {
+            query.specialization = specialization;
+        }
+
+        // Search by name (via User populate? Complex in Mongoose without aggregate, 
+        // essentially we find Users first or use aggregate. 
+        // For simplicity let's stick to filters on Doctor model fields first or basic implementation)
+        
+        // If searching by Name, we might need to find Users first
+        if (name) {
+             const userIdList = await User.find({ 
+                 name: { $regex: name, $options: 'i' }, 
+                 role: 'doctor' 
+             }).distinct('_id');
+             query.user = { $in: userIdList };
+        }
+
+        const doctors = await Doctor.find(query)
+            .populate("user", "name email phone profilePictureUrl")
+            .populate("user", "name email phone profilePictureUrl");
+            
+        // Note: Doctor model defines `clinics` in previous steps? 
+        // No, Service has clinics. Doctor has ONE clinicAddress (legacy) or we find clinics by doctorId.
+        // Let's just return doctor profile for now.
+        
+        res.json({
+            success: true,
+            count: doctors.length,
+            data: doctors
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+// @desc    Get doctor details
+// @route   GET /api/doctors/:id
+// @access  Public
+const getDoctorDetails = async (req, res) => {
+    try {
+        const doctor = await Doctor.findById(req.params.id)
+            .populate("user", "name email phone profilePictureUrl");
+
+        if (!doctor) {
+            return res.status(404).json({ message: "Doctor not found" });
+        }
+        
+        // Fetch clinics for this doctor
+        // Assuming Clinic model has `doctor: doctorId` or we find clinics where doctor works?
+        // In ClinicController we added `addClinic` linking to `req.user.id`. 
+        // So Clinic Model has `doctor` field.
+        const Clinic = require("../models/Clinic");
+        const clinics = await Clinic.find({ doctor: doctor._id }); // Clinic links to Doctor ID
+
+        // Fetch services
+        const Service = require("../models/Service");
+        const services = await Service.find({ providerId: doctor._id, providerModel: 'Doctor' });
+
+        res.json({
+            success: true,
+            data: {
+                ...doctor.toObject(),
+                clinics,
+                services
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
 module.exports = {
     createProfile,
     getProfile,
-    updateProfile
+    updateProfile,
+    getAllDoctors,
+    getDoctorDetails
 };

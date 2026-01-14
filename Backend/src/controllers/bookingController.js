@@ -9,9 +9,6 @@ const User = require("../models/User");
 exports.createBooking = async (req, res) => {
 	try {
 		console.log("📋 Creating booking...");
-		console.log("Request body:", req.body);
-		console.log("User from token:", req.user);
-
 		const {
 			serviceId,
 			serviceName,
@@ -19,12 +16,14 @@ exports.createBooking = async (req, res) => {
 			patientId,
 			patientName,
 			isForSelf,
+			clinicId,
+			type,
 			hasMedicalTools,
 			timeOption,
 			scheduledDate,
 			scheduledTime,
 			notes,
-			prescriptionUrl,
+			prescriptionUrl
 		} = req.body;
 
 		// Validate required fields
@@ -43,7 +42,6 @@ exports.createBooking = async (req, res) => {
 			});
 		}
 
-		// Get userId from authenticated user
 		const userId = req.user?.id;
 		if (!userId) {
 			return res.status(401).json({
@@ -52,13 +50,41 @@ exports.createBooking = async (req, res) => {
 			});
 		}
 
-		// Create booking
+		// Resolve Patient Name if missing
+		let resolvedPatientName = patientName;
+		if (!resolvedPatientName && (isForSelf || String(patientId) === String(userId))) {
+			const user = await User.findById(userId);
+			if (user) resolvedPatientName = user.name;
+		}
+
+		if (!resolvedPatientName) {
+             return res.status(400).json({ success: false, message: "Patient name is required" });
+        }
+
+		// Determine Booking Type & Doctor ID
+		let bookingType = type || "home_nursing";
+		let doctorId = null;
+
+		// If clinic appointment, we should look up the service to find the provider (Doctor)
+		if (bookingType === 'clinic_appointment' || clinicId) {
+			bookingType = 'clinic_appointment';
+			// You might want to fetch Service here to get providerId if not passed
+			// For now assuming the frontend might pass doctorId or we derive it differently
+			// Let's rely on service lookup if needed, but for MVP let's trust if passed or lookup
+			const Service = require("../models/Service");
+			const service = await Service.findById(serviceId);
+			if (service && service.providerModel === 'Doctor') {
+				doctorId = service.providerId;
+			}
+		}
+
 		const booking = new Booking({
+			type: bookingType,
 			serviceId,
 			serviceName,
 			servicePrice: servicePrice || 0,
 			patientId,
-			patientName,
+			patientName: resolvedPatientName,
 			isForSelf: isForSelf || false,
 			userId,
 			hasMedicalTools: hasMedicalTools || false,
@@ -69,10 +95,11 @@ exports.createBooking = async (req, res) => {
 			prescriptionUrl: prescriptionUrl || "",
 			status: "pending",
 			paymentStatus: "pending",
+			clinicId,
+			doctorId
 		});
 
 		await booking.save();
-
 		console.log("✅ Booking created successfully:", booking._id);
 
 		res.status(201).json({
@@ -235,6 +262,7 @@ exports.updateBookingStatus = async (req, res) => {
 			"confirmed",
 			"assigned",
 			"in-progress",
+			"checked-in",
 			"completed",
 			"cancelled",
 		];
@@ -254,6 +282,11 @@ exports.updateBookingStatus = async (req, res) => {
 			});
 		}
 
+		// Generate visit PIN when confirmed
+		if (status === "confirmed" && !booking.visitPin) {
+			booking.visitPin = Math.floor(1000 + Math.random() * 9000).toString();
+		}
+
 		booking.status = status;
 		await booking.save();
 
@@ -268,6 +301,153 @@ exports.updateBookingStatus = async (req, res) => {
 			success: false,
 			message: "Error updating booking status",
 			error: error.message,
+		});
+	}
+};
+
+/**
+ * @desc    Check-in a patient using PIN
+ * @route   PUT /api/bookings/:id/check-in
+ * @access  Private (Doctor)
+ */
+exports.checkInPatient = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { pin } = req.body;
+
+		if (!pin) {
+			return res.status(400).json({
+				success: false,
+				message: "PIN is required",
+			});
+		}
+
+		const booking = await Booking.findById(id);
+
+		if (!booking) {
+			return res.status(404).json({
+				success: false,
+				message: "Booking not found",
+			});
+		}
+
+		if (booking.status !== "confirmed") {
+			return res.status(400).json({
+				success: false,
+				message: "Only confirmed bookings can be checked in",
+			});
+		}
+
+		if (booking.visitPin !== pin) {
+			return res.status(400).json({
+				success: false,
+				message: "Invalid PIN",
+			});
+		}
+
+		booking.status = "checked-in";
+		booking.checkedInAt = new Date();
+		await booking.save();
+
+		res.status(200).json({
+			success: true,
+			message: "Patient checked in successfully",
+			booking: booking,
+		});
+	} catch (error) {
+		console.error("❌ Error checking in patient:", error);
+		res.status(500).json({
+			success: false,
+			message: "Error checking in patient",
+			error: error.message,
+		});
+	}
+};
+
+/**
+ * @desc    Get bookings for a doctor
+ * @route   GET /api/bookings/doctor-appointments
+ * @access  Private (Doctor)
+ */
+exports.getDoctorAppointments = async (req, res) => {
+	try {
+        // Find doctor profile for this user
+        const Doctor = require("../models/Doctor");
+        const doctorProfile = await Doctor.findOne({ user: req.user.id });
+        
+        if (!doctorProfile) {
+             return res.status(404).json({ message: "Doctor profile not found" });
+        }
+
+		const bookings = await Booking.find({ doctorId: doctorProfile._id })
+			.sort({ scheduledDate: 1, scheduledTime: 1 })
+			.populate("patientId", "name email phone profilePictureUrl") // Populate patient user details
+            .populate("clinicId", "name address")
+            .populate("serviceId", "name durationMinutes");
+
+		res.status(200).json({
+			success: true,
+			bookings: bookings,
+		});
+	} catch (error) {
+		console.error("❌ Error fetching doctor bookings:", error);
+		res.status(500).json({
+			success: false,
+			message: "Error fetching bookings",
+			error: error.message,
+		});
+	}
+};
+
+/**
+ * @desc    Get booked time slots for a clinic on a date
+ * @route   GET /api/bookings/slots
+ * @access  Public
+ */
+exports.getBookedSlots = async (req, res) => {
+	try {
+		const { clinicId, date, doctorId } = req.query;
+
+		if (!date) {
+			return res.status(400).json({
+				success: false,
+				message: "Date is required",
+			});
+		}
+
+		// Parse date to get start and end of day
+		const queryDate = new Date(date);
+		const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
+		const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
+
+		let query = {
+			scheduledDate: { $gte: startOfDay, $lte: endOfDay },
+			status: { $nin: ["cancelled", "no-show"] },
+		};
+
+		if (clinicId) {
+			query.clinicId = clinicId;
+		}
+		if (doctorId) {
+			query.doctorId = doctorId;
+		}
+
+		const bookings = await Booking.find(query).select("scheduledTime");
+
+		const bookedSlots = bookings
+			.map((b) => b.scheduledTime)
+			.filter((t) => t);
+
+		res.json({
+			success: true,
+			date: date,
+			bookedSlots: bookedSlots,
+		});
+	} catch (error) {
+		console.error("Error fetching booked slots:", error);
+		res.status(500).json({
+			success: false,
+			message: "Error fetching booked slots",
 		});
 	}
 };

@@ -13,7 +13,7 @@ class ServiceModel {
   final String currency;
   final int durationMinutes;
   final bool requiresTools;
-  final List<ServiceTool> toolsList;
+  // final List<ServiceTool> toolsList; // Simplified for customer app for now
   final double estimatedToolsDeposit;
   final bool requiresPrescription;
   final bool isActive;
@@ -33,7 +33,7 @@ class ServiceModel {
     this.currency = 'EGP',
     required this.durationMinutes,
     this.requiresTools = false,
-    this.toolsList = const [],
+    // this.toolsList = const [],
     this.estimatedToolsDeposit = 0,
     this.requiresPrescription = false,
     this.isActive = true,
@@ -57,55 +57,9 @@ class ServiceModel {
       currency: json['currency'] ?? 'EGP',
       durationMinutes: json['durationMinutes'] ?? 0,
       requiresTools: json['requiresTools'] ?? false,
-      toolsList: json['toolsList'] != null
-          ? (json['toolsList'] as List)
-                .map((i) => ServiceTool.fromJson(i))
-                .toList()
-          : [],
       estimatedToolsDeposit: (json['estimatedToolsDeposit'] ?? 0).toDouble(),
       requiresPrescription: json['requiresPrescription'] ?? false,
       isActive: json['isActive'] ?? true,
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      if (id != null) '_id': id,
-      'name': name,
-      if (nameAr != null) 'nameAr': nameAr,
-      if (description != null) 'description': description,
-      if (descriptionAr != null) 'descriptionAr': descriptionAr,
-      'type': type,
-      'category': category,
-      'providerId': providerId,
-      'providerModel': providerModel,
-      'clinics': clinics,
-      'price': price,
-      'currency': currency,
-      'durationMinutes': durationMinutes,
-      'requiresTools': requiresTools,
-      'toolsList': toolsList.map((tool) => tool.toJson()).toList(),
-      'estimatedToolsDeposit': estimatedToolsDeposit,
-      'requiresPrescription': requiresPrescription,
-      'isActive': isActive,
-    };
-  }
-}
-
-class ServiceTool {
-  final String name;
-  final double estimatedCost;
-
-  ServiceTool({required this.name, required this.estimatedCost});
-
-  factory ServiceTool.fromJson(Map<String, dynamic> json) {
-    return ServiceTool(
-      name: json['name'] ?? '',
-      estimatedCost: (json['estimatedCost'] ?? 0).toDouble(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'name': name, 'estimatedCost': estimatedCost};
   }
 }

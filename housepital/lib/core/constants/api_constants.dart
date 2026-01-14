@@ -1,7 +1,8 @@
 class ApiConstants {
   // Base URL
-  static const String baseUrl = 'http://localhost:3000/api';
-
+  // Use 10.0.2.2 for Android Emulator, or your LAN IP for physical device
+  static const String baseUrl = 'http://10.0.2.2:3500/api';
+  // static const String baseUrl = 'http://localhost:3500/api';
   // Auth Endpoints
   static const String login = '/auth/login';
   static const String register = '/auth/register';
