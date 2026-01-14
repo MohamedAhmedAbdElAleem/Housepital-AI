@@ -54,6 +54,60 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> register({
+    required String name,
+    required String email,
+    required String mobile,
+    required String password,
+    required String role,
+  }) async {
+    print('🔐 Starting registration...');
+    print('   Name: $name');
+    print('   Email: $email');
+    print('   Mobile: $mobile');
+    print('   Role: $role');
+
+    emit(AuthLoading());
+    try {
+      final request = RegisterRequest(
+        name: name,
+        email: email,
+        password: password,
+        role: role,
+        mobile: mobile,
+      );
+
+      print('📤 Sending registration request...');
+      final response = await repository.register(request);
+
+      print('📥 Registration response received:');
+      print('   Success: ${response.success}');
+      print('   Message: ${response.message}');
+
+      if (response.success && response.user != null) {
+        print('✅ Registration successful!');
+        if (response.token != null) {
+          await TokenManager.saveToken(response.token!);
+          print('   Token saved');
+        }
+        await TokenManager.saveUserId(response.user!.id);
+        await TokenManager.saveUserRole(response.user!.role);
+        print('   User data saved');
+
+        emit(AuthAuthenticated(response.user!));
+      } else {
+        print('❌ Registration failed: ${response.message}');
+        emit(AuthError(response.message));
+      }
+    } on AppException catch (e) {
+      print('❌ AppException: ${e.message}');
+      emit(AuthError(e.message));
+    } catch (e) {
+      print('❌ Unexpected error: $e');
+      emit(AuthError('An unexpected error occurred'));
+    }
+  }
+
   Future<void> logout() async {
     await TokenManager.deleteToken();
     await TokenManager.deleteUserId();

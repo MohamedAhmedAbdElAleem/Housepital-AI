@@ -3,10 +3,10 @@ const router = express.Router();
 const axios = require('axios');
 const OpenAI = require('openai');
 
-// Initialize OpenAI client
-const openai = new OpenAI({
+// Initialize OpenAI client (only if key is provided)
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
-});
+}) : null;
 
 // AI Triage Service URL (Python FastAPI service - optional backup)
 const AI_TRIAGE_URL = process.env.AI_TRIAGE_URL || 'http://localhost:8000';
@@ -72,13 +72,13 @@ const SERVICES = {
 // Keyword-based fallback classification (when Python service unavailable)
 const classifyMessage = (message) => {
     const msgLower = message.toLowerCase();
-    
+
     // Emergency keywords
     const emergencyKeywords = [
         'cant breathe', 'cannot breathe', 'chest pain', 'heart attack',
         'unconscious', 'severe bleeding', 'stroke', 'seizure', 'poisoning'
     ];
-    
+
     // Service keyword mappings
     const serviceKeywords = {
         "Wound Care": ['wound', 'cut', 'جرح', 'ضمادة', 'bleeding', 'laceration', 'injury', 'stitches'],
@@ -88,7 +88,7 @@ const classifyMessage = (message) => {
         "Baby Care": ['baby', 'طفل', 'infant', 'newborn', 'رضيع', 'child'],
         "IV Therapy": ['iv', 'fluids', 'dehydration', 'محاليل', 'drip', 'سوائل']
     };
-    
+
     // Check for emergency
     for (const keyword of emergencyKeywords) {
         if (msgLower.includes(keyword)) {
@@ -100,11 +100,11 @@ const classifyMessage = (message) => {
             };
         }
     }
-    
+
     // Check for service keywords
     const matchedServices = [];
     let urgency = 'Medium';
-    
+
     for (const [service, keywords] of Object.entries(serviceKeywords)) {
         for (const keyword of keywords) {
             if (msgLower.includes(keyword)) {
@@ -114,19 +114,19 @@ const classifyMessage = (message) => {
             }
         }
     }
-    
+
     // Determine urgency based on additional keywords
     if (msgLower.includes('severe') || msgLower.includes('شديد') || msgLower.includes('high fever') || msgLower.includes('39')) {
         urgency = 'High';
     } else if (msgLower.includes('minor') || msgLower.includes('بسيط') || msgLower.includes('small')) {
         urgency = 'Low';
     }
-    
+
     // Build response based on matched services
     let response = '';
     if (matchedServices.length > 0) {
         const servicesList = matchedServices.map(s => `• ${SERVICES[s].title}: ${SERVICES[s].price}`).join('\n');
-        
+
         if (urgency === 'High') {
             response = `⚠️ **حالة تحتاج اهتمام**\n\nبناءً على وصفك، ننصحك بحجز موعد في أقرب وقت.\n\n**الخدمات المناسبة:**\n${servicesList}\n\n👇 اضغط على الخدمة للحجز`;
         } else {
@@ -136,7 +136,7 @@ const classifyMessage = (message) => {
         response = `شكراً على رسالتك! 😊\n\nممكن تحكيلي أكتر عن اللي بتحس بيه عشان أقدر أساعدك أحسن.\n\nمثلاً:\n• عندك جرح محتاج ضمادة؟\n• محتاج حقنة في البيت؟\n• محتاج رعاية لكبير في السن؟`;
         urgency = null;
     }
-    
+
     return {
         urgency,
         services: matchedServices,
@@ -173,18 +173,18 @@ const classifyMessage = (message) => {
 router.post('/chat', async (req, res) => {
     try {
         const { message, sessionId = 'default' } = req.body;
-        
+
         if (!message || message.trim().length === 0) {
             return res.status(400).json({ error: 'Message is required' });
         }
-        
+
         let result;
-        
+
         // Use OpenAI directly
-        if (process.env.OPENAI_API_KEY) {
+        if (openai) {
             try {
                 const servicesList = Object.keys(SERVICES).join(', ');
-                
+
                 const systemPrompt = `أنت مساعد طبي ذكي باللغة العربية المصرية (عامية مصرية) لتطبيق Housepital للرعاية الصحية المنزلية.
 
 مهمتك:
@@ -217,7 +217,7 @@ router.post('/chat', async (req, res) => {
                 });
 
                 const aiText = completion.choices[0].message.content;
-                
+
                 // Parse JSON response
                 let parsed;
                 try {
@@ -251,14 +251,14 @@ router.post('/chat', async (req, res) => {
                     serviceRoutes,
                     source: 'openai'
                 };
-                
+
                 console.log('OpenAI response:', result.response.substring(0, 100) + '...');
-                
+
             } catch (openaiError) {
                 console.log('OpenAI error, using fallback:', openaiError.message);
                 const fallback = classifyMessage(message);
                 const serviceRoutes = fallback.services.map(s => SERVICES[s]).filter(Boolean);
-                
+
                 result = {
                     response: fallback.response,
                     urgency: fallback.urgency,
@@ -270,10 +270,9 @@ router.post('/chat', async (req, res) => {
             }
         } else {
             // No OpenAI key, use fallback
-            console.log('No OpenAI API key, using fallback classification');
             const fallback = classifyMessage(message);
             const serviceRoutes = fallback.services.map(s => SERVICES[s]).filter(Boolean);
-            
+
             result = {
                 response: fallback.response,
                 urgency: fallback.urgency,
@@ -283,9 +282,9 @@ router.post('/chat', async (req, res) => {
                 source: 'fallback'
             };
         }
-        
+
         res.json(result);
-        
+
     } catch (error) {
         console.error('Triage chat error:', error);
         res.status(500).json({ error: 'Failed to process message' });
@@ -319,13 +318,13 @@ router.get('/services', (req, res) => {
  */
 router.post('/reset', async (req, res) => {
     const { sessionId = 'default' } = req.body;
-    
+
     try {
         await axios.post(`${AI_TRIAGE_URL}/reset/${sessionId}`);
     } catch (error) {
         // Ignore if AI service is unavailable
     }
-    
+
     res.json({ message: 'Session reset', sessionId });
 });
 
@@ -376,16 +375,16 @@ const DFU_GRADE_URGENCY = {
 router.post('/analyze-image', async (req, res) => {
     try {
         const { cvResult } = req.body;
-        
+
         if (!cvResult || !cvResult.final_verdict) {
             return res.status(400).json({ error: 'CV result with final_verdict is required' });
         }
-        
+
         const finalVerdict = cvResult.final_verdict;
         let result;
-        
+
         // Handle irrelevant/background images
-        if (finalVerdict.toLowerCase().includes('irrelevant') || 
+        if (finalVerdict.toLowerCase().includes('irrelevant') ||
             finalVerdict.toLowerCase().includes('background')) {
             result = {
                 response: '🤔 مش قادر أتعرف على الصورة دي كويس.\n\nممكن تحاول تاني مع صورة أوضح للجرح أو المنطقة المصابة؟\n\nتأكد إن:\n• الإضاءة كويسة\n• الجرح باين واضح في الصورة\n• الصورة مش مهزوزة',
@@ -398,7 +397,7 @@ router.post('/analyze-image', async (req, res) => {
             };
             return res.json(result);
         }
-        
+
         // Handle healthy skin
         if (finalVerdict.toLowerCase().includes('healthy')) {
             result = {
@@ -412,13 +411,13 @@ router.post('/analyze-image', async (req, res) => {
             };
             return res.json(result);
         }
-        
+
         // Handle wound detected
         if (finalVerdict.toLowerCase().includes('wound detected')) {
             // Extract wound type from verdict
             let woundType = 'unknown';
             let dfuGrade = null;
-            
+
             // Check for specific wound types
             for (const [type, info] of Object.entries(WOUND_TYPE_SERVICES)) {
                 if (finalVerdict.toLowerCase().includes(type.replace('_', ' '))) {
@@ -426,7 +425,7 @@ router.post('/analyze-image', async (req, res) => {
                     break;
                 }
             }
-            
+
             // Check for DFU grade
             for (const grade of Object.keys(DFU_GRADE_URGENCY)) {
                 if (finalVerdict.toLowerCase().includes(grade.replace('_', ' '))) {
@@ -434,22 +433,22 @@ router.post('/analyze-image', async (req, res) => {
                     break;
                 }
             }
-            
+
             // Build response based on wound type
             let urgency = 'Medium';
             let response = '';
             let services = [];
             let showSos = false;
-            
+
             if (woundType !== 'unknown') {
                 const woundInfo = WOUND_TYPE_SERVICES[woundType];
                 urgency = woundInfo.urgency;
                 services = [woundInfo.service];
-                
+
                 if (dfuGrade) {
                     const gradeInfo = DFU_GRADE_URGENCY[dfuGrade];
                     urgency = gradeInfo.urgency;
-                    
+
                     if (urgency === 'Emergency') {
                         showSos = true;
                         response = `🚨 **حالة طوارئ - قدم سكري ${gradeInfo.description}**\n\n` +
@@ -470,15 +469,15 @@ router.post('/analyze-image', async (req, res) => {
                         'Medium': 'متوسط',
                         'Low': 'بسيط'
                     };
-                    
+
                     response = `🩹 **تم تحليل الصورة**\n\n` +
                         `نوع الإصابة: ${woundInfo.arabic}\n` +
                         `مستوى الخطورة: ${urgencyText[urgency] || 'متوسط'}\n\n`;
-                    
+
                     if (urgency === 'High') {
                         response += `⚠️ ننصح بالعناية الفورية.\n\n`;
                     }
-                    
+
                     response += `👇 الخدمة المناسبة ليك:`;
                 }
             } else {
@@ -488,10 +487,10 @@ router.post('/analyze-image', async (req, res) => {
                     `ننصح بعرض الجرح على متخصص للعناية المناسبة.\n\n` +
                     `👇 الخدمة المناسبة ليك:`;
             }
-            
+
             // Map services to routes
             const serviceRoutes = services.map(s => SERVICES[s]).filter(Boolean);
-            
+
             result = {
                 response,
                 urgency,
@@ -503,10 +502,10 @@ router.post('/analyze-image', async (req, res) => {
                 needsClarification: false,
                 source: 'cv_pipeline'
             };
-            
+
             return res.json(result);
         }
-        
+
         // Default fallback
         result = {
             response: '🤔 مش متأكد من الصورة دي.\n\nممكن توصفلي اللي بتحس بيه؟ أو تبعت صورة تانية أوضح؟',
@@ -517,9 +516,9 @@ router.post('/analyze-image', async (req, res) => {
             needsClarification: true,
             source: 'cv_pipeline'
         };
-        
+
         res.json(result);
-        
+
     } catch (error) {
         console.error('Image analysis error:', error);
         res.status(500).json({ error: 'Failed to analyze image result' });
@@ -551,7 +550,7 @@ router.post('/analyze-image', async (req, res) => {
 const multer = require('multer');
 const FormData = require('form-data');
 
-const upload = multer({ 
+const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
@@ -561,34 +560,34 @@ router.post('/upload-image', upload.single('image'), async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ error: 'No image file provided' });
         }
-        
+
         // Send image to CV pipeline
         const formData = new FormData();
         formData.append('file', req.file.buffer, {
             filename: req.file.originalname || 'image.jpg',
             contentType: req.file.mimetype
         });
-        
+
         try {
             const cvResponse = await axios.post(`${CV_PIPELINE_URL}/predict`, formData, {
                 headers: formData.getHeaders(),
                 timeout: 30000 // 30 second timeout for model inference
             });
-            
+
             // Process CV result through our analyze-image logic
             const cvResult = cvResponse.data;
-            
+
             // Forward to analyze-image endpoint logic
             const analyzeResponse = await axios.post(
                 `http://localhost:${process.env.PORT || 3500}/api/triage/analyze-image`,
                 { cvResult }
             );
-            
+
             res.json(analyzeResponse.data);
-            
+
         } catch (cvError) {
             console.log('CV Pipeline unavailable:', cvError.message);
-            
+
             // Fallback response when CV pipeline is not available
             res.json({
                 response: '⚠️ خدمة تحليل الصور غير متاحة حالياً.\n\nممكن توصفلي الأعراض أو الإصابة اللي عندك وأنا هساعدك.',
@@ -601,7 +600,7 @@ router.post('/upload-image', upload.single('image'), async (req, res) => {
                 error: 'cv_pipeline_unavailable'
             });
         }
-        
+
     } catch (error) {
         console.error('Image upload error:', error);
         res.status(500).json({ error: 'Failed to process image' });

@@ -12,17 +12,28 @@ const redis = createRedisClient();
  */
 exports.register = async (req, res, next) => {
     try {
-        const { name, email, mobile, password, confirmPassword } = req.body;
+        const { name, email, mobile, password, confirmPassword, role } = req.body;
+
+        console.log('📝 Registration Request:');
+        console.log('   Name:', name);
+        console.log('   Email:', email);
+        console.log('   Mobile:', mobile);
+        console.log('   Role:', role);
 
         // Convert email to lowercase for case-insensitive comparison
         const emailLowerCase = email.toLowerCase();
 
+        // Build query conditions
+        const queryConditions = [{ email: emailLowerCase }];
+
+        // Only check mobile if it's provided and not empty
+        if (mobile && mobile.trim() !== '') {
+            queryConditions.push({ mobile });
+        }
+
         // Check if user already exists (case-insensitive email)
         let user = await User.findOne({
-            $or: [
-                { email: emailLowerCase },
-                { mobile }
-            ]
+            $or: queryConditions
         });
 
         if (user) {
@@ -32,7 +43,7 @@ exports.register = async (req, res, next) => {
                     message: 'A user with this email already exists'
                 });
             }
-            if (user.mobile === mobile) {
+            if (mobile && user.mobile === mobile) {
                 return res.status(400).json({
                     success: false,
                     message: 'A user with this mobile number already exists'
@@ -47,7 +58,7 @@ exports.register = async (req, res, next) => {
             mobile,
             password_hash: password, // Will be hashed by the pre-save hook
             isVerified: false,
-            role: 'customer'
+            role: role || 'customer' // Use provided role or default to customer
         });
 
         // Save user to database

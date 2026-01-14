@@ -65,13 +65,28 @@ class ApiClient {
 
   Future<dynamic> post(String path, {dynamic body}) async {
     try {
+      print('🌐 API POST Request:');
+      print('   URL: ${ApiConstants.baseUrl}$path');
+      print('   Body: $body');
+
       final response = await _dio.post(path, data: body);
+
+      print('✅ API Response:');
+      print('   Status: ${response.statusCode}');
+      print('   Data: ${response.data}');
+
       return _handleResponse(response);
     } on DioException catch (e) {
+      print('❌ DioException:');
+      print('   Type: ${e.type}');
+      print('   Message: ${e.message}');
+      print('   Response: ${e.response?.data}');
+      print('   Status Code: ${e.response?.statusCode}');
       throw _handleDioError(e);
     } on AppException {
       rethrow;
     } catch (e) {
+      print('❌ Unexpected Error: $e');
       throw ServerException(e.toString());
     }
   }
@@ -139,6 +154,20 @@ class ApiClient {
       case DioExceptionType.connectionError:
         return NetworkException('No internet connection');
       case DioExceptionType.badResponse:
+        // Try to extract error message from response
+        final response = error.response;
+        if (response?.data != null) {
+          try {
+            final data = response!.data;
+            if (data is Map<String, dynamic>) {
+              final message =
+                  data['message'] ?? 'Server returned invalid response';
+              return ServerException(message);
+            }
+          } catch (e) {
+            // If parsing fails, return generic error
+          }
+        }
         return ServerException('Server returned invalid response');
       default:
         return ServerException('Something went wrong: ${error.message}');
