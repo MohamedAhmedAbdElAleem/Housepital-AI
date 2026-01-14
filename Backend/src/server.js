@@ -1,5 +1,5 @@
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, ".", ".env") });
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -7,6 +7,9 @@ const cors = require("cors");
 const { logger, logEvents } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const connectDB = require("./config/dbConn");
+const cloudinaryRoutes = require('./routes/cloudinaryRoutes');
+
+
 const cloudinaryRoutes = require('./routes/cloudinaryRoutes');
 
 
