@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'api_constants.dart';
 import '../error/exceptions.dart';
 import '../utils/token_manager.dart';
@@ -186,6 +187,99 @@ class ApiService {
       rethrow;
     } catch (e) {
       throw ServerException('Unexpected error: ${e.toString()}');
+    }
+  }
+
+  /// Upload file using multipart/form-data
+  Future<dynamic> uploadFile(
+    String endpoint,
+    File file, {
+    String fieldName = 'file',
+    Map<String, String>? extraFields,
+  }) async {
+    try {
+      final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final token = await TokenManager.getToken();
+
+      debugPrint('📤 UPLOAD $url');
+
+      final request = http.MultipartRequest('POST', url);
+
+      // Add auth header
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+
+      // Add extra fields
+      if (extraFields != null) {
+        request.fields.addAll(extraFields);
+      }
+
+      // Add file with proper content type
+      final fileStream = http.ByteStream(file.openRead());
+      final fileLength = await file.length();
+      final fileName = file.path.split('/').last.split('\\').last;
+
+      // Determine content type from file extension
+      final ext = fileName.toLowerCase().split('.').last;
+      final contentType = _getContentType(ext);
+      debugPrint('📁 File: $fileName, ext: $ext, contentType: $contentType');
+
+      final multipartFile = http.MultipartFile(
+        fieldName,
+        fileStream,
+        fileLength,
+        filename: fileName,
+        contentType: MediaType.parse(contentType),
+      );
+      request.files.add(multipartFile);
+
+      // Send request
+      final streamedResponse = await request.send().timeout(
+        const Duration(minutes: 2), // Longer timeout for uploads
+      );
+      final response = await http.Response.fromStream(streamedResponse);
+
+      debugPrint('📥 Response [${response.statusCode}]: ${response.body}');
+
+      return _handleResponse(response);
+    } on SocketException {
+      throw NetworkException('No internet connection');
+    } on http.ClientException {
+      throw NetworkException('Failed to connect to server');
+    } on UnauthorizedException {
+      rethrow;
+    } on ValidationException {
+      rethrow;
+    } on NetworkException {
+      rethrow;
+    } on ServerException {
+      rethrow;
+    } catch (e) {
+      throw ServerException('Unexpected error: ${e.toString()}');
+    }
+  }
+
+  /// Get content type from file extension
+  String _getContentType(String ext) {
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'heic':
+        return 'image/heic';
+      case 'heif':
+        return 'image/heif';
+      case 'pdf':
+        return 'application/pdf';
+      default:
+        return 'application/octet-stream';
     }
   }
 

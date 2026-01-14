@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:convert';
 import 'dart:math' as math;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/widgets/custom_popup.dart';
-import '../../../../core/network/api_service.dart';
+import '../../data/datasources/cloudinary_service.dart';
 import '../../data/datasources/profile_remote_datasource.dart';
-import '../../data/repositories/profile_repository_impl.dart';
+import '../../../../core/network/api_service.dart';
 
 class ScanNationalIDPage extends StatefulWidget {
   final bool isFrontSide;
-  final String? frontImageBase64; // Pass front image when scanning back
+  final String? frontImagePath; // Pass front image path when scanning back
 
   const ScanNationalIDPage({
     super.key,
     this.isFrontSide = true,
-    this.frontImageBase64,
+    this.frontImagePath,
   });
 
   @override
@@ -32,8 +32,9 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
   bool _isProcessing = false;
   bool _isUploading = false;
 
-  // Repository
-  late final ProfileRepositoryImpl _profileRepository;
+  // Services
+  late final CloudinaryService _cloudinaryService;
+  late final ProfileRemoteDataSourceImpl _profileDataSource;
 
   // Animation controllers
   late AnimationController _mainController;
@@ -61,12 +62,8 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
 
   void _initRepository() {
     final apiService = ApiService();
-    final remoteDataSource = ProfileRemoteDataSourceImpl(
-      apiService: apiService,
-    );
-    _profileRepository = ProfileRepositoryImpl(
-      remoteDataSource: remoteDataSource,
-    );
+    _cloudinaryService = CloudinaryService(apiService: apiService);
+    _profileDataSource = ProfileRemoteDataSourceImpl(apiService: apiService);
   }
 
   void _initAnimations() {
@@ -116,11 +113,6 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
     super.dispose();
   }
 
-  Future<String> _imageToBase64(File imageFile) async {
-    final bytes = await imageFile.readAsBytes();
-    return base64Encode(bytes);
-  }
-
   Future<void> _takePhoto() async {
     try {
       final XFile? photo = await _picker.pickImage(
@@ -132,11 +124,9 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
       if (photo != null) {
         setState(() {
           _imageFile = File(photo.path);
-          _isProcessing = true;
         });
-
-        // Process the image
-        await _processAndProceed();
+        // Show preview instead of auto-proceeding
+        _showImagePreview();
       }
     } catch (e) {
       if (mounted) {
@@ -155,11 +145,9 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
       if (image != null) {
         setState(() {
           _imageFile = File(image.path);
-          _isProcessing = true;
         });
-
-        // Process the image
-        await _processAndProceed();
+        // Show preview instead of auto-proceeding
+        _showImagePreview();
       }
     } catch (e) {
       if (mounted) {
@@ -168,14 +156,148 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
     }
   }
 
+  void _showImagePreview() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildPreviewSheet(),
+    );
+  }
+
+  Widget _buildPreviewSheet() {
+    final size = MediaQuery.of(context).size;
+    return Container(
+      height: size.height * 0.85,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        children: [
+          // Handle bar
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          // Title
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              widget.isFrontSide ? 'Front ID Preview' : 'Back ID Preview',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A2E),
+              ),
+            ),
+          ),
+
+          // Image preview
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child:
+                    _imageFile != null
+                        ? Image.file(_imageFile!, fit: BoxFit.contain)
+                        : const Center(child: Text('No image')),
+              ),
+            ),
+          ),
+
+          // Quality check text
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.info_outline, color: Colors.grey[600], size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Make sure all details are clear and readable',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+
+          // Buttons
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+            child: Row(
+              children: [
+                // Retake button
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      setState(() => _imageFile = null);
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retake'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF667eea),
+                      side: const BorderSide(color: Color(0xFF667eea)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Confirm button
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      setState(() => _isProcessing = true);
+                      _processAndProceed();
+                    },
+                    icon: const Icon(Icons.check),
+                    label: Text(widget.isFrontSide ? 'Continue' : 'Upload'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF667eea),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _processAndProceed() async {
     if (_imageFile == null) return;
 
     try {
-      // Convert image to base64
-      final base64Image = await _imageToBase64(_imageFile!);
-
-      // If this is the front side, proceed to back side with the image data
+      // If this is the front side, proceed to back side with the image path
       if (widget.isFrontSide) {
         await Future.delayed(const Duration(milliseconds: 1000));
         if (mounted) {
@@ -187,7 +309,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                   (context, animation, secondaryAnimation) =>
                       ScanNationalIDPage(
                         isFrontSide: false,
-                        frontImageBase64: base64Image,
+                        frontImagePath: _imageFile!.path,
                       ),
               transitionsBuilder: (
                 context,
@@ -213,24 +335,59 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
           );
         }
       } else {
-        // This is the back side - upload both images to server
+        // This is the back side - upload both images to Cloudinary
         setState(() {
           _isProcessing = false;
           _isUploading = true;
         });
 
         try {
-          // Upload front image
-          await _profileRepository.uploadIdDocument(
-            side: 'front',
-            imageBase64: widget.frontImageBase64!,
+          // Upload front image to Cloudinary (multipart - no base64)
+          debugPrint('📤 Uploading front ID...');
+          final frontFile = File(widget.frontImagePath!);
+          final frontResult = await _cloudinaryService.uploadFile(
+            frontFile,
+            folder: CloudinaryFolder.idDocuments,
           );
 
-          // Upload back image
-          await _profileRepository.uploadIdDocument(
-            side: 'back',
-            imageBase64: base64Image,
+          debugPrint(
+            '📤 Front upload result: ${frontResult.success}, ${frontResult.url ?? frontResult.error}',
           );
+
+          if (!frontResult.success) {
+            throw Exception('Failed to upload front ID: ${frontResult.error}');
+          }
+
+          // Upload back image to Cloudinary (multipart - no base64)
+          debugPrint('📤 Uploading back ID...');
+          final backResult = await _cloudinaryService.uploadFile(
+            _imageFile!,
+            folder: CloudinaryFolder.idDocuments,
+          );
+
+          debugPrint(
+            '📤 Back upload result: ${backResult.success}, ${backResult.url ?? backResult.error}',
+          );
+
+          if (!backResult.success) {
+            throw Exception('Failed to upload back ID: ${backResult.error}');
+          }
+
+          // Save URLs to user profile
+          debugPrint('💾 Saving to profile...');
+          await _profileDataSource.uploadIdDocument(
+            side: 'front',
+            imageUrl: frontResult.url!,
+            publicId: frontResult.publicId!,
+          );
+
+          await _profileDataSource.uploadIdDocument(
+            side: 'back',
+            imageUrl: backResult.url!,
+            publicId: backResult.publicId!,
+          );
+
+          debugPrint('✅ All uploads complete!');
 
           if (mounted) {
             setState(() => _isUploading = false);
@@ -240,16 +397,13 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
             );
           }
         } catch (e) {
+          debugPrint('❌ Upload error: $e');
           if (mounted) {
             setState(() => _isUploading = false);
-            // Still proceed but show warning
-            CustomPopup.warning(
+            // Show actual error message
+            CustomPopup.error(
               context,
-              'Could not save ID images. You can upload them later.',
-            );
-            Navigator.pushReplacementNamed(
-              context,
-              AppRoutes.verifyingIdentity,
+              'Upload failed: ${e.toString().replaceAll('Exception:', '').trim()}',
             );
           }
         }

@@ -10,7 +10,6 @@ const connectDB = require("./config/dbConn");
 const cloudinaryRoutes = require('./routes/cloudinaryRoutes');
 
 
-
 const app = express();
 const PORT = process.env.PORT || 3500;
 
@@ -40,6 +39,8 @@ app.use("/api/admin/insights", require("./routes/insightsRoutes"));
 app.use("/api/admin/powerbi", require("./routes/powerBiRoutes"));
 app.use('/api/cloudinary', require('./routes/cloudinaryRoutes'));
 app.use('/api/triage', require('./routes/triageRoutes'));
+app.use("/api/doctors", require("./routes/doctorRoutes"));
+app.use("/api/clinics", require("./routes/clinicRoutes"));
 
 // Serve static files (for ID document images)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

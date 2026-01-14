@@ -13,9 +13,16 @@ abstract class ProfileRemoteDataSource {
 
   Future<Map<String, dynamic>> getMedicalInfo();
 
+  /// Upload ID document - either as base64 or Cloudinary URL
+  /// [side] - 'front' or 'back'
+  /// [imageBase64] - Base64 encoded image (deprecated, use imageUrl)
+  /// [imageUrl] - Cloudinary URL (preferred)
+  /// [publicId] - Cloudinary public ID for deletion
   Future<Map<String, dynamic>> uploadIdDocument({
     required String side,
-    required String imageBase64,
+    String? imageBase64,
+    String? imageUrl,
+    String? publicId,
   });
 
   Future<Map<String, dynamic>> getVerificationStatus();
@@ -54,10 +61,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     if (chronicDiseases != null) body['chronicDiseases'] = chronicDiseases;
     if (allergies != null) body['allergies'] = allergies;
     if (otherConditions != null) body['otherConditions'] = otherConditions;
-    if (currentMedications != null)
+    if (currentMedications != null) {
       body['currentMedications'] = currentMedications;
-    if (hasNoChronicDiseases != null)
+    }
+    if (hasNoChronicDiseases != null) {
       body['hasNoChronicDiseases'] = hasNoChronicDiseases;
+    }
     if (hasNoAllergies != null) body['hasNoAllergies'] = hasNoAllergies;
 
     final response = await apiService.put('/profile/medical-info', body: body);
@@ -73,11 +82,23 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<Map<String, dynamic>> uploadIdDocument({
     required String side,
-    required String imageBase64,
+    String? imageBase64,
+    String? imageUrl,
+    String? publicId,
   }) async {
+    final body = <String, dynamic>{'side': side};
+
+    // Prefer URL over base64
+    if (imageUrl != null) {
+      body['imageUrl'] = imageUrl;
+      if (publicId != null) body['publicId'] = publicId;
+    } else if (imageBase64 != null) {
+      body['imageBase64'] = imageBase64;
+    }
+
     final response = await apiService.post(
-      '/profile/upload-id',
-      body: {'side': side, 'imageBase64': imageBase64},
+      '/api/profile/upload-id',
+      body: body,
     );
     return response as Map<String, dynamic>;
   }
@@ -106,10 +127,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     if (chronicDiseases != null) body['chronicDiseases'] = chronicDiseases;
     if (allergies != null) body['allergies'] = allergies;
     if (otherConditions != null) body['otherConditions'] = otherConditions;
-    if (currentMedications != null)
+    if (currentMedications != null) {
       body['currentMedications'] = currentMedications;
-    if (hasNoChronicDiseases != null)
+    }
+    if (hasNoChronicDiseases != null) {
       body['hasNoChronicDiseases'] = hasNoChronicDiseases;
+    }
     if (hasNoAllergies != null) body['hasNoAllergies'] = hasNoAllergies;
     if (idFrontImage != null) body['idFrontImage'] = idFrontImage;
     if (idBackImage != null) body['idBackImage'] = idBackImage;

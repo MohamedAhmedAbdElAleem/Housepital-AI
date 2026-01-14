@@ -95,12 +95,25 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			trim: true,
 		},
-		// ID Document Images
+		// ID Document Images (Cloudinary)
 		idFrontImageUrl: {
 			type: String,
 			trim: true,
 		},
+		idFrontPublicId: {
+			type: String,
+			trim: true,
+		},
 		idBackImageUrl: {
+			type: String,
+			trim: true,
+		},
+		idBackPublicId: {
+			type: String,
+			trim: true,
+		},
+		// Profile Picture (Cloudinary)
+		profilePicturePublicId: {
 			type: String,
 			trim: true,
 		},

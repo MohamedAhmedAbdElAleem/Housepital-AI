@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -9,6 +10,9 @@ class CustomBottomNavBar extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
   });
+
+  static const _primary = Color(0xFF00C853);
+  static const _inactive = Color(0xFF94A3B8);
 
   @override
   Widget build(BuildContext context) {
@@ -21,244 +25,49 @@ class CustomBottomNavBar extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00D47F).withOpacity(0.08),
-            blurRadius: 30,
-            offset: const Offset(0, -10),
-            spreadRadius: -5,
+            color: _primary.withAlpha(12),
+            blurRadius: 20,
+            offset: const Offset(0, -8),
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, -4),
+            color: Colors.black.withAlpha(6),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
       child: SafeArea(
+        top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _NavBarItem(
-                icon: Icons.home_rounded,
-                label: 'Home',
-                isSelected: currentIndex == 0,
-                onTap: () => onTap(0),
-              ),
-              _NavBarItem(
-                icon: Icons.calendar_today_rounded,
-                label: 'Bookings',
-                isSelected: currentIndex == 1,
-                onTap: () => onTap(1),
-              ),
-
-              // Floating Chat Button
-              _FloatingChatButton(
-                isSelected: currentIndex == 2,
-                onTap: () => onTap(2),
-              ),
-
-              _NavBarItem(
-                icon: Icons.notifications_rounded,
-                label: 'Alerts',
-                isSelected: currentIndex == 3,
-                onTap: () => onTap(3),
-                hasBadge: true,
-                badgeCount: 2,
-              ),
-              _NavBarItem(
-                icon: Icons.person_rounded,
-                label: 'Profile',
-                isSelected: currentIndex == 4,
-                onTap: () => onTap(4),
-              ),
+              _buildNavItem(0, Icons.home_rounded, 'Home'),
+              _buildNavItem(1, Icons.calendar_today_rounded, 'Bookings'),
+              _buildCenterButton(),
+              _buildNavItem(3, Icons.notifications_rounded, 'Alerts', badge: 2),
+              _buildNavItem(4, Icons.person_rounded, 'Profile'),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _FloatingChatButton extends StatefulWidget {
-  final bool isSelected;
-  final VoidCallback onTap;
+  Widget _buildNavItem(int index, IconData icon, String label, {int? badge}) {
+    final isSelected = currentIndex == index;
 
-  const _FloatingChatButton({required this.isSelected, required this.onTap});
-
-  @override
-  State<_FloatingChatButton> createState() => _FloatingChatButtonState();
-}
-
-class _FloatingChatButtonState extends State<_FloatingChatButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 150),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.9,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) {
-        _controller.reverse();
-        widget.onTap();
-      },
-      onTapCancel: () => _controller.reverse(),
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 24),
-          child: Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF00D47F), Color(0xFF00B870)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF00D47F).withOpacity(0.4),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                  spreadRadius: 0,
-                ),
-              ],
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                const Icon(
-                  Icons.chat_bubble_rounded,
-                  color: Colors.white,
-                  size: 26,
-                ),
-                // AI sparkle indicator
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    width: 14,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFF00D47F),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.5),
-                          blurRadius: 4,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.auto_awesome,
-                      color: Color(0xFFF59E0B),
-                      size: 8,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavBarItem extends StatefulWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final bool hasBadge;
-  final int badgeCount;
-
-  const _NavBarItem({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    this.hasBadge = false,
-    this.badgeCount = 0,
-  });
-
-  @override
-  State<_NavBarItem> createState() => _NavBarItemState();
-}
-
-class _NavBarItemState extends State<_NavBarItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 100),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.9,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) {
-        _controller.reverse();
-        widget.onTap();
-      },
-      onTapCancel: () => _controller.reverse(),
-      child: ScaleTransition(
-        scale: _scaleAnimation,
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap(index);
+        },
+        behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color:
-                widget.isSelected
-                    ? const Color(0xFF00D47F).withOpacity(0.12)
-                    : Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -267,41 +76,40 @@ class _NavBarItemState extends State<_NavBarItem>
                 children: [
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      widget.icon,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
                       color:
-                          widget.isSelected
-                              ? const Color(0xFF00B870)
-                              : const Color(0xFF94A3B8),
+                          isSelected
+                              ? _primary.withAlpha(20)
+                              : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: isSelected ? _primary : _inactive,
                       size: 24,
                     ),
                   ),
-                  if (widget.hasBadge && widget.badgeCount > 0)
+                  if (badge != null && badge > 0)
                     Positioned(
-                      right: -8,
-                      top: -6,
+                      right: 0,
+                      top: 0,
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                            colors: [Color(0xFFFF5252), Color(0xFFFF1744)],
                           ),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFEF4444).withOpacity(0.4),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          border: Border.all(color: Colors.white, width: 1.5),
                         ),
                         child: Text(
-                          widget.badgeCount.toString(),
+                          badge > 9 ? '9+' : badge.toString(),
                           style: const TextStyle(
-                            fontSize: 9,
+                            fontSize: 8,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
+                            height: 1,
                           ),
                         ),
                       ),
@@ -309,22 +117,73 @@ class _NavBarItemState extends State<_NavBarItem>
                 ],
               ),
               const SizedBox(height: 4),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 200),
+              Text(
+                label,
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight:
-                      widget.isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color:
-                      widget.isSelected
-                          ? const Color(0xFF00B870)
-                          : const Color(0xFF94A3B8),
-                  letterSpacing: 0.2,
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? _primary : _inactive,
                 ),
-                child: Text(widget.label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCenterButton() {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        onTap(2);
+      },
+      child: Container(
+        width: 56,
+        height: 56,
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF00C853), Color(0xFF69F0AE)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: _primary.withAlpha(60),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const Icon(Icons.psychology_rounded, color: Colors.white, size: 28),
+            Positioned(
+              top: 6,
+              right: 6,
+              child: Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome,
+                  color: Colors.white,
+                  size: 8,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
