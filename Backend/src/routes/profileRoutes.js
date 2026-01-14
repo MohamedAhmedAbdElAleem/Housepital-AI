@@ -51,16 +51,30 @@ const validateMedicalInfo = [
     handleValidationErrors
 ];
 
-// Validation for ID upload
+// Validation for ID upload - accepts either imageUrl (Cloudinary) or imageBase64
 const validateIdUpload = [
     body('side')
         .notEmpty()
         .isIn(['front', 'back'])
         .withMessage('Side must be "front" or "back"'),
     
-    body('imageBase64')
-        .notEmpty()
-        .withMessage('Image data is required'),
+    // Custom validation: require either imageUrl OR imageBase64
+    body().custom((value, { req }) => {
+        if (!req.body.imageUrl && !req.body.imageBase64) {
+            throw new Error('Image data is required (imageUrl or imageBase64)');
+        }
+        return true;
+    }),
+    
+    body('imageUrl')
+        .optional()
+        .isURL()
+        .withMessage('imageUrl must be a valid URL'),
+    
+    body('publicId')
+        .optional()
+        .isString()
+        .withMessage('publicId must be a string'),
     
     handleValidationErrors
 ];

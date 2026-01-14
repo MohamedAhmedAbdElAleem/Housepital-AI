@@ -5,6 +5,7 @@ class ApiConstants {
   // For Android Emulator: Use 10.0.2.2
   // For Physical Device: Use your computer's actual IP address
   static const String baseUrl = 'http://172.20.10.3:3500';
+
   // API Endpoints
   static const String register = '/api/auth/register';
   static const String login = '/api/auth/login';
@@ -20,6 +21,19 @@ class ApiConstants {
   static const String predictWoundType = '/api/ai/predict/wound-type';
   static const String predictSeverity = '/api/ai/predict/severity';
   static const String aiHealth = '/api/ai/health';
+
+  // Profile Endpoints
+  static const String profileBase = '/api/profile';
+  static const String updateMedicalInfo = '/api/profile/medical-info';
+  static const String uploadIdDocument = '/api/profile/upload-id';
+  static const String verificationStatus = '/api/profile/verification-status';
+  static const String completeProfileSetup = '/api/profile/complete-setup';
+
+  // Cloudinary Endpoints
+  static const String cloudinaryBase = '/api/cloudinary';
+  static const String cloudinaryUpload = '/api/cloudinary/upload';
+  static const String cloudinaryUploadBase64 = '/api/cloudinary/upload-base64';
+  static const String cloudinaryDelete = '/api/cloudinary/delete';
 
   // Headers
   static Map<String, String> get headers => {

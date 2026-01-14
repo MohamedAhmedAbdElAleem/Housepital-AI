@@ -53,18 +53,25 @@ exports.register = async (req, res, next) => {
         // Save user to database
         await user.save();
 
+        // Generate JWT token for the new user
+        const token = jwt.sign(
+            { id: user._id, email: user.email, role: user.role },
+            process.env.ACCESS_TOKEN_SECRET || 'housepital_secret_key_2024',
+            { expiresIn: '7d' }
+        );
+
         // Log the registration event (without password)
         logEvents(
             `User registered: ${user.email}`,
             'authLog.log'
         );
 
-        // Return success response (sensitive data automatically excluded by toJSON)
+        // Return success response with token
         res.status(201).json({
             success: true,
             message: 'User registered successfully',
             user: user.toJSON(),
-            token: null // Could generate JWT here if needed
+            token: token
         });
 
     } catch (error) {

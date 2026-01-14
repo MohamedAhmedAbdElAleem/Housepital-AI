@@ -1,7 +1,6 @@
 const User = require('../models/User');
 const { logEvents } = require('../middleware/logger');
-const path = require('path');
-const fs = require('fs');
+const cloudinaryService = require('../services/cloudinaryService');
 
 /**
  * @desc    Update user's medical information
@@ -150,14 +149,15 @@ exports.getMedicalInfo = async (req, res) => {
 };
 
 /**
- * @desc    Upload ID document (front or back)
+ * @desc    Upload ID document (front or back) to Cloudinary
  * @route   POST /api/profile/upload-id
  * @access  Private
+ * @body    { side: 'front'|'back', imageBase64?: string, imageUrl?: string, publicId?: string }
  */
 exports.uploadIdDocument = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { side, imageBase64 } = req.body;
+        const { side, imageBase64, imageUrl, publicId: providedPublicId } = req.body;
 
         // Validate side
         if (!side || !['front', 'back'].includes(side)) {
@@ -167,39 +167,43 @@ exports.uploadIdDocument = async (req, res) => {
             });
         }
 
-        // Validate image
-        if (!imageBase64) {
+        let finalUrl, finalPublicId;
+
+        // If imageUrl is provided, use it directly (already uploaded to Cloudinary)
+        if (imageUrl) {
+            finalUrl = imageUrl;
+            finalPublicId = providedPublicId || cloudinaryService.extractPublicId(imageUrl);
+        } 
+        // Otherwise, upload base64 to Cloudinary
+        else if (imageBase64) {
+            const uploadResult = await cloudinaryService.uploadFromBase64(imageBase64, {
+                folder: cloudinaryService.FOLDERS.ID_DOCUMENTS,
+                publicId: `${userId}_${side}_${Date.now()}`,
+            });
+
+            if (!uploadResult.success) {
+                return res.status(500).json({
+                    success: false,
+                    message: uploadResult.error || 'Failed to upload image'
+                });
+            }
+
+            finalUrl = uploadResult.url;
+            finalPublicId = uploadResult.publicId;
+        } else {
             return res.status(400).json({
                 success: false,
-                message: 'Image data is required'
+                message: 'Either imageUrl or imageBase64 is required'
             });
         }
 
-        // Create uploads directory if it doesn't exist
-        const uploadsDir = path.join(__dirname, '../../uploads/id-documents');
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
-        }
-
-        // Generate unique filename
-        const timestamp = Date.now();
-        const filename = `${userId}_${side}_${timestamp}.jpg`;
-        const filepath = path.join(uploadsDir, filename);
-
-        // Remove base64 header if present
-        const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-        
-        // Save image to file
-        fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
-
-        // Generate URL (relative path for now, can be changed to cloud storage URL)
-        const imageUrl = `/uploads/id-documents/${filename}`;
-
         // Update user's ID document URL
         const updateField = side === 'front' ? 'idFrontImageUrl' : 'idBackImageUrl';
+        const publicIdField = side === 'front' ? 'idFrontPublicId' : 'idBackPublicId';
         
         const updateData = {
-            [updateField]: imageUrl
+            [updateField]: finalUrl,
+            [publicIdField]: finalPublicId
         };
 
         // If both sides are uploaded, update verification status to pending
@@ -217,6 +221,10 @@ exports.uploadIdDocument = async (req, res) => {
         );
 
         if (!updatedUser) {
+            // Delete uploaded image if user update fails
+            if (finalPublicId) {
+                await cloudinaryService.deleteImage(finalPublicId);
+            }
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
@@ -225,14 +233,15 @@ exports.uploadIdDocument = async (req, res) => {
 
         // Log the upload
         logEvents(
-            `ID ${side} uploaded for user: ${updatedUser.email}`,
+            `ID ${side} uploaded to Cloudinary for user: ${updatedUser.email}`,
             'profileLog.log'
         );
 
         res.status(200).json({
             success: true,
             message: `ID ${side} uploaded successfully`,
-            imageUrl: imageUrl,
+            imageUrl: finalUrl,
+            publicId: finalPublicId,
             verificationStatus: updatedUser.verificationStatus
         });
 
@@ -326,29 +335,30 @@ exports.completeProfileSetup = async (req, res) => {
 
         updateData.medicalInfo = medicalInfo;
 
-        // Handle ID images if provided
+        // Handle ID images if provided - upload to Cloudinary
         if (idFrontImage || idBackImage) {
-            const uploadsDir = path.join(__dirname, '../../uploads/id-documents');
-            if (!fs.existsSync(uploadsDir)) {
-                fs.mkdirSync(uploadsDir, { recursive: true });
-            }
-
             const timestamp = Date.now();
 
             if (idFrontImage) {
-                const frontFilename = `${userId}_front_${timestamp}.jpg`;
-                const frontPath = path.join(uploadsDir, frontFilename);
-                const frontBase64 = idFrontImage.replace(/^data:image\/\w+;base64,/, '');
-                fs.writeFileSync(frontPath, Buffer.from(frontBase64, 'base64'));
-                updateData.idFrontImageUrl = `/uploads/id-documents/${frontFilename}`;
+                const frontResult = await cloudinaryService.uploadFromBase64(idFrontImage, {
+                    folder: cloudinaryService.FOLDERS.ID_DOCUMENTS,
+                    publicId: `${userId}_front_${timestamp}`,
+                });
+                if (frontResult.success) {
+                    updateData.idFrontImageUrl = frontResult.url;
+                    updateData.idFrontPublicId = frontResult.publicId;
+                }
             }
 
             if (idBackImage) {
-                const backFilename = `${userId}_back_${timestamp}.jpg`;
-                const backPath = path.join(uploadsDir, backFilename);
-                const backBase64 = idBackImage.replace(/^data:image\/\w+;base64,/, '');
-                fs.writeFileSync(backPath, Buffer.from(backBase64, 'base64'));
-                updateData.idBackImageUrl = `/uploads/id-documents/${backFilename}`;
+                const backResult = await cloudinaryService.uploadFromBase64(idBackImage, {
+                    folder: cloudinaryService.FOLDERS.ID_DOCUMENTS,
+                    publicId: `${userId}_back_${timestamp}`,
+                });
+                if (backResult.success) {
+                    updateData.idBackImageUrl = backResult.url;
+                    updateData.idBackPublicId = backResult.publicId;
+                }
             }
 
             // Set verification status to pending if both images are provided

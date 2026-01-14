@@ -6,6 +6,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/network/api_service.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/widgets/custom_popup.dart';
+import '../../../../core/utils/token_manager.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/models/register_request.dart';
@@ -315,6 +316,14 @@ class _RegisterPageState extends State<RegisterPage>
       if (mounted) {
         setState(() => _isLoading = false);
         if (response.success) {
+          // Save the token for authenticated API calls
+          if (response.token != null) {
+            await TokenManager.saveToken(response.token!);
+          }
+          if (response.user != null) {
+            await TokenManager.saveUserId(response.user!.id);
+          }
+
           _successController.forward();
           CustomPopup.success(
             context,
