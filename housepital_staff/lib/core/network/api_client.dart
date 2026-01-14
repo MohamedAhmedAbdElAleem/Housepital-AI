@@ -56,6 +56,8 @@ class ApiClient {
       return _handleResponse(response);
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } on AppException {
+      rethrow;
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -67,6 +69,8 @@ class ApiClient {
       return _handleResponse(response);
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } on AppException {
+      rethrow;
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -78,6 +82,8 @@ class ApiClient {
       return _handleResponse(response);
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } on AppException {
+      rethrow;
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -89,6 +95,8 @@ class ApiClient {
       return _handleResponse(response);
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } on AppException {
+      rethrow;
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -100,6 +108,8 @@ class ApiClient {
       return _handleResponse(response);
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } on AppException {
+      rethrow;
     } catch (e) {
       throw ServerException(e.toString());
     }

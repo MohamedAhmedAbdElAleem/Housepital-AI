@@ -3,6 +3,7 @@ import '../../core/constants/app_routes.dart';
 import '../../core/widgets/placeholder_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/doctor/presentation/pages/doctor_profile_page.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -22,6 +23,9 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const PlaceholderPage(title: 'Doctor Home'),
         );
+
+      case AppRoutes.doctorProfile:
+        return MaterialPageRoute(builder: (_) => const DoctorProfilePage());
 
       case AppRoutes.adminDashboard:
         return MaterialPageRoute(

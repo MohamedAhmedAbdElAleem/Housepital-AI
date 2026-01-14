@@ -42,6 +42,8 @@ app.use("/api/bookings", require("./routes/bookingRoutes"));
 app.use("/api/admin/insights", require("./routes/insightsRoutes"));
 app.use("/api/admin/powerbi", require("./routes/powerBiRoutes"));
 app.use('/api/cloudinary', require('./routes/cloudinaryRoutes'));
+app.use("/api/doctors", require("./routes/doctorRoutes"));
+app.use("/api/clinics", require("./routes/clinicRoutes"));
 
 // Serve static files (for ID document images)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
