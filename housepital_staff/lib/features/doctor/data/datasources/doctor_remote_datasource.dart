@@ -3,7 +3,6 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/error/exceptions.dart';
 import '../models/doctor_model.dart';
 import '../models/clinic_model.dart';
-import '../models/service_model.dart';
 
 abstract class DoctorRemoteDataSource {
   Future<DoctorModel> createProfile(DoctorModel doctor);

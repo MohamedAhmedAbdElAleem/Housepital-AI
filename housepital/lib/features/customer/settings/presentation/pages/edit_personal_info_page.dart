@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../../auth/data/models/user_model.dart';
-import '../../../../auth/data/repositories/auth_repository_impl.dart';
-import '../../../../auth/data/datasources/auth_remote_datasource.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/widgets/custom_popup.dart';
 
 class EditPersonalInfoPage extends StatefulWidget {
   final UserModel user;
 
-  const EditPersonalInfoPage({
-    super.key,
-    required this.user,
-  });
+  const EditPersonalInfoPage({super.key, required this.user});
 
   @override
   State<EditPersonalInfoPage> createState() => _EditPersonalInfoPageState();
@@ -51,9 +46,9 @@ class _EditPersonalInfoPageState extends State<EditPersonalInfoPage> {
 
     try {
       final apiService = ApiService();
-      
+
       // Make API call to update user info
-      final response = await apiService.put(
+      await apiService.put(
         '/api/user/update-profile',
         body: {
           'name': _nameController.text.trim(),
@@ -68,10 +63,10 @@ class _EditPersonalInfoPageState extends State<EditPersonalInfoPage> {
         });
 
         CustomPopup.success(context, 'Profile updated successfully');
-        
+
         // Wait a bit to show the popup, then go back and refresh the previous page
         await Future.delayed(const Duration(milliseconds: 1500));
-        
+
         if (mounted) {
           Navigator.pop(context, true);
         }
@@ -224,7 +219,9 @@ class _EditPersonalInfoPageState extends State<EditPersonalInfoPage> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Email is required';
                   }
-                  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  final emailRegex = RegExp(
+                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  );
                   if (!emailRegex.hasMatch(value.trim())) {
                     return 'Enter a valid email';
                   }
@@ -282,10 +279,7 @@ class _EditPersonalInfoPageState extends State<EditPersonalInfoPage> {
                     Expanded(
                       child: Text(
                         'Changes will be reflected across all your account settings',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.blue[700],
-                        ),
+                        style: TextStyle(fontSize: 13, color: Colors.blue[700]),
                       ),
                     ),
                   ],
@@ -307,23 +301,24 @@ class _EditPersonalInfoPageState extends State<EditPersonalInfoPage> {
                     ),
                     elevation: 0,
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                  child:
+                      _isLoading
+                          ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                          : const Text(
+                            'Save Changes',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Save Changes',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
                 ),
               ),
 
@@ -391,17 +386,10 @@ class _EditPersonalInfoPageState extends State<EditPersonalInfoPage> {
               color: iconColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 20,
-            ),
+            child: Icon(icon, color: iconColor, size: 20),
           ),
           hintText: hintText,
-          hintStyle: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[400],
-          ),
+          hintStyle: TextStyle(fontSize: 14, color: Colors.grey[400]),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,

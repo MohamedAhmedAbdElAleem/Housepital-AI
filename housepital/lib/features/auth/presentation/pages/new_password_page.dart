@@ -187,10 +187,6 @@ class _NewPasswordPageState extends State<NewPasswordPage>
   }
 
   bool get _hasMinLength => _passwordController.text.length >= 6;
-  bool get _hasUppercase => _passwordController.text.contains(RegExp(r'[A-Z]'));
-  bool get _hasNumber => _passwordController.text.contains(RegExp(r'[0-9]'));
-  bool get _hasSpecialChar =>
-      _passwordController.text.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
   bool get _passwordsMatch =>
       _passwordController.text == _confirmPasswordController.text &&
       _confirmPasswordController.text.isNotEmpty;

@@ -21,7 +21,6 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage>
 
   // Design System
   static const _primary = Color(0xFF00C853);
-  static const _primaryDark = Color(0xFF009624);
   static const _surface = Color(0xFFFAFBFC);
   static const _card = Colors.white;
   static const _textPrimary = Color(0xFF0F172A);

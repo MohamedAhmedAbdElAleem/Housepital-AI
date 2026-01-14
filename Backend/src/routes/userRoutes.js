@@ -591,4 +591,156 @@ router.delete(
 	}
 );
 
+/**
+ * @openapi
+ * /api/user/{userId}/verify:
+ *   patch:
+ *     tags:
+ *       - Admin
+ *     summary: Verify/Approve/Reject a user
+ *     description: Admin endpoint to approve or reject user verification
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user ID to verify
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [approved, rejected, pending]
+ *                 description: The verification status to set
+ *     responses:
+ *       200:
+ *         description: User verification status updated
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.patch("/:userId/verify", async (req, res) => {
+	try {
+		const { userId } = req.params;
+		const { status } = req.body;
+		const User = require("../models/User");
+		const { sendVerificationEmail } = require("../services/emailService");
+
+		// Validate status
+		const validStatuses = ['approved', 'rejected', 'pending'];
+		if (!status || !validStatuses.includes(status)) {
+			return res.status(400).json({
+				success: false,
+				message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+			});
+		}
+
+		// Find and update user
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({
+				success: false,
+				message: "User not found"
+			});
+		}
+
+		// Update verification status
+		user.verificationStatus = status === 'approved' ? 'verified' : status;
+		user.status = status;
+		user.isVerified = status === 'approved';
+		
+		if (status === 'approved') {
+			user.verifiedAt = new Date();
+		}
+
+		await user.save();
+
+		// Send verification email (only for approved or rejected, not pending)
+		let emailSent = false;
+		let emailMessage = '';
+		
+		if (status === 'approved' || status === 'rejected') {
+			const emailResult = await sendVerificationEmail(user.email, user.name, status);
+			emailSent = emailResult.success;
+			emailMessage = emailResult.message;
+		}
+
+		res.status(200).json({
+			success: true,
+			message: `User ${status === 'approved' ? 'approved' : 'rejected'} successfully`,
+			emailSent: emailSent,
+			emailMessage: emailSent ? 'User notified via email' : `Verification done but email not sent: ${emailMessage}`,
+			user: {
+				id: user._id,
+				name: user.name,
+				email: user.email,
+				role: user.role,
+				verificationStatus: user.verificationStatus,
+				status: user.status,
+				isVerified: user.isVerified
+			}
+		});
+
+	} catch (error) {
+		console.error('Verify user error:', error);
+		res.status(500).json({
+			success: false,
+			message: "Error verifying user",
+			error: error.message
+		});
+	}
+});
+
+/**
+ * @openapi
+ * /api/user/pending-verifications:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: Get all users pending verification
+ *     description: Admin endpoint to get all users with pending verification status
+ *     responses:
+ *       200:
+ *         description: List of pending users
+ *       500:
+ *         description: Server error
+ */
+router.get("/pending-verifications", async (req, res) => {
+	try {
+		const User = require("../models/User");
+
+		const pendingUsers = await User.find({
+			$or: [
+				{ verificationStatus: 'pending' },
+				{ status: 'pending' },
+				{ isVerified: false }
+			]
+		})
+		.select('-password_hash -salt -hashingAlgorithm -costFactor')
+		.sort({ createdAt: -1 });
+
+		res.status(200).json({
+			success: true,
+			count: pendingUsers.length,
+			users: pendingUsers
+		});
+
+	} catch (error) {
+		console.error('Get pending verifications error:', error);
+		res.status(500).json({
+			success: false,
+			message: "Error fetching pending verifications",
+			error: error.message
+		});
+	}
+});
+
 module.exports = router;

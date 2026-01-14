@@ -4,7 +4,6 @@ import 'dart:ui';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_routes.dart';
 import '../../../../../core/utils/token_manager.dart';
-import '../../../splash/presentation/pages/splash_page.dart';
 import '../cubit/auth_cubit.dart';
 
 class LoginPage extends StatefulWidget {
@@ -41,13 +40,13 @@ class _LoginPageState extends State<LoginPage>
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
-    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _animController,
-            curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
-          ),
-        );
+    _slideAnim =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
 
     _animController.forward();
     _loadSavedEmail();
@@ -222,35 +221,34 @@ class _LoginPageState extends State<LoginPage>
                                         ),
                                         validator: (val) =>
                                             (val == null || !val.contains('@'))
-                                            ? 'Invalid email'
-                                            : null,
+                                                ? 'Invalid email'
+                                                : null,
                                       ),
                                       const SizedBox(height: 16),
                                       TextFormField(
                                         controller: _passwordController,
                                         obscureText: !_isPasswordVisible,
-                                        decoration:
-                                            _buildInputDecoration(
-                                              'Password',
-                                              Icons.lock_outline,
-                                            ).copyWith(
-                                              suffixIcon: IconButton(
-                                                icon: Icon(
-                                                  _isPasswordVisible
-                                                      ? Icons.visibility
-                                                      : Icons.visibility_off,
-                                                  color: AppColors.primary500,
-                                                ),
-                                                onPressed: () => setState(
-                                                  () => _isPasswordVisible =
-                                                      !_isPasswordVisible,
-                                                ),
-                                              ),
+                                        decoration: _buildInputDecoration(
+                                          'Password',
+                                          Icons.lock_outline,
+                                        ).copyWith(
+                                          suffixIcon: IconButton(
+                                            icon: Icon(
+                                              _isPasswordVisible
+                                                  ? Icons.visibility
+                                                  : Icons.visibility_off,
+                                              color: AppColors.primary500,
                                             ),
+                                            onPressed: () => setState(
+                                              () => _isPasswordVisible =
+                                                  !_isPasswordVisible,
+                                            ),
+                                          ),
+                                        ),
                                         validator: (val) =>
                                             (val == null || val.isEmpty)
-                                            ? 'Required'
-                                            : null,
+                                                ? 'Required'
+                                                : null,
                                       ),
                                       const SizedBox(height: 12),
 
@@ -283,9 +281,8 @@ class _LoginPageState extends State<LoginPage>
 
                                       // Login Button
                                       ElevatedButton(
-                                        onPressed: isLoading
-                                            ? null
-                                            : _onLoginPressed,
+                                        onPressed:
+                                            isLoading ? null : _onLoginPressed,
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: AppColors.primary500,
                                           foregroundColor: Colors.white,
@@ -307,9 +304,9 @@ class _LoginPageState extends State<LoginPage>
                                                 width: 24,
                                                 child:
                                                     CircularProgressIndicator(
-                                                      color: Colors.white,
-                                                      strokeWidth: 2,
-                                                    ),
+                                                  color: Colors.white,
+                                                  strokeWidth: 2,
+                                                ),
                                               )
                                             : const Text(
                                                 'SECURE LOGIN',
@@ -373,9 +370,9 @@ class _LoginPageState extends State<LoginPage>
     if (_formKey.currentState!.validate()) {
       // Logic simplified: No longer passing selectedRole
       context.read<AuthCubit>().login(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+            _emailController.text.trim(),
+            _passwordController.text,
+          );
     }
   }
 

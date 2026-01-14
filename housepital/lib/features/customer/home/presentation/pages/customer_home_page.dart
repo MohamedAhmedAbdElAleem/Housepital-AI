@@ -40,7 +40,6 @@ class _CustomerHomePageState extends State<CustomerHomePage>
   // ═══════════════════════════════════════════════════════════════════════════
 
   static const _primary = Color(0xFF00C853);
-  static const _primaryDark = Color(0xFF009624);
 
   static const _surface = Color(0xFFFAFBFC);
   static const _card = Colors.white;

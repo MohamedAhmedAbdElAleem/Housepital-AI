@@ -572,7 +572,7 @@ const getFinancialInsights = async (req, res) => {
  */
 const getAllUsers = async (req, res) => {
     try {
-        const { role, status, search } = req.query;
+        const { role, status, search, verificationStatus } = req.query;
 
         const query = {};
 
@@ -584,6 +584,11 @@ const getAllUsers = async (req, res) => {
         // Filter by status
         if (status && status !== 'all') {
             query.status = status;
+        }
+
+        // Filter by verification status
+        if (verificationStatus && verificationStatus !== 'all') {
+            query.verificationStatus = verificationStatus;
         }
 
         // Search by name, email, or mobile

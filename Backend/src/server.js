@@ -10,10 +10,6 @@ const connectDB = require("./config/dbConn");
 const cloudinaryRoutes = require('./routes/cloudinaryRoutes');
 
 
-const cloudinaryRoutes = require('./routes/cloudinaryRoutes');
-
-
-
 const app = express();
 const PORT = process.env.PORT || 3500;
 
@@ -63,14 +59,18 @@ mongoose.connection.once("open", () => {
     });
 
     // Graceful Shutdown Logic
-    const gracefulShutdown = () => {
+    const gracefulShutdown = async () => {
         console.log("Received kill signal, shutting down gracefully");
-        server.close(() => {
+        server.close(async () => {
             console.log("Closed out remaining connections");
-            mongoose.connection.close(false, () => {
-                console.log("MongoDb connection closed");
+            try {
+                await mongoose.connection.close();
+                console.log("MongoDB connection closed");
                 process.exit(0);
-            });
+            } catch (err) {
+                console.error("Error closing MongoDB connection:", err);
+                process.exit(1);
+            }
         });
     };
 
@@ -78,13 +78,17 @@ mongoose.connection.once("open", () => {
     process.on("SIGINT", gracefulShutdown);
 
     // Handle Nodemon restart signal
-    process.once("SIGUSR2", () => {
+    process.once("SIGUSR2", async () => {
         console.log("Received SIGUSR2 (Nodemon restart)");
-        server.close(() => {
-             mongoose.connection.close(false, () => {
-                console.log("MongoDb connection closed");
+        server.close(async () => {
+            try {
+                await mongoose.connection.close();
+                console.log("MongoDB connection closed");
                 process.kill(process.pid, "SIGUSR2");
-            });
+            } catch (err) {
+                console.error("Error closing MongoDB connection:", err);
+                process.kill(process.pid, "SIGUSR2");
+            }
         });
     });
 });
