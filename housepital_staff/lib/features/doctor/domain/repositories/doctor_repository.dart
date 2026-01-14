@@ -1,3 +1,4 @@
+import 'dart:io';
 import '../../data/models/doctor_model.dart';
 import '../../data/models/clinic_model.dart';
 
@@ -10,4 +11,5 @@ abstract class DoctorRepository {
   Future<List<ClinicModel>> getMyClinics();
   Future<ClinicModel> updateClinic(ClinicModel clinic);
   Future<void> deleteClinic(String clinicId);
+  Future<String> uploadImage(File file);
 }

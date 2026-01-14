@@ -90,13 +90,7 @@ class DoctorHomePage extends StatelessWidget {
                   icon: Icons.local_hospital_outlined,
                   color: Colors.green,
                   onTap: () {
-                    // Navigate to Clinics logic later
-                    // Navigator.pushNamed(context, AppRoutes.myClinics);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Clinics Management Coming Next!'),
-                      ),
-                    );
+                    Navigator.pushNamed(context, AppRoutes.myClinics);
                   },
                 ),
                 _buildActionCard(

@@ -102,6 +102,11 @@ const clinicSchema = new mongoose.Schema(
             default: 1,
             min: 1
         },
+        bookingMode: {
+            type: String,
+            enum: ["slots", "queue"],
+            default: "slots"
+        },
         // Verification
         verificationStatus: {
             type: String,

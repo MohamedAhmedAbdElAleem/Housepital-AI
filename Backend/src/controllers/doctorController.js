@@ -65,7 +65,7 @@ const createProfile = async (req, res) => {
 // @access  Private
 const getProfile = async (req, res) => {
     try {
-        const doctor = await Doctor.findOne({ user: req.user.id }).populate("user", "name email phone");
+        const doctor = await Doctor.findOne({ user: req.user.id }).populate("user", "name email phone profilePictureUrl");
 
         if (!doctor) {
             return res.status(404).json({ message: "Doctor profile not found" });
@@ -115,6 +115,13 @@ const updateProfile = async (req, res) => {
             }
         });
 
+        // Update User Profile Picture if provided
+        if (req.body.profilePictureUrl) {
+            await User.findByIdAndUpdate(req.user.id, {
+                profilePictureUrl: req.body.profilePictureUrl
+            });
+        }
+
         // Note: License number usually shouldn't be changed easily after verification
         // If we want to allow it, we should reset verificationStatus
         if (req.body.licenseNumber && req.body.licenseNumber !== doctor.licenseNumber) {
@@ -124,9 +131,12 @@ const updateProfile = async (req, res) => {
 
         await doctor.save();
 
+        // Return updated document with populated user info including new picture
+        const updatedDoctor = await Doctor.findOne({ user: req.user.id }).populate("user", "name email phone profilePictureUrl");
+
         res.json({
             success: true,
-            data: doctor
+            data: updatedDoctor
         });
     } catch (error) {
         console.error(error);

@@ -1,3 +1,4 @@
+import 'dart:io';
 import '../../domain/repositories/doctor_repository.dart';
 import '../../data/datasources/doctor_remote_datasource.dart';
 import '../../data/models/doctor_model.dart';
@@ -41,5 +42,10 @@ class DoctorRepositoryImpl implements DoctorRepository {
   @override
   Future<void> deleteClinic(String clinicId) async {
     return await remoteDataSource.deleteClinic(clinicId);
+  }
+
+  @override
+  Future<String> uploadImage(File file) async {
+    return await remoteDataSource.uploadImage(file);
   }
 }

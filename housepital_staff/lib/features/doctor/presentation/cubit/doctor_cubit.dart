@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/doctor_model.dart';
 import '../../data/models/clinic_model.dart';
@@ -85,11 +86,34 @@ class DoctorCubit extends Cubit<DoctorState> {
     emit(DoctorLoading());
     try {
       await repository.deleteClinic(clinicId);
-      // Refresh list after delete
       final clinics = await repository.getMyClinics();
       emit(DoctorClinicsLoaded(clinics));
     } catch (e) {
       emit(DoctorError(e.toString()));
+    }
+  }
+
+  Future<List<String>> uploadClinicImages(List<File> images) async {
+    List<String> imageUrls = [];
+    try {
+      // Don't emit loading here potentially, or do it if we want to show global loading.
+      // Usually form handles its own loading state for uploads, but let's use global for simplicity if needed.
+      // Actually, returns Future, so the UI can await it.
+      for (var file in images) {
+        final url = await repository.uploadImage(file);
+        imageUrls.add(url);
+      }
+      return imageUrls;
+    } catch (e) {
+      throw e; // Rethrow to let UI handle or show error
+    }
+  }
+
+  Future<String> uploadImage(File file) async {
+    try {
+      return await repository.uploadImage(file);
+    } catch (e) {
+      throw e;
     }
   }
 }

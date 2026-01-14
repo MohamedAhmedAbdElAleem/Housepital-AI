@@ -7,6 +7,7 @@ class DoctorModel {
   final List<String> qualifications;
   final String? bio;
   final String? gender;
+  final String? profilePictureUrl;
   final String? nationalIdUrl;
   final String? licenseUrl;
   final String verificationStatus;
@@ -32,6 +33,7 @@ class DoctorModel {
     this.gender,
     this.nationalIdUrl,
     this.licenseUrl,
+    this.profilePictureUrl,
     this.verificationStatus = 'pending',
     this.rejectionReason,
     this.bookingMode = 'slots',
@@ -57,6 +59,9 @@ class DoctorModel {
       gender: json['gender'],
       nationalIdUrl: json['nationalIdUrl'],
       licenseUrl: json['licenseUrl'],
+      profilePictureUrl: json['user'] is Map
+          ? json['user']['profilePictureUrl']
+          : null,
       verificationStatus: json['verificationStatus'] ?? 'pending',
       rejectionReason: json['rejectionReason'],
       bookingMode: json['bookingMode'] ?? 'slots',
@@ -81,6 +86,7 @@ class DoctorModel {
       if (gender != null) 'gender': gender,
       if (nationalIdUrl != null) 'nationalIdUrl': nationalIdUrl,
       if (licenseUrl != null) 'licenseUrl': licenseUrl,
+      if (profilePictureUrl != null) 'profilePictureUrl': profilePictureUrl,
       'verificationStatus': verificationStatus,
       if (rejectionReason != null) 'rejectionReason': rejectionReason,
       'bookingMode': bookingMode,

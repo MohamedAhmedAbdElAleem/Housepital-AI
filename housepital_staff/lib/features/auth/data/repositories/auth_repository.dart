@@ -59,6 +59,7 @@ class AuthUser {
 // ========== Repository ==========
 abstract class AuthRepository {
   Future<AuthResponse> login(LoginRequest request);
+  Future<AuthUser> getCurrentUser();
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -69,5 +70,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AuthResponse> login(LoginRequest request) async {
     return await remoteDataSource.login(request);
+  }
+
+  @override
+  Future<AuthUser> getCurrentUser() async {
+    return await remoteDataSource.getCurrentUser();
   }
 }

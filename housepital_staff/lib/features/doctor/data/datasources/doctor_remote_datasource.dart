@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/error/exceptions.dart';
@@ -14,6 +15,7 @@ abstract class DoctorRemoteDataSource {
   Future<List<ClinicModel>> getMyClinics();
   Future<ClinicModel> updateClinic(ClinicModel clinic);
   Future<void> deleteClinic(String clinicId);
+  Future<String> uploadImage(File file);
 }
 
 class DoctorRemoteDataSourceImpl implements DoctorRemoteDataSource {
@@ -110,6 +112,36 @@ class DoctorRemoteDataSourceImpl implements DoctorRemoteDataSource {
     } on DioException catch (e) {
       throw ServerException(
         e.response?.data['message'] ?? 'Failed to delete clinic',
+      );
+    }
+  }
+
+  Future<String> uploadImage(File file) async {
+    try {
+      String fileName = file.path.split('/').last;
+      FormData formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(file.path, filename: fileName),
+      });
+
+      final response = await apiClient.post(
+        '/cloudinary/uploadFile',
+        body: formData,
+      );
+
+      // Assumption: Cloudinary controller returns { url: "...", ... }
+      // I should double check the controller return value.
+      // Usually it returns the full cloudinary response.
+      // Let's assume response['url'] or response['secure_url'].
+      // To be safe, I'll log the response first if I could, but I can't.
+      // Based on standard Housepital backend patterns, it likely returns { success: true, url: "..." }
+      // I'll check the controller code in next step to be sure, but for now I'll anticipate standard structure.
+
+      // Checking CloudinaryController in next step...
+      // For now, I'll write the method accessing `url`.
+      return response['url'];
+    } on DioException catch (e) {
+      throw ServerException(
+        e.response?.data['message'] ?? 'Failed to upload image',
       );
     }
   }

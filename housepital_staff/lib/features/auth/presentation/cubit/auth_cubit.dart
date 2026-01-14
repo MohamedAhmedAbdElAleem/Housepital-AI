@@ -34,9 +34,6 @@ class AuthCubit extends Cubit<AuthState> {
       final response = await repository.login(request);
 
       if (response.success && response.user != null) {
-        // No client-side role validation against selection anymore.
-        // We trust the backend returning the user's correct role.
-
         if (response.token != null) {
           await TokenManager.saveToken(response.token!);
         }
@@ -51,6 +48,23 @@ class AuthCubit extends Cubit<AuthState> {
       emit(AuthError(e.message));
     } catch (e) {
       emit(AuthError('An unexpected error occurred'));
+    }
+  }
+
+  Future<void> checkAuthStatus() async {
+    emit(AuthLoading());
+    try {
+      final token = await TokenManager.getToken();
+      if (token != null) {
+        // Token exists, fetch user details to restore session
+        final user = await repository.getCurrentUser();
+        emit(AuthAuthenticated(user));
+      } else {
+        emit(AuthInitial());
+      }
+    } catch (e) {
+      // If fetching user fails (e.g. token expired), clear session
+      await logout();
     }
   }
 

@@ -24,7 +24,9 @@ const addClinic = async (req, res) => {
             images,
             workingHours,
             slotDurationMinutes,
-            maxPatientsPerSlot
+            maxPatientsPerSlot,
+            bookingMode, // New
+            verificationDocuments // New
         } = req.body;
 
         const clinic = new Clinic({
@@ -37,7 +39,9 @@ const addClinic = async (req, res) => {
             images,
             workingHours,
             slotDurationMinutes,
-            maxPatientsPerSlot
+            maxPatientsPerSlot,
+            bookingMode,
+            verificationDocuments
         });
 
         await clinic.save();
@@ -64,7 +68,7 @@ const getMyClinics = async (req, res) => {
             return res.status(404).json({ message: "Doctor profile not found" });
         }
 
-        const clinics = await Clinic.find({ doctor: doctor._id }).sort({ createdAt: -1 });
+        const clinics = await Clinic.find({ doctor: doctor._id, isActive: true }).sort({ createdAt: -1 });
 
         res.json({
             success: true,
@@ -104,7 +108,7 @@ const updateClinic = async (req, res) => {
         const allowedUpdates = [
             "name", "description", "address", "location", "phone", 
             "images", "workingHours", "slotDurationMinutes", 
-            "maxPatientsPerSlot", "isActive"
+            "maxPatientsPerSlot", "bookingMode", "verificationDocuments", "isActive"
         ];
 
         allowedUpdates.forEach((field) => {

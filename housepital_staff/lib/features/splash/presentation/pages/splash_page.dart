@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/utils/token_manager.dart';
+import '../../../../features/auth/presentation/cubit/auth_cubit.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -59,13 +61,17 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   }
 
   Future<void> _checkAuth() async {
-    // Artificial delay to show animation
-    await Future.delayed(const Duration(seconds: 3));
+    // Artificial delay for animation
+    await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
 
-    final hasToken = await TokenManager.hasToken();
-    final userRole = await TokenManager.getUserRole();
+    // Restore session via Cubit (fetches user profile)
+    await context.read<AuthCubit>().checkAuthStatus();
+
+    if (!mounted) return;
+
+    final state = context.read<AuthCubit>().state;
 
     // Reset status bar
     SystemChrome.setEnabledSystemUIMode(
@@ -73,22 +79,19 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       overlays: SystemUiOverlay.values,
     );
 
-    if (mounted) {
-      if (hasToken && userRole != null) {
-        // Redirect based on role
-        if (userRole.toLowerCase() == 'doctor') {
-          Navigator.pushReplacementNamed(context, AppRoutes.doctorHome);
-        } else if (userRole.toLowerCase() == 'nurse') {
-          Navigator.pushReplacementNamed(context, AppRoutes.nurseHome);
-        } else if (userRole.toLowerCase() == 'admin') {
-          Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
-        } else {
-          // Fallback if role is unknown or customer
-          Navigator.pushReplacementNamed(context, AppRoutes.login);
-        }
+    if (state is AuthAuthenticated) {
+      final role = state.user.role.toLowerCase();
+      if (role == 'doctor') {
+        Navigator.pushReplacementNamed(context, AppRoutes.doctorHome);
+      } else if (role == 'nurse') {
+        Navigator.pushReplacementNamed(context, AppRoutes.nurseHome);
+      } else if (role == 'admin') {
+        Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
       } else {
         Navigator.pushReplacementNamed(context, AppRoutes.login);
       }
+    } else {
+      Navigator.pushReplacementNamed(context, AppRoutes.login);
     }
   }
 

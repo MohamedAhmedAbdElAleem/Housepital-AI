@@ -9,6 +9,8 @@ class ClinicModel {
   final List<WorkingHour> workingHours;
   final int slotDurationMinutes;
   final int maxPatientsPerSlot;
+  final String bookingMode; // 'slots' or 'queue'
+  final List<String> verificationDocuments;
   final bool isActive;
   final String verificationStatus;
   final String? rejectionReason;
@@ -24,6 +26,8 @@ class ClinicModel {
     this.workingHours = const [],
     this.slotDurationMinutes = 30,
     this.maxPatientsPerSlot = 1,
+    this.bookingMode = 'slots',
+    this.verificationDocuments = const [],
     this.isActive = true,
     this.verificationStatus = 'pending',
     this.rejectionReason,
@@ -45,6 +49,10 @@ class ClinicModel {
           : [],
       slotDurationMinutes: json['slotDurationMinutes'] ?? 30,
       maxPatientsPerSlot: json['maxPatientsPerSlot'] ?? 1,
+      bookingMode: json['bookingMode'] ?? 'slots',
+      verificationDocuments: json['verificationDocuments'] != null
+          ? List<String>.from(json['verificationDocuments'])
+          : [],
       isActive: json['isActive'] ?? true,
       verificationStatus: json['verificationStatus'] ?? 'pending',
       rejectionReason: json['rejectionReason'],
@@ -63,6 +71,8 @@ class ClinicModel {
       'workingHours': workingHours.map((e) => e.toJson()).toList(),
       'slotDurationMinutes': slotDurationMinutes,
       'maxPatientsPerSlot': maxPatientsPerSlot,
+      'bookingMode': bookingMode,
+      'verificationDocuments': verificationDocuments,
       'isActive': isActive,
       'verificationStatus': verificationStatus,
       if (rejectionReason != null) 'rejectionReason': rejectionReason,
