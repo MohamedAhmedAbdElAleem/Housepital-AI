@@ -13,6 +13,7 @@ exports.createBooking = async (req, res) => {
 		console.log("User from token:", req.user);
 
 		const {
+			type,
 			serviceId,
 			serviceName,
 			servicePrice,
@@ -25,6 +26,9 @@ exports.createBooking = async (req, res) => {
 			scheduledTime,
 			notes,
 			prescriptionUrl,
+			addressId,
+			address,
+			nurseGenderPreference,
 		} = req.body;
 
 		// Validate required fields
@@ -54,6 +58,7 @@ exports.createBooking = async (req, res) => {
 
 		// Create booking
 		const booking = new Booking({
+			type: type || "home_nursing",
 			serviceId,
 			serviceName,
 			servicePrice: servicePrice || 0,
@@ -65,6 +70,9 @@ exports.createBooking = async (req, res) => {
 			timeOption,
 			scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
 			scheduledTime,
+			addressId: addressId || "",
+			address: address || {},
+			nurseGenderPreference: nurseGenderPreference || "any",
 			notes: notes || "",
 			prescriptionUrl: prescriptionUrl || "",
 			status: "pending",
