@@ -1,7 +1,7 @@
 class ApiConstants {
-  // Base URL
-  static const String baseUrl = 'http://192.168.1.140:3500/api';
-  // static const String baseUrl = 'http://localhost:3000/api';
+  // Base URL - Use localhost for emulator/simulator
+  static const String baseUrl = 'http://192.168.56.212:3500/api';
+  // For physical device testing, use your computer's IP: http://192.168.1.140:3500/api
   // Auth Endpoints
   static const String login = '/auth/login';
   static const String register = '/auth/register';
@@ -47,4 +47,11 @@ class ApiConstants {
 
   // Cloudinary
   static const String cloudinaryUpload = '/cloudinary/upload';
+
+  // Booking Endpoints (Nurse)
+  static const String nursePendingBookings = '/bookings/nurse/pending';
+  static const String nurseActiveBooking = '/bookings/nurse/active';
+  static String acceptBooking(String id) => '/bookings/$id/accept';
+  static String verifyPin(String id) => '/bookings/$id/verify-pin';
+  static String completeVisit(String id) => '/bookings/$id/complete';
 }
