@@ -406,12 +406,16 @@ exports.acceptBooking = async (req, res) => {
 		booking.visitPin = generatePin();
 		await booking.save();
 
+		// Re-fetch with populated user data for response
+		const populatedBooking = await Booking.findById(booking._id)
+			.populate("userId", "name email mobile");
+
 		console.log(`✅ Booking ${id} accepted by nurse ${nurseProfile._id}, PIN: ${booking.visitPin}`);
 
 		res.status(200).json({
 			success: true,
 			message: "Booking accepted successfully",
-			booking: booking,
+			booking: populatedBooking,
 		});
 	} catch (error) {
 		console.error("❌ Error accepting booking:", error);
