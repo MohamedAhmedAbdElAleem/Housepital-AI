@@ -10,6 +10,8 @@ const {
 	updateInfo,
 	getUserinfo,
 	updateProfile,
+	updateProfileImage,
+	changePassword,
 	getSingleDependent,
 	addDependent,
 	getAllDependents,
@@ -80,6 +82,61 @@ router.get("/getUserInfo", getUserinfo);
  *         description: Profile updated
  */
 router.put("/update-profile", authenticateToken, updateProfile);
+
+/**
+ * @openapi
+ * /api/user/update-profile-image:
+ *   put:
+ *     tags:
+ *       - User
+ *     summary: Update User Profile Image
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profilePictureUrl:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile image updated
+ */
+router.put("/update-profile-image", authenticateToken, updateProfileImage);
+
+/**
+ * @openapi
+ * /api/user/change-password:
+ *   put:
+ *     tags:
+ *       - User
+ *     summary: Change User Password
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *       400:
+ *         description: Invalid current password or validation error
+ */
+router.put("/change-password", authenticateToken, changePassword);
 
 /**
  * @openapi

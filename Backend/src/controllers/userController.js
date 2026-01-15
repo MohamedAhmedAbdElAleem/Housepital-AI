@@ -158,6 +158,81 @@ exports.getSingleDependent = async (req, res) => {
 	}
 };
 
+/**
+ * @desc    Change user password
+ * @route   PUT /api/user/change-password
+ * @access  Private
+ */
+exports.changePassword = async (req, res) => {
+	try {
+		const { currentPassword, newPassword } = req.body;
+		const userId = req.user.id;
+
+		// Validate input
+		if (!currentPassword || !newPassword) {
+			return res.status(400).json({
+				success: false,
+				message: "Current password and new password are required",
+			});
+		}
+
+		// Check new password length
+		if (newPassword.length < 6) {
+			return res.status(400).json({
+				success: false,
+				message: "New password must be at least 6 characters",
+			});
+		}
+
+		// Get user with password hash
+		const user = await User.findById(userId).select('+password_hash +salt');
+
+		if (!user) {
+			return res.status(404).json({
+				success: false,
+				message: "User not found",
+			});
+		}
+
+		// Verify current password
+		const isValidPassword = await bcrypt.compare(currentPassword, user.password_hash);
+
+		if (!isValidPassword) {
+			return res.status(400).json({
+				success: false,
+				message: "Current password is incorrect",
+			});
+		}
+
+		// Hash new password
+		const salt = await bcrypt.genSalt(12);
+		const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+		// Update password
+		await User.findByIdAndUpdate(userId, {
+			$set: {
+				password_hash: hashedPassword,
+				salt: salt,
+			},
+		});
+
+		// Log the update
+		logEvents(`User password changed: ${user.email}`, "userLog.log");
+
+		res.status(200).json({
+			success: true,
+			message: "Password changed successfully",
+		});
+	} catch (error) {
+		logEvents(`Change password error: ${error.message}`, "userErrLog.log");
+
+		res.status(500).json({
+			success: false,
+			message: error.message || "Error changing password",
+		});
+	}
+};
+
 exports.addDependent = async (req, res) => {
 	try {
 		const userId = req.body._id || req.body.id;
@@ -337,3 +412,52 @@ exports.deleteDependent = async (req, res) => {
 	}
 };
 
+/**
+ * @desc    Update user profile picture
+ * @route   PUT /api/user/update-profile-image
+ * @access  Private
+ */
+exports.updateProfileImage = async (req, res) => {
+	try {
+		const { profilePictureUrl } = req.body;
+		const userId = req.user.id;
+
+		if (!profilePictureUrl) {
+			return res.status(400).json({
+				success: false,
+				message: "Profile picture URL is required",
+			});
+		}
+
+		const user = await User.findByIdAndUpdate(
+			userId,
+			{ $set: { profilePictureUrl } },
+			{ new: true }
+		);
+
+		if (!user) {
+			return res.status(404).json({
+				success: false,
+				message: "User not found",
+			});
+		}
+
+		// Invalidate cache
+		const cacheKey = `user:${userId}`;
+		await redis.del(cacheKey);
+
+		logEvents(`User profile image updated: ${user.email}`, "userLog.log");
+
+		res.status(200).json({
+			success: true,
+			message: "Profile image updated successfully",
+			user: user.toJSON(),
+		});
+	} catch (error) {
+		logEvents(`Update profile image error: ${error.message}`, "userErrLog.log");
+		res.status(500).json({
+			success: false,
+			message: error.message || "Error updating profile image",
+		});
+	}
+};
