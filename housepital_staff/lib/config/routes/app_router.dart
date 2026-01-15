@@ -8,6 +8,7 @@ import '../../features/doctor/presentation/pages/doctor_profile_page.dart';
 
 import '../../features/doctor/presentation/pages/doctor_home_page.dart';
 import '../../features/nurse/presentation/pages/nurse_home_page.dart';
+import '../../features/nurse/presentation/pages/nurse_profile_completion_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
 
 class AppRouter {
@@ -24,6 +25,11 @@ class AppRouter {
 
       case AppRoutes.nurseHome:
         return MaterialPageRoute(builder: (_) => const NurseHomePage());
+
+      case AppRoutes.nurseProfileCompletion:
+        return MaterialPageRoute(
+          builder: (_) => const NurseProfileCompletionPage(),
+        );
 
       case AppRoutes.doctorHome:
         return MaterialPageRoute(builder: (_) => const DoctorHomePage());

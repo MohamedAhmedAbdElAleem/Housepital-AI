@@ -39,4 +39,12 @@ class ApiConstants {
   // Plans
   static const String plans = '/plans';
   static const String subscribe = '/plans/subscribe';
+
+  // Nurse Profile Endpoints
+  static const String nurseProfile = '/nurse/profile';
+  static const String nurseProfileSubmit = '/nurse/profile/submit';
+  static const String nurseProfileStatus = '/nurse/profile/status';
+
+  // Cloudinary
+  static const String cloudinaryUpload = '/cloudinary/upload';
 }

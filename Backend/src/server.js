@@ -17,12 +17,12 @@ connectDB();
 
 // CORS configuration to allow Flutter app connections
 app.use(
-	cors({
-		origin: "*", // Allow all origins for development
-		credentials: true,
-		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-		allowedHeaders: ["Content-Type", "Authorization"],
-	})
+    cors({
+        origin: "*", // Allow all origins for development
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+    })
 );
 
 app.use(logger);
@@ -40,6 +40,12 @@ app.use("/api/admin/powerbi", require("./routes/powerBiRoutes"));
 app.use('/api/cloudinary', require('./routes/cloudinaryRoutes'));
 app.use('/api/triage', require('./routes/triageRoutes'));
 app.use("/api/doctors", require("./routes/doctorRoutes"));
+try {
+    app.use("/api/nurse", require("./routes/nurseRoutes"));
+    console.log('✅ Nurse routes loaded successfully');
+} catch (error) {
+    console.error('❌ Error loading nurse routes:', error.message);
+}
 app.use("/api/clinics", require("./routes/clinicRoutes"));
 
 // Serve static files (for ID document images)
@@ -85,8 +91,8 @@ mongoose.connection.once("open", () => {
 });
 
 mongoose.connection.on("error", (err) =>
-	logEvents(
-		`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
-		"mongoErrLog.log"
-	)
+    logEvents(
+        `${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
+        "mongoErrLog.log"
+    )
 );
