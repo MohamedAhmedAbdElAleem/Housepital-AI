@@ -1,8 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
-import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/widgets/custom_popup.dart';
+
+class _AddressDesign {
+  static const primaryGreen = Color(0xFF00C853);
+  static const surface = Color(0xFFF8FAFC);
+  static const textPrimary = Color(0xFF1E293B);
+  static const textSecondary = Color(0xFF64748B);
+  static const cardBg = Colors.white;
+  static const inputBorder = Color(0xFFE2E8F0);
+
+  static const headerGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF00C853), Color(0xFF00E676), Color(0xFF69F0AE)],
+  );
+
+  static BoxShadow get cardShadow => BoxShadow(
+    color: Colors.black.withOpacity(0.06),
+    blurRadius: 16,
+    offset: const Offset(0, 4),
+  );
+
+  static BoxShadow get softShadow => BoxShadow(
+    color: primaryGreen.withOpacity(0.15),
+    blurRadius: 20,
+    offset: const Offset(0, 8),
+  );
+}
 
 class AddAddressPage extends StatefulWidget {
   const AddAddressPage({super.key});
@@ -11,7 +38,8 @@ class AddAddressPage extends StatefulWidget {
   State<AddAddressPage> createState() => _AddAddressPageState();
 }
 
-class _AddAddressPageState extends State<AddAddressPage> {
+class _AddAddressPageState extends State<AddAddressPage>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _labelController = TextEditingController();
   final _streetController = TextEditingController();
@@ -24,8 +52,39 @@ class _AddAddressPageState extends State<AddAddressPage> {
   bool _isDefault = false;
   bool _isLoading = false;
 
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupAnimations();
+  }
+
+  void _setupAnimations() {
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
+
+    _animationController.forward();
+  }
+
   @override
   void dispose() {
+    _animationController.dispose();
     _labelController.dispose();
     _streetController.dispose();
     _areaController.dispose();
@@ -36,6 +95,8 @@ class _AddAddressPageState extends State<AddAddressPage> {
   }
 
   Future<void> _saveAddress() async {
+    HapticFeedback.mediumImpact();
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -44,6 +105,7 @@ class _AddAddressPageState extends State<AddAddressPage> {
       final userId = await TokenManager.getUserId();
       if (userId == null || userId.isEmpty) {
         if (mounted) {
+          setState(() => _isLoading = false);
           CustomPopup.error(context, 'User ID not found. Please log in again.');
         }
         return;
@@ -68,9 +130,8 @@ class _AddAddressPageState extends State<AddAddressPage> {
       if (mounted) {
         setState(() => _isLoading = false);
         if (response['message'] != null) {
-          CustomPopup.success(context, 'Address added successfully!');
-          await Future.delayed(const Duration(seconds: 1));
-          if (mounted) Navigator.pop(context, true);
+          HapticFeedback.heavyImpact();
+          _showSuccessDialog();
         } else {
           CustomPopup.error(context, 'Failed to add address');
         }
@@ -83,244 +144,430 @@ class _AddAddressPageState extends State<AddAddressPage> {
     }
   }
 
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    gradient: _AddressDesign.headerGradient,
+                    shape: BoxShape.circle,
+                    boxShadow: [_AddressDesign.softShadow],
+                  ),
+                  child: const Icon(
+                    Icons.location_on_rounded,
+                    color: Colors.white,
+                    size: 44,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Address Added!',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: _AddressDesign.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Your new address has been saved successfully.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context, true);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _AddressDesign.primaryGreen,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: AppColors.primary500,
-        elevation: 0,
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-            color: Colors.white,
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        title: const Text(
-          'Add New Address',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
+      backgroundColor: _AddressDesign.surface,
       body: Form(
         key: _formKey,
         child: Column(
           children: [
+            _buildHeader(),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Address Type Selection
-                    _buildCard(
-                      title: 'Address Type',
-                      icon: Icons.category_outlined,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTypeOption(
-                                'Home',
-                                'home',
-                                Icons.home_outlined,
-                                AppColors.primary500,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildTypeOption(
-                                'Work',
-                                'work',
-                                Icons.work_outline,
-                                Colors.blue,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildTypeOption(
-                                'Other',
-                                'other',
-                                Icons.location_on_outlined,
-                                Colors.purple,
-                              ),
-                            ),
-                          ],
-                        ),
+                        _buildTypeCard(),
+                        const SizedBox(height: 20),
+                        _buildDetailsCard(),
+                        const SizedBox(height: 20),
+                        _buildPreferencesCard(),
+                        const SizedBox(height: 100),
                       ],
                     ),
-
-                    const SizedBox(height: 20),
-
-                    // Address Details
-                    _buildCard(
-                      title: 'Address Details',
-                      icon: Icons.location_on_outlined,
-                      children: [
-                        _buildTextField(
-                          controller: _labelController,
-                          label: 'Label (Optional)',
-                          hint: 'e.g., Home, Office',
-                          icon: Icons.label_outline,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildTextField(
-                          controller: _streetController,
-                          label: 'Street Address',
-                          hint: 'Enter street address',
-                          icon: Icons.signpost_outlined,
-                          validator:
-                              (v) => v?.isEmpty ?? true ? 'Required' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildTextField(
-                          controller: _areaController,
-                          label: 'Area',
-                          hint: 'Enter area',
-                          icon: Icons.map_outlined,
-                          validator:
-                              (v) => v?.isEmpty ?? true ? 'Required' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
-                                controller: _cityController,
-                                label: 'City',
-                                hint: 'Enter city',
-                                icon: Icons.location_city_outlined,
-                                validator:
-                                    (v) =>
-                                        v?.isEmpty ?? true ? 'Required' : null,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildTextField(
-                                controller: _stateController,
-                                label: 'State',
-                                hint: 'Enter state',
-                                icon: Icons.public_outlined,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        _buildTextField(
-                          controller: _zipCodeController,
-                          label: 'Zip Code',
-                          hint: 'Enter zip code',
-                          icon: Icons.pin_outlined,
-                          keyboardType: TextInputType.number,
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Default Address
-                    _buildCard(
-                      title: 'Preferences',
-                      icon: Icons.settings_outlined,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: CheckboxListTile(
-                            value: _isDefault,
-                            onChanged:
-                                (value) =>
-                                    setState(() => _isDefault = value ?? false),
-                            title: const Text(
-                              'Set as default address',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            subtitle: Text(
-                              'Use this address by default for bookings',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            activeColor: AppColors.primary500,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 100),
-                  ],
+                  ),
                 ),
               ),
             ),
+            _buildSaveButton(),
+          ],
+        ),
+      ),
+    );
+  }
 
-            // Save Button
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
+  Widget _buildHeader() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: _AddressDesign.headerGradient,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+        boxShadow: [_AddressDesign.softShadow],
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 8, 20, 24),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.pop(context);
+                    },
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
                   ),
+                  const Expanded(
+                    child: Text(
+                      'Add New Address',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(width: 48),
                 ],
               ),
-              child: SafeArea(
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _saveAddress,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary500,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey[300],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child:
-                        _isLoading
-                            ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
-                              ),
-                            )
-                            : const Text(
-                              'Save Address',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                  ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
                 ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.add_location_alt_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'New Location',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Fill in the details to add a new address',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypeCard() {
+    return _buildCard(
+      title: 'Address Type',
+      icon: Icons.category_outlined,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildTypeOption(
+                'Home',
+                'home',
+                Icons.home_rounded,
+                _AddressDesign.primaryGreen,
+                [const Color(0xFF00C853), const Color(0xFF00E676)],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildTypeOption(
+                'Work',
+                'work',
+                Icons.work_rounded,
+                Colors.blue,
+                [const Color(0xFF42A5F5), const Color(0xFF1976D2)],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildTypeOption(
+                'Other',
+                'other',
+                Icons.place_rounded,
+                Colors.purple,
+                [const Color(0xFFAB47BC), const Color(0xFF7B1FA2)],
               ),
             ),
           ],
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget _buildDetailsCard() {
+    return _buildCard(
+      title: 'Address Details',
+      icon: Icons.location_on_outlined,
+      children: [
+        _buildTextField(
+          controller: _labelController,
+          label: 'Label (Optional)',
+          hint: 'e.g., Home, Office, Mom\'s Place',
+          icon: Icons.label_outline,
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _streetController,
+          label: 'Street Address',
+          hint: 'Enter street address',
+          icon: Icons.signpost_outlined,
+          validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _areaController,
+          label: 'Area / District',
+          hint: 'Enter area or district',
+          icon: Icons.map_outlined,
+          validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildTextField(
+                controller: _cityController,
+                label: 'City',
+                hint: 'Enter city',
+                icon: Icons.location_city_outlined,
+                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildTextField(
+                controller: _stateController,
+                label: 'State',
+                hint: 'Enter state',
+                icon: Icons.public_outlined,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _zipCodeController,
+          label: 'Zip / Postal Code',
+          hint: 'Enter zip code',
+          icon: Icons.pin_outlined,
+          keyboardType: TextInputType.number,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreferencesCard() {
+    return _buildCard(
+      title: 'Preferences',
+      icon: Icons.settings_outlined,
+      children: [
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            setState(() => _isDefault = !_isDefault);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color:
+                  _isDefault
+                      ? _AddressDesign.primaryGreen.withOpacity(0.1)
+                      : _AddressDesign.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color:
+                    _isDefault
+                        ? _AddressDesign.primaryGreen
+                        : _AddressDesign.inputBorder,
+                width: _isDefault ? 2 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: _isDefault ? _AddressDesign.headerGradient : null,
+                    color: _isDefault ? null : _AddressDesign.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border:
+                        _isDefault
+                            ? null
+                            : Border.all(color: _AddressDesign.inputBorder),
+                  ),
+                  child: Icon(
+                    _isDefault
+                        ? Icons.star_rounded
+                        : Icons.star_outline_rounded,
+                    color: _isDefault ? Colors.white : Colors.grey,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Set as default address',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color:
+                              _isDefault
+                                  ? _AddressDesign.primaryGreen
+                                  : _AddressDesign.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Use this address by default for bookings',
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color:
+                        _isDefault
+                            ? _AddressDesign.primaryGreen
+                            : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color:
+                          _isDefault
+                              ? _AddressDesign.primaryGreen
+                              : Colors.grey,
+                      width: 2,
+                    ),
+                  ),
+                  child:
+                      _isDefault
+                          ? const Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          )
+                          : null,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -332,15 +579,9 @@ class _AddAddressPageState extends State<AddAddressPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: _AddressDesign.cardBg,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [_AddressDesign.cardShadow],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,20 +589,20 @@ class _AddAddressPageState extends State<AddAddressPage> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.primary500.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  gradient: _AddressDesign.headerGradient,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: AppColors.primary500, size: 20),
+                child: Icon(icon, color: Colors.white, size: 22),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Text(
                 title,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: _AddressDesign.textPrimary,
                 ),
               ),
             ],
@@ -385,23 +626,37 @@ class _AddAddressPageState extends State<AddAddressPage> {
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
+      style: const TextStyle(fontSize: 16, color: _AddressDesign.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: Icon(icon, color: AppColors.primary500),
+        labelStyle: const TextStyle(color: _AddressDesign.textSecondary),
+        hintStyle: TextStyle(color: Colors.grey[400]),
+        prefixIcon: Icon(icon, color: _AddressDesign.primaryGreen),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: _AddressDesign.surface,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: _AddressDesign.inputBorder),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: _AddressDesign.inputBorder),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.primary500, width: 2),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(
+            color: _AddressDesign.primaryGreen,
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.red, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.red, width: 2),
         ),
       ),
     );
@@ -412,33 +667,111 @@ class _AddAddressPageState extends State<AddAddressPage> {
     String value,
     IconData icon,
     Color color,
+    List<Color> gradientColors,
   ) {
     final isSelected = _selectedType == value;
     return GestureDetector(
-      onTap: () => setState(() => _selectedType = value),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _selectedType = value);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(12),
+          gradient: isSelected ? LinearGradient(colors: gradientColors) : null,
+          color: isSelected ? null : _AddressDesign.surface,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? color : const Color(0xFFE2E8F0),
-            width: isSelected ? 2 : 1,
+            color: isSelected ? color : _AddressDesign.inputBorder,
+            width: isSelected ? 0 : 1,
           ),
+          boxShadow:
+              isSelected
+                  ? [
+                    BoxShadow(
+                      color: color.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                  : null,
         ),
         child: Column(
           children: [
-            Icon(icon, color: isSelected ? color : Colors.grey, size: 28),
-            const SizedBox(height: 8),
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Colors.grey,
+              size: 32,
+            ),
+            const SizedBox(height: 10),
             Text(
               label,
               style: TextStyle(
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? color : Colors.grey[700],
-                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? Colors.white : Colors.grey[700],
+                fontSize: 14,
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: _isLoading ? null : _saveAddress,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _AddressDesign.primaryGreen,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: Colors.grey[300],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 0,
+            ),
+            child:
+                _isLoading
+                    ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                      ),
+                    )
+                    : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.save_rounded, size: 22),
+                        SizedBox(width: 10),
+                        Text(
+                          'Save Address',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+          ),
         ),
       ),
     );

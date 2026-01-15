@@ -3,10 +3,19 @@ const router = express.Router();
 const axios = require('axios');
 const OpenAI = require('openai');
 
+
 // Initialize OpenAI client (only if key is provided)
-const openai = process.env.OPENAI_API_KEY ? new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-}) : null;
+
+// Initialize OpenAI client (only if API key is available)
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+    openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY
+    });
+    console.log('✅ OpenAI client initialized');
+} else {
+    console.warn('⚠️ OPENAI_API_KEY not set - AI triage will use fallback logic');
+}
 
 // AI Triage Service URL (Python FastAPI service - optional backup)
 const AI_TRIAGE_URL = process.env.AI_TRIAGE_URL || 'http://localhost:8000';

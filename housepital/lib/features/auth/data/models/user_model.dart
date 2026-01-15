@@ -8,6 +8,7 @@ class UserModel {
   final double wallet;
   final int totalVisits;
   final int savedServices;
+  final String? profileImage;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -21,6 +22,7 @@ class UserModel {
     this.wallet = 0,
     this.totalVisits = 0,
     this.savedServices = 0,
+    this.profileImage,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -36,6 +38,7 @@ class UserModel {
       wallet: (json['wallet'] ?? 0).toDouble(),
       totalVisits: json['totalVisits'] ?? 0,
       savedServices: json['savedServices'] ?? 0,
+      profileImage: json['profilePictureUrl'],
       createdAt:
           json['createdAt'] != null
               ? DateTime.parse(json['createdAt'])
@@ -58,13 +61,44 @@ class UserModel {
       'wallet': wallet,
       'totalVisits': totalVisits,
       'savedServices': savedServices,
+      'profilePictureUrl': profileImage,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
+  UserModel copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? mobile,
+    bool? isVerified,
+    String? role,
+    double? wallet,
+    int? totalVisits,
+    int? savedServices,
+    String? profileImage,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      mobile: mobile ?? this.mobile,
+      isVerified: isVerified ?? this.isVerified,
+      role: role ?? this.role,
+      wallet: wallet ?? this.wallet,
+      totalVisits: totalVisits ?? this.totalVisits,
+      savedServices: savedServices ?? this.savedServices,
+      profileImage: profileImage ?? this.profileImage,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   @override
   String toString() {
-    return 'UserModel(id: $id, name: $name, email: $email, mobile: $mobile, role: $role, wallet: $wallet)';
+    return 'UserModel(id: $id, name: $name, email: $email, mobile: $mobile, role: $role, wallet: $wallet, profileImage: $profileImage)';
   }
 }

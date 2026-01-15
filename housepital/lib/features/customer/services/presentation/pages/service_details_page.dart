@@ -2,6 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../booking/presentation/pages/booking_step1_select_patient.dart';
 
+// ═══════════════════════════════════════════════════════════════════════════
+// 🎨 DESIGN SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _ServiceDesign {
+  static const surface = Color(0xFFF8FAFC);
+  static const cardBg = Colors.white;
+  static const textPrimary = Color(0xFF1E293B);
+  static const textSecondary = Color(0xFF64748B);
+  static const textMuted = Color(0xFF94A3B8);
+  static const divider = Color(0xFFE2E8F0);
+  static const starColor = Color(0xFFF59E0B);
+  static const successGreen = Color(0xFF00B870);
+  static const infoBlue = Color(0xFF3B82F6);
+
+  static BoxShadow get cardShadow => BoxShadow(
+    color: Colors.black.withOpacity(0.06),
+    blurRadius: 20,
+    offset: const Offset(0, 8),
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 📱 MAIN PAGE
+// ═══════════════════════════════════════════════════════════════════════════
+
 class ServiceDetailsPage extends StatefulWidget {
   final String title;
   final String price;
@@ -75,21 +101,48 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: _ServiceDesign.surface,
       body: Stack(
         children: [
-          // Background gradient
-          Container(
-            height: 350,
+          // Animated Background gradient
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 500),
+            height: 380,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
                 colors: [
                   widget.iconColor,
-                  widget.iconColor.withOpacity(0.8),
-                  const Color(0xFFF8FAFC),
+                  widget.iconColor.withOpacity(0.85),
+                  widget.iconColor.withOpacity(0.7),
                 ],
+              ),
+            ),
+          ),
+
+          // Decorative circles
+          Positioned(
+            top: -50,
+            right: -50,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.1),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 100,
+            left: -30,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.08),
               ),
             ),
           ),
@@ -107,9 +160,11 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                       children: [
                         _buildHeroCard(),
                         _buildQuickStats(),
+                        _buildServiceHighlights(),
                         _buildTabSelector(),
                         _buildTabContent(),
                         _buildNursePreview(),
+                        _buildGuaranteeCard(),
                         _buildBottomSpacing(),
                       ],
                     ),
@@ -128,52 +183,106 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
 
   Widget _buildAppBar() {
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: 220,
       pinned: true,
       stretch: true,
       backgroundColor: widget.iconColor,
       leading: GestureDetector(
-        onTap: () => Navigator.pop(context),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.pop(context);
+        },
         child: Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
           ),
-          child: const Icon(Icons.arrow_back, color: Colors.white),
+          child: const Icon(Icons.arrow_back_rounded, color: Colors.white),
         ),
       ),
       actions: [
         GestureDetector(
-          onTap: () {},
+          onTap: () {
+            HapticFeedback.lightImpact();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Row(
+                  children: [
+                    Icon(Icons.share_rounded, color: Colors.white),
+                    SizedBox(width: 12),
+                    Text('Share feature coming soon!'),
+                  ],
+                ),
+                backgroundColor: widget.iconColor,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            );
+          },
           child: Container(
             margin: const EdgeInsets.only(right: 8),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
-            child: const Icon(Icons.share_rounded, color: Colors.white),
+            child: const Icon(
+              Icons.share_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
           ),
         ),
         GestureDetector(
-          onTap: () => setState(() => _isFavorite = !_isFavorite),
-          child: Container(
+          onTap: () {
+            HapticFeedback.mediumImpact();
+            setState(() => _isFavorite = !_isFavorite);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: _isFavorite ? Colors.white : Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color:
+                    _isFavorite
+                        ? Colors.transparent
+                        : Colors.white.withOpacity(0.1),
+              ),
+              boxShadow:
+                  _isFavorite
+                      ? [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                      : null,
             ),
-            child: Icon(
-              _isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: _isFavorite ? const Color(0xFFEF4444) : Colors.white,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                _isFavorite
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+                key: ValueKey(_isFavorite),
+                color: _isFavorite ? const Color(0xFFEF4444) : Colors.white,
+                size: 22,
+              ),
             ),
           ),
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        stretchModes: const [StretchMode.zoomBackground],
+        stretchModes: const [StretchMode.zoomBackground, StretchMode.fadeTitle],
         background: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -189,8 +298,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
           child: SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 30),
+                const SizedBox(height: 35),
                 Hero(
                   tag: 'service_icon_${widget.title}',
                   child: Container(
@@ -198,25 +308,60 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 2,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 30,
+                          offset: const Offset(0, 15),
                         ),
                       ],
                     ),
-                    child: Icon(widget.icon, size: 50, color: Colors.white),
+                    child: Icon(widget.icon, size: 40, color: Colors.white),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Text(
                   widget.title,
                   style: const TextStyle(
-                    fontSize: 26,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    letterSpacing: 0.5,
+                    letterSpacing: 0.3,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.verified_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Professional Service',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.white.withOpacity(0.95),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -403,13 +548,96 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
+  Widget _buildServiceHighlights() {
+    final highlights = [
+      {
+        'icon': Icons.verified_user_rounded,
+        'title': 'Certified',
+        'subtitle': 'Licensed nurses',
+      },
+      {
+        'icon': Icons.schedule_rounded,
+        'title': 'On-Time',
+        'subtitle': '98% punctual',
+      },
+      {
+        'icon': Icons.thumb_up_rounded,
+        'title': 'Trusted',
+        'subtitle': '5.2k+ served',
+      },
+      {
+        'icon': Icons.support_agent_rounded,
+        'title': '24/7',
+        'subtitle': 'Support',
+      },
+    ];
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Row(
+        children:
+            highlights.map((item) {
+              return Expanded(
+                child: Container(
+                  margin: EdgeInsets.only(
+                    right:
+                        highlights.indexOf(item) < highlights.length - 1
+                            ? 10
+                            : 0,
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        item['icon'] as IconData,
+                        color: widget.iconColor,
+                        size: 22,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        item['title'] as String,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: _ServiceDesign.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item['subtitle'] as String,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: _ServiceDesign.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+      ),
+    );
+  }
+
   Widget _buildTabSelector() {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _ServiceDesign.divider.withOpacity(0.5)),
       ),
       child: Row(
         children: [
@@ -426,20 +654,23 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
 
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _selectedTab = index),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() => _selectedTab = index);
+        },
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 250),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             boxShadow:
                 isSelected
                     ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        color: widget.iconColor.withOpacity(0.15),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ]
                     : null,
@@ -450,7 +681,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
               Icon(
                 icon,
                 size: 18,
-                color: isSelected ? widget.iconColor : const Color(0xFF94A3B8),
+                color: isSelected ? widget.iconColor : _ServiceDesign.textMuted,
               ),
               const SizedBox(width: 6),
               Text(
@@ -459,7 +690,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color:
-                      isSelected ? widget.iconColor : const Color(0xFF94A3B8),
+                      isSelected ? widget.iconColor : _ServiceDesign.textMuted,
                 ),
               ),
             ],
@@ -786,8 +1017,10 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
           colors: [
-            widget.iconColor.withOpacity(0.1),
+            widget.iconColor.withOpacity(0.12),
             widget.iconColor.withOpacity(0.05),
           ],
         ),
@@ -797,18 +1030,25 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: widget.iconColor.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Icon(
               Icons.verified_user_rounded,
               color: widget.iconColor,
-              size: 26,
+              size: 28,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -816,103 +1056,254 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                 const Text(
                   'Verified Nurses Only',
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: _ServiceDesign.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'All our nurses are licensed, background-checked, and highly rated.',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  'All nurses are licensed, background-checked, and highly rated by patients.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: _ServiceDesign.textSecondary,
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),
+          ),
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 16,
+            color: widget.iconColor.withOpacity(0.6),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildGuaranteeCard() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _ServiceDesign.divider),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.shield_rounded,
+                  color: Color(0xFF16A34A),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Satisfaction Guarantee',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: _ServiceDesign.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      '100% Money back if not satisfied',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _ServiceDesign.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildGuaranteeItem(Icons.access_time_rounded, 'Free Reschedule'),
+              const SizedBox(width: 12),
+              _buildGuaranteeItem(Icons.replay_rounded, 'Easy Refund'),
+              const SizedBox(width: 12),
+              _buildGuaranteeItem(Icons.headset_mic_rounded, '24/7 Support'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuaranteeItem(IconData icon, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: _ServiceDesign.surface,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 18, color: widget.iconColor),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: _ServiceDesign.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBottomSpacing() {
-    return const SizedBox(height: 120);
+    return const SizedBox(height: 140);
   }
 
   Widget _buildFloatingBookButton() {
     return Positioned(
-      left: 20,
-      right: 20,
+      left: 0,
+      right: 0,
       bottom: 0,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
         decoration: BoxDecoration(
           color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 20,
-              offset: const Offset(0, -4),
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 25,
+              offset: const Offset(0, -8),
             ),
           ],
         ),
         child: SafeArea(
           child: Row(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Total Price',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                  ),
-                  Text(
-                    widget.price,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: widget.iconColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 20),
+              // Price Section
               Expanded(
-                child: GestureDetector(
-                  onTap: _navigateToBooking,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          widget.iconColor,
-                          widget.iconColor.withOpacity(0.8),
-                        ],
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Total Price',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: _ServiceDesign.textMuted,
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: widget.iconColor.withOpacity(0.4),
-                          blurRadius: 15,
-                          offset: const Offset(0, 6),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          widget.price,
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: widget.iconColor,
+                            height: 1,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            '/visit',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _ServiceDesign.textMuted,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    child: const Row(
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Book Button
+              Expanded(
+                flex: 3,
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.mediumImpact();
+                    _navigateToBooking();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          widget.iconColor,
+                          widget.iconColor.withOpacity(0.85),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: widget.iconColor.withOpacity(0.4),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.calendar_today_rounded,
-                          color: Colors.white,
-                          size: 20,
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.calendar_today_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ),
-                        SizedBox(width: 10),
-                        Text(
+                        const SizedBox(width: 12),
+                        const Text(
                           'Book Now',
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
+                            letterSpacing: 0.3,
                           ),
                         ),
                       ],

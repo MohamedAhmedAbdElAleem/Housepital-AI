@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../booking/presentation/pages/bookings_page.dart';
@@ -508,6 +509,34 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
                         color: _primary,
+                      ),
+                    )
+                    : _user?.profileImage != null &&
+                        _user!.profileImage!.isNotEmpty
+                    ? ClipOval(
+                      child: CachedNetworkImage(
+                        imageUrl: _user!.profileImage!,
+                        width: 52,
+                        height: 52,
+                        fit: BoxFit.cover,
+                        placeholder:
+                            (context, url) => const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: _primary,
+                              ),
+                            ),
+                        errorWidget:
+                            (context, url, error) => Text(
+                              _user!.name[0].toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: _primary,
+                              ),
+                            ),
                       ),
                     )
                     : _user?.name != null
