@@ -52,20 +52,27 @@ async def predict_image(file: UploadFile = File(...)):
     if not pipeline:
         raise HTTPException(status_code=503, detail="Model pipeline not initialized")
 
-    # Validate Content Type
-    if file.content_type not in ["image/jpeg", "image/png", "image/jpg"]:
-        raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG/PNG supported.")
+    print(f"📷 Received file: {file.filename}, content_type: {file.content_type}")
+    
+    # Validate Content Type - be more flexible
+    valid_types = ["image/jpeg", "image/png", "image/jpg", "application/octet-stream"]
+    if file.content_type and file.content_type not in valid_types:
+        print(f"❌ Invalid content type: {file.content_type}")
+        raise HTTPException(status_code=400, detail=f"Invalid file type: {file.content_type}. Only JPEG/PNG supported.")
 
     try:
         # Read Image
         contents = await file.read()
+        print(f"📦 Read {len(contents)} bytes")
         image = Image.open(io.BytesIO(contents)).convert("RGB")
+        print(f"🖼️ Image size: {image.size}")
         
         # Run Inference
         import numpy as np
         img_arr = np.array(image)
         
         results = pipeline.predict(img_arr)
+        print(f"✅ Prediction: {results.get('final_verdict', 'unknown')}")
         
         # Add filename to result
         results['filename'] = file.filename
