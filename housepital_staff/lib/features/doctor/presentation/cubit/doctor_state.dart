@@ -11,11 +11,6 @@ class DoctorProfileLoaded extends DoctorState {
   DoctorProfileLoaded(this.profile);
 }
 
-class DoctorClinicsLoaded extends DoctorState {
-  final List<ClinicModel> clinics;
-  DoctorClinicsLoaded(this.clinics);
-}
-
 class DoctorOperationSuccess extends DoctorState {
   final String message;
   DoctorOperationSuccess(this.message);

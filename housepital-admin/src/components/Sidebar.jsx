@@ -7,7 +7,11 @@ import {
     Users,
     Activity,
     LogOut,
-    ChevronRight
+    ChevronRight,
+    ShieldAlert,
+    Calendar,
+    DollarSign,
+    Settings
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -21,8 +25,12 @@ const Sidebar = () => {
 
     const navItems = [
         { path: '/', icon: LayoutDashboard, label: 'Overview', exact: true },
+        { path: '/verifications', icon: ShieldAlert, label: 'Verifications' },
+        { path: '/bookings', icon: Calendar, label: 'Bookings' },
         { path: '/users', icon: Users, label: 'Users' },
+        { path: '/financial', icon: DollarSign, label: 'Financial' },
         { path: '/activity', icon: Activity, label: 'Activity Logs' },
+        { path: '/settings', icon: Settings, label: 'Settings' },
     ];
 
     return (

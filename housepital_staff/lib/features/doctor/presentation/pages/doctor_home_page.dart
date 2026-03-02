@@ -3,8 +3,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../features/auth/presentation/cubit/auth_cubit.dart';
 
-class DoctorHomePage extends StatelessWidget {
+import '../../presentation/cubit/doctor_cubit.dart';
+import '../../presentation/cubit/clinic_cubit.dart';
+
+class DoctorHomePage extends StatefulWidget {
   const DoctorHomePage({super.key});
+
+  @override
+  State<DoctorHomePage> createState() => _DoctorHomePageState();
+}
+
+class _DoctorHomePageState extends State<DoctorHomePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch profile to ensure data is fresh
+    context.read<DoctorCubit>().fetchProfile();
+    context.read<ClinicCubit>().fetchClinics();
+  }
 
   @override
   Widget build(BuildContext context) {

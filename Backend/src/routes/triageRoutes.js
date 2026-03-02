@@ -196,7 +196,7 @@ router.post('/chat', async (req, res) => {
 مهمتك:
 1. فهم أعراض المريض
 2. تحديد مدى الاستعجال (Emergency/High/Medium/Low)
-3. اقتراح الخدمات المناسبة من: ${servicesList}
+3. اقتراح الخدمات المناسبة من: ${servicesList} لو مفيش خدمة مناسبة خلاص متقترح حاجه
 
 قواعد مهمة:
 - رد دائماً بالعامية المصرية
@@ -421,29 +421,42 @@ router.post('/analyze-image', async (req, res) => {
         
         // Handle wound detected
         if (finalVerdict.toLowerCase().includes('wound detected')) {
-            // Extract wound type from verdict
+            // Extract wound type and grade from structured data
             let woundType = 'unknown';
             let dfuGrade = null;
             
-            // Check for specific wound types
-            for (const [type, info] of Object.entries(WOUND_TYPE_SERVICES)) {
-                if (finalVerdict.toLowerCase().includes(type.replace('_', ' '))) {
-                    woundType = type;
-                    break;
+            // 1. Try to get from structured stages first (More Reliable)
+            if (cvResult.stage2 && cvResult.stage2.type) {
+                woundType = cvResult.stage2.type;
+            }
+            
+            if (cvResult.stage3 && cvResult.stage3.grade) {
+                dfuGrade = cvResult.stage3.grade;
+            }
+
+            // 2. Fallback to parsing final_verdict if structured data missing
+            if (woundType === 'unknown') {
+                for (const [type, info] of Object.entries(WOUND_TYPE_SERVICES)) {
+                    if (finalVerdict.toLowerCase().includes(type) || 
+                        finalVerdict.toLowerCase().includes(type.replace('_', ' '))) {
+                        woundType = type;
+                        break;
+                    }
                 }
             }
             
-            // Check for DFU grade
-            for (const grade of Object.keys(DFU_GRADE_URGENCY)) {
-                if (finalVerdict.toLowerCase().includes(grade.replace('_', ' '))) {
-                    dfuGrade = grade;
-                    break;
+            if (!dfuGrade) {
+                for (const grade of Object.keys(DFU_GRADE_URGENCY)) {
+                    if (finalVerdict.toLowerCase().includes(grade) || 
+                        finalVerdict.toLowerCase().includes(grade.replace('_', ' '))) {
+                        dfuGrade = grade;
+                        break;
+                    }
                 }
             }
             
-            // Build response based on wound type
+            // Determine urgency and services
             let urgency = 'Medium';
-            let response = '';
             let services = [];
             let showSos = false;
             
@@ -455,44 +468,159 @@ router.post('/analyze-image', async (req, res) => {
                 if (dfuGrade) {
                     const gradeInfo = DFU_GRADE_URGENCY[dfuGrade];
                     urgency = gradeInfo.urgency;
-                    
                     if (urgency === 'Emergency') {
                         showSos = true;
-                        response = `🚨 **حالة طوارئ - قدم سكري ${gradeInfo.description}**\n\n` +
-                            `تم اكتشاف ${woundInfo.arabic} بدرجة خطورة عالية.\n\n` +
-                            `⚠️ لازم تروح المستشفى فوراً!\n` +
-                            `📞 اتصل بالإسعاف: 123\n\n` +
-                            `لحين وصول المساعدة، حافظ على القدم مرفوعة ونظيفة.`;
-                    } else {
-                        response = `⚠️ **تم اكتشاف ${woundInfo.arabic}**\n\n` +
-                            `الدرجة: ${gradeInfo.description}\n` +
-                            `مستوى الخطورة: ${urgency === 'High' ? 'عالي ⚠️' : 'متوسط'}\n\n` +
-                            `🏥 ننصح بزيارة متخصص في أقرب وقت.\n\n` +
-                            `👇 الخدمة المناسبة ليك:`;
                     }
-                } else {
-                    const urgencyText = {
-                        'High': 'عالي ⚠️',
-                        'Medium': 'متوسط',
-                        'Low': 'بسيط'
-                    };
-                    
-                    response = `🩹 **تم تحليل الصورة**\n\n` +
-                        `نوع الإصابة: ${woundInfo.arabic}\n` +
-                        `مستوى الخطورة: ${urgencyText[urgency] || 'متوسط'}\n\n`;
-                    
-                    if (urgency === 'High') {
-                        response += `⚠️ ننصح بالعناية الفورية.\n\n`;
-                    }
-                    
-                    response += `👇 الخدمة المناسبة ليك:`;
                 }
             } else {
-                // Generic wound response
                 services = ['Wound Care'];
-                response = `🩹 **تم اكتشاف جرح**\n\n` +
-                    `ننصح بعرض الجرح على متخصص للعناية المناسبة.\n\n` +
-                    `👇 الخدمة المناسبة ليك:`;
+            }
+            
+            // Use OpenAI to generate detailed response
+            let response = '';
+            
+            if (openai) {
+                try {
+                    const servicesList = Object.keys(SERVICES).join(', ');
+                    
+                    // Build context for AI
+                    let diagnosisContext = `تم تحليل صورة طبية وتم اكتشاف:\n`;
+                    diagnosisContext += `- نوع الإصابة: ${woundType !== 'unknown' ? WOUND_TYPE_SERVICES[woundType].arabic : 'جرح'}\n`;
+                    if (dfuGrade) {
+                        diagnosisContext += `- درجة الخطورة: ${DFU_GRADE_URGENCY[dfuGrade].description}\n`;
+                    }
+                    diagnosisContext += `- مستوى الاستعجال: ${urgency}`;
+                    
+                    const systemPrompt = `أنت مساعد طبي ذكي باللغة العربية المصرية (عامية مصرية) لتطبيق Housepital للرعاية الصحية المنزلية.
+
+مهمتك:
+1. شرح نتيجة التحليل الطبي للمريض بطريقة مطمئنة وواضحة
+2. إعطاء نصائح عملية للعناية بالإصابة
+3. اقتراح الخدمة المناسبة من: ${servicesList} (لو مفيش خدمة مناسبة خلاص متقترح حاجه) بس اتاكد انك مفوتش خدمه زى مثلا ان لو دا جرح من عمليه يبقا متقترحش عنايه عاديه تقترح عنايه ما بعد العمليات مثلا و كدا
+
+قواعد مهمة:
+- رد دائماً بالعامية المصرية
+- كن ودود ومطمئن
+- اشرح بطريقة بسيطة بدون مصطلحات معقدة
+- ركز على النصائح العملية
+- لو الحالة خطيرة (Emergency)، أكد على ضرورة الذهاب للمستشفى فوراً
+
+رد بالـ JSON format ده بالظبط:
+{
+    "response": "ردك بالعامية هنا مع الشرح والنصائح",
+    "urgency": "${urgency}",
+    "services": ["اسم الخدمة"],
+    "showSos": ${showSos}
+}`;
+
+                    const completion = await openai.chat.completions.create({
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: diagnosisContext }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 600
+                    });
+
+                    const aiText = completion.choices[0].message.content;
+                    
+                    // Parse JSON response
+                    try {
+                        const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            const parsed = JSON.parse(jsonMatch[0]);
+                            response = parsed.response;
+                            // Override services if AI suggests different ones
+                            if (parsed.services && parsed.services.length > 0) {
+                                services = parsed.services;
+                            }
+                        } else {
+                            throw new Error('No JSON found in response');
+                        }
+                    } catch (parseError) {
+                        console.log('Failed to parse AI response, using text:', aiText);
+                        response = aiText;
+                    }
+                    
+                } catch (openaiError) {
+                    console.log('OpenAI error, using fallback:', openaiError.message);
+                    // Fallback to template
+                    if (woundType !== 'unknown') {
+                        const woundInfo = WOUND_TYPE_SERVICES[woundType];
+                        if (dfuGrade) {
+                            const gradeInfo = DFU_GRADE_URGENCY[dfuGrade];
+                            if (urgency === 'Emergency') {
+                                response = `🚨 **حالة طوارئ - قدم سكري ${gradeInfo.description}**\n\n` +
+                                    `تم اكتشاف ${woundInfo.arabic} بدرجة خطورة عالية.\n\n` +
+                                    `⚠️ لازم تروح المستشفى فوراً!\n` +
+                                    `📞 اتصل بالإسعاف: 123\n\n` +
+                                    `لحين وصول المساعدة، حافظ على القدم مرفوعة ونظيفة.`;
+                            } else {
+                                response = `⚠️ **تم اكتشاف ${woundInfo.arabic}**\n\n` +
+                                    `الدرجة: ${gradeInfo.description}\n` +
+                                    `مستوى الخطورة: ${urgency === 'High' ? 'عالي ⚠️' : 'متوسط'}\n\n` +
+                                    `🏥 ننصح بزيارة متخصص في أقرب وقت.\n\n` +
+                                    `👇 الخدمة المناسبة ليك:`;
+                            }
+                        } else {
+                            const urgencyText = {
+                                'High': 'عالي ⚠️',
+                                'Medium': 'متوسط',
+                                'Low': 'بسيط'
+                            };
+                            response = `🩹 **تم تحليل الصورة**\n\n` +
+                                `نوع الإصابة: ${woundInfo.arabic}\n` +
+                                `مستوى الخطورة: ${urgencyText[urgency] || 'متوسط'}\n\n`;
+                            if (urgency === 'High') {
+                                response += `⚠️ ننصح بالعناية الفورية.\n\n`;
+                            }
+                            response += `👇 الخدمة المناسبة ليك:`;
+                        }
+                    } else {
+                        response = `🩹 **تم اكتشاف جرح**\n\n` +
+                            `ننصح بعرض الجرح على متخصص للعناية المناسبة.\n\n` +
+                            `👇 الخدمة المناسبة ليك:`;
+                    }
+                }
+            } else {
+                // No OpenAI, use template
+                if (woundType !== 'unknown') {
+                    const woundInfo = WOUND_TYPE_SERVICES[woundType];
+                    if (dfuGrade) {
+                        const gradeInfo = DFU_GRADE_URGENCY[dfuGrade];
+                        if (urgency === 'Emergency') {
+                            response = `🚨 **حالة طوارئ - قدم سكري ${gradeInfo.description}**\n\n` +
+                                `تم اكتشاف ${woundInfo.arabic} بدرجة خطورة عالية.\n\n` +
+                                `⚠️ لازم تروح المستشفى فوراً!\n` +
+                                `📞 اتصل بالإسعاف: 123\n\n` +
+                                `لحين وصول المساعدة، حافظ على القدم مرفوعة ونظيفة.`;
+                        } else {
+                            response = `⚠️ **تم اكتشاف ${woundInfo.arabic}**\n\n` +
+                                `الدرجة: ${gradeInfo.description}\n` +
+                                `مستوى الخطورة: ${urgency === 'High' ? 'عالي ⚠️' : 'متوسط'}\n\n` +
+                                `🏥 ننصح بزيارة متخصص في أقرب وقت.\n\n` +
+                                `👇 الخدمة المناسبة ليك:`;
+                        }
+                    } else {
+                        const urgencyText = {
+                            'High': 'عالي ⚠️',
+                            'Medium': 'متوسط',
+                            'Low': 'بسيط'
+                        };
+                        response = `🩹 **تم تحليل الصورة**\n\n` +
+                            `نوع الإصابة: ${woundInfo.arabic}\n` +
+                            `مستوى الخطورة: ${urgencyText[urgency] || 'متوسط'}\n\n`;
+                        if (urgency === 'High') {
+                            response += `⚠️ ننصح بالعناية الفورية.\n\n`;
+                        }
+                        response += `👇 الخدمة المناسبة ليك:`;
+                    }
+                } else {
+                    response = `🩹 **تم اكتشاف جرح**\n\n` +
+                        `ننصح بعرض الجرح على متخصص للعناية المناسبة.\n\n` +
+                        `👇 الخدمة المناسبة ليك:`;
+                }
             }
             
             // Map services to routes
@@ -507,7 +635,7 @@ router.post('/analyze-image', async (req, res) => {
                 woundType,
                 dfuGrade,
                 needsClarification: false,
-                source: 'cv_pipeline'
+                source: openai ? 'openai' : 'cv_pipeline'
             };
             
             return res.json(result);

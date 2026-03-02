@@ -5,6 +5,10 @@ import DashboardLayout from './layouts/DashboardLayout';
 import Overview from './pages/Overview';
 import Users from './pages/Users';
 import Activity from './pages/Activity';
+import Verifications from './pages/Verifications';
+import Bookings from './pages/Bookings';
+import Financial from './pages/Financial';
+import Settings from './pages/Settings';
 import Login from './pages/Login';
 
 // Protected Route Component
@@ -58,6 +62,26 @@ function App() {
                     <Route path="/activity" element={
                         <ProtectedRoute>
                             <DashboardLayout><Activity /></DashboardLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/verifications" element={
+                        <ProtectedRoute>
+                            <DashboardLayout><Verifications /></DashboardLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/bookings" element={
+                        <ProtectedRoute>
+                            <DashboardLayout><Bookings /></DashboardLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/financial" element={
+                        <ProtectedRoute>
+                            <DashboardLayout><Financial /></DashboardLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/settings" element={
+                        <ProtectedRoute>
+                            <DashboardLayout><Settings /></DashboardLayout>
                         </ProtectedRoute>
                     } />
 

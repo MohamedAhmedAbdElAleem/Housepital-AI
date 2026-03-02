@@ -2,6 +2,20 @@
 const Clinic = require("../models/Clinic");
 const Doctor = require("../models/Doctor");
 
+/**
+ * Normalise an Egyptian mobile number to the 01XXXXXXXXX format.
+ * Accepts: 01012345678 / +201012345678 / 00201012345678
+ * Returns null if the value is empty/undefined (phone is optional).
+ */
+const normalisePhone = (raw) => {
+    if (!raw || !raw.trim()) return undefined;   // optional field – omit it
+    let p = raw.trim().replace(/\s+/g, '');
+    if (p.startsWith('+20'))  p = '0' + p.slice(3);
+    if (p.startsWith('0020')) p = '0' + p.slice(4);
+    if (p.startsWith('20') && p.length === 12) p = '0' + p.slice(2);
+    return p;
+};
+
 // @desc    Add new clinic
 // @route   POST /api/clinics
 // @access  Private (Doctor only)
@@ -33,7 +47,7 @@ const addClinic = async (req, res) => {
             description,
             address,
             location,
-            phone,
+            phone: normalisePhone(phone),
             images,
             workingHours,
             slotDurationMinutes,
@@ -104,12 +118,12 @@ const updateClinic = async (req, res) => {
         const allowedUpdates = [
             "name", "description", "address", "location", "phone", 
             "images", "workingHours", "slotDurationMinutes", 
-            "maxPatientsPerSlot", "isActive"
+            "maxPatientsPerSlot", "bookingMode", "isActive"
         ];
 
         allowedUpdates.forEach((field) => {
             if (req.body[field] !== undefined) {
-                clinic[field] = req.body[field];
+                clinic[field] = field === 'phone' ? normalisePhone(req.body[field]) : req.body[field];
             }
         });
 

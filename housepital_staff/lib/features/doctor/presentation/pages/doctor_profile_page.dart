@@ -23,7 +23,15 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
   String? _selectedSpecialization;
   String? _selectedGender;
 
-  // Constants
+  // Images State
+  bool _isPickingImage = false;
+  bool _isUploadingProfile = false;
+  bool _isUploadingLicense = false;
+  bool _isSaving = false;
+
+  // Current Profile Data
+  DoctorModel? _currentProfile;
+
   final List<String> _specializations = [
     'General Practice',
     'Pediatrics',
@@ -56,8 +64,121 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
     super.dispose();
   }
 
-  void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
+  void _populateFields(DoctorModel profile) {
+    _currentProfile = profile;
+    _licenseController.text = profile.licenseNumber;
+    _experienceController.text = profile.yearsOfExperience.toString();
+    _bioController.text = profile.bio ?? '';
+    _selectedSpecialization = profile.specialization.isNotEmpty
+        ? profile.specialization
+        : null;
+    if (_selectedSpecialization != null &&
+        !_specializations.contains(_selectedSpecialization)) {
+      _specializations.add(_selectedSpecialization!);
+    }
+    _selectedGender = profile.gender;
+  }
+
+  Future<void> _pickAndUploadImage(bool isProfile) async {
+    if (_isPickingImage) return;
+    setState(() => _isPickingImage = true);
+    XFile? pickedFile;
+    try {
+      pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    } catch (e) {
+      // PlatformException(already_active) — ignore
+      if (mounted) setState(() => _isPickingImage = false);
+      return;
+    } finally {
+      if (mounted && pickedFile == null) setState(() => _isPickingImage = false);
+    }
+    // If no profile yet (create mode), we can't update.
+    // Ideally we should create profile first or handle this case.
+    // Assuming profile exists if we are in this page or init handled it.
+    if (pickedFile == null || _currentProfile == null) return;
+
+    final file = File(pickedFile.path);
+
+    setState(() {
+      if (isProfile) {
+        _isUploadingProfile = true;
+      } else {
+        _isUploadingLicense = true;
+      }
+    });
+
+    // Capture cubit BEFORE any await so it's safe after suspension
+    final cubit = context.read<DoctorCubit>();
+
+    try {
+      final url = await cubit.uploadImage(file);
+
+      // Clone current profile with new URL
+      final updatedProfile = DoctorModel(
+        id: _currentProfile!.id,
+        userId: _currentProfile!.userId,
+        licenseNumber: _currentProfile!.licenseNumber,
+        specialization: _currentProfile!.specialization,
+        yearsOfExperience: _currentProfile!.yearsOfExperience,
+        bio: _currentProfile!.bio,
+        gender: _currentProfile!.gender,
+        qualifications: _currentProfile!.qualifications,
+        verificationStatus: _currentProfile!.verificationStatus,
+        // Update specific URL
+        profilePictureUrl: isProfile ? url : _currentProfile!.profilePictureUrl,
+        licenseUrl: !isProfile ? url : _currentProfile!.licenseUrl,
+        nationalIdUrl: _currentProfile!.nationalIdUrl,
+        rejectionReason: _currentProfile!.rejectionReason,
+        bookingMode: _currentProfile!.bookingMode,
+        minAdvanceBookingHours: _currentProfile!.minAdvanceBookingHours,
+        rushBookingEnabled: _currentProfile!.rushBookingEnabled,
+        rushBookingPremiumPercent: _currentProfile!.rushBookingPremiumPercent,
+        reliabilityRate: _currentProfile!.reliabilityRate,
+        rating: _currentProfile!.rating,
+        totalRatings: _currentProfile!.totalRatings,
+      );
+
+      await cubit.updateProfile(updatedProfile);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${isProfile ? "Profile" : "License"} photo updated!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingImage = false;
+          if (isProfile) {
+            _isUploadingProfile = false;
+          } else {
+            _isUploadingLicense = false;
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> _saveChanges() async {
+    if (!_formKey.currentState!.validate() || _currentProfile == null) return;
+
+    setState(() => _isSaving = true);
+    // Capture cubit BEFORE any await
+    final cubit = context.read<DoctorCubit>();
+
+    try {
       final userId = await TokenManager.getUserId();
 
       final doctor = DoctorModel(
@@ -71,17 +192,17 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
         qualifications: [],
       );
 
-      // Check if we are updating or creating
-      // For now assume create/update handled by same form logic or check state
-      // Simplest is to call create, backend handles duplicate error, or update if exists
-      // But let's check state in builder
+      await cubit.updateProfile(doctor);
 
-      final state = context.read<DoctorCubit>().state;
-      if (state is DoctorProfileLoaded) {
-        context.read<DoctorCubit>().updateProfile(doctor);
-      } else {
-        context.read<DoctorCubit>().createProfile(doctor);
+      if (mounted) setState(() => _isEditing = false);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Save failed: $e'), backgroundColor: Colors.red),
+        );
       }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 

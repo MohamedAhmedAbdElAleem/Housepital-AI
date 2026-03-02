@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import MockAnalytics from '../components/MockAnalytics';
+import DashboardCharts from '../components/DashboardCharts';
 import api from '../services/api';
 import {
     Users,
@@ -75,7 +75,7 @@ const Overview = () => {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-                <Loader2 className="w-12 h-12 text-emerald-500 animate-spin" />
+                <Loader2 className="w-12 h-12 text-primary-500 animate-spin" />
                 <p className="text-slate-500 font-medium animate-pulse">Loading intelligent insights...</p>
             </div>
         );
@@ -98,31 +98,25 @@ const Overview = () => {
             {/* KPI Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {kpis.map((kpi, index) => (
-                    <div
-                        key={index}
-                        className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group"
-                    >
-                        <div className="flex items-center justify-between mb-4">
-                            <div className={`${kpi.bg} p-3 rounded-xl border ${kpi.borderColor} group-hover:scale-110 transition-transform`}>
-                                <kpi.icon className={`${kpi.color} w-6 h-6`} />
-                            </div>
-                            <span className="text-emerald-500 text-xs font-bold px-2.5 py-1 bg-emerald-50 rounded-lg border border-emerald-100">
-                                {kpi.change}
-                            </span>
+                    <div key={index} className={`p-6 rounded-2xl border ${kpi.borderColor} ${kpi.bg} flex items-start justify-between shadow-sm hover:shadow-md transition-shadow`}>
+                        <div>
+                            <p className="text-slate-500 text-sm font-semibold mb-1">{kpi.label}</p>
+                            <h3 className={`text-2xl font-bold ${kpi.color} mb-1`}>{kpi.value}</h3>
+                            <p className="text-xs font-medium text-slate-500">{kpi.change}</p>
                         </div>
-                        <h3 className="text-slate-500 text-sm font-semibold mb-1">{kpi.label}</h3>
-                        <p className="text-3xl font-bold text-slate-900 tracking-tight">{kpi.value}</p>
+                        <div className={`p-3 rounded-xl bg-white/60 backdrop-blur-sm border ${kpi.borderColor}`}>
+                            <kpi.icon className={`w-6 h-6 ${kpi.color}`} />
+                        </div>
                     </div>
                 ))}
             </div>
 
-            {/* AI Predictive Analytics (Directly using MockAnalytics with actual data) */}
             <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
                 <div className="p-8 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
                     <h3 className="text-2xl font-black text-slate-900 mb-1 tracking-tight">AI Analytics Dashboard</h3>
                     <p className="text-sm text-slate-500 font-medium">Real-time system performance and predictive insights</p>
                 </div>
-                <MockAnalytics dashboardData={data} />
+                <DashboardCharts dashboardData={data} />
             </div>
         </div>
     );

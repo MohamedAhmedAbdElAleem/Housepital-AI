@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import { exportToCSV } from '../utils/exportUtils';
 import {
     FileText,
     History,
@@ -8,10 +9,12 @@ import {
     User,
     ArrowRight,
     ShieldAlert,
-    Calendar
+    Calendar,
+    Download
 } from 'lucide-react';
 
 const Activity = () => {
+    // ... state ...
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ total: 0, approvals: 0, alerts: 0 });
@@ -21,12 +24,12 @@ const Activity = () => {
     }, []);
 
     const fetchLogs = async () => {
+        // ... implementation ...
         try {
             setLoading(true);
             const response = await api.get(`/api/admin/insights/logs`);
             if (response.data.success) {
                 setLogs(response.data.logs);
-                // Calculate basic stats for display
                 const approvals = response.data.logs.filter(l => l.action.includes('APPROVE')).length;
                 const alerts = response.data.logs.filter(l => l.action.includes('REJECT')).length;
                 setStats({ total: response.data.total, approvals, alerts });
@@ -38,7 +41,19 @@ const Activity = () => {
         }
     };
 
+    const handleExport = () => {
+        const exportData = logs.map(log => ({
+            Time: new Date(log.timestamp).toLocaleString(),
+            Admin: log.admin?.name || 'System',
+            Action: log.action,
+            Details: log.details || '',
+            IP: log.ipAddress || ''
+        }));
+        exportToCSV(exportData, `activity_logs_${new Date().toISOString().split('T')[0]}`);
+    };
+
     const getActionIcon = (action) => {
+         // ... implementation ...
         if (action.includes('APPROVE')) return <CheckCircle2 className="text-green-500" size={20} />;
         if (action.includes('REJECT')) return <XCircle className="text-red-500" size={20} />;
         if (action.includes('REGISTER')) return <User className="text-primary-500" size={20} />;
@@ -52,13 +67,22 @@ const Activity = () => {
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">System Audit Logs</h1>
                     <p className="text-slate-500 text-sm mt-1 font-medium">Global activity monitoring for security and compliance.</p>
                 </div>
-                <button
-                    onClick={fetchLogs}
-                    className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-primary-300 transition-all shadow-sm hover:shadow-md active:scale-95 group"
-                    title="Refresh Logs"
-                >
-                    <History size={20} className="text-slate-600 group-hover:text-primary-600 transition-colors" />
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleExport}
+                        className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-primary-600 transition-all shadow-sm hover:shadow-md active:scale-95 flex items-center gap-2 text-slate-600 font-medium"
+                    >
+                        <Download size={20} />
+                        <span className="hidden md:inline">Export</span>
+                    </button>
+                    <button
+                        onClick={fetchLogs}
+                        className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-primary-300 transition-all shadow-sm hover:shadow-md active:scale-95 group"
+                        title="Refresh Logs"
+                    >
+                        <History size={20} className="text-slate-600 group-hover:text-primary-600 transition-colors" />
+                    </button>
+                </div>
             </div>
 
             {/* Mini Stats Row */}

@@ -91,6 +91,11 @@ const clinicSchema = new mongoose.Schema(
         // Working Hours
         workingHours: [workingHoursSchema],
         // Booking Settings
+        bookingMode: {
+            type: String,
+            enum: ['slots', 'queue'],
+            default: 'slots'
+        },
         slotDurationMinutes: {
             type: Number,
             default: 30,
