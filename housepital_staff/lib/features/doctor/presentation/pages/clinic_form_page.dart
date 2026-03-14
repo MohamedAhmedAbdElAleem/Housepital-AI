@@ -294,8 +294,12 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Clinic Created Successfully!'),
+          SnackBar(
+            content: Text(
+              widget.clinicToEdit != null
+                  ? 'Clinic updated successfully!'
+                  : 'Clinic created successfully!',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -323,7 +327,9 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             elevation: 0,
             leading: BackButton(onPressed: _prevStep, color: Colors.blue[900]),
             title: Text(
-              'New Clinic Setup',
+              widget.clinicToEdit != null
+                  ? 'Edit Clinic Setup'
+                  : 'New Clinic Setup',
               style: TextStyle(
                 color: Colors.blue[900],
                 fontWeight: FontWeight.bold,
@@ -353,7 +359,9 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                           _buildStepContainer(
                             _buildStep1BasicInfo(),
                             'Basic Information',
-                            'Tell us about your clinic',
+                            widget.clinicToEdit != null
+                                ? 'Update your clinic basic details'
+                                : 'Tell us about your clinic',
                           ),
                           _buildStepContainer(
                             _buildStep2Location(),
@@ -368,7 +376,9 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                           _buildStepContainer(
                             _buildStep4Docs(),
                             'Verification',
-                            'Upload legal documents',
+                            widget.clinicToEdit != null
+                                ? 'Update legal documents if needed'
+                                : 'Upload legal documents',
                           ),
                         ],
                       ),
@@ -387,8 +397,8 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                color: Colors.black.withOpacity(
-                  0.4,
+                color: Colors.black.withValues(
+                  alpha: 0.4,
                 ), // Slightly darker for contrast
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Center(
@@ -411,7 +421,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                               borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
+                                  color: Colors.black.withValues(alpha: 0.15),
                                   blurRadius: 30,
                                   offset: const Offset(0, 10),
                                 ),
@@ -456,22 +466,19 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                             size: const Size(110, 110),
                                             painter:
                                                 GradientCircularProgressPainter(
-                                                  progress:
-                                                      value, // Use animated value
-                                                  strokeWidth: 8,
-                                                  gradient:
-                                                      const LinearGradient(
-                                                        colors: [
-                                                          Color(0xFF2196F3),
-                                                          Color(0xFF00BCD4),
-                                                          Color(0xFF9C27B0),
-                                                        ],
-                                                        begin:
-                                                            Alignment.topLeft,
-                                                        end: Alignment
-                                                            .bottomRight,
-                                                      ),
-                                                ),
+                                              progress:
+                                                  value, // Use animated value
+                                              strokeWidth: 8,
+                                              gradient: const LinearGradient(
+                                                colors: [
+                                                  Color(0xFF2196F3),
+                                                  Color(0xFF00BCD4),
+                                                  Color(0xFF9C27B0),
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                            ),
                                           );
                                         },
                                       ),
@@ -483,9 +490,9 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                         ),
                                         transitionBuilder: (child, anim) =>
                                             ScaleTransition(
-                                              scale: anim,
-                                              child: child,
-                                            ),
+                                          scale: anim,
+                                          child: child,
+                                        ),
                                         child: _uploadProgressValue >= 1.0
                                             ? Container(
                                                 key: const ValueKey('done'),
@@ -524,7 +531,9 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                 // Main Title
                                 Text(
                                   _uploadProgressValue >= 1.0
-                                      ? 'Completed!'
+                                      ? (widget.clinicToEdit != null
+                                          ? 'Update Completed!'
+                                          : 'Completed!')
                                       : 'Processing...',
                                   style: const TextStyle(
                                     fontSize: 20,
@@ -548,8 +557,8 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                     style: TextStyle(
                                       fontSize: 15,
                                       height: 1.4, // Better line height
-                                      color: Colors
-                                          .grey[700], // Darker grey for readability
+                                      color: Colors.grey[
+                                          700], // Darker grey for readability
                                       fontWeight: FontWeight.w500,
                                       decoration: TextDecoration
                                           .none, // Explicit fix for yellow lines
@@ -617,7 +626,10 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
           width: 2,
         ),
         boxShadow: isActive
-            ? [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 8)]
+            ? [
+                BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.3), blurRadius: 8)
+              ]
             : [],
       ),
       child: Center(
@@ -686,8 +698,8 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             if (val == null || val.isEmpty) return 'Required';
             // normalise then validate against Egyptian mobile regex
             String p = val.trim().replaceAll(' ', '');
-            if (p.startsWith('+20'))  p = '0' + p.substring(3);
-            if (p.startsWith('0020')) p = '0' + p.substring(4);
+            if (p.startsWith('+20')) p = '0${p.substring(3)}';
+            if (p.startsWith('0020')) p = '0${p.substring(4)}';
             final reg = RegExp(r'^01[0125][0-9]{8}$');
             if (!reg.hasMatch(p)) {
               return 'Enter a valid Egyptian number (e.g. 01012345678)';
@@ -793,7 +805,6 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 12),
-
           _buildCustomTextField(
             _slotDurationController,
             'Duration',
@@ -823,7 +834,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         const SizedBox(height: 12),
-        ..._days.map((day) => _buildDayTile(day)).toList(),
+        ..._days.map((day) => _buildDayTile(day)),
       ],
     );
   }
@@ -854,7 +865,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -906,7 +917,11 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                 ),
               ),
               child: Text(
-                _currentStep == 3 ? 'Submit Clinic' : 'Continue',
+                _currentStep == 3
+                    ? (widget.clinicToEdit != null
+                        ? 'Update Clinic'
+                        : 'Submit Clinic')
+                    : 'Continue',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -935,7 +950,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -990,7 +1005,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
           boxShadow: [
             if (!isSelected)
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -1066,7 +1081,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                               fit: BoxFit.cover,
                             ),
                             border: Border.all(
-                              color: Colors.blue.withOpacity(0.3),
+                              color: Colors.blue.withValues(alpha: 0.3),
                             ),
                           ),
                         ),

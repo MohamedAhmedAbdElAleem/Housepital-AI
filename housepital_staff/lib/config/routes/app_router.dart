@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_routes.dart';
-import '../../core/widgets/placeholder_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/doctor/presentation/pages/doctor_profile_page.dart';
@@ -15,52 +14,95 @@ import '../../features/nurse/presentation/pages/nurse_home_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
 
 class AppRouter {
+  static Route<dynamic> _buildDefaultRoute(
+    Widget page, {
+    RouteSettings? settings,
+  }) {
+    return MaterialPageRoute(builder: (_) => page, settings: settings);
+  }
+
+  static Route<dynamic> _buildDoctorRoute(
+    Widget page, {
+    RouteSettings? settings,
+  }) {
+    return PageRouteBuilder(
+      settings: settings,
+      transitionDuration: const Duration(milliseconds: 320),
+      reverseTransitionDuration: const Duration(milliseconds: 260),
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+
+        final slide = Tween<Offset>(
+          begin: const Offset(0.06, 0),
+          end: Offset.zero,
+        ).animate(curved);
+
+        final fade = Tween<double>(begin: 0.0, end: 1.0).animate(curved);
+
+        return FadeTransition(
+          opacity: fade,
+          child: SlideTransition(position: slide, child: child),
+        );
+      },
+    );
+  }
+
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case AppRoutes.splash:
-        return MaterialPageRoute(builder: (_) => const SplashPage());
+        return _buildDefaultRoute(const SplashPage(), settings: settings);
 
       case AppRoutes.login:
-        return MaterialPageRoute(builder: (_) => const LoginPage());
+        return _buildDefaultRoute(const LoginPage(), settings: settings);
 
       case AppRoutes.nurseHome:
-        return MaterialPageRoute(builder: (_) => const NurseHomePage());
+        return _buildDefaultRoute(const NurseHomePage(), settings: settings);
 
       case AppRoutes.doctorHome:
-        return MaterialPageRoute(builder: (_) => const DoctorHomePage());
+        return _buildDoctorRoute(const DoctorHomePage(), settings: settings);
 
       case AppRoutes.doctorProfile:
-        return MaterialPageRoute(builder: (_) => const DoctorProfilePage());
+        return _buildDoctorRoute(const DoctorProfilePage(), settings: settings);
 
       case AppRoutes.myClinics:
-        return MaterialPageRoute(builder: (_) => const MyClinicsPage());
+        return _buildDoctorRoute(const MyClinicsPage(), settings: settings);
 
       case AppRoutes.addClinic:
         final clinic = settings.arguments as ClinicModel?;
-        return MaterialPageRoute(
-          builder: (_) => ClinicFormPage(clinicToEdit: clinic),
+        return _buildDoctorRoute(
+          ClinicFormPage(clinicToEdit: clinic),
+          settings: settings,
         );
 
       case AppRoutes.clinicDetails:
-        return MaterialPageRoute(
-          builder: (_) => const ClinicDetailsPage(),
+        return _buildDoctorRoute(
+          const ClinicDetailsPage(),
           settings: settings,
         );
 
       case AppRoutes.myServices:
-        return MaterialPageRoute(builder: (_) => const MyServicesPage());
+        return _buildDoctorRoute(const MyServicesPage(), settings: settings);
 
       case AppRoutes.myAppointments:
-        return MaterialPageRoute(builder: (_) => const AppointmentsPage());
+        return _buildDoctorRoute(const AppointmentsPage(), settings: settings);
 
       case AppRoutes.adminDashboard:
-        return MaterialPageRoute(builder: (_) => const AdminDashboardPage());
+        return _buildDefaultRoute(
+          const AdminDashboardPage(),
+          settings: settings,
+        );
 
       default:
-        return MaterialPageRoute(
-          builder: (_) => Scaffold(
+        return _buildDefaultRoute(
+          Scaffold(
             body: Center(child: Text('No route defined for ${settings.name}')),
           ),
+          settings: settings,
         );
     }
   }

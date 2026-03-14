@@ -11,14 +11,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:housepital_staff/main.dart';
 
 void main() {
-  testWidgets('App starts and shows Splash screen', (
-    WidgetTester tester,
-  ) async {
-    // Build our app and trigger a frame.
+  testWidgets('App shell builds MaterialApp', (WidgetTester tester) async {
     await tester.pumpWidget(const HousepitalStaffApp());
 
-    // Verify that the splash page is displayed.
-    // The placeholder page title is 'Splash' and the body has 'Splash Page\nComing Soon'
-    expect(find.text('Splash Page\nComing Soon'), findsOneWidget);
+    expect(find.byType(MaterialApp), findsOneWidget);
   });
 }

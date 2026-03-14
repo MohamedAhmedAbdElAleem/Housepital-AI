@@ -51,7 +51,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     try {
       await _api.put('/bookings/$bookingId/status',
           body: {'status': 'confirmed'});
-      emit(AppointmentActionSuccess('تم تأكيد الحجز'));
+        emit(AppointmentActionSuccess('Appointment confirmed successfully'));
       await fetchAppointments();
     } catch (e) {
       emit(AppointmentError(e.toString()));
@@ -62,7 +62,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     try {
       await _api.put('/bookings/$bookingId/status',
           body: {'status': 'cancelled'});
-      emit(AppointmentActionSuccess('تم رفض الحجز'));
+        emit(AppointmentActionSuccess('Appointment rejected successfully'));
       await fetchAppointments();
     } catch (e) {
       emit(AppointmentError(e.toString()));
@@ -73,7 +73,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     try {
       await _api.put('/bookings/$bookingId/status',
           body: {'status': 'in-progress'});
-      emit(AppointmentActionSuccess('تم بدء الزيارة'));
+        emit(AppointmentActionSuccess('Visit started successfully'));
       await fetchAppointments();
     } catch (e) {
       emit(AppointmentError(e.toString()));
@@ -84,7 +84,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     try {
       await _api.put('/bookings/$bookingId/status',
           body: {'status': 'completed'});
-      emit(AppointmentActionSuccess('تم إنهاء الزيارة'));
+        emit(AppointmentActionSuccess('Visit completed successfully'));
       await fetchAppointments();
     } catch (e) {
       emit(AppointmentError(e.toString()));

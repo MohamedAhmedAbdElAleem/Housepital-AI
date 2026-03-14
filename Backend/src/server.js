@@ -200,4 +200,4 @@ mongoose.connection.on("error", (err) =>
 		`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
 		"mongoErrLog.log",
 	),
-);
+3);

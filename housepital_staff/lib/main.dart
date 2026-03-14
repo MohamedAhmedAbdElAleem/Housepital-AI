@@ -14,6 +14,7 @@ import 'features/doctor/presentation/cubit/doctor_cubit.dart';
 import 'features/doctor/presentation/cubit/clinic_cubit.dart';
 import 'features/doctor/presentation/cubit/service_cubit.dart';
 import 'features/doctor/presentation/cubit/appointment_cubit.dart';
+import 'features/doctor/presentation/cubit/notification_cubit.dart';
 
 void main() {
   // Ensure Flutter bindings are initialized
@@ -39,6 +40,9 @@ void main() {
         BlocProvider(create: (_) => ServiceCubit(repository: doctorRepository)),
         BlocProvider(
           create: (_) => AppointmentCubit(),
+        ),
+        BlocProvider(
+          create: (_) => NotificationCubit(),
         ),
       ],
       child: const HousepitalStaffApp(),

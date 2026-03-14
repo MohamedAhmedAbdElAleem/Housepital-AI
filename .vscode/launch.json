@@ -1,11 +1,13 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Flutter (Android Emulator)",
             "request": "launch",
             "type": "dart",
-            "program": "housepital/lib/main.dart",
+            "cwd": "${workspaceFolder}/housepital_staff",
+            "program": "lib/main.dart",
             "deviceId": "emulator-5554",
             "preLaunchTask": "launch-emulator"
         },
@@ -13,7 +15,8 @@
             "name": "Flutter (Chrome)",
             "request": "launch",
             "type": "dart",
-            "program": "housepital/lib/main.dart",
+            "cwd": "${workspaceFolder}/housepital_staff",
+            "program": "lib/main.dart",
             "deviceId": "chrome"
         }
     ]

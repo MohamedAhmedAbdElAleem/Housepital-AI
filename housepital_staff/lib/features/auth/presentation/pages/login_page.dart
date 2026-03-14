@@ -4,7 +4,6 @@ import 'dart:ui';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_routes.dart';
 import '../../../../../core/utils/token_manager.dart';
-import '../../../splash/presentation/pages/splash_page.dart';
 import '../cubit/auth_cubit.dart';
 
 class LoginPage extends StatefulWidget {
@@ -41,13 +40,13 @@ class _LoginPageState extends State<LoginPage>
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
-    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _animController,
-            curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
-          ),
-        );
+    _slideAnim =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
 
     _animController.forward();
     _loadSavedEmail();
@@ -100,7 +99,7 @@ class _LoginPageState extends State<LoginPage>
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
               ),
             ),
           ),
@@ -112,7 +111,7 @@ class _LoginPageState extends State<LoginPage>
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
               ),
             ),
           ),
@@ -178,7 +177,7 @@ class _LoginPageState extends State<LoginPage>
                           Text(
                             'Secure Access for Healthcare Heroes',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               fontSize: 14,
                             ),
                           ),
@@ -192,10 +191,10 @@ class _LoginPageState extends State<LoginPage>
                               child: Container(
                                 padding: const EdgeInsets.all(24),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                   borderRadius: BorderRadius.circular(24),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.5),
+                                    color: Colors.white.withValues(alpha: 0.5),
                                   ),
                                   boxShadow: const [
                                     BoxShadow(
@@ -222,35 +221,34 @@ class _LoginPageState extends State<LoginPage>
                                         ),
                                         validator: (val) =>
                                             (val == null || !val.contains('@'))
-                                            ? 'Invalid email'
-                                            : null,
+                                                ? 'Invalid email'
+                                                : null,
                                       ),
                                       const SizedBox(height: 16),
                                       TextFormField(
                                         controller: _passwordController,
                                         obscureText: !_isPasswordVisible,
-                                        decoration:
-                                            _buildInputDecoration(
-                                              'Password',
-                                              Icons.lock_outline,
-                                            ).copyWith(
-                                              suffixIcon: IconButton(
-                                                icon: Icon(
-                                                  _isPasswordVisible
-                                                      ? Icons.visibility
-                                                      : Icons.visibility_off,
-                                                  color: AppColors.primary500,
-                                                ),
-                                                onPressed: () => setState(
-                                                  () => _isPasswordVisible =
-                                                      !_isPasswordVisible,
-                                                ),
-                                              ),
+                                        decoration: _buildInputDecoration(
+                                          'Password',
+                                          Icons.lock_outline,
+                                        ).copyWith(
+                                          suffixIcon: IconButton(
+                                            icon: Icon(
+                                              _isPasswordVisible
+                                                  ? Icons.visibility
+                                                  : Icons.visibility_off,
+                                              color: AppColors.primary500,
                                             ),
+                                            onPressed: () => setState(
+                                              () => _isPasswordVisible =
+                                                  !_isPasswordVisible,
+                                            ),
+                                          ),
+                                        ),
                                         validator: (val) =>
                                             (val == null || val.isEmpty)
-                                            ? 'Required'
-                                            : null,
+                                                ? 'Required'
+                                                : null,
                                       ),
                                       const SizedBox(height: 12),
 
@@ -283,9 +281,8 @@ class _LoginPageState extends State<LoginPage>
 
                                       // Login Button
                                       ElevatedButton(
-                                        onPressed: isLoading
-                                            ? null
-                                            : _onLoginPressed,
+                                        onPressed:
+                                            isLoading ? null : _onLoginPressed,
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: AppColors.primary500,
                                           foregroundColor: Colors.white,
@@ -299,7 +296,7 @@ class _LoginPageState extends State<LoginPage>
                                           ),
                                           elevation: 5,
                                           shadowColor: AppColors.primary500
-                                              .withOpacity(0.4),
+                                              .withValues(alpha: 0.4),
                                         ),
                                         child: isLoading
                                             ? const SizedBox(
@@ -307,9 +304,9 @@ class _LoginPageState extends State<LoginPage>
                                                 width: 24,
                                                 child:
                                                     CircularProgressIndicator(
-                                                      color: Colors.white,
-                                                      strokeWidth: 2,
-                                                    ),
+                                                  color: Colors.white,
+                                                  strokeWidth: 2,
+                                                ),
                                               )
                                             : const Text(
                                                 'SECURE LOGIN',
@@ -330,7 +327,7 @@ class _LoginPageState extends State<LoginPage>
                           Text(
                             'v1.0.0 • Housepital Inc.',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.6),
+                              color: Colors.white.withValues(alpha: 0.6),
                               fontSize: 12,
                             ),
                           ),
@@ -373,9 +370,9 @@ class _LoginPageState extends State<LoginPage>
     if (_formKey.currentState!.validate()) {
       // Logic simplified: No longer passing selectedRole
       context.read<AuthCubit>().login(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+            _emailController.text.trim(),
+            _passwordController.text,
+          );
     }
   }
 

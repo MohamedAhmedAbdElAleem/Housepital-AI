@@ -219,7 +219,7 @@ class AppTheme {
     cardTheme: CardThemeData(
       elevation: 2,
       color: AppColors.surface,
-      shadowColor: AppColors.dark300.withOpacity(0.1),
+      shadowColor: AppColors.dark300.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
 

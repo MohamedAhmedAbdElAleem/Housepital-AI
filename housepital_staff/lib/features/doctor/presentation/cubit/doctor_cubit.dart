@@ -49,8 +49,8 @@ class DoctorCubit extends Cubit<DoctorState> {
   Future<String> uploadImage(File file) async {
     try {
       return await repository.uploadImage(file);
-    } catch (e) {
-      throw e;
+    } catch (_) {
+      rethrow;
     }
   }
 }
