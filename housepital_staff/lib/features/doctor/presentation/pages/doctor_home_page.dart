@@ -63,7 +63,14 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.blueAccent),
             tooltip: 'Logout',
-            onPressed: () => context.read<AuthCubit>().logout(),
+            onPressed: () {
+              context.read<AuthCubit>().logout();
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.login,
+                (route) => false,
+              );
+            },
           ),
         ],
       ),
@@ -97,8 +104,9 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                   title: 'My Profile',
                   icon: Icons.person_outline,
                   color: Colors.blue,
-                  onTap: () =>
-                      Navigator.pushNamed(context, AppRoutes.doctorProfile),
+                  onTap:
+                      () =>
+                          Navigator.pushNamed(context, AppRoutes.doctorProfile),
                 ),
                 _buildActionCard(
                   context,

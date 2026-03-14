@@ -14,6 +14,9 @@ import 'features/doctor/presentation/cubit/doctor_cubit.dart';
 import 'features/doctor/presentation/cubit/clinic_cubit.dart';
 import 'features/doctor/presentation/cubit/service_cubit.dart';
 import 'features/doctor/presentation/cubit/appointment_cubit.dart';
+import 'features/nurse/data/datasources/nurse_remote_datasource.dart';
+import 'features/nurse/data/repositories/nurse_repository.dart';
+import 'features/nurse/presentation/cubit/nurse_profile_cubit.dart';
 
 void main() {
   // Ensure Flutter bindings are initialized
@@ -30,6 +33,12 @@ void main() {
     remoteDataSource: doctorDataSource,
   );
 
+  // Nurse Dependencies
+  final nurseDataSource = NurseRemoteDataSourceImpl(apiClient: apiClient);
+  final nurseRepository = NurseRepositoryImpl(
+    remoteDataSource: nurseDataSource,
+  );
+
   runApp(
     MultiBlocProvider(
       providers: [
@@ -37,8 +46,8 @@ void main() {
         BlocProvider(create: (_) => DoctorCubit(repository: doctorRepository)),
         BlocProvider(create: (_) => ClinicCubit(repository: doctorRepository)),
         BlocProvider(create: (_) => ServiceCubit(repository: doctorRepository)),
-        BlocProvider(
-          create: (_) => AppointmentCubit(),
+        BlocProvider(create: (_) => AppointmentCubit()),
+        BlocProvider(create: (_) => NurseProfileCubit(repository: nurseRepository)),
         ),
       ],
       child: const HousepitalStaffApp(),
