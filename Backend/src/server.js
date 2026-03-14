@@ -143,7 +143,6 @@ app.use('/api/cloudinary', require('./routes/cloudinaryRoutes'));
 app.use('/api/triage', require('./routes/triageRoutes'));
 app.use("/api/doctors", require("./routes/doctorRoutes"));
 app.use("/api/clinics", require("./routes/clinicRoutes"));
-app.use("/api/matching", require("./routes/matchingRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 // Serve static files (for ID document images)
@@ -159,6 +158,13 @@ app.use(errorHandler);
 
 mongoose.connection.once("open", () => {
     console.log("Connected to MongoDB");
+    const http = require("http");
+    const { initializeSocket } = require("./services/socketManager");
+    const server = http.createServer(app);
+    
+    // Initialize Socket.IO for real-time notifications
+    const io = initializeSocket(server);
+    
     server.listen(PORT, "0.0.0.0", () => {
         console.log(`Server running on port ${PORT}`);
         console.log(`Socket.IO ready for real-time notifications`);
