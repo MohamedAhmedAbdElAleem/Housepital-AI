@@ -224,7 +224,4 @@ async def get_services():
 
 
 if __name__ == "__main__":
-    print("Starting Housepital AI Triage Service...")
-    print(f"API Key configured: {bool(API_KEY)}")
-    print(f"Provider: {PROVIDER}")
     uvicorn.run(app, host="0.0.0.0", port=8000)

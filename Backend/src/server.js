@@ -23,8 +23,8 @@ const io = new Server(server, {
 	cors: {
 		origin: "*",
 		methods: ["GET", "POST"],
-		credentials: true
-	}
+		credentials: true,
+	},
 });
 
 // Store io instance on app for use by controllers/services
@@ -41,7 +41,8 @@ io.use((socket, next) => {
 	}
 
 	try {
-		const secretKey = process.env.JWT_SECRET_KEY || 'housepital_secret_key_2024';
+		const secretKey =
+			process.env.JWT_SECRET_KEY || "housepital_secret_key_2024";
 		const decoded = jwt.verify(token, secretKey);
 		socket.userId = decoded.id;
 		socket.userRole = decoded.role;
@@ -59,6 +60,7 @@ io.on("connection", (socket) => {
 	// Join role-based rooms for targeted notifications
 	if (userRole === "nurse") {
 		socket.join(`nurse_${userId}`);
+		socket.join("online_nurses"); // All nurses listen to new requests
 	} else if (userRole === "customer") {
 		socket.join(`patient_${userId}`);
 	}
@@ -72,11 +74,11 @@ io.on("connection", (socket) => {
 				{
 					currentLocation: {
 						type: "Point",
-						coordinates: [data.longitude, data.latitude]
+						coordinates: [data.longitude, data.latitude],
 					},
 					isOnline: true,
-					lastOnlineAt: new Date()
-				}
+					lastOnlineAt: new Date(),
+				},
 			);
 		} catch (err) {
 			console.error("Error updating nurse location:", err.message);
@@ -89,9 +91,11 @@ io.on("connection", (socket) => {
 			const Nurse = require("./models/Nurse");
 			await Nurse.findOneAndUpdate(
 				{ user: userId },
-				{ isOnline, lastOnlineAt: new Date() }
+				{ isOnline, lastOnlineAt: new Date() },
 			);
-			console.log(`👩‍⚕️ Nurse ${userId} is now ${isOnline ? 'online' : 'offline'}`);
+			console.log(
+				`👩‍⚕️ Nurse ${userId} is now ${isOnline ? "online" : "offline"}`,
+			);
 		} catch (err) {
 			console.error("Error toggling nurse online:", err.message);
 		}
@@ -105,7 +109,7 @@ io.on("connection", (socket) => {
 				const Nurse = require("./models/Nurse");
 				await Nurse.findOneAndUpdate(
 					{ user: userId },
-					{ isOnline: false, lastOnlineAt: new Date() }
+					{ isOnline: false, lastOnlineAt: new Date() },
 				);
 			} catch (err) {
 				console.error("Error marking nurse offline:", err.message);
@@ -144,6 +148,7 @@ app.use("/api/doctors", require("./routes/doctorRoutes"));
 app.use("/api/clinics", require("./routes/clinicRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 app.use("/api/services", require("./routes/serviceRoutes"));
+app.use("/api/nurse", require("./routes/nurseRoutes"));
 
 // Serve static files (for ID document images)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
@@ -157,18 +162,11 @@ app.use((req, res) => res.status(404).json({ message: "404 Not Found" }));
 app.use(errorHandler);
 
 mongoose.connection.once("open", () => {
-    console.log("Connected to MongoDB");
-    const http = require("http");
-    const { initializeSocket } = require("./services/socketManager");
-    const server = http.createServer(app);
-    
-    // Initialize Socket.IO for real-time notifications
-    const io = initializeSocket(server);
-    
-    server.listen(PORT, "0.0.0.0", () => {
-        console.log(`Server running on port ${PORT}`);
-        console.log(`Socket.IO ready for real-time notifications`);
-    });
+	console.log("Connected to MongoDB");
+	server.listen(PORT, "0.0.0.0", () => {
+		console.log(`Server running on port ${PORT}`);
+		console.log(`Socket.IO ready for real-time notifications`);
+	});
 
 	// Graceful Shutdown Logic
 	const gracefulShutdown = async () => {

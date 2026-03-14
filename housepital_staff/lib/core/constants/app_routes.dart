@@ -25,4 +25,5 @@ class AppRoutes {
 
   // Common
   static const String settings = '/settings';
+  static const String nurseProfileCompletion = '/nurse/profile-completion';
 }

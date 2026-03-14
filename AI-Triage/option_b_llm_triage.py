@@ -142,7 +142,7 @@ class TriageLLM:
         self.current_symptoms = []
         
         if not self.api_key:
-            print("WARNING: No API key provided. Set GEMINI_API_KEY or OPENAI_API_KEY environment variable.")
+            pass # Use fallback mode quietly
         
         # Build services list for prompt
         services_list = "\n".join([

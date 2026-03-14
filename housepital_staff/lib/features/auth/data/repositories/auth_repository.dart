@@ -10,6 +10,30 @@ class LoginRequest {
   Map<String, dynamic> toJson() => {'email': email, 'password': password};
 }
 
+class RegisterRequest {
+  final String name;
+  final String email;
+  final String password;
+  final String role;
+  final String? mobile;
+
+  RegisterRequest({
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.role,
+    this.mobile,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'email': email,
+    'password': password,
+    'role': role,
+    'mobile': mobile ?? '', // Use empty string if mobile is not provided
+  };
+}
+
 class AuthResponse {
   final bool success;
   final String message;
@@ -59,6 +83,7 @@ class AuthUser {
 // ========== Repository ==========
 abstract class AuthRepository {
   Future<AuthResponse> login(LoginRequest request);
+  Future<AuthResponse> register(RegisterRequest request);
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -69,5 +94,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AuthResponse> login(LoginRequest request) async {
     return await remoteDataSource.login(request);
+  }
+
+  @override
+  Future<AuthResponse> register(RegisterRequest request) async {
+    return await remoteDataSource.register(request);
   }
 }

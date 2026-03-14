@@ -342,6 +342,7 @@ router.post("/addresses", authenticateToken, async (req, res) => {
 			city,
 			state,
 			zipCode,
+			coordinates,
 			isDefault,
 		} = req.body;
 
@@ -363,9 +364,9 @@ router.post("/addresses", authenticateToken, async (req, res) => {
 			city,
 			state,
 			zipCode,
+			coordinates: coordinates ? { type: "Point", coordinates } : undefined,
 			isDefault: isDefault || false,
 		});
-
 		await user.save({ validateBeforeSave: false });
 		res.status(201).json({
 			message: "Address added successfully",
@@ -422,6 +423,7 @@ router.put("/addresses/:addressId", authenticateToken, async (req, res) => {
 			city,
 			state,
 			zipCode,
+			coordinates,
 			isDefault,
 		} = req.body;
 
@@ -451,8 +453,9 @@ router.put("/addresses/:addressId", authenticateToken, async (req, res) => {
 		address.city = city || address.city;
 		address.state = state || address.state;
 		address.zipCode = zipCode || address.zipCode;
-		address.isDefault = isDefault;
-
+		if (coordinates) {
+			address.coordinates = { type: "Point", coordinates };
+		}
 		await user.save({ validateBeforeSave: false });
 		res.json({
 			message: "Address updated successfully",
@@ -635,7 +638,7 @@ router.delete(
 			const Dependent = require("../models/dependent");
 
 			const dependent = await Dependent.findByIdAndDelete(
-				req.params.dependentId
+				req.params.dependentId,
 			);
 			if (!dependent) {
 				return res.status(404).json({ message: "Dependent not found" });
@@ -645,7 +648,7 @@ router.delete(
 		} catch (error) {
 			res.status(500).json({ message: error.message });
 		}
-	}
+	},
 );
 
 module.exports = router;

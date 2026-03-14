@@ -255,9 +255,9 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                                       ).withOpacity(0.3),
                                     ),
                                   ),
-                                  child: const Text(
-                                    '4920',
-                                    style: TextStyle(
+                                  child: Text(
+                                    widget.booking['visitPin'] ?? '----',
+                                    style: const TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
                                       color: Color(0xFF17C47F),

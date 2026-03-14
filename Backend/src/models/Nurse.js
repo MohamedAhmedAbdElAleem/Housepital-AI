@@ -79,6 +79,11 @@ const nurseSchema = new mongoose.Schema(
             type: String,
             trim: true
         },
+        profileStatus: {
+            type: String,
+            enum: ["incomplete", "pending_review", "approved", "rejected"],
+            default: "incomplete"
+        },
         // Availability & Work Zone
         isOnline: {
             type: Boolean,

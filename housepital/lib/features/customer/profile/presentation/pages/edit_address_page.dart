@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../../../../../core/widgets/custom_popup.dart';
+import 'location_picker_page.dart';
 
 class _AddressDesign {
   static const primaryGreen = Color(0xFF00C853);
@@ -52,6 +54,8 @@ class _EditAddressPageState extends State<EditAddressPage>
 
   late String _selectedType;
   late bool _isDefault;
+  double? _latitude;
+  double? _longitude;
   bool _isLoading = false;
   bool _hasChanges = false;
 
@@ -84,6 +88,16 @@ class _EditAddressPageState extends State<EditAddressPage>
     );
     _selectedType = widget.address['type'] ?? 'home';
     _isDefault = widget.address['isDefault'] ?? false;
+
+    // Parse coordinates if they exist
+    if (widget.address['coordinates'] != null &&
+        widget.address['coordinates']['coordinates'] is List) {
+      final coords = widget.address['coordinates']['coordinates'] as List;
+      if (coords.length >= 2) {
+        _longitude = (coords[0] as num).toDouble();
+        _latitude = (coords[1] as num).toDouble();
+      }
+    }
   }
 
   void _setupAnimations() {
@@ -138,6 +152,11 @@ class _EditAddressPageState extends State<EditAddressPage>
 
     if (!_formKey.currentState!.validate()) return;
 
+    if (_latitude == null || _longitude == null) {
+      CustomPopup.error(context, 'Please pin your location on the map first.');
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -162,6 +181,8 @@ class _EditAddressPageState extends State<EditAddressPage>
           'city': _cityController.text.trim(),
           'state': _stateController.text.trim(),
           'zipCode': _zipCodeController.text.trim(),
+          if (_latitude != null && _longitude != null)
+            'coordinates': [_longitude, _latitude],
           'isDefault': _isDefault,
         },
       );
@@ -348,6 +369,8 @@ class _EditAddressPageState extends State<EditAddressPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildTypeCard(),
+                        const SizedBox(height: 20),
+                        _buildLocationCard(),
                         const SizedBox(height: 20),
                         _buildDetailsCard(),
                         const SizedBox(height: 20),
@@ -563,6 +586,77 @@ class _EditAddressPageState extends State<EditAddressPage>
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationCard() {
+    return _buildCard(
+      title: 'Map Location',
+      icon: Icons.map_outlined,
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color:
+                  _latitude == null
+                      ? Colors.red.withOpacity(0.1)
+                      : _AddressDesign.primaryGreen.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.pin_drop_outlined,
+              color:
+                  _latitude == null ? Colors.red : _AddressDesign.primaryGreen,
+            ),
+          ),
+          title: Text(
+            _latitude == null ? 'Location not selected' : 'Location selected',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(
+            _latitude == null
+                ? 'Required for nurse tracking'
+                : 'Lat: ${_latitude!.toStringAsFixed(4)}, Lng: ${_longitude!.toStringAsFixed(4)}',
+            style: TextStyle(
+              color:
+                  _latitude == null
+                      ? Colors.red[300]
+                      : _AddressDesign.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+          trailing: TextButton.icon(
+            onPressed: () async {
+              final LatLng? result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => LocationPickerPage(
+                        initialLocation:
+                            _latitude != null
+                                ? LatLng(_latitude!, _longitude!)
+                                : null,
+                      ),
+                ),
+              );
+              if (result != null && mounted) {
+                setState(() {
+                  _latitude = result.latitude;
+                  _longitude = result.longitude;
+                  _hasChanges = true;
+                });
+              }
+            },
+            icon: const Icon(Icons.edit_location_alt_outlined),
+            label: Text(_latitude == null ? 'Pick' : 'Change'),
+            style: TextButton.styleFrom(
+              foregroundColor: _AddressDesign.primaryGreen,
+            ),
+          ),
         ),
       ],
     );

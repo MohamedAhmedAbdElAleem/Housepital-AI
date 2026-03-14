@@ -217,7 +217,7 @@ const userSchema = new mongoose.Schema(
 					type: String,
 					required: true,
 				},
-				zipCode: String,
+				zipCode: String, coordinates: { type: { type: String, enum: ["Point"] }, coordinates: [Number] },
 				isDefault: {
 					type: Boolean,
 					default: false,

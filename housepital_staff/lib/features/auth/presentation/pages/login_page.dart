@@ -40,8 +40,10 @@ class _LoginPageState extends State<LoginPage>
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
-    _slideAnim =
-        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
       CurvedAnimation(
         parent: _animController,
         curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
@@ -219,10 +221,12 @@ class _LoginPageState extends State<LoginPage>
                                           'Email Address',
                                           Icons.email_outlined,
                                         ),
-                                        validator: (val) =>
-                                            (val == null || !val.contains('@'))
-                                                ? 'Invalid email'
-                                                : null,
+                                        validator:
+                                            (val) =>
+                                                (val == null ||
+                                                        !val.contains('@'))
+                                                    ? 'Invalid email'
+                                                    : null,
                                       ),
                                       const SizedBox(height: 16),
                                       TextFormField(
@@ -239,16 +243,19 @@ class _LoginPageState extends State<LoginPage>
                                                   : Icons.visibility_off,
                                               color: AppColors.primary500,
                                             ),
-                                            onPressed: () => setState(
-                                              () => _isPasswordVisible =
-                                                  !_isPasswordVisible,
-                                            ),
+                                            onPressed:
+                                                () => setState(
+                                                  () =>
+                                                      _isPasswordVisible =
+                                                          !_isPasswordVisible,
+                                                ),
                                           ),
                                         ),
-                                        validator: (val) =>
-                                            (val == null || val.isEmpty)
-                                                ? 'Required'
-                                                : null,
+                                        validator:
+                                            (val) =>
+                                                (val == null || val.isEmpty)
+                                                    ? 'Required'
+                                                    : null,
                                       ),
                                       const SizedBox(height: 12),
 
@@ -298,24 +305,60 @@ class _LoginPageState extends State<LoginPage>
                                           shadowColor: AppColors.primary500
                                               .withValues(alpha: 0.4),
                                         ),
-                                        child: isLoading
-                                            ? const SizedBox(
-                                                height: 24,
-                                                width: 24,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                  strokeWidth: 2,
+                                        child:
+                                            isLoading
+                                                ? const SizedBox(
+                                                  height: 24,
+                                                  width: 24,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        color: Colors.white,
+                                                        strokeWidth: 2,
+                                                      ),
+                                                )
+                                                : const Text(
+                                                  'SECURE LOGIN',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    letterSpacing: 1,
+                                                  ),
                                                 ),
-                                              )
-                                            : const Text(
-                                                'SECURE LOGIN',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 1,
+                                      ),
+                                      const SizedBox(height: 16),
+
+                                      // Join Us Button
+                                      OutlinedButton(
+                                        onPressed:
+                                            isLoading
+                                                ? null
+                                                : () => Navigator.pushNamed(
+                                                  context,
+                                                  AppRoutes.register,
                                                 ),
-                                              ),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: AppColors.primary500,
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 18,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          side: const BorderSide(
+                                            color: AppColors.primary500,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'JOIN US',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1,
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),

@@ -241,25 +241,96 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                 ),
               ),
             ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: Colors.black87),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.blueAccent),
+            tooltip: 'Logout',
+            onPressed: () {
+              context.read<AuthCubit>().logout();
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.login,
+                (route) => false,
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBackgroundBlob({
-    required double size,
-    required List<Color> gradient,
-  }) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradient,
+            // Quick Actions Title
+            const Text(
+              'Quick Actions',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+
+            // Grid of Actions
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.1,
+              children: [
+                _buildActionCard(
+                  context,
+                  title: 'My Profile',
+                  icon: Icons.person_outline,
+                  color: Colors.blue,
+                  onTap:
+                      () =>
+                          Navigator.pushNamed(context, AppRoutes.doctorProfile),
+                ),
+                _buildActionCard(
+                  context,
+                  title: 'My Clinics',
+                  icon: Icons.local_hospital_outlined,
+                  color: Colors.green,
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.myClinics),
+                ),
+                _buildActionCard(
+                  context,
+                  title: 'Appointments',
+                  icon: Icons.calendar_month_outlined,
+                  color: Colors.orange,
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.myAppointments),
+                ),
+                _buildActionCard(
+                  context,
+                  title: 'Services',
+                  icon: Icons.medical_services_outlined,
+                  color: Colors.purple,
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.myServices),
+                ),
+                _buildActionCard(
+                  context,
+                  title: 'Financials',
+                  icon: Icons.attach_money_outlined,
+                  color: Colors.teal,
+                  onTap: () {},
+                ),
+                _buildActionCard(
+                  context,
+                  title: 'Settings',
+                  icon: Icons.settings_outlined,
+                  color: Colors.grey,
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

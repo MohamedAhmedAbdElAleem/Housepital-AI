@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_routes.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/doctor/presentation/pages/doctor_profile_page.dart';
 import '../../features/doctor/presentation/pages/doctor_home_page.dart';
 import '../../features/doctor/presentation/pages/my_clinics_page.dart';
@@ -11,6 +12,7 @@ import '../../features/doctor/presentation/pages/my_services_page.dart';
 import '../../features/doctor/presentation/pages/appointments_page.dart';
 import '../../features/doctor/data/models/clinic_model.dart';
 import '../../features/nurse/presentation/pages/nurse_home_page.dart';
+import '../../features/nurse/presentation/pages/nurse_profile_completion_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
 
 class AppRouter {
@@ -60,8 +62,16 @@ class AppRouter {
       case AppRoutes.login:
         return _buildDefaultRoute(const LoginPage(), settings: settings);
 
+      case AppRoutes.register:
+        return MaterialPageRoute(builder: (_) => const RegisterPage());
+
       case AppRoutes.nurseHome:
         return _buildDefaultRoute(const NurseHomePage(), settings: settings);
+
+      case AppRoutes.nurseProfileCompletion:
+        return MaterialPageRoute(
+          builder: (_) => const NurseProfileCompletionPage(),
+        );
 
       case AppRoutes.doctorHome:
         return _buildDoctorRoute(const DoctorHomePage(), settings: settings);
@@ -98,11 +108,13 @@ class AppRouter {
         );
 
       default:
-        return _buildDefaultRoute(
-          Scaffold(
-            body: Center(child: Text('No route defined for ${settings.name}')),
-          ),
-          settings: settings,
+        return MaterialPageRoute(
+          builder:
+              (_) => Scaffold(
+                body: Center(
+                  child: Text('No route defined for ${settings.name}'),
+                ),
+              ),
         );
     }
   }

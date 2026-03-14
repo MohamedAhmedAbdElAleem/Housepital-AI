@@ -7,9 +7,9 @@ class AppointmentInitial extends AppointmentState {}
 class AppointmentLoading extends AppointmentState {}
 
 class AppointmentLoaded extends AppointmentState {
-  final List<dynamic> pending;   // slot bookings awaiting doctor confirm
-  final List<dynamic> upcoming;  // confirmed future bookings
-  final List<dynamic> past;      // completed / cancelled
+  final List<dynamic> pending; // slot bookings awaiting doctor confirm
+  final List<dynamic> upcoming; // confirmed future bookings
+  final List<dynamic> past; // completed / cancelled
 
   AppointmentLoaded({
     required this.pending,

@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     
-    <application
+    <!-- Location Permissions -->`n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />`n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />`n`n    <application
         android:label="housepital"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"

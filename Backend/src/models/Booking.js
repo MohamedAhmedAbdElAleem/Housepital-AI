@@ -12,7 +12,7 @@ const bookingSchema = new mongoose.Schema({
 	// Service Information
 	serviceId: {
 		type: String,
-		required: true,
+
 	},
 	serviceName: {
 		type: String,
@@ -107,6 +107,11 @@ const bookingSchema = new mongoose.Schema({
 	},
 
 	// Clinic Information (for clinic appointments)
+	nurseLocation: {
+		latitude: Number,
+		longitude: Number,
+		lastUpdated: Date,
+	},
 	clinicId: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Clinic",
@@ -140,6 +145,8 @@ const bookingSchema = new mongoose.Schema({
 			"searching", // looking for nurse/confirming
 			"confirmed",
 			"assigned",
+			"on-the-way",
+			"arrived",
 			"in-progress",
 			"completed",
 			"cancelled",
