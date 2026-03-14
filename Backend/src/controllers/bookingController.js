@@ -1,5 +1,6 @@
 const Booking = require("../models/Booking");
 const User = require("../models/User");
+const { sendNotification } = require("../services/notificationService");
 
 /**
  * @desc    Create a new booking
@@ -74,6 +75,20 @@ exports.createBooking = async (req, res) => {
 		await booking.save();
 
 		console.log("✅ Booking created successfully:", booking._id);
+
+		// Send notification to user
+		await sendNotification({
+			userId: userId,
+			title: "Booking Confirmed! 🎉",
+			body: `Your ${serviceName} booking has been created successfully. We're finding the best nurse for you.`,
+			titleAr: "تم تأكيد الحجز! 🎉",
+			bodyAr: `تم إنشاء حجز ${serviceName} بنجاح. نحن نبحث عن أفضل ممرض/ة لك.`,
+			type: "booking_created",
+			referenceId: booking._id,
+			referenceType: "booking",
+			priority: "high",
+			metadata: { serviceName, status: "pending" },
+		});
 
 		res.status(201).json({
 			success: true,
@@ -205,6 +220,20 @@ exports.cancelBooking = async (req, res) => {
 		booking.status = "cancelled";
 		await booking.save();
 
+		// Send cancellation notification
+		await sendNotification({
+			userId: booking.userId.toString(),
+			title: "Booking Cancelled",
+			body: `Your ${booking.serviceName} booking has been cancelled.`,
+			titleAr: "تم إلغاء الحجز",
+			bodyAr: `تم إلغاء حجز ${booking.serviceName} الخاص بك.`,
+			type: "booking_cancelled",
+			referenceId: booking._id,
+			referenceType: "booking",
+			priority: "normal",
+			metadata: { serviceName: booking.serviceName, status: "cancelled" },
+		});
+
 		res.status(200).json({
 			success: true,
 			message: "Booking cancelled successfully",
@@ -256,6 +285,61 @@ exports.updateBookingStatus = async (req, res) => {
 
 		booking.status = status;
 		await booking.save();
+
+		// Send status change notification
+		const statusMessages = {
+			confirmed: {
+				title: "Booking Confirmed ✅",
+				body: `Your ${booking.serviceName} booking has been confirmed!`,
+				titleAr: "تم تأكيد الحجز ✅",
+				bodyAr: `تم تأكيد حجز ${booking.serviceName} الخاص بك!`,
+				type: "booking_confirmed",
+			},
+			assigned: {
+				title: "Nurse Assigned 👩‍⚕️",
+				body: `A nurse has been assigned to your ${booking.serviceName} booking.`,
+				titleAr: "تم تعيين ممرض/ة 👩‍⚕️",
+				bodyAr: `تم تعيين ممرض/ة لحجز ${booking.serviceName} الخاص بك.`,
+				type: "booking_assigned",
+			},
+			"in-progress": {
+				title: "Service Started 🏥",
+				body: `Your ${booking.serviceName} service is now in progress.`,
+				titleAr: "بدأت الخدمة 🏥",
+				bodyAr: `خدمة ${booking.serviceName} جارية الآن.`,
+				type: "booking_in_progress",
+			},
+			completed: {
+				title: "Service Completed 🎉",
+				body: `Your ${booking.serviceName} service has been completed. Please rate your experience!`,
+				titleAr: "اكتملت الخدمة 🎉",
+				bodyAr: `اكتملت خدمة ${booking.serviceName}. يرجى تقييم تجربتك!`,
+				type: "booking_completed",
+			},
+			cancelled: {
+				title: "Booking Cancelled ❌",
+				body: `Your ${booking.serviceName} booking has been cancelled.`,
+				titleAr: "تم إلغاء الحجز ❌",
+				bodyAr: `تم إلغاء حجز ${booking.serviceName}.`,
+				type: "booking_cancelled",
+			},
+		};
+
+		const msg = statusMessages[status];
+		if (msg) {
+			await sendNotification({
+				userId: booking.userId.toString(),
+				title: msg.title,
+				body: msg.body,
+				titleAr: msg.titleAr,
+				bodyAr: msg.bodyAr,
+				type: msg.type,
+				referenceId: booking._id,
+				referenceType: "booking",
+				priority: status === "in-progress" || status === "assigned" ? "high" : "normal",
+				metadata: { serviceName: booking.serviceName, status },
+			});
+		}
 
 		res.status(200).json({
 			success: true,

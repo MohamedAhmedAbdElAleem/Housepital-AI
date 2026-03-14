@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../../../../../core/constants/app_routes.dart';
 import '../../../../../core/network/api_service.dart';
+import '../../../../../core/providers/notification_provider.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../../../../auth/data/repositories/auth_repository_impl.dart';
 import '../../../../auth/data/datasources/auth_remote_datasource.dart';
@@ -319,6 +321,9 @@ class _SettingsPageState extends State<SettingsPage>
                             onChanged: (v) {
                               HapticFeedback.mediumImpact();
                               setState(() => _pushNotifications = v);
+                              context
+                                  .read<NotificationProvider>()
+                                  .togglePushNotifications(v);
                             },
                           ),
                           _buildToggleTile(
@@ -1217,6 +1222,12 @@ class _SettingsPageState extends State<SettingsPage>
                         child: ElevatedButton(
                           onPressed: () async {
                             Navigator.pop(context);
+
+                            // Disconnect notification socket on sign out
+                            context
+                                .read<NotificationProvider>()
+                                .disconnectSocket();
+
                             await TokenManager.deleteToken();
                             await TokenManager.deleteUserId();
                             await TokenManager.deleteUserRole();

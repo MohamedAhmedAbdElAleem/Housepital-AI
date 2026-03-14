@@ -51,9 +51,8 @@ dependencies:
   geolocator: ^11.0.0
   google_maps_flutter: ^2.5.3
   
-  # Notifications - Commented temporarily due to build issues
-  # flutter_local_notifications: ^16.3.2
-  # TODO: Add back with version ^17.0.0 or newer when available
+  # Notifications
+  flutter_local_notifications: ^18.0.1
   
   # OTP
   pinput: ^4.0.0

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_routes.dart';
+import '../../core/providers/notification_provider.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
@@ -18,6 +20,7 @@ import '../../features/customer/home/presentation/pages/customer_home_page.dart'
 import '../../features/nurse/home/presentation/pages/nurse_home_page.dart';
 import '../../features/doctor/home/presentation/pages/doctor_home_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
+import '../../features/notifications/presentation/pages/notifications_page.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -87,6 +90,15 @@ class AppRouter {
 
       case AppRoutes.adminDashboard:
         return MaterialPageRoute(builder: (_) => const AdminDashboardPage());
+
+      case AppRoutes.notifications:
+        return MaterialPageRoute(
+          builder:
+              (ctx) => ChangeNotifierProvider.value(
+                value: ctx.read<NotificationProvider>(),
+                child: const NotificationsPage(),
+              ),
+        );
 
       default:
         return MaterialPageRoute(

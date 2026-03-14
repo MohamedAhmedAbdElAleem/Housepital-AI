@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/utils/token_manager.dart';
+import '../../../../core/providers/notification_provider.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -112,6 +114,11 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     // Check if user has a valid token (already logged in)
     final hasToken = await TokenManager.hasToken();
     if (hasToken) {
+      // Initialize notification system for returning user
+      if (mounted) {
+        context.read<NotificationProvider>().initialize();
+      }
+
       final role = await TokenManager.getUserRole();
       String nextRoute = AppRoutes.customerHome;
 

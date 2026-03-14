@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../booking/presentation/pages/bookings_page.dart';
@@ -12,6 +13,8 @@ import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../pages/all_nursing_services_page.dart';
+import '../../../../../core/providers/notification_provider.dart';
+import '../../../../notifications/presentation/pages/notifications_page.dart';
 
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key});
@@ -408,7 +411,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              _buildHeaderAction(Icons.notifications_outlined, badge: 3),
+              _buildNotificationBell(),
             ],
           ),
         ),
@@ -466,7 +469,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>
               Expanded(child: _buildGreeting()),
 
               // Actions
-              _buildHeaderAction(Icons.notifications_outlined, badge: 3),
+              _buildNotificationBell(),
               const SizedBox(width: 10),
               _buildHeaderAction(Icons.location_on_outlined),
             ],
@@ -592,6 +595,80 @@ class _CustomerHomePageState extends State<CustomerHomePage>
           overflow: TextOverflow.ellipsis,
         ),
       ],
+    );
+  }
+
+  Widget _buildNotificationBell() {
+    return Consumer<NotificationProvider>(
+      builder: (context, provider, _) {
+        final count = provider.unreadCount;
+        return GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (_) => ChangeNotifierProvider.value(
+                      value: provider,
+                      child: const NotificationsPage(),
+                    ),
+              ),
+            );
+          },
+          child: Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: _card,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(8),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const Icon(
+                  Icons.notifications_outlined,
+                  color: _textSecondary,
+                  size: 22,
+                ),
+                if (count > 0)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF5252), Color(0xFFFF1744)],
+                        ),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: _card, width: 2),
+                      ),
+                      child: Center(
+                        child: Text(
+                          count > 9 ? '9+' : count.toString(),
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

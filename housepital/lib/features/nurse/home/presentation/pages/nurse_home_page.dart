@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../../../core/providers/notification_provider.dart';
+import '../../../../notifications/presentation/pages/notifications_page.dart';
 
 class NurseHomePage extends StatelessWidget {
   const NurseHomePage({super.key});
@@ -16,9 +19,29 @@ class NurseHomePage extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
+          Consumer<NotificationProvider>(
+            builder: (context, provider, _) {
+              final count = provider.unreadCount;
+              return IconButton(
+                icon: Badge(
+                  isLabelVisible: count > 0,
+                  label: Text(count > 9 ? '9+' : count.toString()),
+                  child: const Icon(Icons.notifications_outlined),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => ChangeNotifierProvider.value(
+                            value: provider,
+                            child: const NotificationsPage(),
+                          ),
+                    ),
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../../../home/presentation/widgets/custom_bottom_nav_bar.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../../auth/data/repositories/auth_repository_impl.dart';
 import '../../../../auth/data/datasources/auth_remote_datasource.dart';
 import '../../../../auth/data/datasources/cloudinary_service.dart';
+import '../../../../../core/providers/notification_provider.dart';
+import '../../../../notifications/presentation/pages/notifications_page.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../../../../../core/utils/token_manager.dart';
@@ -1000,8 +1003,21 @@ class _ProfilePageState extends State<ProfilePage>
                         icon: Icons.notifications_outlined,
                         onTap: () {
                           HapticFeedback.lightImpact();
+                          final provider = context.read<NotificationProvider>();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => ChangeNotifierProvider.value(
+                                    value: provider,
+                                    child: const NotificationsPage(),
+                                  ),
+                            ),
+                          );
                         },
-                        hasNotification: true,
+                        hasNotification:
+                            context.watch<NotificationProvider>().unreadCount >
+                            0,
                       ),
                       const SizedBox(width: 8),
                       _buildHeaderButton(

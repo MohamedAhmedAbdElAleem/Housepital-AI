@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
@@ -7,6 +8,7 @@ import '../../../../core/network/api_service.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/widgets/custom_popup.dart';
 import '../../../../core/utils/token_manager.dart';
+import '../../../../core/providers/notification_provider.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/models/login_request.dart';
@@ -215,6 +217,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           );
 
           if (mounted) {
+            // Initialize notification system after successful login
+            context.read<NotificationProvider>().initialize();
+
             CustomPopup.success(context, response.message);
             final route =
                 response.user != null

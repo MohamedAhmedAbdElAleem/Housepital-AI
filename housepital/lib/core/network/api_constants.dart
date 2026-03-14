@@ -40,6 +40,13 @@ class ApiConstants {
   static const String cloudinaryUploadBase64 = '/api/cloudinary/upload-base64';
   static const String cloudinaryDelete = '/api/cloudinary/delete';
 
+  // Notification Endpoints
+  static const String notifications = '/api/notifications';
+  static const String notificationsUnreadCount =
+      '/api/notifications/unread-count';
+  static const String notificationsReadAll = '/api/notifications/read-all';
+  static const String notificationsClearAll = '/api/notifications/clear-all';
+
   // Headers
   static Map<String, String> get headers => {
     'Content-Type': 'application/json',

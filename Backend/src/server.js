@@ -31,6 +31,9 @@ const io = new Server(server, {
 // Store io instance on app for use by controllers/services
 app.set("io", io);
 
+// Wire notification service with the same io instance
+require("./services/notificationService").setIO(io);
+
 // Socket.io JWT Authentication Middleware
 io.use((socket, next) => {
 	const token = socket.handshake.auth?.token || socket.handshake.query?.token;
@@ -141,6 +144,7 @@ app.use('/api/triage', require('./routes/triageRoutes'));
 app.use("/api/doctors", require("./routes/doctorRoutes"));
 app.use("/api/clinics", require("./routes/clinicRoutes"));
 app.use("/api/matching", require("./routes/matchingRoutes"));
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 // Serve static files (for ID document images)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -157,7 +161,7 @@ mongoose.connection.once("open", () => {
     console.log("Connected to MongoDB");
     server.listen(PORT, "0.0.0.0", () => {
         console.log(`Server running on port ${PORT}`);
-        console.log(`Socket.io ready for connections`);
+        console.log(`Socket.IO ready for real-time notifications`);
     });
 
     // Graceful Shutdown Logic
