@@ -22,7 +22,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     super.initState();
     _mapController = MapController();
     _selectedLocation = widget.initialLocation;
-    
+
     if (_selectedLocation == null) {
       _getCurrentLocation();
     }
@@ -59,7 +59,11 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not get current location. Ensure location is enabled in the emulator/device.')),
+          const SnackBar(
+            content: Text(
+              'Could not get current location. Ensure location is enabled in the emulator/device.',
+            ),
+          ),
         );
       }
     }
@@ -72,8 +76,16 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
         title: const Text('Pick Location'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, _mapController.camera.center),
-            child: const Text('Confirm', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 16)),
+            onPressed:
+                () => Navigator.pop(context, _mapController.camera.center),
+            child: const Text(
+              'Confirm',
+              style: TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
           ),
         ],
       ),
@@ -82,7 +94,9 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: _selectedLocation ?? const LatLng(30.0444, 31.2357), // Default Cairo
+              initialCenter:
+                  _selectedLocation ??
+                  const LatLng(30.0444, 31.2357), // Default Cairo
               initialZoom: 15.0,
               onPositionChanged: (position, hasGesture) {
                 if (hasGesture && position.center != null) {
@@ -104,23 +118,18 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
               ),
             ],
           ),
-          
+
           // Center Marker (Fixed in center of screen)
           const Center(
             child: Padding(
-              padding: EdgeInsets.only(bottom: 40.0), // Offset to put the tip in the center
-              child: Icon(
-                Icons.location_pin,
-                color: Colors.red,
-                size: 50,
-              ),
+              padding: EdgeInsets.only(
+                bottom: 40.0,
+              ), // Offset to put the tip in the center
+              child: Icon(Icons.location_pin, color: Colors.red, size: 50),
             ),
           ),
-          if (_isLoading)
-            const Center(
-              child: CircularProgressIndicator(),
-            ),
-            
+          if (_isLoading) const Center(child: CircularProgressIndicator()),
+
           // Zoom and Location Controls
           Positioned(
             bottom: 30,
@@ -161,7 +170,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
               ],
             ),
           ),
-          
+
           Positioned(
             top: 20,
             left: 20,
@@ -171,7 +180,9 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                boxShadow: const [
+                  BoxShadow(color: Colors.black12, blurRadius: 4),
+                ],
               ),
               child: const Text(
                 'Drag the map to pinpoint your location',

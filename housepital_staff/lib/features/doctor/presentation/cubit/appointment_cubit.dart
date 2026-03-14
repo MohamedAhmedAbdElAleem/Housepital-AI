@@ -7,8 +7,8 @@ class AppointmentCubit extends Cubit<AppointmentState> {
   final ApiClient _api;
 
   AppointmentCubit({ApiClient? apiClient})
-      : _api = apiClient ?? ApiClient(),
-        super(AppointmentInitial());
+    : _api = apiClient ?? ApiClient(),
+      super(AppointmentInitial());
 
   Future<void> fetchAppointments() async {
     emit(AppointmentLoading());
@@ -19,27 +19,35 @@ class AppointmentCubit extends Cubit<AppointmentState> {
       final now = DateTime.now();
 
       // pending = slot bookings still awaiting doctor confirmation
-      final pending = all
-          .where((b) =>
-              b['status'] == 'pending' && b['timeOption'] == 'schedule')
-          .toList();
+      final pending =
+          all
+              .where(
+                (b) =>
+                    b['status'] == 'pending' && b['timeOption'] == 'schedule',
+              )
+              .toList();
 
       // upcoming = confirmed or in-progress and date in the future (or no date yet)
-      final upcoming = all.where((b) {
-        if (!['confirmed', 'in-progress'].contains(b['status'])) return false;
-        final d = b['scheduledDate'];
-        if (d == null) return true;
-        try {
-          return DateTime.parse(d).isAfter(now.subtract(const Duration(days: 1)));
-        } catch (_) {
-          return true;
-        }
-      }).toList();
+      final upcoming =
+          all.where((b) {
+            if (!['confirmed', 'in-progress'].contains(b['status']))
+              return false;
+            final d = b['scheduledDate'];
+            if (d == null) return true;
+            try {
+              return DateTime.parse(
+                d,
+              ).isAfter(now.subtract(const Duration(days: 1)));
+            } catch (_) {
+              return true;
+            }
+          }).toList();
 
       // past = completed or cancelled
-      final past = all.where((b) {
-        return ['completed', 'cancelled'].contains(b['status']);
-      }).toList();
+      final past =
+          all.where((b) {
+            return ['completed', 'cancelled'].contains(b['status']);
+          }).toList();
 
       emit(AppointmentLoaded(pending: pending, upcoming: upcoming, past: past));
     } catch (e) {
@@ -49,8 +57,10 @@ class AppointmentCubit extends Cubit<AppointmentState> {
 
   Future<void> confirmAppointment(String bookingId) async {
     try {
-      await _api.put('/bookings/$bookingId/status',
-          body: {'status': 'confirmed'});
+      await _api.put(
+        '/bookings/$bookingId/status',
+        body: {'status': 'confirmed'},
+      );
       emit(AppointmentActionSuccess('تم تأكيد الحجز'));
       await fetchAppointments();
     } catch (e) {
@@ -60,8 +70,10 @@ class AppointmentCubit extends Cubit<AppointmentState> {
 
   Future<void> rejectAppointment(String bookingId) async {
     try {
-      await _api.put('/bookings/$bookingId/status',
-          body: {'status': 'cancelled'});
+      await _api.put(
+        '/bookings/$bookingId/status',
+        body: {'status': 'cancelled'},
+      );
       emit(AppointmentActionSuccess('تم رفض الحجز'));
       await fetchAppointments();
     } catch (e) {
@@ -71,8 +83,10 @@ class AppointmentCubit extends Cubit<AppointmentState> {
 
   Future<void> startVisit(String bookingId) async {
     try {
-      await _api.put('/bookings/$bookingId/status',
-          body: {'status': 'in-progress'});
+      await _api.put(
+        '/bookings/$bookingId/status',
+        body: {'status': 'in-progress'},
+      );
       emit(AppointmentActionSuccess('تم بدء الزيارة'));
       await fetchAppointments();
     } catch (e) {
@@ -82,8 +96,10 @@ class AppointmentCubit extends Cubit<AppointmentState> {
 
   Future<void> completeVisit(String bookingId) async {
     try {
-      await _api.put('/bookings/$bookingId/status',
-          body: {'status': 'completed'});
+      await _api.put(
+        '/bookings/$bookingId/status',
+        body: {'status': 'completed'},
+      );
       emit(AppointmentActionSuccess('تم إنهاء الزيارة'));
       await fetchAppointments();
     } catch (e) {

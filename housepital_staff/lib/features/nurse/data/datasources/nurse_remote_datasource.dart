@@ -23,7 +23,7 @@ class NurseRemoteDataSourceImpl implements NurseRemoteDataSource {
       print('📥 Fetching nurse profile...');
       final response = await apiClient.get(ApiConstants.nurseProfile);
       print('✅ Profile fetched successfully');
-      
+
       final responseData = response is String ? jsonDecode(response) : response;
       return NurseProfile.fromJson(responseData['nurse']);
     } catch (e) {
@@ -42,10 +42,10 @@ class NurseRemoteDataSourceImpl implements NurseRemoteDataSource {
         body: data,
       );
       print('✅ Profile updated successfully');
-      
+
       // Handle response if it's a string, though Dio usually parses JSON
       final responseData = response is String ? jsonDecode(response) : response;
-      
+
       return NurseProfile.fromJson(responseData['nurse']);
     } catch (e) {
       print('❌ Error updating profile: $e');
@@ -75,7 +75,9 @@ class NurseRemoteDataSourceImpl implements NurseRemoteDataSource {
     try {
       print('📥 Fetching profile status...');
       final response = await apiClient.get(ApiConstants.nurseProfileStatus);
-      print('✅ Status fetched: ${response is String ? jsonDecode(response)['profileStatus'] ?? jsonDecode(response)['status'] : response['profileStatus'] ?? response['status']}');
+      print(
+        '✅ Status fetched: ${response is String ? jsonDecode(response)['profileStatus'] ?? jsonDecode(response)['status'] : response['profileStatus'] ?? response['status']}',
+      );
       final responseData = response is String ? jsonDecode(response) : response;
       return ProfileStatus.fromJson(responseData);
     } catch (e) {

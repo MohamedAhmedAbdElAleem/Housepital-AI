@@ -83,9 +83,9 @@ exports.createBooking = async (req, res) => {
 
 		// Queue bookings are auto-confirmed (no doctor approval needed)
 		const initialStatus =
-			bookingType === 'clinic_appointment' && timeOption === 'queue'
-				? 'confirmed'
-				: 'pending';
+			bookingType === "clinic_appointment" && timeOption === "queue"
+				? "confirmed"
+				: "pending";
 
 		// Create booking
 		let finalAddress = address || {};
@@ -99,7 +99,7 @@ exports.createBooking = async (req, res) => {
 						area: foundAddr.area,
 						city: foundAddr.city,
 						state: foundAddr.state,
-						coordinates: foundAddr.coordinates
+						coordinates: foundAddr.coordinates,
 					};
 				}
 			}
@@ -151,16 +151,22 @@ exports.createBooking = async (req, res) => {
 			referenceType: "booking",
 			priority: "high",
 			metadata: { serviceName, status: "pending" },
-		});		
+		});
 		const io = getIO();
 		if (io) {
-			const populatedBooking = await Booking.findById(booking._id).populate("userId", "name email mobile address");
+			const populatedBooking = await Booking.findById(booking._id).populate(
+				"userId",
+				"name email mobile address",
+			);
 			io.to("online_nurses").emit("new_booking_request", populatedBooking);
 		}
 		res.status(201).json({
 			success: true,
 			message: "Booking created successfully",
-			booking: await Booking.findById(booking._id).populate("userId", "name email mobile address"),
+			booking: await Booking.findById(booking._id).populate(
+				"userId",
+				"name email mobile address",
+			),
 		});
 	} catch (error) {
 		console.error("❌ Error creating booking:", error);
@@ -181,7 +187,9 @@ exports.getDoctorAppointments = async (req, res) => {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
-			return res.status(401).json({ success: false, message: 'Not authenticated' });
+			return res
+				.status(401)
+				.json({ success: false, message: "Not authenticated" });
 		}
 
 		// The booking stores Doctor._id (not User._id), so look up the Doctor record first
@@ -192,15 +200,19 @@ exports.getDoctorAppointments = async (req, res) => {
 
 		const bookings = await Booking.find({
 			doctorId: doctor._id,
-			type: 'clinic_appointment',
+			type: "clinic_appointment",
 		})
-			.populate('clinicId', 'name address')
+			.populate("clinicId", "name address")
 			.sort({ createdAt: -1 });
 
 		res.status(200).json({ success: true, bookings });
 	} catch (error) {
-		console.error('❌ Error fetching doctor appointments:', error);
-		res.status(500).json({ success: false, message: 'Error fetching appointments', error: error.message });
+		console.error("❌ Error fetching doctor appointments:", error);
+		res.status(500).json({
+			success: false,
+			message: "Error fetching appointments",
+			error: error.message,
+		});
 	}
 };
 
@@ -443,7 +455,8 @@ exports.updateBookingStatus = async (req, res) => {
 				type: msg.type,
 				referenceId: booking._id,
 				referenceType: "booking",
-				priority: status === "in-progress" || status === "assigned" ? "high" : "normal",
+				priority:
+					status === "in-progress" || status === "assigned" ? "high" : "normal",
 				metadata: { serviceName: booking.serviceName, status },
 			});
 		}
@@ -451,7 +464,10 @@ exports.updateBookingStatus = async (req, res) => {
 		res.status(200).json({
 			success: true,
 			message: "Booking status updated successfully",
-			booking: await Booking.findById(booking._id).populate("userId", "name email mobile address"),
+			booking: await Booking.findById(booking._id).populate(
+				"userId",
+				"name email mobile address",
+			),
 		});
 	} catch (error) {
 		console.error("❌ Error updating booking status:", error);
@@ -477,7 +493,7 @@ exports.getNursePendingBookings = async (req, res) => {
 		const bookings = await Booking.find({
 			status: { $in: ["pending", "searching"] },
 			assignedNurse: null,
-			type: "home_nursing"
+			type: "home_nursing",
 		})
 			.sort({ createdAt: -1 })
 			.populate("userId", "name email mobile")
@@ -518,7 +534,7 @@ exports.getNurseActiveBooking = async (req, res) => {
 
 		const booking = await Booking.findOne({
 			assignedNurse: nurseProfile._id,
-			status: { $in: ["assigned", "in-progress"] }
+			status: { $in: ["assigned", "in-progress"] },
 		}).populate("userId", "name email mobile address");
 
 		res.status(200).json({
@@ -590,10 +606,14 @@ exports.acceptBooking = async (req, res) => {
 		await booking.save();
 
 		// Re-fetch with populated user data for response
-		const populatedBooking = await Booking.findById(booking._id)
-			.populate("userId", "name email mobile");
+		const populatedBooking = await Booking.findById(booking._id).populate(
+			"userId",
+			"name email mobile",
+		);
 
-		console.log(`✅ Booking ${id} accepted by nurse ${nurseProfile._id}, PIN: ${booking.visitPin}`);
+		console.log(
+			`✅ Booking ${id} accepted by nurse ${nurseProfile._id}, PIN: ${booking.visitPin}`,
+		);
 
 		res.status(200).json({
 			success: true,
@@ -692,36 +712,41 @@ exports.verifyPinAndStartVisit = async (req, res) => {
 
 // Update nurse location during tracking
 exports.updateNurseLocation = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { latitude, longitude } = req.body;
+	try {
+		const { id } = req.params;
+		const { latitude, longitude } = req.body;
 
-        const booking = await Booking.findById(id);
-        if (!booking) {
-            return res.status(404).json({ success: false, message: "Booking not found" });
-        }
+		const booking = await Booking.findById(id);
+		if (!booking) {
+			return res
+				.status(404)
+				.json({ success: false, message: "Booking not found" });
+		}
 
-        booking.nurseLocation = {
-            latitude,
-            longitude,
-            lastUpdated: new Date()
-        };
-        await booking.save();
+		booking.nurseLocation = {
+			latitude,
+			longitude,
+			lastUpdated: new Date(),
+		};
+		await booking.save();
 
-        // If socket available, emit to a room specific to this booking or user
-        if (req.app.get("io")) {
-            req.app.get("io").emit("nurse_location_update", {
-                bookingId: id,
-                location: booking.nurseLocation
-            });
-        }
+		// If socket available, emit to a room specific to this booking or user
+		if (req.app.get("io")) {
+			req.app.get("io").emit("nurse_location_update", {
+				bookingId: id,
+				location: booking.nurseLocation,
+			});
+		}
 
-        res.json({ success: true, message: "Location updated successfully", location: booking.nurseLocation });
-
-    } catch (error) {
-        console.error("Error updating location:", error);
-        res.status(500).json({ success: false, message: error.message });
-    }
+		res.json({
+			success: true,
+			message: "Location updated successfully",
+			location: booking.nurseLocation,
+		});
+	} catch (error) {
+		console.error("Error updating location:", error);
+		res.status(500).json({ success: false, message: error.message });
+	}
 };
 
 exports.completeVisit = async (req, res) => {

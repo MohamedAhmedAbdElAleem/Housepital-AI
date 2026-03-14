@@ -52,11 +52,10 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
     return '${(meters / 1000).toStringAsFixed(1)} km';
   }
 
-
   void _startLiveTracking() async {
     if (_isTrackingStarted) return;
     _isTrackingStarted = true;
-    
+
     // Listen to continuous position updates with high accuracy
     _positionStream = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
@@ -76,7 +75,10 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
     _trackingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       if (_currentLocation != null) {
         await _fetchRoute(); // Updates distance and ETA from OSRM
-        await _updateLocationOnServer(_currentLocation!.latitude, _currentLocation!.longitude);
+        await _updateLocationOnServer(
+          _currentLocation!.latitude,
+          _currentLocation!.longitude,
+        );
       }
     });
   }
@@ -89,20 +91,18 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
 
   Future<void> _updateLocationOnServer(double lat, double lng) async {
     try {
-      final token = await TokenManager.getToken(); 
+      final token = await TokenManager.getToken();
       if (token == null) return;
-      
-      final url = '${ApiConstants.baseUrl}/api/bookings/${widget.booking.id}/location';
+
+      final url =
+          '${ApiConstants.baseUrl}/api/bookings/${widget.booking.id}/location';
       await http.post(
         Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: json.encode({
-          'latitude': lat,
-          'longitude': lng,
-        }),
+        body: json.encode({'latitude': lat, 'longitude': lng}),
       );
     } catch (e) {
       print('Failed to update location on server: $e');
@@ -113,7 +113,7 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
   void initState() {
     super.initState();
     _patientLocation = LatLng(
-      widget.booking.address?.lat ?? 30.0444, 
+      widget.booking.address?.lat ?? 30.0444,
       widget.booking.address?.lng ?? 31.2357,
     );
     _initLocation();
@@ -134,13 +134,13 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
       setState(() {
         _currentLocation = LatLng(position.latitude, position.longitude);
       });
-      
+
       await _fetchRoute();
-      
+
       setState(() {
         _isLoading = false;
       });
-      
+
       // Auto-fit map to show both markers
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _fitBounds();
@@ -150,7 +150,8 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
 
   Future<void> _fetchRoute() async {
     if (_currentLocation != null && _patientLocation != null) {
-      final url = 'https://router.project-osrm.org/route/v1/driving/${_currentLocation!.longitude},${_currentLocation!.latitude};${_patientLocation!.longitude},${_patientLocation!.latitude}?geometries=geojson';
+      final url =
+          'https://router.project-osrm.org/route/v1/driving/${_currentLocation!.longitude},${_currentLocation!.latitude};${_patientLocation!.longitude},${_patientLocation!.latitude}?geometries=geojson';
       try {
         final response = await http.get(Uri.parse(url));
         if (response.statusCode == 200) {
@@ -176,7 +177,10 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
 
   void _fitBounds() {
     if (_currentLocation != null && _patientLocation != null) {
-      final bounds = LatLngBounds.fromPoints([_currentLocation!, _patientLocation!]);
+      final bounds = LatLngBounds.fromPoints([
+        _currentLocation!,
+        _patientLocation!,
+      ]);
       _mapController.fitCamera(
         CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)),
       );
@@ -189,11 +193,14 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
     } else if (newStatus == 'arrived') {
       _stopLiveTracking();
     }
-    context.read<NurseBookingCubit>().updateBookingStatus(widget.booking.id, newStatus);
-    
+    context.read<NurseBookingCubit>().updateBookingStatus(
+      widget.booking.id,
+      newStatus,
+    );
+
     // Check if arrived to show pin bottom sheet or navigate
     if (newStatus == 'arrived') {
-       Navigator.pushReplacement(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => PinVerificationPage(booking: widget.booking),
@@ -208,9 +215,11 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
       builder: (context, state) {
         // Find the current booking from state
         NurseBooking currentBooking = widget.booking;
-        if (state is NurseBookingActive && state.booking.id == widget.booking.id) {
+        if (state is NurseBookingActive &&
+            state.booking.id == widget.booking.id) {
           currentBooking = state.booking;
-        } else if (state is NurseBookingInProgress && state.booking.id == widget.booking.id) {
+        } else if (state is NurseBookingInProgress &&
+            state.booking.id == widget.booking.id) {
           currentBooking = state.booking;
         }
 
@@ -226,85 +235,101 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
           body: Column(
             children: [
               Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : FlutterMap(
-                        mapController: _mapController,
-                        options: MapOptions(
-                          initialCenter: _currentLocation ?? _patientLocation!,
-                          initialZoom: 14.0,
-                        ),
-                        children: [
-                          TileLayer(
-                            urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.housepital.staff',
+                child:
+                    _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : FlutterMap(
+                          mapController: _mapController,
+                          options: MapOptions(
+                            initialCenter:
+                                _currentLocation ?? _patientLocation!,
+                            initialZoom: 14.0,
                           ),
-                          if (_routePoints.isNotEmpty)
-                            PolylineLayer(
-                              polylines: [
-                                Polyline(
-                                  points: _routePoints,
-                                  color: AppColors.primary,
-                                  strokeWidth: 5.0,
-                                ),
-                              ],
+                          children: [
+                            TileLayer(
+                              urlTemplate:
+                                  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.housepital.staff',
                             ),
-                          MarkerLayer(
-                            markers: [
-                              if (_currentLocation != null)
-                                Marker(
-                                  point: _currentLocation!,
-                                  width: 80,
-                                  height: 80,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.primary50.withValues(alpha: 0.9),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: AppColors.primary500.withValues(alpha: 0.3),
-                                          blurRadius: 15,
-                                          spreadRadius: 5,
-                                        )
-                                      ]
-                                    ),
-                                    child: const Icon(
-                                      Icons.local_hospital,
-                                      size: 40,
-                                      color: AppColors.primary500,
+                            if (_routePoints.isNotEmpty)
+                              PolylineLayer(
+                                polylines: [
+                                  Polyline(
+                                    points: _routePoints,
+                                    color: AppColors.primary,
+                                    strokeWidth: 5.0,
+                                  ),
+                                ],
+                              ),
+                            MarkerLayer(
+                              markers: [
+                                if (_currentLocation != null)
+                                  Marker(
+                                    point: _currentLocation!,
+                                    width: 80,
+                                    height: 80,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AppColors.primary50.withValues(
+                                          alpha: 0.9,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.primary500
+                                                .withValues(alpha: 0.3),
+                                            blurRadius: 15,
+                                            spreadRadius: 5,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.local_hospital,
+                                        size: 40,
+                                        color: AppColors.primary500,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              if (_patientLocation != null)
-                                Marker(
-                                  point: _patientLocation!,
+                                if (_patientLocation != null)
+                                  Marker(
+                                    point: _patientLocation!,
                                     width: 100,
                                     height: 100,
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withValues(alpha: 0.7),
-                                          borderRadius: BorderRadius.circular(8),
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.7,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Patient',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                            ),
+                                          ),
                                         ),
-                                        child: const Text('Patient', style: TextStyle(color: Colors.white, fontSize: 10)),
-                                      ),
-                                      const Icon(
-                                        Icons.person_pin_circle,
-                                        color: AppColors.warning,
-                                        size: 35,
-                                      ),
-                                    ],
+                                        const Icon(
+                                          Icons.person_pin_circle,
+                                          color: AppColors.warning,
+                                          size: 35,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
+                              ],
+                            ),
+                          ],
+                        ),
               ),
-              
+
               // Bottom Info Panel
               Container(
                 padding: const EdgeInsets.all(20),
@@ -328,7 +353,10 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                     if (_distance != null && _duration != null)
                       Container(
                         margin: const EdgeInsets.only(bottom: 15),
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary50,
                           borderRadius: BorderRadius.circular(12),
@@ -339,22 +367,40 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                           children: [
                             Row(
                               children: [
-                                const Icon(Icons.timer_outlined, color: AppColors.primary500),
+                                const Icon(
+                                  Icons.timer_outlined,
+                                  color: AppColors.primary500,
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   _formatDuration(_duration!),
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary500),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: AppColors.primary500,
+                                  ),
                                 ),
                               ],
                             ),
-                            Container(width: 1, height: 24, color: AppColors.primary200),
+                            Container(
+                              width: 1,
+                              height: 24,
+                              color: AppColors.primary200,
+                            ),
                             Row(
                               children: [
-                                const Icon(Icons.route_outlined, color: AppColors.primary500),
+                                const Icon(
+                                  Icons.route_outlined,
+                                  color: AppColors.primary500,
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   _formatDistance(_distance!),
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary500),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: AppColors.primary500,
+                                  ),
                                 ),
                               ],
                             ),
@@ -370,36 +416,57 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                             children: [
                               Text(
                                 'Patient: ${currentBooking.patientName}',
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Customer: ${currentBooking.customerName}',
-                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 14,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Service: ${currentBooking.serviceName}',
-                                style: const TextStyle(color: Colors.grey, fontSize: 14),
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 14,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        if (currentBooking.patientPhone != null && currentBooking.patientPhone!.isNotEmpty)
+                        if (currentBooking.patientPhone != null &&
+                            currentBooking.patientPhone!.isNotEmpty)
                           IconButton(
                             onPressed: () async {
-                              final Uri uri = Uri(scheme: 'tel', path: currentBooking.patientPhone);
+                              final Uri uri = Uri(
+                                scheme: 'tel',
+                                path: currentBooking.patientPhone,
+                              );
                               if (await canLaunchUrl(uri)) {
                                 await launchUrl(uri);
                               } else {
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Could not launch phone dialer')),
+                                    const SnackBar(
+                                      content: Text(
+                                        'Could not launch phone dialer',
+                                      ),
+                                    ),
                                   );
                                 }
                               }
                             },
-                            icon: const Icon(Icons.call, color: AppColors.primary500, size: 30),
+                            icon: const Icon(
+                              Icons.call,
+                              color: AppColors.primary500,
+                              size: 30,
+                            ),
                             style: IconButton.styleFrom(
                               backgroundColor: AppColors.primary50,
                               padding: const EdgeInsets.all(12),
@@ -411,12 +478,15 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                     Text(
                       'Status: ${status.toUpperCase()}',
                       style: TextStyle(
-                        color: status == 'arrived' ? AppColors.success500 : AppColors.primary,
+                        color:
+                            status == 'arrived'
+                                ? AppColors.success500
+                                : AppColors.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     if (status == 'assigned')
                       ElevatedButton(
                         onPressed: () => _updateStatus('on-the-way'),
@@ -424,7 +494,10 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                           backgroundColor: AppColors.primary,
                           padding: const EdgeInsets.symmetric(vertical: 15),
                         ),
-                        child: const Text('Start Journey', style: TextStyle(fontSize: 16, color: Colors.white)),
+                        child: const Text(
+                          'Start Journey',
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
                       )
                     else if (status == 'on-the-way')
                       ElevatedButton(
@@ -433,7 +506,10 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                           backgroundColor: Colors.orange,
                           padding: const EdgeInsets.symmetric(vertical: 15),
                         ),
-                        child: const Text('I\'ve Arrived', style: TextStyle(fontSize: 16, color: Colors.white)),
+                        child: const Text(
+                          'I\'ve Arrived',
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
                       )
                     else if (status == 'arrived')
                       ElevatedButton(
@@ -441,7 +517,10 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => PinVerificationPage(booking: widget.booking),
+                              builder:
+                                  (context) => PinVerificationPage(
+                                    booking: widget.booking,
+                                  ),
                             ),
                           );
                         },
@@ -449,11 +528,14 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                           backgroundColor: AppColors.success500,
                           padding: const EdgeInsets.symmetric(vertical: 15),
                         ),
-                        child: const Text('Enter Patient PIN', style: TextStyle(fontSize: 16, color: Colors.white)),
+                        child: const Text(
+                          'Enter Patient PIN',
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
                       ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         );

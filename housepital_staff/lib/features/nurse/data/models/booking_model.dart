@@ -95,7 +95,8 @@ class NurseBooking {
   }
 
   bool get isAsap => timeOption == 'asap';
-  bool get isAssigned => status == 'assigned' || status == 'on-the-way' || status == 'arrived';
+  bool get isAssigned =>
+      status == 'assigned' || status == 'on-the-way' || status == 'arrived';
   bool get isInProgress => status == 'in-progress';
   bool get isCompleted => status == 'completed';
 }

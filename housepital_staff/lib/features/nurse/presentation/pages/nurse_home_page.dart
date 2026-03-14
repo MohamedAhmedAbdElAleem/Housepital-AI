@@ -18,10 +18,6 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../../core/utils/token_manager.dart';
 import '../../../../core/constants/api_constants.dart';
 
-
-
-
-
 class NurseHomePage extends StatefulWidget {
   const NurseHomePage({super.key});
 
@@ -50,7 +46,9 @@ class _NurseHomePageState extends State<NurseHomePage>
         if (permission == LocationPermission.denied) return;
       }
       if (permission == LocationPermission.deniedForever) return;
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+      );
       if (mounted) {
         setState(() {
           _currentLocation = LatLng(position.latitude, position.longitude);
@@ -65,7 +63,7 @@ class _NurseHomePageState extends State<NurseHomePage>
   Future<void> _initSocket() async {
     final token = await TokenManager.getToken();
     if (token == null) return;
-    
+
     final socketUrl = ApiConstants.baseUrl.replaceAll('/api', '');
 
     _socket = IO.io(
@@ -78,7 +76,7 @@ class _NurseHomePageState extends State<NurseHomePage>
     );
 
     _socket?.connect();
-    
+
     _socket?.onConnect((_) {
       debugPrint('Nurse Socket Connected!');
     });
@@ -88,7 +86,7 @@ class _NurseHomePageState extends State<NurseHomePage>
       if (mounted) {
         final profile = context.read<NurseProfileCubit>().currentProfile;
         if (profile?.isOnline == true) {
-           context.read<NurseBookingCubit>().fetchBookings();
+          context.read<NurseBookingCubit>().fetchBookings();
         }
       }
     });
@@ -116,8 +114,6 @@ class _NurseHomePageState extends State<NurseHomePage>
     _initSocket();
     _fetchCurrentLocation();
   }
-
-
 
   @override
   void dispose() {
@@ -186,31 +182,37 @@ class _NurseHomePageState extends State<NurseHomePage>
                   ),
                 );
               } else if (bookingState is NurseBookingActive) {
-                  // Prevents multiple pages from opening sequentially
-                  if (!_isNavigatingToPin) {
-                    _isNavigatingToPin = true;
-                    
-                    if (bookingState.needsPinVerification) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PinVerificationPage(booking: bookingState.booking),
-                        ),
-                      ).then((_) {
-                        if (mounted) setState(() => _isNavigatingToPin = false);
-                      });
-                    } else {
-                      // Status is assigned or on-the-way -> Show tracking map
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => NurseTrackingPage(booking: bookingState.booking),
-                        ),
-                      ).then((_) {
-                        if (mounted) setState(() => _isNavigatingToPin = false);
-                      });
-                    }
+                // Prevents multiple pages from opening sequentially
+                if (!_isNavigatingToPin) {
+                  _isNavigatingToPin = true;
+
+                  if (bookingState.needsPinVerification) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => PinVerificationPage(
+                              booking: bookingState.booking,
+                            ),
+                      ),
+                    ).then((_) {
+                      if (mounted) setState(() => _isNavigatingToPin = false);
+                    });
+                  } else {
+                    // Status is assigned or on-the-way -> Show tracking map
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => NurseTrackingPage(
+                              booking: bookingState.booking,
+                            ),
+                      ),
+                    ).then((_) {
+                      if (mounted) setState(() => _isNavigatingToPin = false);
+                    });
                   }
+                }
               } else if (bookingState is NurseBookingCompleted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -557,7 +559,7 @@ class _NurseHomePageState extends State<NurseHomePage>
     final profileCubitState = context.read<NurseProfileCubit>().state;
     double centerLat = 30.0444;
     double centerLng = 31.2357;
-    
+
     if (_currentLocation != null) {
       centerLat = _currentLocation!.latitude;
       centerLng = _currentLocation!.longitude;
@@ -584,7 +586,8 @@ class _NurseHomePageState extends State<NurseHomePage>
           children: [
             TileLayer(
               // Minimal light map without 3D buildings
-              urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+              urlTemplate:
+                  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.housepital.staff',
             ),
             MarkerLayer(
@@ -601,7 +604,9 @@ class _NurseHomePageState extends State<NurseHomePage>
                         return AnimatedBuilder(
                           animation: _rippleController,
                           builder: (context, child) {
-                            double progress = (_rippleController.value + (index * 0.33)) % 1.0;
+                            double progress =
+                                (_rippleController.value + (index * 0.33)) %
+                                1.0;
                             double size = 50 + (progress * 250);
                             double opacity = (1.0 - progress).clamp(0.0, 1.0);
                             return Container(
@@ -610,10 +615,14 @@ class _NurseHomePageState extends State<NurseHomePage>
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: AppColors.primary500.withOpacity(opacity * 0.5),
+                                  color: AppColors.primary500.withOpacity(
+                                    opacity * 0.5,
+                                  ),
                                   width: 2,
                                 ),
-                                color: AppColors.primary500.withOpacity(opacity * 0.1),
+                                color: AppColors.primary500.withOpacity(
+                                  opacity * 0.1,
+                                ),
                               ),
                             );
                           },
@@ -633,11 +642,12 @@ class _NurseHomePageState extends State<NurseHomePage>
                                 color: AppColors.primary500.withOpacity(0.3),
                                 blurRadius: 15,
                                 spreadRadius: 5,
-                              )
-                            ]
+                              ),
+                            ],
                           ),
                           child: const Icon(
-                            Icons.local_hospital, // Updated shape for map marker
+                            Icons
+                                .local_hospital, // Updated shape for map marker
                             size: 40,
                             color: AppColors.primary500,
                           ),
@@ -659,7 +669,10 @@ class _NurseHomePageState extends State<NurseHomePage>
             children: [
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 40),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.95),
                   borderRadius: BorderRadius.circular(30),
@@ -668,7 +681,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                       color: Colors.black.withOpacity(0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
-                    )
+                    ),
                   ],
                 ),
                 child: Column(

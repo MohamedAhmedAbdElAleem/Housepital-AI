@@ -88,9 +88,10 @@ class _EditAddressPageState extends State<EditAddressPage>
     );
     _selectedType = widget.address['type'] ?? 'home';
     _isDefault = widget.address['isDefault'] ?? false;
-    
+
     // Parse coordinates if they exist
-    if (widget.address['coordinates'] != null && widget.address['coordinates']['coordinates'] is List) {
+    if (widget.address['coordinates'] != null &&
+        widget.address['coordinates']['coordinates'] is List) {
       final coords = widget.address['coordinates']['coordinates'] as List;
       if (coords.length >= 2) {
         _longitude = (coords[0] as num).toDouble();
@@ -180,7 +181,8 @@ class _EditAddressPageState extends State<EditAddressPage>
           'city': _cityController.text.trim(),
           'state': _stateController.text.trim(),
           'zipCode': _zipCodeController.text.trim(),
-          if (_latitude != null && _longitude != null) 'coordinates': [_longitude, _latitude],
+          if (_latitude != null && _longitude != null)
+            'coordinates': [_longitude, _latitude],
           'isDefault': _isDefault,
         },
       );
@@ -599,12 +601,16 @@ class _EditAddressPageState extends State<EditAddressPage>
           leading: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: _latitude == null ? Colors.red.withOpacity(0.1) : _AddressDesign.primaryGreen.withOpacity(0.1),
+              color:
+                  _latitude == null
+                      ? Colors.red.withOpacity(0.1)
+                      : _AddressDesign.primaryGreen.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.pin_drop_outlined,
-              color: _latitude == null ? Colors.red : _AddressDesign.primaryGreen,
+              color:
+                  _latitude == null ? Colors.red : _AddressDesign.primaryGreen,
             ),
           ),
           title: Text(
@@ -616,7 +622,10 @@ class _EditAddressPageState extends State<EditAddressPage>
                 ? 'Required for nurse tracking'
                 : 'Lat: ${_latitude!.toStringAsFixed(4)}, Lng: ${_longitude!.toStringAsFixed(4)}',
             style: TextStyle(
-              color: _latitude == null ? Colors.red[300] : _AddressDesign.textSecondary,
+              color:
+                  _latitude == null
+                      ? Colors.red[300]
+                      : _AddressDesign.textSecondary,
               fontSize: 13,
             ),
           ),
@@ -625,9 +634,13 @@ class _EditAddressPageState extends State<EditAddressPage>
               final LatLng? result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => LocationPickerPage(
-                    initialLocation: _latitude != null ? LatLng(_latitude!, _longitude!) : null,
-                  ),
+                  builder:
+                      (context) => LocationPickerPage(
+                        initialLocation:
+                            _latitude != null
+                                ? LatLng(_latitude!, _longitude!)
+                                : null,
+                      ),
                 ),
               );
               if (result != null && mounted) {

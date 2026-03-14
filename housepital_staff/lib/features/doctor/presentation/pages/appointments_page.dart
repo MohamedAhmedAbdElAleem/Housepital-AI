@@ -41,8 +41,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
     }
   }
 
-  String _bookingId(dynamic b) =>
-      (b['_id'] ?? b['id'] ?? '') as String;
+  String _bookingId(dynamic b) => (b['_id'] ?? b['id'] ?? '') as String;
 
   // ── build ────────────────────────────────────────────────────────────────
 
@@ -51,20 +50,25 @@ class _AppointmentsPageState extends State<AppointmentsPage>
     return BlocListener<AppointmentCubit, AppointmentState>(
       listener: (ctx, state) {
         if (state is AppointmentActionSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(state.message),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
-          ));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
         }
         if (state is AppointmentError) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(state.message),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
         }
       },
       child: Scaffold(
@@ -77,8 +81,8 @@ class _AppointmentsPageState extends State<AppointmentsPage>
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh_rounded),
-              onPressed: () =>
-                  context.read<AppointmentCubit>().fetchAppointments(),
+              onPressed:
+                  () => context.read<AppointmentCubit>().fetchAppointments(),
             ),
           ],
           bottom: TabBar(
@@ -88,7 +92,10 @@ class _AppointmentsPageState extends State<AppointmentsPage>
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
             tabs: const [
-              Tab(icon: Icon(Icons.pending_actions_rounded, size: 18), text: 'طلبات'),
+              Tab(
+                icon: Icon(Icons.pending_actions_rounded, size: 18),
+                text: 'طلبات',
+              ),
               Tab(icon: Icon(Icons.upcoming_rounded, size: 18), text: 'قادمة'),
               Tab(icon: Icon(Icons.history_rounded, size: 18), text: 'السابقة'),
             ],
@@ -98,28 +105,38 @@ class _AppointmentsPageState extends State<AppointmentsPage>
           builder: (context, state) {
             if (state is AppointmentLoading) {
               return const Center(
-                  child: CircularProgressIndicator(color: _orange));
+                child: CircularProgressIndicator(color: _orange),
+              );
             }
             if (state is AppointmentError) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 64,
-                        color: Colors.red.shade300),
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red.shade300,
+                    ),
                     const SizedBox(height: 16),
-                    Text(state.message,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey.shade600)),
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
-                      onPressed: () =>
-                          context.read<AppointmentCubit>().fetchAppointments(),
+                      onPressed:
+                          () =>
+                              context
+                                  .read<AppointmentCubit>()
+                                  .fetchAppointments(),
                       icon: const Icon(Icons.refresh_rounded),
                       label: const Text('إعادة المحاولة'),
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: _orange,
-                          foregroundColor: Colors.white),
+                        backgroundColor: _orange,
+                        foregroundColor: Colors.white,
+                      ),
                     ),
                   ],
                 ),
@@ -128,12 +145,13 @@ class _AppointmentsPageState extends State<AppointmentsPage>
 
             if (state is! AppointmentLoaded) {
               return const Center(
-                  child: CircularProgressIndicator(color: _orange));
+                child: CircularProgressIndicator(color: _orange),
+              );
             }
 
             return RefreshIndicator(
-              onRefresh: () =>
-                  context.read<AppointmentCubit>().fetchAppointments(),
+              onRefresh:
+                  () => context.read<AppointmentCubit>().fetchAppointments(),
               color: _orange,
               child: TabBarView(
                 controller: _tabController,
@@ -179,40 +197,43 @@ class _AppointmentsPageState extends State<AppointmentsPage>
         border: Border.all(color: const Color(0xFFFEF3C7)),
         boxShadow: [
           BoxShadow(
-              color: const Color(0xFFF59E0B).withOpacity(0.1),
-              blurRadius: 12,
-              offset: const Offset(0, 4)),
+            color: const Color(0xFFF59E0B).withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
         children: [
           // Top banner
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [
-                Color(0xFFF59E0B),
-                Color(0xFFD97706),
-              ]),
-              borderRadius:
-                  BorderRadius.vertical(top: Radius.circular(16)),
+              gradient: LinearGradient(
+                colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.hourglass_top_rounded,
-                    color: Colors.white, size: 16),
+                const Icon(
+                  Icons.hourglass_top_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
                 const SizedBox(width: 8),
-                const Text('بانتظار التأكيد',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13)),
+                const Text(
+                  'بانتظار التأكيد',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
                 const Spacer(),
                 Text(
                   _formatDate(b['scheduledDate'] as String?),
-                  style: const TextStyle(
-                      color: Colors.white70, fontSize: 12),
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
             ),
@@ -231,23 +252,31 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                         color: const Color(0xFFFEF3C7),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.medical_services_rounded,
-                          color: Color(0xFFF59E0B), size: 22),
+                      child: const Icon(
+                        Icons.medical_services_rounded,
+                        color: Color(0xFFF59E0B),
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(b['serviceName'] ?? 'خدمة',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15)),
+                          Text(
+                            b['serviceName'] ?? 'خدمة',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
                           const SizedBox(height: 2),
                           Text(
                             '${b['patientName'] ?? 'مريض'}',
                             style: TextStyle(
-                                fontSize: 13, color: Colors.grey[600]),
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
                           ),
                         ],
                       ),
@@ -258,14 +287,19 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                         Text(
                           '${b['servicePrice'] ?? 0} جنيه',
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Color(0xFFF59E0B)),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Color(0xFFF59E0B),
+                          ),
                         ),
                         if (b['scheduledTime'] != null)
-                          Text(b['scheduledTime'],
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.grey[500])),
+                          Text(
+                            b['scheduledTime'],
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                            ),
+                          ),
                       ],
                     ),
                   ],
@@ -281,13 +315,20 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.notes_rounded,
-                            size: 14, color: Colors.grey[500]),
+                        Icon(
+                          Icons.notes_rounded,
+                          size: 14,
+                          color: Colors.grey[500],
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(b['notes'],
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.grey[600])),
+                          child: Text(
+                            b['notes'],
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -350,23 +391,21 @@ class _AppointmentsPageState extends State<AppointmentsPage>
 
     final accentColor = isInProgress ? _orange : _blue;
     final statusLabel = isInProgress ? 'جاري الكشف' : 'مؤكد';
-    final statusIcon = isInProgress
-        ? Icons.play_circle_rounded
-        : Icons.check_circle_rounded;
+    final statusIcon =
+        isInProgress ? Icons.play_circle_rounded : Icons.check_circle_rounded;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: accentColor.withOpacity(0.15),
-        ),
+        border: Border.all(color: accentColor.withOpacity(0.15)),
         boxShadow: [
           BoxShadow(
-              color: accentColor.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4)),
+            color: accentColor.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Padding(
@@ -394,26 +433,35 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(b['serviceName'] ?? 'خدمة',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text(
+                        b['serviceName'] ?? 'خدمة',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
                       const SizedBox(height: 3),
-                      Text(b['patientName'] ?? 'مريض',
-                          style: TextStyle(
-                              fontSize: 13, color: Colors.grey[600])),
+                      Text(
+                        b['patientName'] ?? 'مريض',
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      ),
                       const SizedBox(height: 3),
                       Row(
                         children: [
-                          Icon(Icons.calendar_today_rounded,
-                              size: 12, color: accentColor),
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 12,
+                            color: accentColor,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             isQueue
-                                ? _formatDate(
-                                    b['scheduledDate'] as String?)
+                                ? _formatDate(b['scheduledDate'] as String?)
                                 : '${_formatDate(b['scheduledDate'] as String?)}${b['scheduledTime'] != null ? '  ·  ${b['scheduledTime']}' : ''}',
                             style: TextStyle(
-                                fontSize: 11, color: Colors.grey[500]),
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                            ),
                           ),
                         ],
                       ),
@@ -425,7 +473,9 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: accentColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
@@ -435,11 +485,14 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                         children: [
                           Icon(statusIcon, color: accentColor, size: 13),
                           const SizedBox(width: 4),
-                          Text(statusLabel,
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  color: accentColor,
-                                  fontWeight: FontWeight.w600)),
+                          Text(
+                            statusLabel,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: accentColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -447,9 +500,10 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                     Text(
                       '${b['servicePrice'] ?? 0} جنيه',
                       style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[700]),
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
                     ),
                   ],
                 ),
@@ -492,9 +546,8 @@ class _AppointmentsPageState extends State<AppointmentsPage>
       itemCount: list.length,
       itemBuilder: (_, i) {
         final b = list[i];
-        final color = b['status'] == 'cancelled'
-            ? Colors.red
-            : const Color(0xFF00B870);
+        final color =
+            b['status'] == 'cancelled' ? Colors.red : const Color(0xFF00B870);
         return _buildAppointmentCard(b, color);
       },
     );
@@ -531,9 +584,10 @@ class _AppointmentsPageState extends State<AppointmentsPage>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 3)),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
       child: Padding(
@@ -547,9 +601,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                isQueue
-                    ? Icons.people_rounded
-                    : Icons.local_hospital_rounded,
+                isQueue ? Icons.people_rounded : Icons.local_hospital_rounded,
                 color: accentColor,
                 size: 22,
               ),
@@ -559,25 +611,32 @@ class _AppointmentsPageState extends State<AppointmentsPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(b['serviceName'] ?? 'خدمة',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text(
+                    b['serviceName'] ?? 'خدمة',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
                   const SizedBox(height: 3),
-                  Text(b['patientName'] ?? 'مريض',
-                      style:
-                          TextStyle(fontSize: 13, color: Colors.grey[600])),
+                  Text(
+                    b['patientName'] ?? 'مريض',
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  ),
                   const SizedBox(height: 3),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today_rounded,
-                          size: 12, color: accentColor),
+                      Icon(
+                        Icons.calendar_today_rounded,
+                        size: 12,
+                        color: accentColor,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         isQueue
                             ? _formatDate(b['scheduledDate'] as String?)
                             : '${_formatDate(b['scheduledDate'] as String?)}${b['scheduledTime'] != null ? '  ·  ${b['scheduledTime']}' : ''}',
-                        style: TextStyle(
-                            fontSize: 11, color: Colors.grey[500]),
+                        style: TextStyle(fontSize: 11, color: Colors.grey[500]),
                       ),
                     ],
                   ),
@@ -589,7 +648,9 @@ class _AppointmentsPageState extends State<AppointmentsPage>
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: accentColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
@@ -598,11 +659,14 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                     children: [
                       Icon(statusIcon, color: accentColor, size: 13),
                       const SizedBox(width: 4),
-                      Text(statusLabel,
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: accentColor,
-                              fontWeight: FontWeight.w600)),
+                      Text(
+                        statusLabel,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: accentColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -610,9 +674,10 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                 Text(
                   '${b['servicePrice'] ?? 0} جنيه',
                   style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700]),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[700],
+                  ),
                 ),
               ],
             ),
@@ -643,24 +708,27 @@ class _AppointmentsPageState extends State<AppointmentsPage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon,
-                color: outlined ? color : Colors.white, size: 16),
+            Icon(icon, color: outlined ? color : Colors.white, size: 16),
             const SizedBox(width: 6),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: outlined ? color : Colors.white)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: outlined ? color : Colors.white,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _emptyState(
-      {required IconData icon,
-      required String title,
-      required String subtitle}) {
+  Widget _emptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -669,14 +737,16 @@ class _AppointmentsPageState extends State<AppointmentsPage>
           children: [
             Icon(icon, size: 72, color: Colors.orange.shade200),
             const SizedBox(height: 16),
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
-            Text(subtitle,
-                textAlign: TextAlign.center,
-                style:
-                    TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+            ),
           ],
         ),
       ),

@@ -52,7 +52,10 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
 
   /// Fetch pending bookings and check for active booking
   Future<void> fetchBookings() async {
-    if (state is! NurseBookingIdle && state is! NurseBookingInProgress && state is! NurseBookingActive) emit(NurseBookingLoading());
+    if (state is! NurseBookingIdle &&
+        state is! NurseBookingInProgress &&
+        state is! NurseBookingActive)
+      emit(NurseBookingLoading());
 
     try {
       // First check if there's an active booking
@@ -67,7 +70,12 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
 
         if (booking.isAssigned) {
           // If arrived, we might need PIN. Otherwise, just show map.
-          emit(NurseBookingActive(booking, needsPinVerification: booking.status == 'arrived'));
+          emit(
+            NurseBookingActive(
+              booking,
+              needsPinVerification: booking.status == 'arrived',
+            ),
+          );
         } else if (booking.isInProgress) {
           // Visit already started
           emit(NurseBookingInProgress(booking));
@@ -108,7 +116,12 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
       if (response['success'] == true) {
         final booking = NurseBooking.fromJson(response['booking']);
         _currentBooking = booking;
-        emit(NurseBookingActive(booking, needsPinVerification: booking.status == 'arrived'));
+        emit(
+          NurseBookingActive(
+            booking,
+            needsPinVerification: booking.status == 'arrived',
+          ),
+        );
       } else {
         emit(
           NurseBookingError(response['message'] ?? 'Failed to accept booking'),
@@ -133,7 +146,12 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
         final booking = NurseBooking.fromJson(response['booking']);
         _currentBooking = booking;
         // Keep it in active state but maybe refresh the map
-        emit(NurseBookingActive(booking, needsPinVerification: status == 'arrived'));
+        emit(
+          NurseBookingActive(
+            booking,
+            needsPinVerification: status == 'arrived',
+          ),
+        );
       }
     } catch (e) {
       print('❌ Error updating status: $e');

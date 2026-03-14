@@ -104,7 +104,7 @@ class _AddAddressPageState extends State<AddAddressPage>
     HapticFeedback.mediumImpact();
 
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (_latitude == null || _longitude == null) {
       CustomPopup.error(context, 'Please pin your location on the map first.');
       return;
@@ -425,12 +425,16 @@ class _AddAddressPageState extends State<AddAddressPage>
           leading: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: _latitude == null ? Colors.red.withOpacity(0.1) : _AddressDesign.primaryGreen.withOpacity(0.1),
+              color:
+                  _latitude == null
+                      ? Colors.red.withOpacity(0.1)
+                      : _AddressDesign.primaryGreen.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.pin_drop_outlined,
-              color: _latitude == null ? Colors.red : _AddressDesign.primaryGreen,
+              color:
+                  _latitude == null ? Colors.red : _AddressDesign.primaryGreen,
             ),
           ),
           title: Text(
@@ -442,7 +446,10 @@ class _AddAddressPageState extends State<AddAddressPage>
                 ? 'Required for nurse tracking'
                 : 'Lat: ${_latitude!.toStringAsFixed(4)}, Lng: ${_longitude!.toStringAsFixed(4)}',
             style: TextStyle(
-              color: _latitude == null ? Colors.red[300] : _AddressDesign.textSecondary,
+              color:
+                  _latitude == null
+                      ? Colors.red[300]
+                      : _AddressDesign.textSecondary,
               fontSize: 13,
             ),
           ),
@@ -451,9 +458,13 @@ class _AddAddressPageState extends State<AddAddressPage>
               final LatLng? result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => LocationPickerPage(
-                    initialLocation: _latitude != null ? LatLng(_latitude!, _longitude!) : null,
-                  ),
+                  builder:
+                      (context) => LocationPickerPage(
+                        initialLocation:
+                            _latitude != null
+                                ? LatLng(_latitude!, _longitude!)
+                                : null,
+                      ),
                 ),
               );
               if (result != null && mounted) {
