@@ -228,6 +228,28 @@ const bookingSchema = new mongoose.Schema({
 		trim: true
 	},
 
+	// Matching System Integration
+	matchingRequestId: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "MatchingRequest"
+	},
+	nurseOfferId: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "NurseOffer"
+	},
+	distanceKm: {
+		type: Number,
+		default: 0
+	},
+	destinationFee: {
+		type: Number,
+		default: 0
+	},
+	platformFee: {
+		type: Number,
+		default: 0
+	},
+
 	// Payment
 	totalAmount: {
 		type: Number,
