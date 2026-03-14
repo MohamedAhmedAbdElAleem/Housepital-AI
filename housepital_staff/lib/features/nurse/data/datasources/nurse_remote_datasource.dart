@@ -23,7 +23,9 @@ class NurseRemoteDataSourceImpl implements NurseRemoteDataSource {
       print('📥 Fetching nurse profile...');
       final response = await apiClient.get(ApiConstants.nurseProfile);
       print('✅ Profile fetched successfully');
-      return NurseProfile.fromJson(response['nurse']);
+      
+      final responseData = response is String ? jsonDecode(response) : response;
+      return NurseProfile.fromJson(responseData['nurse']);
     } catch (e) {
       print('❌ Error fetching profile: $e');
       rethrow;
@@ -40,7 +42,11 @@ class NurseRemoteDataSourceImpl implements NurseRemoteDataSource {
         body: data,
       );
       print('✅ Profile updated successfully');
-      return NurseProfile.fromJson(response['nurse']);
+      
+      // Handle response if it's a string, though Dio usually parses JSON
+      final responseData = response is String ? jsonDecode(response) : response;
+      
+      return NurseProfile.fromJson(responseData['nurse']);
     } catch (e) {
       print('❌ Error updating profile: $e');
       rethrow;
@@ -56,7 +62,8 @@ class NurseRemoteDataSourceImpl implements NurseRemoteDataSource {
         body: {},
       );
       print('✅ Profile submitted successfully');
-      return NurseProfile.fromJson(response['nurse']);
+      final responseData = response is String ? jsonDecode(response) : response;
+      return NurseProfile.fromJson(responseData['nurse']);
     } catch (e) {
       print('❌ Error submitting profile: $e');
       rethrow;
@@ -68,8 +75,9 @@ class NurseRemoteDataSourceImpl implements NurseRemoteDataSource {
     try {
       print('📥 Fetching profile status...');
       final response = await apiClient.get(ApiConstants.nurseProfileStatus);
-      print('✅ Status fetched: ${response['profileStatus']}');
-      return ProfileStatus.fromJson(response);
+      print('✅ Status fetched: ${response is String ? jsonDecode(response)['profileStatus'] ?? jsonDecode(response)['status'] : response['profileStatus'] ?? response['status']}');
+      final responseData = response is String ? jsonDecode(response) : response;
+      return ProfileStatus.fromJson(responseData);
     } catch (e) {
       print('❌ Error fetching status: $e');
       rethrow;

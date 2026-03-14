@@ -13,6 +13,7 @@ const {
 	acceptBooking,
 	verifyPinAndStartVisit,
 	completeVisit,
+	updateNurseLocation,
 } = require("../controllers/bookingController");
 
 // All booking routes require authentication
@@ -168,6 +169,8 @@ router.post("/:id/verify-pin", authenticateToken, verifyPinAndStartVisit);
  *         description: Visit completed
  */
 router.post("/:id/complete", authenticateToken, completeVisit);
+
+router.post("/:id/location", authenticateToken, updateNurseLocation);
 
 // ============ END NURSE ROUTES ============
 

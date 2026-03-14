@@ -6,6 +6,7 @@ class NurseBooking {
   final double servicePrice;
   final String patientId;
   final String patientName;
+  final String customerName;
   final String? patientPhone;
   final String? patientEmail;
   final String status;
@@ -26,6 +27,7 @@ class NurseBooking {
     required this.servicePrice,
     required this.patientId,
     required this.patientName,
+    required this.customerName,
     this.patientPhone,
     this.patientEmail,
     required this.status,
@@ -42,13 +44,14 @@ class NurseBooking {
 
   factory NurseBooking.fromJson(Map<String, dynamic> json) {
     // Parse user data if populated
-    String patientName = json['patientName'] ?? 'Unknown Patient';
+    String pName = json['patientName'] ?? 'Unknown Patient';
+    String cName = 'Unknown Customer';
     String? patientPhone;
     String? patientEmail;
 
     if (json['userId'] is Map) {
       final user = json['userId'] as Map<String, dynamic>;
-      patientName = user['name'] ?? patientName;
+      cName = user['name'] ?? cName;
       patientPhone = user['mobile'];
       patientEmail = user['email'];
     }
@@ -59,7 +62,8 @@ class NurseBooking {
       serviceName: json['serviceName'] ?? 'Unknown Service',
       servicePrice: (json['servicePrice'] ?? 0).toDouble(),
       patientId: json['patientId']?.toString() ?? '',
-      patientName: patientName,
+      patientName: pName,
+      customerName: cName,
       patientPhone: patientPhone,
       patientEmail: patientEmail,
       status: json['status'] ?? 'pending',
@@ -91,7 +95,7 @@ class NurseBooking {
   }
 
   bool get isAsap => timeOption == 'asap';
-  bool get isAssigned => status == 'assigned';
+  bool get isAssigned => status == 'assigned' || status == 'on-the-way' || status == 'arrived';
   bool get isInProgress => status == 'in-progress';
   bool get isCompleted => status == 'completed';
 }

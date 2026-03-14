@@ -1,6 +1,6 @@
 class ApiConstants {
   // Base URL - Use localhost for emulator/simulator
-  static const String baseUrl = 'http://192.168.56.212:3500/api';
+  static const String baseUrl = 'http://10.0.2.2:3500/api';
   // For physical device testing, use your computer's IP: http://192.168.1.140:3500/api
   // Auth Endpoints
   static const String login = '/auth/login';
@@ -54,4 +54,5 @@ class ApiConstants {
   static String acceptBooking(String id) => '/bookings/$id/accept';
   static String verifyPin(String id) => '/bookings/$id/verify-pin';
   static String completeVisit(String id) => '/bookings/$id/complete';
+  static String updateBookingStatus(String id) => '/bookings/$id/status';
 }

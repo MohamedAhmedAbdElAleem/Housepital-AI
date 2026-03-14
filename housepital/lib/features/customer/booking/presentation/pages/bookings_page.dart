@@ -657,6 +657,7 @@ class _BookingsPageState extends State<BookingsPage>
             : Icons.directions_car_rounded;
         break;
       case 'confirmed':
+      case 'on-the-way':
       case 'assigned':
         statusColor = const Color(0xFF3B82F6);
         statusLabel = 'Confirmed';

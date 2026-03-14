@@ -43,7 +43,7 @@ class NurseProfile {
   factory NurseProfile.fromJson(Map<String, dynamic> json) {
     return NurseProfile(
       id: json['_id'] ?? json['id'],
-      userId: json['user']?['_id'] ?? json['user'],
+      userId: json['user'] is Map ? json['user']['_id'] : json['user'],
       licenseNumber: json['licenseNumber'],
       specialization: json['specialization'],
       yearsOfExperience: json['yearsOfExperience'],

@@ -59,6 +59,7 @@ io.on("connection", (socket) => {
 	// Join role-based rooms for targeted notifications
 	if (userRole === "nurse") {
 		socket.join(`nurse_${userId}`);
+		socket.join("online_nurses"); // All nurses listen to new requests
 	} else if (userRole === "customer") {
 		socket.join(`patient_${userId}`);
 	}
@@ -145,6 +146,7 @@ app.use("/api/clinics", require("./routes/clinicRoutes"));
 app.use("/api/matching", require("./routes/matchingRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 app.use("/api/services", require("./routes/serviceRoutes"));
+app.use("/api/nurse", require("./routes/nurseRoutes"));
 
 // Serve static files (for ID document images)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));

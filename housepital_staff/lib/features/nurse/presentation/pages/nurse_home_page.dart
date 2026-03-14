@@ -10,6 +10,17 @@ import '../../data/models/nurse_profile_model.dart';
 import '../../data/models/booking_model.dart';
 import '../widgets/nurse_home_widgets.dart';
 import 'pin_verification_page.dart';
+import 'nurse_tracking_page.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import '../../../../core/utils/token_manager.dart';
+import '../../../../core/constants/api_constants.dart';
+
+
+
+
 
 class NurseHomePage extends StatefulWidget {
   const NurseHomePage({super.key});
@@ -23,6 +34,65 @@ class _NurseHomePageState extends State<NurseHomePage>
   late AnimationController _pulseController;
   late AnimationController _rippleController;
   Timer? _pollingTimer;
+
+  bool _isNavigatingToPin = false;
+  LatLng? _currentLocation;
+  final MapController _mapController = MapController();
+  IO.Socket? _socket;
+
+  Future<void> _fetchCurrentLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+      if (permission == LocationPermission.deniedForever) return;
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+      if (mounted) {
+        setState(() {
+          _currentLocation = LatLng(position.latitude, position.longitude);
+        });
+        _mapController.move(_currentLocation!, 15.0);
+      }
+    } catch (e) {
+      debugPrint('Error fetching location: $e');
+    }
+  }
+
+  Future<void> _initSocket() async {
+    final token = await TokenManager.getToken();
+    if (token == null) return;
+    
+    final socketUrl = ApiConstants.baseUrl.replaceAll('/api', '');
+
+    _socket = IO.io(
+      socketUrl,
+      IO.OptionBuilder()
+          .setTransports(['websocket'])
+          .disableAutoConnect()
+          .setAuth({'token': token})
+          .build(),
+    );
+
+    _socket?.connect();
+    
+    _socket?.onConnect((_) {
+      debugPrint('Nurse Socket Connected!');
+    });
+
+    _socket?.on('new_booking_request', (data) {
+      debugPrint('Received new booking request over socket!');
+      if (mounted) {
+        final profile = context.read<NurseProfileCubit>().currentProfile;
+        if (profile?.isOnline == true) {
+           context.read<NurseBookingCubit>().fetchBookings();
+        }
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -43,24 +113,19 @@ class _NurseHomePageState extends State<NurseHomePage>
     )..repeat();
 
     // Start polling for new bookings every 10 seconds when online
-    _startPolling();
+    _initSocket();
+    _fetchCurrentLocation();
   }
 
-  void _startPolling() {
-    _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      final profile = context.read<NurseProfileCubit>().currentProfile;
-      if (profile?.isOnline == true) {
-        context.read<NurseBookingCubit>().fetchBookings();
-      }
-    });
-  }
+
 
   @override
   void dispose() {
     _pulseController.dispose();
     _rippleController.dispose();
     _pollingTimer?.cancel();
+    _socket?.disconnect();
+    _socket?.dispose();
     super.dispose();
   }
 
@@ -120,17 +185,32 @@ class _NurseHomePageState extends State<NurseHomePage>
                     backgroundColor: AppColors.error,
                   ),
                 );
-              } else if (bookingState is NurseBookingActive &&
-                  bookingState.needsPinVerification) {
-                // Navigate to PIN verification
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) =>
-                            PinVerificationPage(booking: bookingState.booking),
-                  ),
-                );
+              } else if (bookingState is NurseBookingActive) {
+                  // Prevents multiple pages from opening sequentially
+                  if (!_isNavigatingToPin) {
+                    _isNavigatingToPin = true;
+                    
+                    if (bookingState.needsPinVerification) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PinVerificationPage(booking: bookingState.booking),
+                        ),
+                      ).then((_) {
+                        if (mounted) setState(() => _isNavigatingToPin = false);
+                      });
+                    } else {
+                      // Status is assigned or on-the-way -> Show tracking map
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => NurseTrackingPage(booking: bookingState.booking),
+                        ),
+                      ).then((_) {
+                        if (mounted) setState(() => _isNavigatingToPin = false);
+                      });
+                    }
+                  }
               } else if (bookingState is NurseBookingCompleted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -296,6 +376,22 @@ class _NurseHomePageState extends State<NurseHomePage>
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: () {
+                context.read<AuthCubit>().logout();
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.login,
+                  (route) => false,
+                );
+              },
+              icon: const Icon(Icons.logout, color: Colors.redAccent),
+              label: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.redAccent),
+              ),
+            ),
           ],
         ),
       ),
@@ -458,62 +554,139 @@ class _NurseHomePageState extends State<NurseHomePage>
   }
 
   Widget _buildRadarView() {
+    final profileCubitState = context.read<NurseProfileCubit>().state;
+    double centerLat = 30.0444;
+    double centerLng = 31.2357;
+    
+    if (_currentLocation != null) {
+      centerLat = _currentLocation!.latitude;
+      centerLng = _currentLocation!.longitude;
+    } else if (profileCubitState is NurseProfileLoaded) {
+      final workZone = profileCubitState.profile.workZone;
+      if (workZone != null && workZone.latitude != 0.0) {
+        centerLat = workZone.latitude;
+        centerLng = workZone.longitude;
+      }
+    }
+
     return Stack(
-      alignment: Alignment.center,
       children: [
-        ...List.generate(3, (index) {
-          return AnimatedBuilder(
-            animation: _rippleController,
-            builder: (context, child) {
-              double progress =
-                  (_rippleController.value + (index * 0.33)) % 1.0;
-              double size = 150 + (progress * 200);
-              double opacity = (1.0 - progress).clamp(0.0, 1.0);
-              return Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.primary500.withOpacity(opacity * 0.5),
-                    width: 2,
-                  ),
-                ),
-              );
-            },
-          );
-        }),
-        FadeTransition(
-          opacity: _pulseController,
-          child: Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primary50.withOpacity(0.5),
-            ),
-            child: const Icon(
-              Icons.radar,
-              size: 60,
-              color: AppColors.primary500,
+        // Map Background
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: LatLng(centerLat, centerLng),
+            initialZoom: 15.0,
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
             ),
           ),
+          children: [
+            TileLayer(
+              // Minimal light map without 3D buildings
+              urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.housepital.staff',
+            ),
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: LatLng(centerLat, centerLng),
+                  width: 300,
+                  height: 300,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Pulsing Rings
+                      ...List.generate(3, (index) {
+                        return AnimatedBuilder(
+                          animation: _rippleController,
+                          builder: (context, child) {
+                            double progress = (_rippleController.value + (index * 0.33)) % 1.0;
+                            double size = 50 + (progress * 250);
+                            double opacity = (1.0 - progress).clamp(0.0, 1.0);
+                            return Container(
+                              width: size,
+                              height: size,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.primary500.withOpacity(opacity * 0.5),
+                                  width: 2,
+                                ),
+                                color: AppColors.primary500.withOpacity(opacity * 0.1),
+                              ),
+                            );
+                          },
+                        );
+                      }),
+                      // Center Pin
+                      FadeTransition(
+                        opacity: _pulseController,
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primary50.withOpacity(0.9),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary500.withOpacity(0.3),
+                                blurRadius: 15,
+                                spreadRadius: 5,
+                              )
+                            ]
+                          ),
+                          child: const Icon(
+                            Icons.local_hospital, // Updated shape for map marker
+                            size: 40,
+                            color: AppColors.primary500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
+        // Overlay scanning text
         Positioned(
           bottom: 40,
+          left: 0,
+          right: 0,
           child: Column(
             children: [
-              const Text(
-                'Scanning for patients nearby...',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 40),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Requests will appear automatically',
-                style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Scanning for patients nearby...',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Requests will appear automatically',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

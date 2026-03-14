@@ -341,7 +341,7 @@ router.post("/addresses", authenticateToken, async (req, res) => {
 			area,
 			city,
 			state,
-			zipCode,
+			zipCode, coordinates,
 			isDefault,
 		} = req.body;
 
@@ -362,10 +362,10 @@ router.post("/addresses", authenticateToken, async (req, res) => {
 			area,
 			city,
 			state,
-			zipCode,
-			isDefault: isDefault || false,
+                        zipCode,
+                        coordinates: coordinates ? { type: "Point", coordinates } : undefined,
+						isDefault: isDefault || false,
 		});
-
 		await user.save({ validateBeforeSave: false });
 		res.status(201).json({
 			message: "Address added successfully",
@@ -421,7 +421,7 @@ router.put("/addresses/:addressId", authenticateToken, async (req, res) => {
 			area,
 			city,
 			state,
-			zipCode,
+			zipCode, coordinates,
 			isDefault,
 		} = req.body;
 
@@ -451,8 +451,9 @@ router.put("/addresses/:addressId", authenticateToken, async (req, res) => {
 		address.city = city || address.city;
 		address.state = state || address.state;
 		address.zipCode = zipCode || address.zipCode;
-		address.isDefault = isDefault;
-
+                if (coordinates) {
+                        address.coordinates = { type: "Point", coordinates };
+                }
 		await user.save({ validateBeforeSave: false });
 		res.json({
 			message: "Address updated successfully",

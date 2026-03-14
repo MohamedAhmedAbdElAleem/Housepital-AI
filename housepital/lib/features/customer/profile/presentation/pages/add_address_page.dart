@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../../../../../core/widgets/custom_popup.dart';
+import 'location_picker_page.dart';
 
 class _AddressDesign {
   static const primaryGreen = Color(0xFF00C853);
@@ -52,6 +54,10 @@ class _AddAddressPageState extends State<AddAddressPage>
   bool _isDefault = false;
   bool _isLoading = false;
 
+  // Added coordinates
+  double? _latitude;
+  double? _longitude;
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -98,6 +104,11 @@ class _AddAddressPageState extends State<AddAddressPage>
     HapticFeedback.mediumImpact();
 
     if (!_formKey.currentState!.validate()) return;
+    
+    if (_latitude == null || _longitude == null) {
+      CustomPopup.error(context, 'Please pin your location on the map first.');
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -123,6 +134,8 @@ class _AddAddressPageState extends State<AddAddressPage>
           'city': _cityController.text.trim(),
           'state': _stateController.text.trim(),
           'zipCode': _zipCodeController.text.trim(),
+          if (_latitude != null && _longitude != null)
+            'coordinates': [_longitude, _latitude],
           'isDefault': _isDefault,
         },
       );
@@ -235,6 +248,8 @@ class _AddAddressPageState extends State<AddAddressPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildTypeCard(),
+                        const SizedBox(height: 20),
+                        _buildLocationCard(),
                         const SizedBox(height: 20),
                         _buildDetailsCard(),
                         const SizedBox(height: 20),
@@ -395,6 +410,65 @@ class _AddAddressPageState extends State<AddAddressPage>
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationCard() {
+    return _buildCard(
+      title: 'Map Location',
+      icon: Icons.map_outlined,
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _latitude == null ? Colors.red.withOpacity(0.1) : _AddressDesign.primaryGreen.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.pin_drop_outlined,
+              color: _latitude == null ? Colors.red : _AddressDesign.primaryGreen,
+            ),
+          ),
+          title: Text(
+            _latitude == null ? 'Location not selected' : 'Location selected',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(
+            _latitude == null
+                ? 'Required for nurse tracking'
+                : 'Lat: ${_latitude!.toStringAsFixed(4)}, Lng: ${_longitude!.toStringAsFixed(4)}',
+            style: TextStyle(
+              color: _latitude == null ? Colors.red[300] : _AddressDesign.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+          trailing: TextButton.icon(
+            onPressed: () async {
+              final LatLng? result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LocationPickerPage(
+                    initialLocation: _latitude != null ? LatLng(_latitude!, _longitude!) : null,
+                  ),
+                ),
+              );
+              if (result != null && mounted) {
+                setState(() {
+                  _latitude = result.latitude;
+                  _longitude = result.longitude;
+                });
+              }
+            },
+            icon: const Icon(Icons.map, size: 18),
+            label: Text(_latitude == null ? 'Pin Map' : 'Edit'),
+            style: TextButton.styleFrom(
+              foregroundColor: _AddressDesign.primaryGreen,
+            ),
+          ),
         ),
       ],
     );
