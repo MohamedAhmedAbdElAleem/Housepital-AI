@@ -68,7 +68,7 @@ exports.register = async (req, res, next) => {
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
             process.env.ACCESS_TOKEN_SECRET || 'housepital_secret_key_2024',
-            { expiresIn: '7d' }
+            { expiresIn: '30d' }
         );
 
         // Log the registration event (without password)
@@ -162,13 +162,13 @@ exports.login = async (req, res, next) => {
             role: user.role
         };
         const secretKey = process.env.JWT_SECRET_KEY || 'housepital_secret_key_2024';
-        const options = { expiresIn: '3h' };
+        const options = { expiresIn: '30d' };
 
         const JWTToken = jwt.sign(payload, secretKey, options);
 
 
 
-        redis.set(emailLowerCase, JSON.stringify(user), { ex: 3600 });
+        redis.set(emailLowerCase, JSON.stringify(user), { ex: 2592000 }); // 30 days in seconds
 
         console.log(`user ${email} added to the redis cache`);
 

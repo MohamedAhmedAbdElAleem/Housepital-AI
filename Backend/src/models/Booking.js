@@ -12,7 +12,7 @@ const bookingSchema = new mongoose.Schema({
 	// Service Information
 	serviceId: {
 		type: String,
-		required: true,
+
 	},
 	serviceName: {
 		type: String,

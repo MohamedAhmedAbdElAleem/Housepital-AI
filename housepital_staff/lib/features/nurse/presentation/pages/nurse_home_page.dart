@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'dart:async';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/nurse_profile_cubit.dart';
+import '../cubit/nurse_booking_cubit.dart';
 import '../../data/models/nurse_profile_model.dart';
+import '../../data/models/booking_model.dart';
 import '../widgets/nurse_home_widgets.dart';
-
-enum NurseHomeTestState { idle, incoming, active }
+import 'pin_verification_page.dart';
 
 class NurseHomePage extends StatefulWidget {
   const NurseHomePage({super.key});
@@ -22,14 +22,15 @@ class _NurseHomePageState extends State<NurseHomePage>
     with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _rippleController;
-
-  // TESTING STATE
-  NurseHomeTestState _testState = NurseHomeTestState.idle;
+  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
     context.read<NurseProfileCubit>().loadProfile();
+
+    // Fetch bookings
+    context.read<NurseBookingCubit>().fetchBookings();
 
     _pulseController = AnimationController(
       vsync: this,
@@ -40,12 +41,26 @@ class _NurseHomePageState extends State<NurseHomePage>
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat();
+
+    // Start polling for new bookings every 10 seconds when online
+    _startPolling();
+  }
+
+  void _startPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      final profile = context.read<NurseProfileCubit>().currentProfile;
+      if (profile?.isOnline == true) {
+        context.read<NurseBookingCubit>().fetchBookings();
+      }
+    });
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
     _rippleController.dispose();
+    _pollingTimer?.cancel();
     super.dispose();
   }
 
@@ -71,155 +86,247 @@ class _NurseHomePageState extends State<NurseHomePage>
             );
           }
         },
-        builder: (context, state) {
-          if (state is NurseProfileLoading) {
+        builder: (context, profileState) {
+          if (profileState is NurseProfileLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
           NurseProfile? profile;
-          if (state is NurseProfileLoaded)
-            profile = state.profile;
-          else if (state is NurseProfileUpdated)
-            profile = state.profile;
+          if (profileState is NurseProfileLoaded)
+            profile = profileState.profile;
+          else if (profileState is NurseProfileUpdated)
+            profile = profileState.profile;
           else
             profile = context.read<NurseProfileCubit>().currentProfile;
 
           if (profile == null) {
-            return const Center(child: Text('Could not load profile.'));
+            return _buildErrorView();
           }
 
-          final bool isApproved =
-              true; // profile.profileStatus == 'approved'; // TEST MODE
+          final bool isApproved = profile.profileStatus == 'approved';
           final bool isOnline = profile.isOnline;
-          final bool isSwitchEnabled =
-              isApproved && _testState == NurseHomeTestState.idle;
 
-          // If user goes offline, reset test state
-          if (!isOnline && _testState != NurseHomeTestState.idle) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) setState(() => _testState = NurseHomeTestState.idle);
-            });
-          }
+          // Debug: Print profile status
+          print(
+            '🔍 Profile Status: ${profile.profileStatus}, isApproved: $isApproved',
+          );
 
-          return Stack(
-            children: [
-              // Background
-              Positioned(
-                top: -100,
-                right: -100,
-                child: Container(
-                  width: 300,
-                  height: 300,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primary100.withOpacity(0.3),
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 100,
-                        color: AppColors.primary100.withOpacity(0.2),
-                      ),
-                    ],
+          return BlocConsumer<NurseBookingCubit, NurseBookingState>(
+            listener: (context, bookingState) {
+              if (bookingState is NurseBookingError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(bookingState.message),
+                    backgroundColor: AppColors.error,
                   ),
-                ),
-              ),
+                );
+              } else if (bookingState is NurseBookingActive &&
+                  bookingState.needsPinVerification) {
+                // Navigate to PIN verification
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) =>
+                            PinVerificationPage(booking: bookingState.booking),
+                  ),
+                );
+              } else if (bookingState is NurseBookingCompleted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Visit completed successfully! 🎉'),
+                    backgroundColor: AppColors.success500,
+                  ),
+                );
+              }
+            },
+            builder: (context, bookingState) {
+              final bool hasActiveVisit =
+                  bookingState is NurseBookingInProgress;
 
-              SafeArea(
-                child: Column(
-                  children: [
-                    // Header
-                    _buildHeader(context, user?.name ?? 'Nurse'),
-
-                    // Availability (Only show if NOT in active visit to save space)
-                    if (_testState != NurseHomeTestState.active)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          children: [
-                            // BANNER HIDDEN IN TEST MODE (Since isApproved is forced true)
-                            if (!isApproved)
-                              ProfileStatusBanner(
-                                profile: profile,
-                                onTap:
-                                    () => Navigator.pushNamed(
-                                      context,
-                                      AppRoutes.nurseProfileCompletion,
-                                    ),
-                              ),
-                            const SizedBox(height: 10),
-                            _buildAvailabilityCard(isOnline, isSwitchEnabled),
-                          ],
-                        ),
-                      ),
-
-                    if (_testState != NurseHomeTestState.active)
-                      const SizedBox(height: 10),
-
-                    if (_testState != NurseHomeTestState.active)
-                      WorkZoneSnapshot(
-                        workZone: profile.workZone ?? WorkZone(),
-                        onEdit: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Map Editing Coming Soon'),
-                            ),
-                          );
-                        },
-                      ),
-
-                    // Dynamic Workspace
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 20),
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
+              return Stack(
+                children: [
+                  // Background
+                  Positioned(
+                    top: -100,
+                    right: -100,
+                    child: Container(
+                      width: 300,
+                      height: 300,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primary100.withOpacity(0.3),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 100,
+                            color: AppColors.primary100.withOpacity(0.2),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, -5),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
-                          ),
-                          child: _buildDynamicContent(isOnline, isApproved),
-                        ),
+                        ],
                       ),
                     ),
+                  ),
 
-                    // Bottom Dock (Hide if Active Visit)
-                    if (_testState != NurseHomeTestState.active)
-                      _buildBottomDock(context),
-                  ],
-                ),
-              ),
-            ],
+                  SafeArea(
+                    child: Column(
+                      children: [
+                        // Header
+                        _buildHeader(context, user?.name ?? 'Nurse'),
+
+                        // Availability (Hide during active visit)
+                        if (!hasActiveVisit)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              children: [
+                                if (!isApproved)
+                                  ProfileStatusBanner(
+                                    profile: profile!,
+                                    onTap:
+                                        () => Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.nurseProfileCompletion,
+                                        ),
+                                  ),
+                                const SizedBox(height: 10),
+                                _buildAvailabilityCard(isOnline, isApproved),
+                              ],
+                            ),
+                          ),
+
+                        if (!hasActiveVisit) const SizedBox(height: 10),
+
+                        if (!hasActiveVisit)
+                          WorkZoneSnapshot(
+                            workZone: profile!.workZone ?? WorkZone(),
+                            onEdit: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Map Editing Coming Soon'),
+                                ),
+                              );
+                            },
+                          ),
+
+                        // Dynamic Workspace
+                        Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.only(top: 20),
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(30),
+                                topRight: Radius.circular(30),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.05),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, -5),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(30),
+                                topRight: Radius.circular(30),
+                              ),
+                              child: _buildDynamicContent(
+                                isOnline,
+                                isApproved,
+                                bookingState,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Bottom Dock (Hide if Active Visit)
+                        if (!hasActiveVisit) _buildBottomDock(context),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
     );
   }
 
-  Widget _buildDynamicContent(bool isOnline, bool isApproved) {
+  Widget _buildErrorView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.cloud_off_outlined, size: 80, color: Colors.grey[400]),
+            const SizedBox(height: 24),
+            const Text(
+              'Could Not Load Profile',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Unable to connect to the server',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.read<NurseProfileCubit>().loadProfile();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry Connection'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary500,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDynamicContent(
+    bool isOnline,
+    bool isApproved,
+    NurseBookingState bookingState,
+  ) {
     if (!isOnline) return _buildOfflineView(isApproved);
 
-    // Online Logic
-    switch (_testState) {
-      case NurseHomeTestState.idle:
-        return _buildRadarView();
-      case NurseHomeTestState.incoming:
-        return _buildIncomingRequestView();
-      case NurseHomeTestState.active:
-        return _buildActiveVisitView();
+    if (bookingState is NurseBookingLoading) {
+      return const Center(child: CircularProgressIndicator());
     }
+
+    if (bookingState is NurseBookingIdle) {
+      if (bookingState.pendingBookings.isEmpty) {
+        return _buildRadarView();
+      } else {
+        // Show incoming request
+        return _buildIncomingRequestView(bookingState.pendingBookings.first);
+      }
+    }
+
+    if (bookingState is NurseBookingInProgress) {
+      return _buildActiveVisitView(bookingState.booking);
+    }
+
+    return _buildRadarView();
   }
 
   // --- WIDGETS ---
@@ -270,7 +377,7 @@ class _NurseHomePageState extends State<NurseHomePage>
     );
   }
 
-  Widget _buildAvailabilityCard(bool isOnline, bool isEnabled) {
+  Widget _buildAvailabilityCard(bool isOnline, bool isApproved) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -326,10 +433,18 @@ class _NurseHomePageState extends State<NurseHomePage>
             child: Switch(
               value: isOnline,
               onChanged:
-                  isEnabled
-                      ? (val) => context
-                          .read<NurseProfileCubit>()
-                          .toggleOnlineStatus(val)
+                  isApproved
+                      ? (val) {
+                        context.read<NurseProfileCubit>().toggleOnlineStatus(
+                          val,
+                        );
+                        print(
+                          '🔄 Toggle switch clicked: $val, isApproved: $isApproved',
+                        );
+                        if (val) {
+                          context.read<NurseBookingCubit>().fetchBookings();
+                        }
+                      }
                       : null,
               activeColor: Colors.white,
               activeTrackColor: Colors.white.withOpacity(0.3),
@@ -395,15 +510,10 @@ class _NurseHomePageState extends State<NurseHomePage>
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 10),
-              TextButton.icon(
-                onPressed:
-                    () => setState(
-                      () => _testState = NurseHomeTestState.incoming,
-                    ),
-                icon: const Icon(Icons.bug_report, size: 16),
-                label: const Text('Simulate Incoming Request (Test)'),
-                style: TextButton.styleFrom(backgroundColor: Colors.grey[100]),
+              const SizedBox(height: 8),
+              Text(
+                'Requests will appear automatically',
+                style: TextStyle(color: Colors.grey[400], fontSize: 12),
               ),
             ],
           ),
@@ -412,7 +522,7 @@ class _NurseHomePageState extends State<NurseHomePage>
     );
   }
 
-  Widget _buildIncomingRequestView() {
+  Widget _buildIncomingRequestView(NurseBooking booking) {
     return Container(
       color: AppColors.primary50,
       width: double.infinity,
@@ -450,46 +560,56 @@ class _NurseHomePageState extends State<NurseHomePage>
                   children: [
                     CircleAvatar(
                       backgroundColor: Colors.grey[200],
-                      radius: 25,
+                      radius: 30,
                       child: const Icon(
                         Icons.person,
                         color: Colors.grey,
-                        size: 30,
+                        size: 35,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Sarah Johnson',
-                      style: TextStyle(
+                    const SizedBox(height: 12),
+                    Text(
+                      booking.patientName,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const Text(
-                      '4.8 ⭐ (12 visits)',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    const Divider(height: 20),
-                    _infoRow(Icons.location_on, '2.5 km away (10 mins)'),
+                    if (booking.patientPhone != null)
+                      Text(
+                        booking.patientPhone!,
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    const Divider(height: 24),
+                    _infoRow(Icons.medical_services, booking.serviceName),
                     const SizedBox(height: 10),
                     _infoRow(
-                      Icons.medical_services,
-                      'Wound Dressing & Injection',
+                      Icons.access_time,
+                      booking.isAsap ? 'ASAP Request' : 'Scheduled',
                     ),
+                    if (booking.address != null) ...[
+                      const SizedBox(height: 10),
+                      _infoRow(Icons.location_on, booking.address!.fullAddress),
+                    ],
+                    if (booking.notes != null && booking.notes!.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      _infoRow(Icons.message, booking.notes!),
+                    ],
                     const SizedBox(height: 10),
                     _infoRow(
-                      Icons.message,
-                      'I need help with post-surgery dressing.',
+                      Icons.attach_money,
+                      'EGP ${booking.servicePrice.toStringAsFixed(0)}',
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     Row(
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed:
-                                () => setState(
-                                  () => _testState = NurseHomeTestState.idle,
-                                ),
+                            onPressed: () {
+                              context
+                                  .read<NurseBookingCubit>()
+                                  .declineBooking();
+                            },
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               side: const BorderSide(color: Colors.red),
@@ -501,36 +621,23 @@ class _NurseHomePageState extends State<NurseHomePage>
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed:
-                                () => setState(
-                                  () => _testState = NurseHomeTestState.active,
-                                ),
+                            onPressed: () {
+                              context.read<NurseBookingCubit>().acceptBooking(
+                                booking.id,
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               backgroundColor: AppColors.primary500,
                               foregroundColor: Colors.white,
                             ),
-                            child: const Text('Accept Visit'),
+                            child: const Text('Accept'),
                           ),
                         ),
                       ],
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 20),
-              LinearPercentIndicator(
-                animation: true,
-                lineHeight: 4.0,
-                animationDuration: 30000,
-                percent: 1.0,
-                progressColor: AppColors.primary500,
-                onAnimationEnd: () {},
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Accept within 30s',
-                style: TextStyle(color: Colors.grey),
               ),
             ],
           ),
@@ -539,7 +646,12 @@ class _NurseHomePageState extends State<NurseHomePage>
     );
   }
 
-  Widget _buildActiveVisitView() {
+  Widget _buildActiveVisitView(NurseBooking booking) {
+    final duration =
+        booking.visitStartedAt != null
+            ? DateTime.now().difference(booking.visitStartedAt!)
+            : Duration.zero;
+
     return Container(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -551,66 +663,170 @@ class _NurseHomePageState extends State<NurseHomePage>
               color: AppColors.success50,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.directions_car, color: AppColors.success600),
-                SizedBox(width: 10),
-                Text(
-                  'En Route to Patient',
-                  style: TextStyle(
-                    color: AppColors.success700,
-                    fontWeight: FontWeight.bold,
+                const Icon(Icons.local_hospital, color: AppColors.success600),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Visit In Progress',
+                    style: TextStyle(
+                      color: AppColors.success700,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${duration.inMinutes}m ${duration.inSeconds % 60}s',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.success700,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+
+          // Patient Info
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              children: [
+                Row(
                   children: [
-                    Icon(Icons.map_outlined, size: 50, color: Colors.grey[400]),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Map View Simulation',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: AppColors.primary50,
+                      child: const Icon(
+                        Icons.person,
+                        size: 35,
+                        color: AppColors.primary500,
                       ),
                     ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            booking.patientName,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            booking.serviceName,
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (booking.patientPhone != null)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.phone,
+                          color: AppColors.primary500,
+                        ),
+                        onPressed: () {
+                          // TODO: Call patient
+                        },
+                      ),
                   ],
                 ),
+                if (booking.address != null) ...[
+                  const Divider(height: 24),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: Colors.grey,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          booking.address!.fullAddress,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          const Spacer(),
+
+          // Complete Visit Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                _showCompleteVisitDialog(booking);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success500,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: const Text(
+                'Complete Visit',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
-          ),
-          const SizedBox(height: 24),
-          const Text('Patient Address', style: TextStyle(color: Colors.grey)),
-          const Text(
-            '123 Al-Noor St, Cairo',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed:
-                () => setState(() => _testState = NurseHomeTestState.idle),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary600,
-              foregroundColor: Colors.white,
-              minimumSize: const Size.fromHeight(56),
-            ),
-            child: const Text('Complete Visit'),
           ),
         ],
       ),
+    );
+  }
+
+  void _showCompleteVisitDialog(NurseBooking booking) {
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Complete Visit?'),
+            content: const Text(
+              'Are you sure you want to mark this visit as complete? This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  context.read<NurseBookingCubit>().completeVisit(booking.id);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.success500,
+                ),
+                child: const Text('Complete'),
+              ),
+            ],
+          ),
     );
   }
 
@@ -619,7 +835,12 @@ class _NurseHomePageState extends State<NurseHomePage>
       children: [
         Icon(icon, size: 18, color: Colors.grey),
         const SizedBox(width: 8),
-        Text(text, style: const TextStyle(fontWeight: FontWeight.w500)),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+        ),
       ],
     );
   }
