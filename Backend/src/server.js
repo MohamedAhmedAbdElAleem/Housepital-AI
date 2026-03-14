@@ -4,6 +4,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
+const jwt = require("jsonwebtoken");
 const { logger, logEvents } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const connectDB = require("./config/dbConn");
@@ -12,6 +15,102 @@ const cloudinaryRoutes = require('./routes/cloudinaryRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3500;
+
+// Create HTTP server for Socket.io
+const server = http.createServer(app);
+
+// Initialize Socket.io
+const io = new Server(server, {
+	cors: {
+		origin: "*",
+		methods: ["GET", "POST"],
+		credentials: true
+	}
+});
+
+// Store io instance on app for use by controllers/services
+app.set("io", io);
+
+// Socket.io JWT Authentication Middleware
+io.use((socket, next) => {
+	const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+	if (!token) {
+		return next(new Error("Authentication required"));
+	}
+
+	try {
+		const secretKey = process.env.JWT_SECRET_KEY || 'housepital_secret_key_2024';
+		const decoded = jwt.verify(token, secretKey);
+		socket.userId = decoded.id;
+		socket.userRole = decoded.role;
+		next();
+	} catch (err) {
+		return next(new Error("Invalid token"));
+	}
+});
+
+// Socket.io Connection Handler
+io.on("connection", (socket) => {
+	const { userId, userRole } = socket;
+	console.log(`🔌 Socket connected: ${userId} (${userRole})`);
+
+	// Join role-based rooms for targeted notifications
+	if (userRole === "nurse") {
+		socket.join(`nurse_${userId}`);
+	} else if (userRole === "customer") {
+		socket.join(`patient_${userId}`);
+	}
+
+	// Nurse location update (real-time tracking)
+	socket.on("nurse:update_location", async (data) => {
+		try {
+			const Nurse = require("./models/Nurse");
+			await Nurse.findOneAndUpdate(
+				{ user: userId },
+				{
+					currentLocation: {
+						type: "Point",
+						coordinates: [data.longitude, data.latitude]
+					},
+					isOnline: true,
+					lastOnlineAt: new Date()
+				}
+			);
+		} catch (err) {
+			console.error("Error updating nurse location:", err.message);
+		}
+	});
+
+	// Nurse goes online/offline
+	socket.on("nurse:set_online", async (isOnline) => {
+		try {
+			const Nurse = require("./models/Nurse");
+			await Nurse.findOneAndUpdate(
+				{ user: userId },
+				{ isOnline, lastOnlineAt: new Date() }
+			);
+			console.log(`👩‍⚕️ Nurse ${userId} is now ${isOnline ? 'online' : 'offline'}`);
+		} catch (err) {
+			console.error("Error toggling nurse online:", err.message);
+		}
+	});
+
+	socket.on("disconnect", async () => {
+		console.log(`🔌 Socket disconnected: ${userId}`);
+		// Mark nurse as offline on disconnect
+		if (userRole === "nurse") {
+			try {
+				const Nurse = require("./models/Nurse");
+				await Nurse.findOneAndUpdate(
+					{ user: userId },
+					{ isOnline: false, lastOnlineAt: new Date() }
+				);
+			} catch (err) {
+				console.error("Error marking nurse offline:", err.message);
+			}
+		}
+	});
+});
 
 connectDB();
 
@@ -41,6 +140,7 @@ app.use('/api/cloudinary', require('./routes/cloudinaryRoutes'));
 app.use('/api/triage', require('./routes/triageRoutes'));
 app.use("/api/doctors", require("./routes/doctorRoutes"));
 app.use("/api/clinics", require("./routes/clinicRoutes"));
+app.use("/api/matching", require("./routes/matchingRoutes"));
 
 // Serve static files (for ID document images)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -55,8 +155,9 @@ app.use(errorHandler);
 
 mongoose.connection.once("open", () => {
     console.log("Connected to MongoDB");
-    const server = app.listen(PORT, "0.0.0.0", () => {
+    server.listen(PORT, "0.0.0.0", () => {
         console.log(`Server running on port ${PORT}`);
+        console.log(`Socket.io ready for connections`);
     });
 
     // Graceful Shutdown Logic
