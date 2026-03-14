@@ -77,6 +77,7 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
       description: _descriptionController.text.isNotEmpty
           ? _descriptionController.text
           : null,
+      type: widget.serviceToEdit?.type ?? 'clinic',
       price: double.parse(_priceController.text),
       durationMinutes: int.parse(_durationController.text),
       clinics: _selectedClinicIds,

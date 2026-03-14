@@ -2,24 +2,22 @@ const express = require("express");
 const router = express.Router();
 const { authenticateToken } = require("../middleware/authMiddleware");
 const {
-	addClinic,
-	getMyClinics,
-	updateClinic,
-	deleteClinic,
-	getAllClinicsPublic,
-	getClinicByIdPublic,
-} = require("../controllers/clinicController");
+	getServicesByClinic,
+	getMyServices,
+	createService,
+	updateService,
+	deleteService,
+} = require("../controllers/serviceController");
 
 // ── Public routes (no auth) ───────────────────────────────────────────────
-router.get("/public", getAllClinicsPublic);
-router.get("/public/:id", getClinicByIdPublic);
+router.get("/public/by-clinic/:clinicId", getServicesByClinic);
 
 // ── Protected routes ──────────────────────────────────────────────────────
 router.use(authenticateToken);
 
-router.post("/", addClinic);
-router.get("/my-clinics", getMyClinics);
-router.put("/:id", updateClinic);
-router.delete("/:id", deleteClinic);
+router.get("/my-services", getMyServices);
+router.post("/", createService);
+router.put("/:id", updateService);
+router.delete("/:id", deleteService);
 
 module.exports = router;

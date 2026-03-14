@@ -20,9 +20,10 @@ class BookingsPage extends StatefulWidget {
 class _BookingsPageState extends State<BookingsPage>
     with TickerProviderStateMixin {
   List<dynamic> _bookings = [];
-  bool _isLoading = true;
+  bool _isLoading = false;
   int _currentNavIndex = 1;
   int _selectedTab = 0;
+  int _selectedType = 0; // 0=All, 1=Nursing, 2=Clinic
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
@@ -37,6 +38,7 @@ class _BookingsPageState extends State<BookingsPage>
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
+      value: 1.0, // start fully visible — content shows immediately
     );
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
@@ -51,11 +53,20 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   Future<void> _fetchBookings() async {
-    setState(() => _isLoading = true);
+    // Show mock data immediately while loading real data
+    if (_bookings.isEmpty) {
+      setState(() {
+        _bookings = _getMockBookings();
+        _isLoading = false;
+      });
+    } else {
+      setState(() => _isLoading = true);
+    }
 
     try {
       final userId = await TokenManager.getUserId();
       if (userId == null || userId.isEmpty) {
+        // Not logged in — keep mock data visible
         if (mounted) setState(() => _isLoading = false);
         return;
       }
@@ -64,22 +75,15 @@ class _BookingsPageState extends State<BookingsPage>
       final response = await apiService.get('/api/bookings/my-bookings');
 
       if (mounted) {
+        final fetched =
+            response is List ? response : (response['bookings'] ?? []) as List;
         setState(() {
-          _bookings =
-              response is List ? response : (response['bookings'] ?? []);
-          if (_bookings.isEmpty) _bookings = _getMockBookings();
+          if (fetched.isNotEmpty) _bookings = fetched;
           _isLoading = false;
         });
-        _fadeController.forward();
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _bookings = _getMockBookings();
-          _isLoading = false;
-        });
-        _fadeController.forward();
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -145,16 +149,96 @@ class _BookingsPageState extends State<BookingsPage>
         'nurseName': 'Ahmed Karim',
         'nurseRating': 5.0,
       },
+      // ── Clinic Appointments (mock) ──
+      {
+        'id': 'mock6',
+        'type': 'clinic_appointment',
+        'serviceName': 'Dermatology Consultation',
+        'patientName': 'Ahmed Ali',
+        'status': 'confirmed',
+        'servicePrice': 250,
+        'scheduledDate': DateTime.now().add(const Duration(days: 2)).toIso8601String(),
+        'scheduledTime': '10:30',
+        'doctorName': 'Dr. Mona Saleh',
+        'doctorSpecialization': 'Dermatologist',
+        'clinicName': 'Skin Care Clinic',
+        'timeOption': 'schedule',
+      },
+      {
+        'id': 'mock7',
+        'type': 'clinic_appointment',
+        'serviceName': 'General Checkup',
+        'patientName': 'Ahmed Ali',
+        'status': 'pending',
+        'servicePrice': 150,
+        'scheduledDate': DateTime.now().add(const Duration(days: 4)).toIso8601String(),
+        'doctorName': 'Dr. Karim Hassan',
+        'doctorSpecialization': 'General Practitioner',
+        'clinicName': 'City Medical Center',
+        'timeOption': 'queue',
+      },
+      {
+        'id': 'mock8',
+        'type': 'clinic_appointment',
+        'serviceName': 'Eye Exam',
+        'patientName': 'Ahmed Ali',
+        'status': 'completed',
+        'servicePrice': 200,
+        'scheduledDate': DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
+        'scheduledTime': '14:00',
+        'doctorName': 'Dr. Sara Nour',
+        'doctorSpecialization': 'Ophthalmologist',
+        'clinicName': 'Vision Plus Clinic',
+        'timeOption': 'schedule',
+      },
     ];
   }
 
+  bool _isClinic(dynamic b) =>
+      (b['type'] ?? b['bookingType'] ?? '') == 'clinic_appointment';
+
+  /// Extract doctor/clinic names from populated API objects or flat mock fields
+  String? _doctorName(Map<String, dynamic> b) {
+    // Flat field (mock or client-enriched)
+    if (b['doctorName'] != null) return b['doctorName'] as String;
+    // Populated: doctorId -> { user: { name } }
+    final doc = b['doctorId'];
+    if (doc is Map) {
+      final user = doc['user'];
+      if (user is Map) return user['name'] as String?;
+      return doc['name'] as String?;
+    }
+    return null;
+  }
+
+  String _doctorSpec(Map<String, dynamic> b) {
+    if (b['doctorSpecialization'] != null) return b['doctorSpecialization'];
+    final doc = b['doctorId'];
+    if (doc is Map) return (doc['specialization'] ?? '') as String;
+    return '';
+  }
+
+  String _clinicName(Map<String, dynamic> b) {
+    if (b['clinicName'] != null) return b['clinicName'] as String;
+    final c = b['clinicId'];
+    if (c is Map) return (c['name'] ?? '') as String;
+    return '';
+  }
+
+  List<dynamic> get _filteredBookings {
+    if (_selectedType == 0) return _bookings;
+    return _bookings
+        .where((b) => _selectedType == 2 ? _isClinic(b) : !_isClinic(b))
+        .toList();
+  }
+
   List<dynamic> get _activeBookings =>
-      _bookings
+      _filteredBookings
           .where((b) => BookingUtils.activeStatuses.contains(b['status']))
           .toList();
 
   List<dynamic> get _historyBookings =>
-      _bookings
+      _filteredBookings
           .where((b) => BookingUtils.historyStatuses.contains(b['status']))
           .toList();
 
@@ -173,6 +257,7 @@ class _BookingsPageState extends State<BookingsPage>
         children: [
           _buildHeader(),
           _buildTabSelector(),
+          _buildTypeFilter(),
           Expanded(
             child:
                 _isLoading
@@ -397,6 +482,67 @@ class _BookingsPageState extends State<BookingsPage>
     );
   }
 
+  Widget _buildTypeFilter() {
+    const types = [
+      ('الكل', Icons.apps_rounded),
+      ('تمريض', Icons.medical_services_rounded),
+      ('عيادة', Icons.local_hospital_rounded),
+    ];
+    final activeColors = [
+      const Color(0xFF00B870),
+      const Color(0xFF00B870),
+      const Color(0xFF3B82F6),
+    ];
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      child: Row(
+        children: List.generate(types.length, (i) {
+          final selected = _selectedType == i;
+          final (label, icon) = types[i];
+          final color = activeColors[i];
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedType = i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: EdgeInsets.only(right: i < 2 ? 8 : 0),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: selected ? color : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: selected ? Colors.transparent : const Color(0xFFE2E8F0),
+                  ),
+                  boxShadow: selected
+                      ? [BoxShadow(
+                          color: color.withOpacity(0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3))]
+                      : [],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon,
+                        color: selected ? Colors.white : const Color(0xFF94A3B8),
+                        size: 15),
+                    const SizedBox(width: 6),
+                    Text(label,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: selected ? Colors.white : const Color(0xFF64748B),
+                        )),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
   Widget _buildLoadingState() {
     return Center(
       child: Column(
@@ -475,10 +621,28 @@ class _BookingsPageState extends State<BookingsPage>
 
   Widget _buildActiveBookingCard(Map<String, dynamic> booking, int index) {
     final status = booking['status'] ?? 'pending';
+    final isClinic = _isClinic(booking);
     final serviceName = booking['serviceName'] ?? 'Service';
     final patientName = booking['patientName'] ?? 'Patient';
-    final nurseName = booking['nurseName'];
     final price = (booking['servicePrice'] ?? 0).toDouble();
+
+    // Provider row data
+    final nurseName = booking['nurseName'] as String?;
+    final doctorName = _doctorName(booking);
+    final providerName = isClinic ? doctorName : nurseName;
+    final providerSub = isClinic
+        ? (_doctorSpec(booking).isNotEmpty
+            ? _doctorSpec(booking)
+            : _clinicName(booking))
+        : '${booking['nurseRating'] ?? 4.5}';
+
+    // Scheduled info
+    final scheduledDate = booking['scheduledDate'] as String?;
+    final scheduledTime = booking['scheduledTime'] as String?;
+    final isQueue = booking['timeOption'] == 'queue';
+
+    // Colors
+    final baseColor = isClinic ? const Color(0xFF3B82F6) : const Color(0xFF00B870);
 
     Color statusColor;
     String statusLabel;
@@ -486,9 +650,11 @@ class _BookingsPageState extends State<BookingsPage>
 
     switch (status) {
       case 'in-progress':
-        statusColor = const Color(0xFF00B870);
-        statusLabel = 'In Progress';
-        statusIcon = Icons.directions_car_rounded;
+        statusColor = baseColor;
+        statusLabel = isClinic ? 'In Clinic' : 'In Progress';
+        statusIcon = isClinic
+            ? Icons.local_hospital_rounded
+            : Icons.directions_car_rounded;
         break;
       case 'confirmed':
       case 'assigned':
@@ -499,8 +665,8 @@ class _BookingsPageState extends State<BookingsPage>
       case 'searching':
       case 'pending':
         statusColor = const Color(0xFFF59E0B);
-        statusLabel = 'Finding Nurse';
-        statusIcon = Icons.search_rounded;
+        statusLabel = isClinic ? 'Awaiting Confirmation' : 'Finding Nurse';
+        statusIcon = isClinic ? Icons.hourglass_top_rounded : Icons.search_rounded;
         break;
       default:
         statusColor = const Color(0xFF64748B);
@@ -605,7 +771,9 @@ class _BookingsPageState extends State<BookingsPage>
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Icon(
-                          Icons.medical_services_rounded,
+                          isClinic
+                              ? Icons.local_hospital_rounded
+                              : Icons.medical_services_rounded,
                           color: statusColor,
                           size: 26,
                         ),
@@ -641,6 +809,45 @@ class _BookingsPageState extends State<BookingsPage>
                                 ),
                               ],
                             ),
+                            // Clinic: show scheduled date/time or queue badge
+                            if (isClinic) ...[  
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    isQueue
+                                        ? Icons.people_rounded
+                                        : Icons.calendar_today_rounded,
+                                    size: 13,
+                                    color: baseColor,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      isQueue
+                                          ? 'طابور'
+                                          : [
+                                              if (scheduledDate != null)
+                                                () {
+                                                  try {
+                                                    return DateFormat('d MMM').format(
+                                                        DateTime.parse(scheduledDate));
+                                                  } catch (_) {
+                                                    return scheduledDate;
+                                                  }
+                                                }(),
+                                              if (scheduledTime != null) scheduledTime,
+                                            ].join(' · '),
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: baseColor,
+                                          fontWeight: FontWeight.w500),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -649,10 +856,12 @@ class _BookingsPageState extends State<BookingsPage>
                         children: [
                           Text(
                             '${price.toStringAsFixed(0)} EGP',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF00B870),
+                              color: isClinic
+                                  ? const Color(0xFF3B82F6)
+                                  : const Color(0xFF00B870),
                             ),
                           ),
                         ],
@@ -660,7 +869,7 @@ class _BookingsPageState extends State<BookingsPage>
                     ],
                   ),
 
-                  if (nurseName != null) ...[
+                  if (providerName != null) ...[
                     const SizedBox(height: 14),
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -684,7 +893,7 @@ class _BookingsPageState extends State<BookingsPage>
                             ),
                             child: Center(
                               child: Text(
-                                nurseName[0],
+                                providerName[0],
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -699,7 +908,7 @@ class _BookingsPageState extends State<BookingsPage>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  nurseName,
+                                  providerName,
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -708,17 +917,24 @@ class _BookingsPageState extends State<BookingsPage>
                                 ),
                                 Row(
                                   children: [
-                                    const Icon(
-                                      Icons.star,
-                                      color: Color(0xFFF59E0B),
-                                      size: 14,
+                                    Icon(
+                                      isClinic
+                                          ? Icons.info_outline_rounded
+                                          : Icons.star,
+                                      color: isClinic
+                                          ? const Color(0xFF64748B)
+                                          : const Color(0xFFF59E0B),
+                                      size: 13,
                                     ),
                                     const SizedBox(width: 4),
-                                    Text(
-                                      '${booking['nurseRating'] ?? 4.5}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
+                                    Expanded(
+                                      child: Text(
+                                        providerSub,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
@@ -731,12 +947,14 @@ class _BookingsPageState extends State<BookingsPage>
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF00B870).withOpacity(0.1),
+                                color: baseColor.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(
-                                Icons.phone_rounded,
-                                color: Color(0xFF00B870),
+                              child: Icon(
+                                isClinic
+                                    ? Icons.directions_rounded
+                                    : Icons.phone_rounded,
+                                color: baseColor,
                                 size: 20,
                               ),
                             ),
@@ -748,28 +966,27 @@ class _BookingsPageState extends State<BookingsPage>
 
                   const SizedBox(height: 14),
 
-                  // Actions
+                  // Actions — clinic: no Track button
                   Row(
                     children: [
-                      if (status == 'in-progress' || status == 'confirmed')
+                      if (!isClinic &&
+                          (status == 'in-progress' || status == 'confirmed'))
                         Expanded(
                           child: _buildActionButton(
                             label: 'Track',
                             icon: Icons.location_on_rounded,
                             color: const Color(0xFF00B870),
-                            onTap:
-                                () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (_) => BookingTrackingPage(
-                                          booking: booking,
-                                        ),
-                                  ),
-                                ),
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    BookingTrackingPage(booking: booking),
+                              ),
+                            ),
                           ),
                         ),
-                      if (status == 'in-progress' || status == 'confirmed')
+                      if (!isClinic &&
+                          (status == 'in-progress' || status == 'confirmed'))
                         const SizedBox(width: 10),
                       Expanded(
                         child: _buildActionButton(
@@ -792,11 +1009,24 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   Widget _buildHistoryBookingCard(Map<String, dynamic> booking, int index) {
+    final isClinic = _isClinic(booking);
     final serviceName = booking['serviceName'] ?? 'Service';
-    final nurseName = booking['nurseName'] ?? 'Provider';
     final price = (booking['servicePrice'] ?? 0).toDouble();
     final scheduledDate = booking['scheduledDate'];
     final rating = booking['nurseRating'] ?? 0.0;
+
+    // Provider name
+    final providerName = isClinic
+        ? (_doctorName(booking) ?? _clinicName(booking))
+        : (booking['nurseName'] ?? 'Nurse');
+    final providerSub = isClinic
+        ? (_clinicName(booking).isNotEmpty
+            ? _clinicName(booking)
+            : _doctorSpec(booking))
+        : null;
+
+    final cardColor =
+        isClinic ? const Color(0xFF3B82F6) : const Color(0xFF00B870);
 
     String dateLabel = 'Completed';
     if (scheduledDate != null) {
@@ -873,13 +1103,29 @@ class _BookingsPageState extends State<BookingsPage>
                           shape: BoxShape.circle,
                         ),
                       ),
-                      Text(
-                        nurseName,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      Flexible(
+                        child: Text(
+                          providerName,
+                          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
-                  if (rating > 0) ...[
+                  if (isClinic && providerSub != null && providerSub.isNotEmpty) ...[  
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(Icons.local_hospital_rounded,
+                            size: 12, color: cardColor),
+                        const SizedBox(width: 4),
+                        Text(providerSub,
+                            style: TextStyle(
+                                fontSize: 11, color: cardColor)),
+                      ],
+                    ),
+                  ],
+                  if (!isClinic && rating > 0) ...[
                     const SizedBox(height: 6),
                     Row(
                       children: List.generate(5, (i) {
@@ -899,10 +1145,12 @@ class _BookingsPageState extends State<BookingsPage>
               children: [
                 Text(
                   '${price.toStringAsFixed(0)} EGP',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: isClinic
+                        ? const Color(0xFF3B82F6)
+                        : const Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1053,7 +1301,9 @@ class _BookingsPageState extends State<BookingsPage>
             isLateCancel: isLate,
             onConfirm: () {
               Navigator.pop(context);
-              _performCancelBooking(booking['id']);
+              final bookingId =
+                  (booking['_id'] ?? booking['id'] ?? '') as String;
+              _performCancelBooking(bookingId);
             },
             onCancel: () => Navigator.pop(context),
           ),

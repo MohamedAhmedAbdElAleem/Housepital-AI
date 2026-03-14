@@ -6,7 +6,7 @@ const bookingSchema = new mongoose.Schema({
 		type: String,
 		enum: ["home_nursing", "clinic_appointment"],
 		required: true,
-		default: "home_nursing"
+		default: "home_nursing",
 	},
 
 	// Service Information
@@ -35,7 +35,7 @@ const bookingSchema = new mongoose.Schema({
 	},
 	dependentId: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: "Dependent"
+		ref: "Dependent",
 	},
 	isForSelf: {
 		type: Boolean,
@@ -56,21 +56,21 @@ const bookingSchema = new mongoose.Schema({
 	},
 	toolsProvidedByNurse: {
 		type: Boolean,
-		default: false
+		default: false,
 	},
 	toolsDeposit: {
 		type: Number,
-		default: 0
+		default: 0,
 	},
 	actualToolsCost: {
 		type: Number,
-		default: 0
+		default: 0,
 	},
 
 	// Visit Details
 	timeOption: {
 		type: String,
-		enum: ["asap", "schedule"],
+		enum: ["asap", "schedule", "queue"],
 		required: true,
 	},
 	scheduledDate: {
@@ -81,11 +81,11 @@ const bookingSchema = new mongoose.Schema({
 	},
 	isRushBooking: {
 		type: Boolean,
-		default: false
+		default: false,
 	},
 	rushPremiumAmount: {
 		type: Number,
-		default: 0
+		default: 0,
 	},
 
 	// Service Location (for home nursing)
@@ -100,27 +100,27 @@ const bookingSchema = new mongoose.Schema({
 		coordinates: {
 			type: {
 				type: String,
-				enum: ["Point"]
+				enum: ["Point"],
 			},
-			coordinates: [Number] // [longitude, latitude]
-		}
+			coordinates: [Number], // [longitude, latitude]
+		},
 	},
 
 	// Clinic Information (for clinic appointments)
 	clinicId: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: "Clinic"
+		ref: "Clinic",
 	},
 	doctorId: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: "Doctor"
+		ref: "Doctor",
 	},
 
 	// Nurse Gender Preference
 	nurseGenderPreference: {
 		type: String,
 		enum: ["male", "female", "any"],
-		default: "any"
+		default: "any",
 	},
 
 	// Additional Information
@@ -137,13 +137,13 @@ const bookingSchema = new mongoose.Schema({
 		type: String,
 		enum: [
 			"pending",
-			"searching",      // looking for nurse/confirming
+			"searching", // looking for nurse/confirming
 			"confirmed",
 			"assigned",
 			"in-progress",
 			"completed",
 			"cancelled",
-			"no-show"
+			"no-show",
 		],
 		default: "pending",
 	},
@@ -157,75 +157,75 @@ const bookingSchema = new mongoose.Schema({
 	// Matching Process (for home nursing)
 	matchingAttempts: {
 		type: Number,
-		default: 0
+		default: 0,
 	},
 	nurseResponseTime: {
 		type: Number, // in seconds
-		default: 0
+		default: 0,
 	},
 
 	// Visit Security & Tracking
 	visitPin: {
 		type: String,
 		minlength: 4,
-		maxlength: 4
+		maxlength: 4,
 	},
 	visitQrCode: {
-		type: String
+		type: String,
 	},
 	checkedInAt: {
-		type: Date
+		type: Date,
 	},
 	visitStartedAt: {
-		type: Date
+		type: Date,
 	},
 	visitEndedAt: {
-		type: Date
+		type: Date,
 	},
 	visitReport: {
 		type: String,
-		trim: true
+		trim: true,
 	},
 
 	// Cancellation Details
 	cancelledBy: {
 		type: String,
-		enum: ["customer", "nurse", "doctor", "system", "admin"]
+		enum: ["customer", "nurse", "doctor", "system", "admin"],
 	},
 	cancelledAt: {
-		type: Date
+		type: Date,
 	},
 	cancellationReason: {
 		type: String,
-		trim: true
+		trim: true,
 	},
 	cancellationFee: {
 		type: Number,
-		default: 0
+		default: 0,
 	},
 	refundAmount: {
 		type: Number,
-		default: 0
+		default: 0,
 	},
 
 	// Ratings
 	customerRating: {
 		type: Number,
 		min: 1,
-		max: 5
+		max: 5,
 	},
 	customerReview: {
 		type: String,
-		trim: true
+		trim: true,
 	},
 	providerRating: {
 		type: Number,
 		min: 1,
-		max: 5
+		max: 5,
 	},
 	providerReview: {
 		type: String,
-		trim: true
+		trim: true,
 	},
 
 	// Matching System Integration
@@ -253,7 +253,7 @@ const bookingSchema = new mongoose.Schema({
 	// Payment
 	totalAmount: {
 		type: Number,
-		default: 0
+		default: 0,
 	},
 	paymentStatus: {
 		type: String,
@@ -262,10 +262,10 @@ const bookingSchema = new mongoose.Schema({
 	},
 	paymentMethod: {
 		type: String,
-		enum: ["cash", "card", "wallet", "fawry"]
+		enum: ["cash", "card", "wallet", "fawry"],
 	},
 	paidAt: {
-		type: Date
+		type: Date,
 	},
 
 	// Timestamps

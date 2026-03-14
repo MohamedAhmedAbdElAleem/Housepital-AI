@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/utils/token_manager.dart';
 import '../../data/models/doctor_model.dart';
 import '../cubit/doctor_cubit.dart';
@@ -28,6 +30,10 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
   bool _isUploadingProfile = false;
   bool _isUploadingLicense = false;
   bool _isSaving = false;
+  bool _isEditing = true;
+
+  // Image Picker
+  final ImagePicker _picker = ImagePicker();
 
   // Current Profile Data
   DoctorModel? _currentProfile;
@@ -90,7 +96,8 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
       if (mounted) setState(() => _isPickingImage = false);
       return;
     } finally {
-      if (mounted && pickedFile == null) setState(() => _isPickingImage = false);
+      if (mounted && pickedFile == null)
+        setState(() => _isPickingImage = false);
     }
     // If no profile yet (create mode), we can't update.
     // Ideally we should create profile first or handle this case.
@@ -143,7 +150,9 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${isProfile ? "Profile" : "License"} photo updated!'),
+            content: Text(
+              '${isProfile ? "Profile" : "License"} photo updated!',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -170,6 +179,9 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
       }
     }
   }
+
+  // _submitForm is the canonical save method used by the Submit button
+  Future<void> _submitForm() => _saveChanges();
 
   Future<void> _saveChanges() async {
     if (!_formKey.currentState!.validate() || _currentProfile == null) return;
@@ -198,7 +210,10 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Save failed: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Save failed: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {

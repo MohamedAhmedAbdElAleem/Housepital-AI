@@ -10,8 +10,7 @@ const jwt = require("jsonwebtoken");
 const { logger, logEvents } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const connectDB = require("./config/dbConn");
-const cloudinaryRoutes = require('./routes/cloudinaryRoutes');
-
+const cloudinaryRoutes = require("./routes/cloudinaryRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3500;
@@ -124,12 +123,12 @@ app.use(
 		credentials: true,
 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 		allowedHeaders: ["Content-Type", "Authorization"],
-	})
+	}),
 );
 
 app.use(logger);
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -139,15 +138,16 @@ app.use("/api/profile", require("./routes/profileRoutes"));
 app.use("/api/bookings", require("./routes/bookingRoutes"));
 app.use("/api/admin/insights", require("./routes/insightsRoutes"));
 app.use("/api/admin/powerbi", require("./routes/powerBiRoutes"));
-app.use('/api/cloudinary', require('./routes/cloudinaryRoutes'));
-app.use('/api/triage', require('./routes/triageRoutes'));
+app.use("/api/cloudinary", require("./routes/cloudinaryRoutes"));
+app.use("/api/triage", require("./routes/triageRoutes"));
 app.use("/api/doctors", require("./routes/doctorRoutes"));
 app.use("/api/clinics", require("./routes/clinicRoutes"));
 app.use("/api/matching", require("./routes/matchingRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
+app.use("/api/services", require("./routes/serviceRoutes"));
 
 // Serve static files (for ID document images)
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Swagger Documentation
 const swaggerDocs = require("./config/swagger");
@@ -164,34 +164,34 @@ mongoose.connection.once("open", () => {
         console.log(`Socket.IO ready for real-time notifications`);
     });
 
-    // Graceful Shutdown Logic
-    const gracefulShutdown = async () => {
-        console.log("Received kill signal, shutting down gracefully");
-        server.close(async () => {
-            console.log("Closed out remaining connections");
-            await mongoose.connection.close();
-            console.log("MongoDb connection closed");
-            process.exit(0);
-        });
-    };
+	// Graceful Shutdown Logic
+	const gracefulShutdown = async () => {
+		console.log("Received kill signal, shutting down gracefully");
+		server.close(async () => {
+			console.log("Closed out remaining connections");
+			await mongoose.connection.close();
+			console.log("MongoDb connection closed");
+			process.exit(0);
+		});
+	};
 
-    process.on("SIGTERM", gracefulShutdown);
-    process.on("SIGINT", gracefulShutdown);
+	process.on("SIGTERM", gracefulShutdown);
+	process.on("SIGINT", gracefulShutdown);
 
-    // Handle Nodemon restart signal
-    process.once("SIGUSR2", async () => {
-        console.log("Received SIGUSR2 (Nodemon restart)");
-        server.close(async () => {
-            await mongoose.connection.close();
-            console.log("MongoDb connection closed");
-            process.kill(process.pid, "SIGUSR2");
-        });
-    });
+	// Handle Nodemon restart signal
+	process.once("SIGUSR2", async () => {
+		console.log("Received SIGUSR2 (Nodemon restart)");
+		server.close(async () => {
+			await mongoose.connection.close();
+			console.log("MongoDb connection closed");
+			process.kill(process.pid, "SIGUSR2");
+		});
+	});
 });
 
 mongoose.connection.on("error", (err) =>
 	logEvents(
 		`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
-		"mongoErrLog.log"
-	)
+		"mongoErrLog.log",
+	),
 );

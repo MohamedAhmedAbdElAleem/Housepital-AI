@@ -8,7 +8,7 @@ class ServiceModel {
   final String category;
   final String providerId;
   final String providerModel; // 'Nurse' or 'Doctor'
-  final List<String> clinicIds;
+  final List<String> clinics;
   final num price;
   final String currency;
   final int durationMinutes;
@@ -31,7 +31,7 @@ class ServiceModel {
     required this.category,
     required this.providerId,
     required this.providerModel,
-    this.clinicIds = const [],
+    this.clinics = const [],
     required this.price,
     this.currency = 'EGP',
     required this.durationMinutes,
@@ -53,7 +53,7 @@ class ServiceModel {
       category: json['category'] ?? '',
       providerId: json['providerId'] ?? '',
       providerModel: json['providerModel'] ?? 'Doctor',
-      clinicIds: json['clinics'] != null
+      clinics: json['clinics'] != null
           ? List<String>.from(
               json['clinics'].map((e) => e is String ? e : e['_id']),
             )
@@ -84,7 +84,7 @@ class ServiceModel {
       'category': category,
       'providerId': providerId,
       'providerModel': providerModel,
-      'clinics': clinicIds,
+      'clinics': clinics,
       'price': price,
       'currency': currency,
       'durationMinutes': durationMinutes,

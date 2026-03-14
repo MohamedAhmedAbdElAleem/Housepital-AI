@@ -76,6 +76,23 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> postFormData(String path, FormData formData) async {
+    try {
+      final response = await _dio.post(
+        path,
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      return _handleResponse(response);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
   Future<dynamic> put(String path, {dynamic body}) async {
     try {
       final response = await _dio.put(path, data: body);

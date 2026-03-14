@@ -4,8 +4,13 @@ import '../../core/widgets/placeholder_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/doctor/presentation/pages/doctor_profile_page.dart';
-
 import '../../features/doctor/presentation/pages/doctor_home_page.dart';
+import '../../features/doctor/presentation/pages/my_clinics_page.dart';
+import '../../features/doctor/presentation/pages/clinic_form_page.dart';
+import '../../features/doctor/presentation/pages/clinic_details_page.dart';
+import '../../features/doctor/presentation/pages/my_services_page.dart';
+import '../../features/doctor/presentation/pages/appointments_page.dart';
+import '../../features/doctor/data/models/clinic_model.dart';
 import '../../features/nurse/presentation/pages/nurse_home_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
 
@@ -26,6 +31,27 @@ class AppRouter {
 
       case AppRoutes.doctorProfile:
         return MaterialPageRoute(builder: (_) => const DoctorProfilePage());
+
+      case AppRoutes.myClinics:
+        return MaterialPageRoute(builder: (_) => const MyClinicsPage());
+
+      case AppRoutes.addClinic:
+        final clinic = settings.arguments as ClinicModel?;
+        return MaterialPageRoute(
+          builder: (_) => ClinicFormPage(clinicToEdit: clinic),
+        );
+
+      case AppRoutes.clinicDetails:
+        return MaterialPageRoute(
+          builder: (_) => const ClinicDetailsPage(),
+          settings: settings,
+        );
+
+      case AppRoutes.myServices:
+        return MaterialPageRoute(builder: (_) => const MyServicesPage());
+
+      case AppRoutes.myAppointments:
+        return MaterialPageRoute(builder: (_) => const AppointmentsPage());
 
       case AppRoutes.adminDashboard:
         return MaterialPageRoute(builder: (_) => const AdminDashboardPage());

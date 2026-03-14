@@ -37,7 +37,9 @@ void main() {
         BlocProvider(create: (_) => DoctorCubit(repository: doctorRepository)),
         BlocProvider(create: (_) => ClinicCubit(repository: doctorRepository)),
         BlocProvider(create: (_) => ServiceCubit(repository: doctorRepository)),
-        BlocProvider(create: (_) => AppointmentCubit(repository: doctorRepository)),
+        BlocProvider(
+          create: (_) => AppointmentCubit(),
+        ),
       ],
       child: const HousepitalStaffApp(),
     ),
