@@ -1,6 +1,7 @@
 const Booking = require("../models/Booking");
 const User = require("../models/User");
 const { sendNotification } = require("../services/notificationService");
+const Doctor = require("../models/Doctor");
 
 /**
  * @desc    Create a new booking
@@ -14,6 +15,7 @@ exports.createBooking = async (req, res) => {
 		console.log("User from token:", req.user);
 
 		const {
+			type, // 'home_nursing' | 'clinic_appointment'
 			serviceId,
 			serviceName,
 			servicePrice,
@@ -26,13 +28,36 @@ exports.createBooking = async (req, res) => {
 			scheduledTime,
 			notes,
 			prescriptionUrl,
+			// clinic_appointment specific
+			clinicId,
+			doctorId,
 		} = req.body;
+
+		const bookingType = type || "home_nursing";
 
 		// Validate required fields
 		if (!serviceId || !serviceName || !patientId || !timeOption) {
 			return res.status(400).json({
 				success: false,
 				message: "Missing required fields",
+			});
+		}
+
+		// Clinic appointments must always have a date; time only required for 'schedule' mode
+		if (bookingType === "clinic_appointment" && !scheduledDate) {
+			return res.status(400).json({
+				success: false,
+				message: "Clinic appointments require a scheduled date",
+			});
+		}
+		if (
+			bookingType === "clinic_appointment" &&
+			timeOption !== "queue" &&
+			!scheduledTime
+		) {
+			return res.status(400).json({
+				success: false,
+				message: "Clinic slot appointments require a scheduled time",
 			});
 		}
 
@@ -53,8 +78,15 @@ exports.createBooking = async (req, res) => {
 			});
 		}
 
+		// Queue bookings are auto-confirmed (no doctor approval needed)
+		const initialStatus =
+			bookingType === 'clinic_appointment' && timeOption === 'queue'
+				? 'confirmed'
+				: 'pending';
+
 		// Create booking
 		const booking = new Booking({
+			type: bookingType,
 			serviceId,
 			serviceName,
 			servicePrice: servicePrice || 0,
@@ -63,13 +95,21 @@ exports.createBooking = async (req, res) => {
 			isForSelf: isForSelf || false,
 			userId,
 			hasMedicalTools: hasMedicalTools || false,
-			timeOption,
+			timeOption:
+				bookingType === "clinic_appointment"
+					? timeOption === "queue"
+						? "queue"
+						: "schedule"
+					: timeOption,
 			scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
 			scheduledTime,
 			notes: notes || "",
 			prescriptionUrl: prescriptionUrl || "",
-			status: "pending",
+			status: initialStatus,
 			paymentStatus: "pending",
+			// clinic specific
+			...(clinicId && { clinicId }),
+			...(doctorId && { doctorId }),
 		});
 
 		await booking.save();
@@ -106,6 +146,38 @@ exports.createBooking = async (req, res) => {
 };
 
 /**
+ * @desc    Get all clinic appointments for the authenticated doctor
+ * @route   GET /api/bookings/doctor-appointments
+ * @access  Private (Doctor)
+ */
+exports.getDoctorAppointments = async (req, res) => {
+	try {
+		const userId = req.user?.id;
+		if (!userId) {
+			return res.status(401).json({ success: false, message: 'Not authenticated' });
+		}
+
+		// The booking stores Doctor._id (not User._id), so look up the Doctor record first
+		const doctor = await Doctor.findOne({ user: userId });
+		if (!doctor) {
+			return res.status(200).json({ success: true, bookings: [] });
+		}
+
+		const bookings = await Booking.find({
+			doctorId: doctor._id,
+			type: 'clinic_appointment',
+		})
+			.populate('clinicId', 'name address')
+			.sort({ createdAt: -1 });
+
+		res.status(200).json({ success: true, bookings });
+	} catch (error) {
+		console.error('❌ Error fetching doctor appointments:', error);
+		res.status(500).json({ success: false, message: 'Error fetching appointments', error: error.message });
+	}
+};
+
+/**
  * @desc    Get all bookings for the authenticated user
  * @route   GET /api/bookings/my-bookings
  * @access  Private
@@ -122,7 +194,13 @@ exports.getMyBookings = async (req, res) => {
 
 		const bookings = await Booking.find({ userId })
 			.sort({ createdAt: -1 })
-			.populate("assignedNurse", "name email mobile");
+			.populate("assignedNurse", "name email mobile")
+			.populate("clinicId", "name address")
+			.populate({
+				path: "doctorId",
+				select: "specialization user",
+				populate: { path: "user", select: "name" },
+			});
 
 		res.status(200).json({
 			success: true,
@@ -150,7 +228,7 @@ exports.getBookingById = async (req, res) => {
 
 		const booking = await Booking.findById(id).populate(
 			"assignedNurse",
-			"name email mobile"
+			"name email mobile",
 		);
 
 		if (!booking) {

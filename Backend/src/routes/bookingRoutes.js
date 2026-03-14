@@ -7,6 +7,7 @@ const {
 	getBookingById,
 	cancelBooking,
 	updateBookingStatus,
+	getDoctorAppointments,
 } = require("../controllers/bookingController");
 
 // All booking routes require authentication
@@ -39,6 +40,8 @@ const {
  *         description: Booking created
  */
 router.post("/create", authenticateToken, createBooking);
+
+router.get("/doctor-appointments", authenticateToken, getDoctorAppointments);
 
 /**
  * @openapi

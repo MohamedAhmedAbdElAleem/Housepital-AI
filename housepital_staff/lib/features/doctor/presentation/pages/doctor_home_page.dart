@@ -105,29 +105,24 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                   title: 'My Clinics',
                   icon: Icons.local_hospital_outlined,
                   color: Colors.green,
-                  onTap: () {
-                    // Navigate to Clinics logic later
-                    // Navigator.pushNamed(context, AppRoutes.myClinics);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Clinics Management Coming Next!'),
-                      ),
-                    );
-                  },
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.myClinics),
                 ),
                 _buildActionCard(
                   context,
                   title: 'Appointments',
                   icon: Icons.calendar_month_outlined,
                   color: Colors.orange,
-                  onTap: () {},
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.myAppointments),
                 ),
                 _buildActionCard(
                   context,
                   title: 'Services',
                   icon: Icons.medical_services_outlined,
                   color: Colors.purple,
-                  onTap: () {},
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.myServices),
                 ),
                 _buildActionCard(
                   context,

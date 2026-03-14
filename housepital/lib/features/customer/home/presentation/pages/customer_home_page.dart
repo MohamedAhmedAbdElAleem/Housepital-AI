@@ -15,6 +15,7 @@ import '../../../../auth/data/models/user_model.dart';
 import '../pages/all_nursing_services_page.dart';
 import '../../../../../core/providers/notification_provider.dart';
 import '../../../../notifications/presentation/pages/notifications_page.dart';
+import '../../../booking/presentation/pages/clinic_discovery_page.dart';
 
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key});
@@ -286,6 +287,9 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   sliver: _buildServicesGrid(),
                 ),
+
+                // Clinic Appointment Banner
+                SliverToBoxAdapter(child: _buildClinicBanner()),
 
                 // Nurses Section
                 SliverToBoxAdapter(child: _buildNursesHeader()),
@@ -1287,6 +1291,101 @@ class _CustomerHomePageState extends State<CustomerHomePage>
                       ),
                     ),
                   ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 🏥 CLINIC APPOINTMENT BANNER
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildClinicBanner() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+      child: GestureDetector(
+        onTap:
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ClinicDiscoveryPage()),
+            ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3B82F6).withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'احجز موعد في العيادة',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'اختر طبيبك وحدد الخدمة المناسبة',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.85),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        'ابحث الآن',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1D4ED8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.local_hospital_rounded,
+                  color: Colors.white,
+                  size: 38,
                 ),
               ),
             ],

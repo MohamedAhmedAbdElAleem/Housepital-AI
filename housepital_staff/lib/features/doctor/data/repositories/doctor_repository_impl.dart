@@ -1,7 +1,9 @@
+import 'dart:io';
 import '../../domain/repositories/doctor_repository.dart';
 import '../../data/datasources/doctor_remote_datasource.dart';
 import '../../data/models/doctor_model.dart';
 import '../../data/models/clinic_model.dart';
+import '../../data/models/service_model.dart';
 
 class DoctorRepositoryImpl implements DoctorRepository {
   final DoctorRemoteDataSource remoteDataSource;
@@ -24,6 +26,11 @@ class DoctorRepositoryImpl implements DoctorRepository {
   }
 
   @override
+  Future<String> uploadImage(File file) async {
+    return await remoteDataSource.uploadImage(file);
+  }
+
+  @override
   Future<ClinicModel> addClinic(ClinicModel clinic) async {
     return await remoteDataSource.addClinic(clinic);
   }
@@ -41,5 +48,25 @@ class DoctorRepositoryImpl implements DoctorRepository {
   @override
   Future<void> deleteClinic(String clinicId) async {
     return await remoteDataSource.deleteClinic(clinicId);
+  }
+
+  @override
+  Future<List<ServiceModel>> getMyServices() async {
+    return await remoteDataSource.getMyServices();
+  }
+
+  @override
+  Future<ServiceModel> addService(ServiceModel service) async {
+    return await remoteDataSource.addService(service);
+  }
+
+  @override
+  Future<ServiceModel> updateService(ServiceModel service) async {
+    return await remoteDataSource.updateService(service);
+  }
+
+  @override
+  Future<void> deleteService(String serviceId) async {
+    return await remoteDataSource.deleteService(serviceId);
   }
 }
