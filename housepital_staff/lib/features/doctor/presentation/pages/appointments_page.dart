@@ -24,6 +24,8 @@ class _AppointmentsPageState extends State<AppointmentsPage>
   static const _danger = Color(0xFFDC2626);
   static const _textPrimary = Color(0xFF0F172A);
   static const _textSecondary = Color(0xFF475569);
+  static const _orange = Color(0xFFF59E0B);
+  static const _blue = Color(0xFF3B82F6);
 
   @override
   void initState() {
@@ -50,6 +52,11 @@ class _AppointmentsPageState extends State<AppointmentsPage>
   }
 
   String _bookingId(dynamic b) => (b['_id'] ?? b['id'] ?? '') as String;
+
+  String _priceText(dynamic price) {
+    if (price == null) return '';
+    return '\$${price.toString()}';
+  }
 
   // ── build ────────────────────────────────────────────────────────────────
 

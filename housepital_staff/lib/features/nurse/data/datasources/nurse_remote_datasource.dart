@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../models/nurse_profile_model.dart';
@@ -92,19 +92,23 @@ class NurseRemoteDataSourceImpl implements NurseRemoteDataSource {
       print('📤 Uploading document: $documentType');
       print('   File: $filePath');
 
-      // Read file as base64
-      final bytes = await _readFileAsBytes(filePath);
-      final base64Image = _base64Encode(bytes);
+      final fileName = filePath.split(RegExp(r'[\\/]+')).last;
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath, filename: fileName),
+        'folder': _resolveCloudinaryFolder(documentType),
+      });
 
-      final response = await apiClient.post(
+      final response = await apiClient.postFormData(
         ApiConstants.cloudinaryUpload,
-        body: {
-          'file': 'data:image/jpeg;base64,$base64Image',
-          'folder': 'nurse_documents/$documentType',
-        },
+        formData,
       );
+      final responseData = response is String ? jsonDecode(response) : response;
+      final url = responseData['data']?['url'] as String?;
 
-      final url = response['secure_url'] as String;
+      if (url == null || url.isEmpty) {
+        throw Exception('Upload succeeded but returned URL is missing');
+      }
+
       print('✅ Document uploaded: $url');
       return url;
     } catch (e) {
@@ -113,11 +117,15 @@ class NurseRemoteDataSourceImpl implements NurseRemoteDataSource {
     }
   }
 
-  Future<List<int>> _readFileAsBytes(String filePath) async {
-    return await File(filePath).readAsBytes();
-  }
-
-  String _base64Encode(List<int> bytes) {
-    return base64Encode(bytes);
+  String _resolveCloudinaryFolder(String documentType) {
+    switch (documentType) {
+      case 'national_id':
+        return 'ID_DOCUMENTS';
+      case 'degree':
+      case 'license':
+        return 'MEDICAL_RECORDS';
+      default:
+        return 'GENERAL';
+    }
   }
 }

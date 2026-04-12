@@ -161,7 +161,11 @@ class _NurseHomePageState extends State<NurseHomePage>
             profile = context.read<NurseProfileCubit>().currentProfile;
 
           if (profile == null) {
-            return _buildErrorView();
+            String errorMsg =
+                profileState is NurseProfileError
+                    ? profileState.message
+                    : 'Unable to connect to the server';
+            return _buildErrorView(errorMsg);
           }
 
           final bool isApproved = profile.profileStatus == 'approved';
@@ -175,12 +179,15 @@ class _NurseHomePageState extends State<NurseHomePage>
           return BlocConsumer<NurseBookingCubit, NurseBookingState>(
             listener: (context, bookingState) {
               if (bookingState is NurseBookingError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(bookingState.message),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
+                // Do not show an error snackbar if the profile is not found
+                if (!bookingState.message.toLowerCase().contains('not found')) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(bookingState.message),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
               } else if (bookingState is NurseBookingActive) {
                 // Prevents multiple pages from opening sequentially
                 if (!_isNavigatingToPin) {
@@ -336,18 +343,23 @@ class _NurseHomePageState extends State<NurseHomePage>
     );
   }
 
-  Widget _buildErrorView() {
+  Widget _buildErrorView(String errorMessage) {
+    final bool isNotFound = errorMessage.toLowerCase().contains('not found');
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.cloud_off_outlined, size: 80, color: Colors.grey[400]),
+            Icon(
+              isNotFound ? Icons.person_add_disabled : Icons.cloud_off_outlined,
+              size: 80,
+              color: Colors.grey[400],
+            ),
             const SizedBox(height: 24),
-            const Text(
-              'Could Not Load Profile',
-              style: TextStyle(
+            Text(
+              isNotFound ? 'Profile Incomplete' : 'Could Not Load Profile',
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -355,17 +367,26 @@ class _NurseHomePageState extends State<NurseHomePage>
             ),
             const SizedBox(height: 12),
             Text(
-              'Unable to connect to the server',
+              isNotFound
+                  ? 'Please complete your professional profile to start receiving bookings.'
+                  : errorMessage,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () {
-                context.read<NurseProfileCubit>().loadProfile();
+                if (isNotFound) {
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.nurseProfileCompletion,
+                  );
+                } else {
+                  context.read<NurseProfileCubit>().loadProfile();
+                }
               },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry Connection'),
+              icon: Icon(isNotFound ? Icons.edit_document : Icons.refresh),
+              label: Text(isNotFound ? 'Complete Profile' : 'Retry Connection'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary500,
                 foregroundColor: Colors.white,
