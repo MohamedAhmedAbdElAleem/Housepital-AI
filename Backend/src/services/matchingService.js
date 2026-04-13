@@ -31,6 +31,13 @@ const MATCHING_CONFIG = {
     // Default search radius in kilometers
     DEFAULT_RADIUS_KM: 15,
 
+    // Search expansion fallback when no nearby nurses are found.
+    // This keeps the system usable in low-supply environments.
+    ENABLE_RADIUS_EXPANSION:
+        String(process.env.MATCHING_ENABLE_RADIUS_EXPANSION || "true").toLowerCase() !== "false",
+    RADIUS_EXPANSION_STEPS_KM: [30, 60, 120, 250, 500, 1000],
+    MAX_SEARCH_RADIUS_KM: 1000,
+
     // Maximum nurses to show to the patient
     MAX_NURSES_TO_MATCH: 5,
 
@@ -51,51 +58,77 @@ const MATCHING_CONFIG = {
     MAX_RESPONSE_TIME_SEC: 600  // 10 min cap for response time normalization
 };
 
-// ============================================================
-// PHASE 1: GEOSPATIAL FILTER
-// ============================================================
+function normalizeRadiusKm(value, fallback) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+    return parsed;
+}
 
-/**
- * Find nurses within a radius of the patient's location using MongoDB geospatial queries.
- * Filters by: online status, verification, gender preference, and service skills.
- * 
- * @param {Object} params
- * @param {number[]} params.coordinates - [longitude, latitude] of patient
- * @param {number} params.radiusKm - Search radius in km
- * @param {string} params.genderPreference - "male", "female", or "any"
- * @param {string} params.serviceCategory - Category of the requested service
- * @param {string[]} params.excludeNurseIds - Nurse IDs to exclude (already declined, etc.)
- * @returns {Promise<Array>} Array of nurse documents with distance info
- */
-async function findNearbyNurses({ coordinates, radiusKm, genderPreference, serviceCategory, excludeNurseIds = [] }) {
-    const radiusMeters = radiusKm * 1000;
+function buildRadiusSearchSteps(baseRadiusKm) {
+    const normalizedBase = normalizeRadiusKm(baseRadiusKm, MATCHING_CONFIG.DEFAULT_RADIUS_KM);
+    const maxRadius = normalizeRadiusKm(
+        MATCHING_CONFIG.MAX_SEARCH_RADIUS_KM,
+        MATCHING_CONFIG.MAX_SEARCH_RADIUS_KM
+    );
 
-    // Build match conditions
-    const matchConditions = {
-        isOnline: true,
-        verificationStatus: "approved"
-    };
-
-    // Gender filter
-    if (genderPreference && genderPreference !== "any") {
-        matchConditions.gender = genderPreference;
+    if (!MATCHING_CONFIG.ENABLE_RADIUS_EXPANSION) {
+        return [Math.min(normalizedBase, maxRadius)];
     }
 
-    // Exclude specific nurses
-    if (excludeNurseIds.length > 0) {
-        matchConditions._id = { $nin: excludeNurseIds };
+    const configuredSteps = Array.isArray(MATCHING_CONFIG.RADIUS_EXPANSION_STEPS_KM)
+        ? MATCHING_CONFIG.RADIUS_EXPANSION_STEPS_KM
+        : [];
+
+    const steps = [normalizedBase, ...configuredSteps, maxRadius]
+        .map((step) => normalizeRadiusKm(step, normalizedBase))
+        .filter((step) => step >= normalizedBase && step <= maxRadius)
+        .sort((a, b) => a - b);
+
+    return [...new Set(steps)];
+}
+
+function mergeNurseCandidates(candidates) {
+    const byId = new Map();
+
+    for (const candidate of candidates) {
+        const id = String(candidate?._id || "");
+        if (!id) continue;
+
+        const existing = byId.get(id);
+        if (!existing) {
+            byId.set(id, candidate);
+            continue;
+        }
+
+        if ((candidate.calculatedDistanceMeters || Infinity) < (existing.calculatedDistanceMeters || Infinity)) {
+            byId.set(id, candidate);
+        }
     }
 
-    // Use MongoDB $geoNear aggregation for distance-sorted results
+    return Array.from(byId.values()).sort(
+        (a, b) => (a.calculatedDistanceMeters || Infinity) - (b.calculatedDistanceMeters || Infinity)
+    );
+}
+
+async function runGeoSearch({
+    coordinates,
+    radiusKm,
+    locationKey,
+    locationLabel,
+    locationCoordinatesField,
+    matchConditions,
+    serviceCategory
+}) {
     const pipeline = [
         {
             $geoNear: {
                 near: {
                     type: "Point",
-                    coordinates: coordinates // [longitude, latitude]
+                    coordinates
                 },
+                key: locationKey,
                 distanceField: "calculatedDistanceMeters",
-                maxDistance: radiusMeters,
+                maxDistance: radiusKm * 1000,
                 spherical: true,
                 query: matchConditions
             }
@@ -104,24 +137,35 @@ async function findNearbyNurses({ coordinates, radiusKm, genderPreference, servi
             $addFields: {
                 calculatedDistanceKm: {
                     $divide: ["$calculatedDistanceMeters", 1000]
-                }
+                },
+                matchedLocationSource: locationLabel,
+                matchedLocationCoordinates: locationCoordinatesField
             }
         }
     ];
 
-    // If service category is provided, filter nurses with matching skills
     if (serviceCategory) {
         pipeline.push({
             $match: {
                 $or: [
                     { skills: serviceCategory },
-                    { skills: { $size: 0 } } // Include nurses with no specific skills listed (generalists)
+                    {
+                        $expr: {
+                            $eq: [
+                                {
+                                    $size: {
+                                        $ifNull: ["$skills", []]
+                                    }
+                                },
+                                0
+                            ]
+                        }
+                    }
                 ]
             }
         });
     }
 
-    // Populate user info
     pipeline.push(
         {
             $lookup: {
@@ -141,8 +185,112 @@ async function findNearbyNurses({ coordinates, radiusKm, genderPreference, servi
         }
     );
 
-    const nurses = await Nurse.aggregate(pipeline);
-    return nurses;
+    return Nurse.aggregate(pipeline);
+}
+
+/**
+ * Emit a socket event to a nurse using both room strategies:
+ * - nurse_{nurseProfileId} for backward compatibility
+ * - nurse_{nurseUserId} for authenticated socket rooms
+ */
+async function emitToNurse(io, nurseProfileId, eventName, payload, nurseUserId = null) {
+    if (!io || !nurseProfileId) return;
+
+    io.to(`nurse_${nurseProfileId}`).emit(eventName, payload);
+
+    let resolvedNurseUserId = nurseUserId;
+    if (!resolvedNurseUserId) {
+        const nurse = await Nurse.findById(nurseProfileId).select("user");
+        resolvedNurseUserId = nurse?.user ? String(nurse.user) : null;
+    }
+
+    if (resolvedNurseUserId) {
+        io.to(`nurse_${resolvedNurseUserId}`).emit(eventName, payload);
+    }
+}
+
+// ============================================================
+// PHASE 1: GEOSPATIAL FILTER
+// ============================================================
+
+/**
+ * Find nurses within a radius of the patient's location using MongoDB geospatial queries.
+ * Filters by: online status, verification, gender preference, and service skills.
+ * 
+ * @param {Object} params
+ * @param {number[]} params.coordinates - [longitude, latitude] of patient
+ * @param {number} params.radiusKm - Search radius in km
+ * @param {string} params.genderPreference - "male", "female", or "any"
+ * @param {string} params.serviceCategory - Category of the requested service
+ * @param {string[]} params.excludeNurseIds - Nurse IDs to exclude (already declined, etc.)
+ * @returns {Promise<Array>} Array of nurse documents with distance info
+ */
+async function findNearbyNurses({ coordinates, radiusKm, genderPreference, serviceCategory, excludeNurseIds = [] }) {
+    // Build match conditions
+    const matchConditions = {
+        isOnline: true,
+        verificationStatus: "approved"
+    };
+
+    // Gender filter
+    if (genderPreference && genderPreference !== "any") {
+        matchConditions.gender = genderPreference;
+    }
+
+    // Exclude specific nurses
+    if (excludeNurseIds.length > 0) {
+        matchConditions._id = { $nin: excludeNurseIds };
+    }
+
+    const radiusSteps = buildRadiusSearchSteps(radiusKm);
+    const searchStrategies = [
+        {
+            locationKey: "currentLocation",
+            locationLabel: "currentLocation",
+            locationCoordinatesField: "$currentLocation.coordinates"
+        },
+        {
+            locationKey: "workZone.center",
+            locationLabel: "workZone.center",
+            locationCoordinatesField: "$workZone.center.coordinates"
+        }
+    ];
+
+    let lastMergedCount = 0;
+
+    for (const stepRadiusKm of radiusSteps) {
+        const resultsPerStrategy = await Promise.all(
+            searchStrategies.map((strategy) =>
+                runGeoSearch({
+                    coordinates,
+                    radiusKm: stepRadiusKm,
+                    locationKey: strategy.locationKey,
+                    locationLabel: strategy.locationLabel,
+                    locationCoordinatesField: strategy.locationCoordinatesField,
+                    matchConditions,
+                    serviceCategory
+                })
+            )
+        );
+
+        const merged = mergeNurseCandidates(resultsPerStrategy.flat());
+        lastMergedCount = merged.length;
+
+        if (merged.length > 0) {
+            if (stepRadiusKm > radiusKm) {
+                console.log(
+                    `   ⚠️ No nurses within ${radiusKm}km. Expanded search to ${stepRadiusKm}km and found ${merged.length}.`
+                );
+            }
+            return merged;
+        }
+    }
+
+    if (lastMergedCount === 0) {
+        console.log(`   ⚠️ No eligible nurses found after expansion up to ${radiusSteps[radiusSteps.length - 1]}km.`);
+    }
+
+    return [];
 }
 
 // ============================================================
@@ -233,7 +381,10 @@ async function createNurseOffers(matchingRequest, rankedNurses) {
 
     for (const nurse of rankedNurses) {
         // Calculate pricing for this specific nurse-patient pair
-        const nurseCoords = nurse.currentLocation?.coordinates || [0, 0];
+        const nurseCoords =
+            (Array.isArray(nurse.matchedLocationCoordinates) && nurse.matchedLocationCoordinates.length >= 2)
+                ? nurse.matchedLocationCoordinates
+                : (nurse.currentLocation?.coordinates || nurse.workZone?.center?.coordinates || [0, 0]);
         const patientCoords = matchingRequest.location.coordinates;
 
         const pricing = calculatePriceBreakdown({
@@ -372,20 +523,31 @@ async function executeMatching(matchingRequestId, io = null) {
 
     // ── Notify nurses via Socket.io ──
     if (io) {
+        const patientName = (await User.findById(matchingRequest.patientId).select("name"))?.name || "Patient";
+        const nurseUserByProfileId = new Map(
+            rankedNurses.map((nurse) => [String(nurse._id), nurse.user ? String(nurse.user) : null])
+        );
+
         for (const offer of offers) {
-            io.to(`nurse_${offer.nurseId}`).emit("matching:new_offer", {
-                offerId: offer._id,
-                matchingRequestId: matchingRequest._id,
-                patientName: (await User.findById(matchingRequest.patientId))?.name || "Patient",
-                serviceName: matchingRequest.serviceName,
-                serviceCategory: matchingRequest.serviceCategory,
-                location: matchingRequest.address,
-                distanceKm: offer.distanceKm,
-                totalPrice: offer.totalPrice,
-                nurseEarnings: offer.nurseEarnings,
-                estimatedArrivalMinutes: offer.estimatedArrivalMinutes,
-                expiresAt: offer.nurseExpiresAt
-            });
+            await emitToNurse(
+                io,
+                offer.nurseId,
+                "matching:new_offer",
+                {
+                    offerId: offer._id,
+                    matchingRequestId: matchingRequest._id,
+                    patientName,
+                    serviceName: matchingRequest.serviceName,
+                    serviceCategory: matchingRequest.serviceCategory,
+                    location: matchingRequest.address,
+                    distanceKm: offer.distanceKm,
+                    totalPrice: offer.totalPrice,
+                    nurseEarnings: offer.nurseEarnings,
+                    estimatedArrivalMinutes: offer.estimatedArrivalMinutes,
+                    expiresAt: offer.nurseExpiresAt
+                },
+                nurseUserByProfileId.get(String(offer.nurseId))
+            );
         }
     }
 
@@ -579,7 +741,13 @@ async function handlePatientResponse(offerId, patientUserId, response, io = null
         matchingRequest.bookingId = booking._id;
         await matchingRequest.save();
 
-        // Decline all other pending offers for this request
+        const otherOffers = await NurseOffer.find({
+            matchingRequestId: matchingRequest._id,
+            _id: { $ne: offer._id },
+            nurseStatus: { $in: ["pending", "accepted"] }
+        }).select("_id nurseId");
+
+        // Expire all other offers so they disappear from nurse pending queues.
         await NurseOffer.updateMany(
             {
                 matchingRequestId: matchingRequest._id,
@@ -588,6 +756,7 @@ async function handlePatientResponse(offerId, patientUserId, response, io = null
             },
             {
                 $set: {
+                    nurseStatus: "expired",
                     patientStatus: "declined",
                     patientRespondedAt: new Date()
                 }
@@ -610,7 +779,7 @@ async function handlePatientResponse(offerId, patientUserId, response, io = null
 
         // Notify nurse: booking confirmed
         if (io) {
-            io.to(`nurse_${offer.nurseId}`).emit("matching:booking_confirmed", {
+            await emitToNurse(io, offer.nurseId, "matching:booking_confirmed", {
                 bookingId: booking._id,
                 offerId: offer._id,
                 patientName: booking.patientName,
@@ -636,13 +805,8 @@ async function handlePatientResponse(offerId, patientUserId, response, io = null
 
         // Also notify other nurses that their offers are no longer needed
         if (io) {
-            const otherOffers = await NurseOffer.find({
-                matchingRequestId: matchingRequest._id,
-                _id: { $ne: offer._id },
-                nurseStatus: "accepted"
-            });
             for (const otherOffer of otherOffers) {
-                io.to(`nurse_${otherOffer.nurseId}`).emit("matching:offer_cancelled", {
+                await emitToNurse(io, otherOffer.nurseId, "matching:offer_cancelled", {
                     offerId: otherOffer._id,
                     reason: "Patient selected another nurse"
                 });
@@ -834,7 +998,7 @@ async function cancelMatchingRequest(matchingRequestId, patientUserId, io = null
     // Notify nurses
     if (io) {
         for (const offer of offers) {
-            io.to(`nurse_${offer.nurseId}`).emit("matching:offer_cancelled", {
+            await emitToNurse(io, offer.nurseId, "matching:offer_cancelled", {
                 offerId: offer._id,
                 reason: "Patient cancelled the request"
             });
@@ -842,6 +1006,64 @@ async function cancelMatchingRequest(matchingRequestId, patientUserId, io = null
     }
 
     matchingRequest.status = "cancelled";
+    await matchingRequest.save();
+
+    return matchingRequest;
+}
+
+/**
+ * Expire a matching request if its search window has elapsed.
+ * Also expires any remaining pending/accepted offers tied to that request.
+ *
+ * @param {Object} matchingRequest - MatchingRequest mongoose document
+ * @param {Object} io - Socket.io instance (optional)
+ * @returns {Promise<Object>} Updated matching request
+ */
+async function expireMatchingRequestIfNeeded(matchingRequest, io = null) {
+    if (!matchingRequest) return matchingRequest;
+
+    const activeStatuses = ["searching", "offers_pending", "nurse_accepted"];
+    const isActive = activeStatuses.includes(matchingRequest.status);
+    const isTimedOut = matchingRequest.expiresAt && new Date() > matchingRequest.expiresAt;
+
+    if (!isActive || !isTimedOut) {
+        return matchingRequest;
+    }
+
+    const offers = await NurseOffer.find({
+        matchingRequestId: matchingRequest._id,
+        nurseStatus: { $in: ["pending", "accepted"] }
+    });
+
+    await NurseOffer.updateMany(
+        {
+            matchingRequestId: matchingRequest._id,
+            nurseStatus: { $in: ["pending", "accepted"] }
+        },
+        {
+            $set: {
+                nurseStatus: "expired",
+                patientStatus: "declined",
+                patientRespondedAt: new Date()
+            }
+        }
+    );
+
+    if (io) {
+        for (const offer of offers) {
+            await emitToNurse(io, offer.nurseId, "matching:offer_cancelled", {
+                offerId: offer._id,
+                reason: "Request expired"
+            });
+        }
+
+        io.to(`patient_${matchingRequest.patientId}`).emit("matching:request_expired", {
+            matchingRequestId: matchingRequest._id,
+            message: "Your matching request expired before confirmation."
+        });
+    }
+
+    matchingRequest.status = "expired";
     await matchingRequest.save();
 
     return matchingRequest;
@@ -858,5 +1080,6 @@ module.exports = {
     handlePatientResponse,
     getPatientOffers,
     getNursePendingOffers,
-    cancelMatchingRequest
+    cancelMatchingRequest,
+    expireMatchingRequestIfNeeded
 };

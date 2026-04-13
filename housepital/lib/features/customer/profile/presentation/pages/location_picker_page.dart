@@ -29,43 +29,67 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
   }
 
   Future<void> _getCurrentLocation() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
+
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!mounted) return;
+
       if (!serviceEnabled) {
         setState(() => _isLoading = false);
         return;
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
+      if (!mounted) return;
+
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
+        if (!mounted) return;
+
         if (permission == LocationPermission.denied) {
           setState(() => _isLoading = false);
           return;
         }
       }
 
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-        timeLimit: const Duration(seconds: 10),
-      );
+      if (permission == LocationPermission.deniedForever) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+          timeLimit: const Duration(seconds: 15),
+        );
+      } catch (e) {
+        position = await Geolocator.getLastKnownPosition();
+        if (position == null) {
+          rethrow;
+        }
+      }
+      if (!mounted) return;
+
+      final current = LatLng(position.latitude, position.longitude);
       setState(() {
-        _selectedLocation = LatLng(position.latitude, position.longitude);
+        _selectedLocation = current;
         _isLoading = false;
       });
-      _mapController.move(_selectedLocation!, 15.0);
+      _mapController.move(current, 15.0);
     } catch (e) {
+      if (!mounted) return;
+
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Could not get current location. Ensure location is enabled in the emulator/device.',
-            ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Could not get current location. Ensure location is enabled in the emulator/device.',
           ),
-        );
-      }
+        ),
+      );
     }
   }
 
@@ -99,13 +123,15 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                   const LatLng(30.0444, 31.2357), // Default Cairo
               initialZoom: 15.0,
               onPositionChanged: (position, hasGesture) {
-                if (hasGesture && position.center != null) {
+                if (!mounted) return;
+                if (hasGesture) {
                   setState(() {
                     _selectedLocation = position.center;
                   });
                 }
               },
               onTap: (tapPosition, point) {
+                if (!mounted) return;
                 setState(() {
                   _selectedLocation = point;
                 });

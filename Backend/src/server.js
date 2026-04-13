@@ -118,8 +118,6 @@ io.on("connection", (socket) => {
 	});
 });
 
-connectDB();
-
 // CORS configuration to allow Flutter app connections
 app.use(
 	cors({
@@ -140,6 +138,7 @@ app.use("/api/otp", require("./routes/otpRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
 app.use("/api/profile", require("./routes/profileRoutes"));
 app.use("/api/bookings", require("./routes/bookingRoutes"));
+app.use("/api/matching", require("./routes/matchingRoutes"));
 app.use("/api/admin/insights", require("./routes/insightsRoutes"));
 app.use("/api/admin/powerbi", require("./routes/powerBiRoutes"));
 app.use("/api/cloudinary", require("./routes/cloudinaryRoutes"));
@@ -161,37 +160,59 @@ app.use((req, res) => res.status(404).json({ message: "404 Not Found" }));
 
 app.use(errorHandler);
 
-mongoose.connection.once("open", () => {
-	console.log("Connected to MongoDB");
+const startServer = () => {
 	server.listen(PORT, "0.0.0.0", () => {
 		console.log(`Server running on port ${PORT}`);
 		console.log(`Socket.IO ready for real-time notifications`);
 	});
+};
 
-	// Graceful Shutdown Logic
-	const gracefulShutdown = async () => {
-		console.log("Received kill signal, shutting down gracefully");
-		server.close(async () => {
-			console.log("Closed out remaining connections");
-			await mongoose.connection.close();
-			console.log("MongoDb connection closed");
-			process.exit(0);
-		});
-	};
+const connectWithRetry = async () => {
+	const connected = await connectDB();
+	if (!connected) {
+		console.warn("MongoDB unavailable. Server will keep running and retry every 15s.");
+	}
+};
 
-	process.on("SIGTERM", gracefulShutdown);
-	process.on("SIGINT", gracefulShutdown);
+connectWithRetry();
 
-	// Handle Nodemon restart signal
-	process.once("SIGUSR2", async () => {
-		console.log("Received SIGUSR2 (Nodemon restart)");
-		server.close(async () => {
-			await mongoose.connection.close();
-			console.log("MongoDb connection closed");
-			process.kill(process.pid, "SIGUSR2");
-		});
+const mongoRetryInterval = setInterval(async () => {
+	if (mongoose.connection.readyState !== 1) {
+		await connectWithRetry();
+	}
+}, 15000);
+
+mongoose.connection.on("open", () => {
+	console.log("Connected to MongoDB");
+});
+
+// Graceful Shutdown Logic
+const gracefulShutdown = async () => {
+	console.log("Received kill signal, shutting down gracefully");
+	clearInterval(mongoRetryInterval);
+	server.close(async () => {
+		console.log("Closed out remaining connections");
+		await mongoose.connection.close();
+		console.log("MongoDb connection closed");
+		process.exit(0);
+	});
+};
+
+process.on("SIGTERM", gracefulShutdown);
+process.on("SIGINT", gracefulShutdown);
+
+// Handle Nodemon restart signal
+process.once("SIGUSR2", async () => {
+	console.log("Received SIGUSR2 (Nodemon restart)");
+	clearInterval(mongoRetryInterval);
+	server.close(async () => {
+		await mongoose.connection.close();
+		console.log("MongoDb connection closed");
+		process.kill(process.pid, "SIGUSR2");
 	});
 });
+
+startServer();
 
 mongoose.connection.on("error", (err) =>
 	logEvents(

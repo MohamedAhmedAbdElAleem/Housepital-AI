@@ -31,6 +31,9 @@ class SocketNotificationService {
   /// Whether currently connected
   bool get isConnected => _isConnected;
 
+  /// Get the raw socket instance for custom event listening
+  socket_io.Socket? get socket => _socket;
+
   /// Connect to the Socket.IO server with authentication
   Future<void> connect() async {
     final token = await TokenManager.getToken();

@@ -11,7 +11,8 @@ import {
     ShieldAlert,
     Calendar,
     DollarSign,
-    Settings
+    Settings,
+    ClipboardList
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -29,6 +30,7 @@ const Sidebar = () => {
         { path: '/bookings', icon: Calendar, label: 'Bookings' },
         { path: '/users', icon: Users, label: 'Users' },
         { path: '/financial', icon: DollarSign, label: 'Financial' },
+        { path: '/services-catalog', icon: ClipboardList, label: 'Services Catalog' },
         { path: '/activity', icon: Activity, label: 'Activity Logs' },
         { path: '/settings', icon: Settings, label: 'Settings' },
     ];
