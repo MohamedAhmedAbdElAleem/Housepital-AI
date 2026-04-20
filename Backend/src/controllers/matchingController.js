@@ -9,15 +9,46 @@ const MatchingRequest = require("../models/MatchingRequest");
 const NurseOffer = require("../models/NurseOffer");
 const Service = require("../models/Service");
 const User = require("../models/User");
+const mongoose = require("mongoose");
 const {
     executeMatching,
     handleNurseResponse,
     handlePatientResponse,
     getPatientOffers,
     getNursePendingOffers,
-    cancelMatchingRequest
+    cancelMatchingRequest,
+    expireMatchingRequestIfNeeded
 } = require("../services/matchingService");
 const { getPriceEstimate } = require("../services/pricingService");
+
+function escapeRegex(value = "") {
+    return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+async function resolveHomeNursingService(serviceIdentifier) {
+    const raw = String(serviceIdentifier || "").trim();
+    if (!raw) return null;
+
+    if (mongoose.Types.ObjectId.isValid(raw)) {
+        const byId = await Service.findById(raw);
+        if (byId?.type === "home_nursing") {
+            return byId;
+        }
+    }
+
+    const categoryToken = raw.toLowerCase().replace(/\s+/g, "_");
+    const readableName = raw.replace(/_/g, " ").trim();
+    const nameRegex = new RegExp(`^${escapeRegex(readableName)}$`, "i");
+
+    return Service.findOne({
+        type: "home_nursing",
+        $or: [
+            { category: categoryToken },
+            { name: nameRegex },
+            { nameAr: nameRegex }
+        ]
+    }).sort({ isActive: -1, createdAt: -1 });
+}
 
 /**
  * @desc    Create a matching request (patient requests a nurse)
@@ -51,8 +82,8 @@ exports.createMatchingRequest = async (req, res) => {
             });
         }
 
-        // Get service details
-        const service = await Service.findById(serviceId);
+        // Resolve service by MongoDB ObjectId or slug (e.g. wound_care)
+        const service = await resolveHomeNursingService(serviceId);
         if (!service) {
             return res.status(404).json({ success: false, message: "Service not found" });
         }
@@ -134,6 +165,9 @@ exports.getMatchingRequestStatus = async (req, res) => {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
 
+        const io = req.app.get("io");
+        await expireMatchingRequestIfNeeded(matchingRequest, io);
+
         // Get offer counts
         const offerStats = await NurseOffer.aggregate([
             { $match: { matchingRequestId: matchingRequest._id } },
@@ -162,6 +196,10 @@ exports.getMatchingRequestStatus = async (req, res) => {
                 serviceName: matchingRequest.serviceName,
                 servicePrice: matchingRequest.servicePrice,
                 location: matchingRequest.address,
+                address: matchingRequest.address,
+                locationGeo: matchingRequest.location,
+                latitude: matchingRequest.location?.coordinates?.[1] ?? null,
+                longitude: matchingRequest.location?.coordinates?.[0] ?? null,
                 nurseGenderPreference: matchingRequest.nurseGenderPreference,
                 timeOption: matchingRequest.timeOption,
                 searchRadiusKm: matchingRequest.searchRadiusKm,
@@ -377,9 +415,13 @@ exports.getEstimate = async (req, res) => {
             });
         }
 
-        const service = await Service.findById(serviceId);
+        const service = await resolveHomeNursingService(serviceId);
         if (!service) {
             return res.status(404).json({ success: false, message: "Service not found" });
+        }
+
+        if (!service.isActive) {
+            return res.status(400).json({ success: false, message: "This service is not currently active" });
         }
 
         const estimate = getPriceEstimate(service.price, estimatedDistanceKm || 5);
@@ -408,6 +450,17 @@ exports.getEstimate = async (req, res) => {
 exports.getMyMatchingRequests = async (req, res) => {
     try {
         const userId = req.user?.id;
+
+        const io = req.app.get("io");
+        const potentiallyExpired = await MatchingRequest.find({
+            patientId: userId,
+            status: { $in: ["searching", "offers_pending", "nurse_accepted"] },
+            expiresAt: { $lte: new Date() }
+        });
+
+        for (const request of potentiallyExpired) {
+            await expireMatchingRequestIfNeeded(request, io);
+        }
 
         const requests = await MatchingRequest.find({
             patientId: userId,

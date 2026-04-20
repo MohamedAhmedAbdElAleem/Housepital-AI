@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest"
+    "test": "jest",
+    "bootstrap:admin-services": "node src/scripts/bootstrapAdminAndHomeNursing.js"
   },
   "keywords": [
     "hospital",

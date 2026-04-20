@@ -119,17 +119,20 @@ class _DoctorHomePageState extends State<DoctorHomePage>
     final clinicsCount =
         clinicState is ClinicLoaded ? clinicState.clinics.length : 0;
 
-    final todayAppointments = appointmentState is AppointmentLoaded
-        ? appointmentState.pending.length + appointmentState.upcoming.length
-        : 0;
+    final todayAppointments =
+        appointmentState is AppointmentLoaded
+            ? appointmentState.pending.length + appointmentState.upcoming.length
+            : 0;
 
-    final ratingValue = doctorState is DoctorProfileLoaded
-        ? doctorState.profile.rating.toStringAsFixed(1)
-        : '--';
+    final ratingValue =
+        doctorState is DoctorProfileLoaded
+            ? doctorState.profile.rating.toStringAsFixed(1)
+            : '--';
 
-    final unreadCount = notificationState is NotificationLoaded
-        ? notificationState.unreadCount
-        : 0;
+    final unreadCount =
+        notificationState is NotificationLoaded
+            ? notificationState.unreadCount
+            : 0;
 
     final metrics = [
       _OverviewMetric(
@@ -211,11 +214,11 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                         }, childCount: _actions.length),
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 14,
-                          crossAxisSpacing: 14,
-                          childAspectRatio: 0.98,
-                        ),
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 14,
+                              crossAxisSpacing: 14,
+                              childAspectRatio: 0.98,
+                            ),
                       ),
                     ),
                     SliverPadding(
@@ -230,10 +233,10 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(18, 0, 18, 26),
                       sliver: SliverList.separated(
-                        itemBuilder: (context, index) =>
-                            _buildSnapshotItem(index),
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 12),
+                        itemBuilder:
+                            (context, index) => _buildSnapshotItem(index),
+                        separatorBuilder:
+                            (context, index) => const SizedBox(height: 12),
                         itemCount: 3,
                       ),
                     ),
@@ -261,6 +264,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
     );
   }
 
+
   Widget _buildTopBar(
     BuildContext context,
     String doctorName,
@@ -275,9 +279,9 @@ class _DoctorHomePageState extends State<DoctorHomePage>
               Text(
                 'Welcome back',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: _textSecondary,
-                      letterSpacing: 0.2,
-                    ),
+                  color: _textSecondary,
+                  letterSpacing: 0.2,
+                ),
               ),
               const SizedBox(height: 3),
               Text(
@@ -285,9 +289,9 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: _textPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: _textPrimary,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ],
           ),
@@ -306,8 +310,10 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                 top: -2,
                 right: -2,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEF4444),
                     borderRadius: BorderRadius.circular(999),
@@ -334,6 +340,24 @@ class _DoctorHomePageState extends State<DoctorHomePage>
           onTap: () => context.read<AuthCubit>().logout(),
         ),
       ],
+    );
+  }
+
+  Widget _buildBackgroundBlob({
+    required double size,
+    required List<Color> gradient,
+  }) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: gradient,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
     );
   }
 
@@ -372,8 +396,10 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(999),
@@ -727,28 +753,30 @@ class _DoctorHomePageState extends State<DoctorHomePage>
 
                       return ListView.separated(
                         itemCount: state.notifications.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 10),
+                        separatorBuilder:
+                            (context, index) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           final item = state.notifications[index];
                           return InkWell(
                             borderRadius: BorderRadius.circular(14),
                             onTap: () {
-                              context
-                                  .read<NotificationCubit>()
-                                  .markAsRead(item.id);
+                              context.read<NotificationCubit>().markAsRead(
+                                item.id,
+                              );
                             },
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: item.isRead
-                                    ? const Color(0xFFF8FAFC)
-                                    : const Color(0xFFEFF6FF),
+                                color:
+                                    item.isRead
+                                        ? const Color(0xFFF8FAFC)
+                                        : const Color(0xFFEFF6FF),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: item.isRead
-                                      ? const Color(0xFFE2E8F0)
-                                      : const Color(0xFFBFDBFE),
+                                  color:
+                                      item.isRead
+                                          ? const Color(0xFFE2E8F0)
+                                          : const Color(0xFFBFDBFE),
                                 ),
                               ),
                               child: Row(
@@ -758,8 +786,9 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                                     width: 34,
                                     height: 34,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF2664EC)
-                                          .withValues(alpha: 0.12),
+                                      color: const Color(
+                                        0xFF2664EC,
+                                      ).withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: const Icon(

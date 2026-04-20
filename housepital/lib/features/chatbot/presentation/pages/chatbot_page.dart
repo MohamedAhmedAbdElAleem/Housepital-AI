@@ -1179,6 +1179,7 @@ class _ChatbotPageState extends State<ChatbotPage>
         builder:
             (context) => ServiceDetailsPage(
               title: service.title,
+              serviceRoute: service.route,
               price: service.price,
               duration: service.duration,
               icon: _getIconData(service.icon),

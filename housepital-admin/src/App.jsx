@@ -8,6 +8,7 @@ import Activity from './pages/Activity';
 import Verifications from './pages/Verifications';
 import Bookings from './pages/Bookings';
 import Financial from './pages/Financial';
+import ServicesCatalog from './pages/ServicesCatalog';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 
@@ -77,6 +78,11 @@ function App() {
                     <Route path="/financial" element={
                         <ProtectedRoute>
                             <DashboardLayout><Financial /></DashboardLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/services-catalog" element={
+                        <ProtectedRoute>
+                            <DashboardLayout><ServicesCatalog /></DashboardLayout>
                         </ProtectedRoute>
                     } />
                     <Route path="/settings" element={

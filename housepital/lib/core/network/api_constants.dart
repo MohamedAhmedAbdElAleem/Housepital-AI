@@ -27,6 +27,10 @@ class ApiConstants {
   static const String triageServices = '/api/triage/services';
   static const String triageReset = '/api/triage/reset';
 
+  // Public Services Endpoints
+  static const String publicHomeNursingServices =
+      '/api/services/public/home-nursing';
+
   // Profile Endpoints
   static const String profileBase = '/api/profile';
   static const String updateMedicalInfo = '/api/profile/medical-info';

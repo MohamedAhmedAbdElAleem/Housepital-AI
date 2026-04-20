@@ -58,6 +58,9 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   bool _isLoadingDependents = true;
   bool _isLoadingAddresses = true;
   bool _isSubmitting = false;
+  bool _isLoadingEstimate = false;
+
+  Map<String, dynamic>? _priceEstimate;
 
   final List<String> _timeSlots = [
     '08:00',
@@ -95,7 +98,33 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Future<void> _loadAllData() async {
-    await Future.wait([_loadUserData(), _loadDependents(), _loadAddresses()]);
+    await Future.wait([
+      _loadUserData(),
+      _loadDependents(),
+      _loadAddresses(),
+      _fetchPriceEstimate()
+    ]);
+  }
+
+  Future<void> _fetchPriceEstimate() async {
+    setState(() => _isLoadingEstimate = true);
+    try {
+      final apiService = ApiService();
+      final response = await apiService.post(
+        '/api/matching/price-estimate',
+        body: {'serviceId': widget.serviceId},
+      );
+      if (mounted) {
+        setState(() {
+          if (response is Map && response['estimate'] != null) {
+            _priceEstimate = response['estimate'];
+          }
+          _isLoadingEstimate = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingEstimate = false);
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -221,10 +250,254 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
     }
   }
 
+  double get _basePrice {
+    if (_priceEstimate != null && _priceEstimate!['estimatedTotal'] != null) {
+      return _toDouble(_priceEstimate!['estimatedTotal']) ?? widget.servicePrice;
+    }
+    return widget.servicePrice;
+  }
+
   double get _totalPrice {
-    double total = widget.servicePrice;
+    double total = _basePrice;
     if (_nurseHasSupplies) total += 50;
     return total;
+  }
+
+  double? _toDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  bool _isValidLatitude(double value) => value >= -90 && value <= 90;
+
+  bool _isValidLongitude(double value) => value >= -180 && value <= 180;
+
+  bool _isLikelyEgypt(double lat, double lon) {
+    return lat >= 21.5 && lat <= 31.8 && lon >= 24.5 && lon <= 36.0;
+  }
+
+  String _normalizeText(dynamic value) {
+    return (value ?? '').toString().trim().toLowerCase();
+  }
+
+  bool _hasEgyptAddressHint(Map<String, dynamic>? address) {
+    if (address == null) return false;
+
+    final combined = [
+      _normalizeText(address['city']),
+      _normalizeText(address['state']),
+      _normalizeText(address['area']),
+      _normalizeText(address['street']),
+      _normalizeText(address['country']),
+    ].join(' ');
+
+    if (combined.isEmpty) return false;
+
+    const egyptTokens = [
+      'egypt',
+      'cairo',
+      'giza',
+      'alexandria',
+      'aswan',
+      'luxor',
+      'assiut',
+      'sohag',
+      'qena',
+      'mansoura',
+      'tanta',
+      'suez',
+      'ismailia',
+      'port said',
+      'fayoum',
+      'beni suef',
+      'minya',
+      'damietta',
+      'zagazig',
+      'kafr',
+      'hurghada',
+      'sharm',
+      'sinai',
+    ];
+
+    for (final token in egyptTokens) {
+      if (combined.contains(token)) return true;
+    }
+
+    return false;
+  }
+
+  Map<String, double>? _fallbackEgyptCenter(Map<String, dynamic>? address) {
+    if (address == null) return null;
+
+    final combined = [
+      _normalizeText(address['city']),
+      _normalizeText(address['state']),
+      _normalizeText(address['area']),
+      _normalizeText(address['street']),
+    ].join(' ');
+
+    if (combined.isEmpty) return null;
+
+    const centers = <String, List<double>>{
+      'aswan': [24.0889, 32.8998],
+      'luxor': [25.6872, 32.6396],
+      'cairo': [30.0444, 31.2357],
+      'giza': [30.0131, 31.2089],
+      'alexandria': [31.2001, 29.9187],
+      'assiut': [27.1809, 31.1837],
+      'sohag': [26.5560, 31.6948],
+      'qena': [26.1551, 32.7160],
+      'mansoura': [31.0409, 31.3785],
+      'tanta': [30.7865, 31.0004],
+      'suez': [29.9668, 32.5498],
+      'ismailia': [30.5965, 32.2715],
+      'port said': [31.2653, 32.3019],
+      'fayoum': [29.3084, 30.8428],
+      'beni suef': [29.0744, 31.0978],
+      'minya': [28.1099, 30.7503],
+      'damietta': [31.4175, 31.8144],
+      'zagazig': [30.5877, 31.5020],
+      'kafr': [31.1117, 30.9399],
+      'hurghada': [27.2579, 33.8116],
+      'sharm': [27.9158, 34.3299],
+    };
+
+    for (final entry in centers.entries) {
+      if (combined.contains(entry.key)) {
+        return {
+          'latitude': entry.value[0],
+          'longitude': entry.value[1],
+        };
+      }
+    }
+
+    if (_hasEgyptAddressHint(address)) {
+      return const {'latitude': 30.0444, 'longitude': 31.2357};
+    }
+
+    return null;
+  }
+
+  Map<String, double>? _sanitizeCoordinatesForAddress(
+    Map<String, double>? coordinates,
+    Map<String, dynamic>? address,
+  ) {
+    if (address == null) return coordinates;
+
+    final fallback = _fallbackEgyptCenter(address);
+
+    if (coordinates == null) return fallback;
+
+    final lat = coordinates['latitude'];
+    final lon = coordinates['longitude'];
+
+    if (lat == null || lon == null) return fallback ?? coordinates;
+
+    if (_isLikelyEgypt(lat, lon)) return coordinates;
+
+    if (_hasEgyptAddressHint(address)) {
+      return fallback ?? coordinates;
+    }
+
+    return coordinates;
+  }
+
+  Map<String, double>? _normalizeCoordinatePair(
+    double first,
+    double second, {
+    bool preferGeoJsonOrder = true,
+  }) {
+    final geoJsonLat = second;
+    final geoJsonLon = first;
+
+    final swappedLat = first;
+    final swappedLon = second;
+
+    int score(double lat, double lon) {
+      if (!_isValidLatitude(lat) || !_isValidLongitude(lon)) return -1;
+
+      var s = 1;
+      if (_isLikelyEgypt(lat, lon)) s += 2;
+      return s;
+    }
+
+    final geoScore = score(geoJsonLat, geoJsonLon);
+    final swappedScore = score(swappedLat, swappedLon);
+
+    if (geoScore < 0 && swappedScore < 0) return null;
+
+    if (geoScore > swappedScore) {
+      return {'latitude': geoJsonLat, 'longitude': geoJsonLon};
+    }
+
+    if (swappedScore > geoScore) {
+      return {'latitude': swappedLat, 'longitude': swappedLon};
+    }
+
+    if (preferGeoJsonOrder) {
+      return {'latitude': geoJsonLat, 'longitude': geoJsonLon};
+    }
+
+    return {'latitude': swappedLat, 'longitude': swappedLon};
+  }
+
+  Map<String, double>? _extractCoordinates(Map<String, dynamic>? address) {
+    if (address == null) return null;
+
+    Map<String, double>? candidate;
+
+    final directCoords = address['coordinates'];
+    if (directCoords is List && directCoords.length >= 2) {
+      final first = _toDouble(directCoords[0]);
+      final second = _toDouble(directCoords[1]);
+      if (first != null && second != null) {
+        final normalized = _normalizeCoordinatePair(
+          first,
+          second,
+          preferGeoJsonOrder: true,
+        );
+        if (normalized != null) {
+          candidate = normalized;
+        }
+      }
+    }
+
+    if (candidate == null &&
+        directCoords is Map &&
+        directCoords['coordinates'] is List) {
+      final nested = directCoords['coordinates'] as List;
+      if (nested.length >= 2) {
+        final first = _toDouble(nested[0]);
+        final second = _toDouble(nested[1]);
+        if (first != null && second != null) {
+          final normalized = _normalizeCoordinatePair(
+            first,
+            second,
+            preferGeoJsonOrder: true,
+          );
+          if (normalized != null) {
+            candidate = normalized;
+          }
+        }
+      }
+    }
+
+    if (candidate == null) {
+      final lat = _toDouble(address['latitude']);
+      final lon = _toDouble(address['longitude']);
+      if (lat != null && lon != null) {
+        if (_isValidLatitude(lat) && _isValidLongitude(lon)) {
+          candidate = {'latitude': lat, 'longitude': lon};
+        } else if (_isValidLatitude(lon) && _isValidLongitude(lat)) {
+          candidate = {'latitude': lon, 'longitude': lat};
+        } else {
+          candidate = {'latitude': lat, 'longitude': lon};
+        }
+      }
+    }
+
+    return _sanitizeCoordinatesForAddress(candidate, address);
   }
 
   Future<void> _submitBooking() async {
@@ -232,25 +505,42 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
 
     try {
       final apiService = ApiService();
-      final bookingData = {
+      final coords = _extractCoordinates(_selectedAddress);
+      if (coords == null) {
+        throw Exception('Selected address is missing coordinates');
+      }
+
+      final matchingRequestData = {
         'serviceId': widget.serviceId,
-        'serviceName': widget.serviceName,
-        'patientId': _selectedPatientId,
-        'patientName': _selectedPatientName,
-        'isForSelf': _isForSelf,
-        'hasMedicalTools': !_nurseHasSupplies,
-        'servicePrice': _totalPrice,
-        'addressId': _selectedAddressId,
+        'latitude': coords['latitude'],
+        'longitude': coords['longitude'],
+        'address': {
+          'street': _selectedAddress?['street'] ?? '',
+          'area': _selectedAddress?['area'] ?? '',
+          'city': _selectedAddress?['city'] ?? '',
+          'state': _selectedAddress?['state'] ?? '',
+        },
         'timeOption': _selectedTimeOption,
-        'scheduledDate': _selectedDate.toIso8601String(),
-        'scheduledTime': _selectedTimeSlot,
-        'nurseGenderPreference': _nurseGenderPreference,
+        if (_selectedTimeOption == 'schedule')
+          'scheduledDate': _selectedDate.toIso8601String(),
+        if (_selectedTimeOption == 'schedule' && _selectedTimeSlot != null)
+          'scheduledTime': _selectedTimeSlot,
+        'nurseGenderPreference': _nurseGenderPreference ?? 'any',
         'notes': _notesController.text.trim(),
-        'status': 'pending',
-        'createdAt': DateTime.now().toIso8601String(),
       };
 
-      await apiService.post('/api/bookings/create', body: bookingData);
+      final response = await apiService.post(
+        '/api/matching/request',
+        body: matchingRequestData,
+      );
+
+      final matchingRequest =
+          response['matchingRequest'] as Map<String, dynamic>?;
+      final matchingRequestId = matchingRequest?['id']?.toString();
+
+      if (matchingRequestId == null || matchingRequestId.isEmpty) {
+        throw Exception('Failed to create matching request');
+      }
 
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -259,8 +549,14 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           MaterialPageRoute(
             builder:
                 (context) => BookingMatchingScreen(
+                  matchingRequestId: matchingRequestId,
                   serviceName: widget.serviceName,
                   patientName: _selectedPatientName ?? 'Patient',
+                  patientLatitude: coords['latitude']!,
+                  patientLongitude: coords['longitude']!,
+                  retryRequestPayload: Map<String, dynamic>.from(
+                    matchingRequestData,
+                  ),
                 ),
           ),
         );
@@ -271,7 +567,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
     } catch (e) {
       if (mounted) {
         setState(() => _isSubmitting = false);
-        _showError('Error creating booking');
+        _showError('Error creating matching request');
       }
     }
   }

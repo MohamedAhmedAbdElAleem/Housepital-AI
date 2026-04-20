@@ -45,10 +45,38 @@ class NurseBookingError extends NurseBookingState {
 class NurseBookingCubit extends Cubit<NurseBookingState> {
   final ApiClient _apiClient;
   NurseBooking? _currentBooking;
+  String _pendingSource = 'matching';
 
   NurseBookingCubit(this._apiClient) : super(NurseBookingInitial());
 
   NurseBooking? get currentBooking => _currentBooking;
+
+  NurseBooking _matchingOfferToBooking(Map<String, dynamic> offer) {
+    final patient = (offer['patient'] as Map<String, dynamic>?) ?? {};
+    final service = (offer['service'] as Map<String, dynamic>?) ?? {};
+    final pricing = (offer['pricing'] as Map<String, dynamic>?) ?? {};
+    final location = (offer['location'] as Map<String, dynamic>?) ?? {};
+
+    return NurseBooking.fromJson({
+      '_id': offer['offerId'],
+      'type': 'home_nursing',
+      'serviceName': service['name'] ?? 'Service',
+      'servicePrice': pricing['servicePrice'] ?? pricing['totalPrice'] ?? 0,
+      'patientId': '',
+      'patientName': patient['name'] ?? 'Patient',
+      'userId': {'name': patient['name'] ?? 'Patient'},
+      'status': 'pending',
+      'notes': offer['notes'] ?? '',
+      'timeOption': offer['timeOption'] ?? 'asap',
+      'address': {
+        'street': location['street'],
+        'area': location['area'],
+        'city': location['city'],
+        'state': location['state'],
+      },
+      'createdAt': offer['createdAt'] ?? DateTime.now().toIso8601String(),
+    });
+  }
 
   /// Fetch pending bookings and check for active booking
   Future<void> fetchBookings() async {
@@ -83,11 +111,29 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
         return;
       }
 
-      // No active booking, fetch pending ones
+      // No active booking, fetch pending matching offers first
+      try {
+        final matchingResponse = await _apiClient.get(
+          ApiConstants.nurseMatchingOffers,
+        );
+
+        if (matchingResponse['success'] == true) {
+          _pendingSource = 'matching';
+          final offers = (matchingResponse['offers'] as List? ?? []);
+          final bookings =
+              offers.map((o) => _matchingOfferToBooking(o)).toList();
+          emit(NurseBookingIdle(bookings));
+          return;
+        }
+      } catch (_) {
+        // Fall back to the legacy pending-booking API if matching API is unavailable.
+      }
+
       final pendingResponse = await _apiClient.get(
         ApiConstants.nursePendingBookings,
       );
 
+      _pendingSource = 'legacy';
       if (pendingResponse['success'] == true) {
         final bookings =
             (pendingResponse['bookings'] as List)
@@ -108,6 +154,24 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
     emit(NurseBookingLoading());
 
     try {
+      if (_pendingSource == 'matching') {
+        final response = await _apiClient.put(
+          ApiConstants.respondToNurseOffer(bookingId),
+          body: {'response': 'accepted'},
+        );
+
+        if (response['success'] == true) {
+          await fetchBookings();
+          return;
+        }
+
+        emit(
+          NurseBookingError(response['message'] ?? 'Failed to accept offer'),
+        );
+        await fetchBookings();
+        return;
+      }
+
       final response = await _apiClient.post(
         ApiConstants.acceptBooking(bookingId),
         body: {},
@@ -126,7 +190,6 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
         emit(
           NurseBookingError(response['message'] ?? 'Failed to accept booking'),
         );
-        // Refresh to show current state
         await fetchBookings();
       }
     } catch (e) {
@@ -158,8 +221,19 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
     }
   }
 
-  /// Decline a booking (just go back to idle for now)
-  void declineBooking() {
+  /// Decline a pending item.
+  Future<void> declineBooking(String bookingId) async {
+    try {
+      if (_pendingSource == 'matching') {
+        await _apiClient.put(
+          ApiConstants.respondToNurseOffer(bookingId),
+          body: {'response': 'declined'},
+        );
+      }
+    } catch (e) {
+      print('❌ Error declining booking/offer: $e');
+    }
+
     _currentBooking = null;
     fetchBookings();
   }

@@ -318,7 +318,9 @@ class _PinVerificationPageState extends State<PinVerificationPage> {
                 // Cancel button
                 TextButton(
                   onPressed: () {
-                    context.read<NurseBookingCubit>().declineBooking();
+                    context.read<NurseBookingCubit>().declineBooking(
+                      widget.booking.id,
+                    );
                     Navigator.pop(context);
                   },
                   child: Text(

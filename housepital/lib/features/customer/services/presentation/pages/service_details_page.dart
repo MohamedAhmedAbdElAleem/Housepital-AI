@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../booking/presentation/pages/booking_step1_select_patient.dart';
+import '../../../../../core/network/api_constants.dart';
+import '../../../../../core/network/api_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 🎨 DESIGN SYSTEM
@@ -30,6 +32,8 @@ class _ServiceDesign {
 
 class ServiceDetailsPage extends StatefulWidget {
   final String title;
+  final String? serviceId;
+  final String? serviceRoute;
   final String price;
   final String duration;
   final IconData icon;
@@ -40,6 +44,8 @@ class ServiceDetailsPage extends StatefulWidget {
   const ServiceDetailsPage({
     super.key,
     required this.title,
+    this.serviceId,
+    this.serviceRoute,
     required this.price,
     required this.duration,
     required this.icon,
@@ -59,6 +65,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   late Animation<Offset> _slideAnimation;
   bool _isFavorite = false;
   int _selectedTab = 0;
+  bool _isResolvingServiceId = false;
 
   @override
   void initState() {
@@ -89,6 +96,55 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   double get _priceValue {
     return double.tryParse(widget.price.replaceAll(RegExp(r'[^0-9.]'), '')) ??
         0.0;
+  }
+
+  bool _isObjectId(String value) =>
+      RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(value);
+
+  String _slugFromTitle(String value) {
+    return value
+        .toLowerCase()
+        .trim()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+  }
+
+  Future<String?> _resolveServiceIdFromApi() async {
+    final apiService = ApiService();
+    final response = await apiService.get(
+      ApiConstants.publicHomeNursingServices,
+    );
+    final services =
+        (response is Map<String, dynamic>)
+            ? (response['data'] as List? ?? const [])
+            : const [];
+
+    if (services.isEmpty) return null;
+
+    final routeToken = (widget.serviceRoute ?? '').toLowerCase().trim();
+    final titleToken = widget.title.toLowerCase().trim();
+    final titleSlug = _slugFromTitle(widget.title);
+
+    String? pickId(dynamic item) {
+      if (item is! Map) return null;
+
+      final id = item['_id']?.toString() ?? '';
+      final category = item['category']?.toString().toLowerCase().trim() ?? '';
+      final name = item['name']?.toString().toLowerCase().trim() ?? '';
+
+      if (id.isEmpty) return null;
+      if (routeToken.isNotEmpty && category == routeToken) return id;
+      if (category == titleSlug) return id;
+      if (name == titleToken) return id;
+      return null;
+    }
+
+    for (final item in services) {
+      final id = pickId(item);
+      if (id != null) return id;
+    }
+
+    return null;
   }
 
   @override
@@ -1257,10 +1313,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
               Expanded(
                 flex: 3,
                 child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.mediumImpact();
-                    _navigateToBooking();
-                  },
+                  onTap:
+                      _isResolvingServiceId
+                          ? null
+                          : () {
+                            HapticFeedback.mediumImpact();
+                            _navigateToBooking();
+                          },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     decoration: BoxDecoration(
@@ -1297,15 +1356,26 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
-                          'Book Now',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
+                        _isResolvingServiceId
+                            ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                            : const Text(
+                              'Book Now',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
                       ],
                     ),
                   ),
@@ -1318,14 +1388,47 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
-  void _navigateToBooking() {
+  Future<void> _navigateToBooking() async {
+    if (_isResolvingServiceId) return;
+
+    setState(() => _isResolvingServiceId = true);
+
+    String resolvedServiceId = widget.serviceId?.trim() ?? '';
+
+    try {
+      if (!_isObjectId(resolvedServiceId)) {
+        resolvedServiceId =
+            await _resolveServiceIdFromApi() ?? resolvedServiceId;
+      }
+    } catch (_) {
+      // Fallback to known route/title slug if the lookup request fails.
+    }
+
+    if (!_isObjectId(resolvedServiceId)) {
+      if (mounted) {
+        setState(() => _isResolvingServiceId = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Service is currently unavailable. Please try another service.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    setState(() => _isResolvingServiceId = false);
+
     Navigator.push(
       context,
       PageRouteBuilder(
         pageBuilder:
             (_, __, ___) => BookingStep1SelectPatient(
               serviceName: widget.title,
-              serviceId: widget.title.toLowerCase().replaceAll(' ', '_'),
+              serviceId: resolvedServiceId,
               servicePrice: _priceValue,
             ),
         transitionsBuilder: (_, animation, __, child) {
