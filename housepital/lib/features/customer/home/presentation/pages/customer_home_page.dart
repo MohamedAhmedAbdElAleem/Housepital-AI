@@ -17,6 +17,7 @@ import '../../../../../core/providers/notification_provider.dart';
 import '../../../../notifications/presentation/pages/notifications_page.dart';
 import '../../../booking/presentation/pages/clinic_discovery_page.dart';
 
+
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key});
 

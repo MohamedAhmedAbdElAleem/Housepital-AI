@@ -13,6 +13,7 @@ const bookingSchema = new mongoose.Schema({
 	serviceId: {
 		type: String,
 
+
 	},
 	serviceName: {
 		type: String,
