@@ -56,4 +56,8 @@ class ApiConstants {
   // Timeout durations
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
+
+  // Wallet Endpoints
+  static const String walletBalance = '/api/wallet/balance';
+  static const String walletTransactions = '/api/wallet/transactions';
 }

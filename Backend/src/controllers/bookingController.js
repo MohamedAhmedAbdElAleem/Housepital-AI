@@ -2,6 +2,7 @@ const Booking = require("../models/Booking");
 const User = require("../models/User");
 const { sendNotification, getIO } = require("../services/notificationService");
 const Doctor = require("../models/Doctor");
+const walletService = require("../services/walletService");
 
 /**
  * @desc    Create a new booking
@@ -78,6 +79,16 @@ exports.createBooking = async (req, res) => {
 			return res.status(401).json({
 				success: false,
 				message: "User not authenticated",
+			});
+		}
+
+		// Check if patient's wallet is blocked
+		const patientBlocked = await walletService.isWalletBlocked(userId);
+		if (patientBlocked) {
+			return res.status(403).json({
+				success: false,
+				message: "Your account is restricted due to outstanding wallet balance. Please contact support.",
+				walletBlocked: true,
 			});
 		}
 
@@ -570,6 +581,16 @@ exports.acceptBooking = async (req, res) => {
 			});
 		}
 
+		// Check if nurse's wallet is blocked
+		const nurseBlocked = await walletService.isWalletBlocked(req.user?.id);
+		if (nurseBlocked) {
+			return res.status(403).json({
+				success: false,
+				message: "Your account is restricted due to outstanding wallet balance. Please recharge your wallet.",
+				walletBlocked: true,
+			});
+		}
+
 		const booking = await Booking.findById(id);
 
 		if (!booking) {
@@ -791,7 +812,25 @@ exports.completeVisit = async (req, res) => {
 		booking.status = "completed";
 		booking.visitEndedAt = new Date();
 		booking.visitReport = report || "";
+		booking.paymentStatus = "paid";
+		booking.paidAt = new Date();
 		await booking.save();
+
+		// Deduct nurse commission (15%) from wallet
+		try {
+			const nurseUser = await Nurse.findById(nurseProfile._id).select("user");
+			const totalAmount = booking.totalAmount || booking.servicePrice || 0;
+			if (totalAmount > 0 && nurseUser) {
+				const commissionResult = await walletService.deductNurseCommission(
+					nurseUser.user.toString(),
+					totalAmount,
+					booking._id.toString()
+				);
+				console.log(`💰 Nurse commission deducted. New balance: ${commissionResult.newBalance}`);
+			}
+		} catch (commissionError) {
+			console.error("⚠️ Error deducting nurse commission (visit still completed):", commissionError.message);
+		}
 
 		console.log(`✅ Visit completed for booking ${id}`);
 
@@ -805,6 +844,101 @@ exports.completeVisit = async (req, res) => {
 		res.status(500).json({
 			success: false,
 			message: "Error completing visit",
+			error: error.message,
+		});
+	}
+};
+
+/**
+ * @desc    Complete a clinic appointment and deduct doctor commission
+ * @route   POST /api/bookings/:id/complete-appointment
+ * @access  Private (Doctor)
+ */
+exports.completeAppointment = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const userId = req.user?.id;
+
+		// Find the doctor profile
+		const doctor = await Doctor.findOne({ user: userId });
+		if (!doctor) {
+			return res.status(404).json({
+				success: false,
+				message: "Doctor profile not found",
+			});
+		}
+
+		const booking = await Booking.findById(id);
+		if (!booking) {
+			return res.status(404).json({
+				success: false,
+				message: "Booking not found",
+			});
+		}
+
+		// Verify this booking belongs to this doctor
+		if (booking.doctorId?.toString() !== doctor._id.toString()) {
+			return res.status(403).json({
+				success: false,
+				message: "Not authorized for this appointment",
+			});
+		}
+
+		if (booking.type !== "clinic_appointment") {
+			return res.status(400).json({
+				success: false,
+				message: "This is not a clinic appointment",
+			});
+		}
+
+		// Mark as completed
+		booking.status = "completed";
+		booking.visitEndedAt = new Date();
+		booking.paymentStatus = "paid";
+		booking.paidAt = new Date();
+		await booking.save();
+
+		// Deduct doctor commission (10%) from wallet
+		try {
+			const totalAmount = booking.totalAmount || booking.servicePrice || 0;
+			if (totalAmount > 0) {
+				const commissionResult = await walletService.deductDoctorCommission(
+					userId,
+					totalAmount,
+					booking._id.toString()
+				);
+				console.log(`💰 Doctor commission deducted. New balance: ${commissionResult.newBalance}`);
+			}
+		} catch (commissionError) {
+			console.error("⚠️ Error deducting doctor commission (appointment still completed):", commissionError.message);
+		}
+
+		// Send notification to patient
+		await sendNotification({
+			userId: booking.userId.toString(),
+			title: "Appointment Completed 🎉",
+			body: `Your ${booking.serviceName} appointment has been completed. Please rate your experience!`,
+			titleAr: "اكتملت الزيارة 🎉",
+			bodyAr: `اكتملت زيارة ${booking.serviceName}. يرجى تقييم تجربتك!`,
+			type: "booking_completed",
+			referenceId: booking._id,
+			referenceType: "booking",
+			priority: "normal",
+			metadata: { serviceName: booking.serviceName, status: "completed" },
+		});
+
+		console.log(`✅ Appointment completed for booking ${id}`);
+
+		res.status(200).json({
+			success: true,
+			message: "Appointment completed successfully",
+			booking: booking,
+		});
+	} catch (error) {
+		console.error("❌ Error completing appointment:", error);
+		res.status(500).json({
+			success: false,
+			message: "Error completing appointment",
 			error: error.message,
 		});
 	}

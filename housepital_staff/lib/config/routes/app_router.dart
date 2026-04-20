@@ -13,6 +13,8 @@ import '../../features/doctor/presentation/pages/appointments_page.dart';
 import '../../features/doctor/data/models/clinic_model.dart';
 import '../../features/nurse/presentation/pages/nurse_home_page.dart';
 import '../../features/nurse/presentation/pages/nurse_profile_completion_page.dart';
+import '../../features/nurse/presentation/pages/wallet_page.dart';
+import '../../features/doctor/presentation/pages/wallet_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
 
 class AppRouter {
@@ -106,6 +108,12 @@ class AppRouter {
           const AdminDashboardPage(),
           settings: settings,
         );
+
+      case AppRoutes.nurseWallet:
+        return _buildDefaultRoute(const NurseWalletPage(), settings: settings);
+
+      case AppRoutes.doctorWallet:
+        return _buildDefaultRoute(const DoctorWalletPage(), settings: settings);
 
       default:
         return MaterialPageRoute(

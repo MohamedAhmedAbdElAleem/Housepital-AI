@@ -72,6 +72,7 @@ dependencies:
   open_file: ^3.3.2
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
+  webview_flutter: ^4.10.0
 
 dev_dependencies:
   flutter_test:

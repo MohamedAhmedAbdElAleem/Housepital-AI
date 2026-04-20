@@ -10,6 +10,7 @@ class AppRoutes {
 
   // Nurse
   static const String nurseHome = '/nurse/home';
+  static const String nurseWallet = '/nurse/wallet';
 
   // Doctor
   static const String doctorHome = '/doctor/home';
@@ -19,6 +20,7 @@ class AppRoutes {
   static const String clinicDetails = '/doctor/clinics/details';
   static const String myServices = '/doctor/services';
   static const String myAppointments = '/doctor/appointments';
+  static const String doctorWallet = '/doctor/wallet';
 
   // Admin
   static const String adminDashboard = '/admin/dashboard';

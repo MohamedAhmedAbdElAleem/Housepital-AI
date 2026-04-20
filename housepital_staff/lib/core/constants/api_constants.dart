@@ -55,4 +55,10 @@ class ApiConstants {
   static String verifyPin(String id) => '/bookings/$id/verify-pin';
   static String completeVisit(String id) => '/bookings/$id/complete';
   static String updateBookingStatus(String id) => '/bookings/$id/status';
+
+  // Wallet Endpoints
+  static const String walletBalance = '/wallet/balance';
+  static const String walletTransactions = '/wallet/transactions';
+  static const String walletRechargeInitiate = '/wallet/recharge/initiate';
+  static String walletRechargeStatus(String orderId) => '/wallet/recharge/status/$orderId';
 }

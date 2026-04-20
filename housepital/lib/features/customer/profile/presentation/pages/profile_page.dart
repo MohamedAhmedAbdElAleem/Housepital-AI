@@ -752,7 +752,7 @@ class _ProfilePageState extends State<ProfilePage>
                                     context,
                                     MaterialPageRoute(
                                       builder:
-                                          (context) => WalletPage(user: _user),
+                                          (context) => const WalletPage(),
                                     ),
                                   );
                                 },

@@ -18,6 +18,8 @@ import 'features/nurse/data/datasources/nurse_remote_datasource.dart';
 import 'features/nurse/data/repositories/nurse_repository.dart';
 import 'features/nurse/presentation/cubit/nurse_profile_cubit.dart';
 import 'features/nurse/presentation/cubit/nurse_booking_cubit.dart';
+import 'features/nurse/presentation/cubit/wallet_cubit.dart';
+import 'features/doctor/presentation/cubit/wallet_cubit.dart';
 
 void main() {
   // Ensure Flutter bindings are initialized
@@ -52,6 +54,8 @@ void main() {
           create: (_) => NurseProfileCubit(repository: nurseRepository),
         ),
         BlocProvider(create: (_) => NurseBookingCubit(apiClient)),
+        BlocProvider(create: (_) => NurseWalletCubit(apiClient)),
+        BlocProvider(create: (_) => DoctorWalletCubit(apiClient)),
       ],
       child: const HousepitalStaffApp(),
     ),

@@ -16,7 +16,9 @@ const transactionSchema = new mongoose.Schema(
                 "withdrawal",           // Provider withdraws earnings
                 "platform_fee",         // Platform commission
                 "bonus_credit",         // Good faith bonus
-                "no_show_fee"           // No-show penalty
+                "no_show_fee",          // No-show penalty
+                "wallet_recharge",      // PayMob wallet top-up
+                "commission_deduction"  // Platform commission deducted
             ],
             required: [true, "Transaction type is required"]
         },
@@ -58,7 +60,7 @@ const transactionSchema = new mongoose.Schema(
         // Payment details
         paymentMethod: {
             type: String,
-            enum: ["cash", "card", "wallet", "fawry", "bank_transfer", "vodafone_cash"]
+            enum: ["cash", "card", "wallet", "fawry", "bank_transfer", "vodafone_cash", "paymob"]
         },
         paymentReference: {
             type: String,
@@ -92,6 +94,12 @@ const transactionSchema = new mongoose.Schema(
         // Balance after transaction (for audit trail)
         balanceAfter: {
             type: Number
+        },
+        // PayMob tracking
+        paymobOrderId: {
+            type: String,
+            trim: true,
+            sparse: true
         }
     },
     { timestamps: true }

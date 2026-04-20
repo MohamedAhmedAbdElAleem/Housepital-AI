@@ -21,6 +21,7 @@ import '../../features/nurse/home/presentation/pages/nurse_home_page.dart';
 import '../../features/doctor/home/presentation/pages/doctor_home_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
+import '../../features/customer/profile/presentation/pages/wallet_page.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -90,6 +91,9 @@ class AppRouter {
 
       case AppRoutes.adminDashboard:
         return MaterialPageRoute(builder: (_) => const AdminDashboardPage());
+
+      case AppRoutes.customerWallet:
+        return MaterialPageRoute(builder: (_) => const WalletPage());
 
       case AppRoutes.notifications:
         return MaterialPageRoute(

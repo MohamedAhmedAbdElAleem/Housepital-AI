@@ -168,6 +168,15 @@ const userSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
+		walletBlocked: {
+			type: Boolean,
+			default: false,
+		},
+		walletBlockReason: {
+			type: String,
+			trim: true,
+			default: null,
+		},
 		totalVisits: {
 			type: Number,
 			default: 0,

@@ -26,6 +26,7 @@ class AppRoutes {
   static const String customerChat = '/customer/chat';
   static const String customerPlans = '/customer/plans';
   static const String customerHistory = '/customer/history';
+  static const String customerWallet = '/customer/wallet';
 
   // Nurse
   static const String nurseHome = '/nurse/home';

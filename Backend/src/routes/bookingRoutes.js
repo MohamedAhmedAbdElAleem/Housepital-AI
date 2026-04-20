@@ -14,6 +14,7 @@ const {
 	verifyPinAndStartVisit,
 	completeVisit,
 	updateNurseLocation,
+	completeAppointment,
 } = require("../controllers/bookingController");
 
 // All booking routes require authentication
@@ -173,6 +174,13 @@ router.post("/:id/complete", authenticateToken, completeVisit);
 router.post("/:id/location", authenticateToken, updateNurseLocation);
 
 // ============ END NURSE ROUTES ============
+
+// ============ DOCTOR SPECIFIC ROUTES ============
+
+// Complete clinic appointment (with doctor commission)
+router.post("/:id/complete-appointment", authenticateToken, completeAppointment);
+
+// ============ END DOCTOR ROUTES ============
 
 /**
  * @openapi
