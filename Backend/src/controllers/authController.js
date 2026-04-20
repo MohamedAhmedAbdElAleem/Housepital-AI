@@ -172,12 +172,28 @@ exports.login = async (req, res, next) => {
 
         console.log(`user ${email} added to the redis cache`);
 
+        // Build extended user data for doctor/nurse roles
+        let doctorProfile = null;
+        if (user.role === 'doctor') {
+            const Doctor = require('../models/Doctor');
+            doctorProfile = await Doctor.findOne({ user: user._id })
+                .select('verificationStatus rejectionReason isActive');
+        }
 
         // Return success response with user data
         res.status(200).json({
             success: true,
             message: 'User logged in successfully',
-            user: user.toJSON(),
+            user: {
+                ...user.toJSON(),
+                // Include doctor-specific fields
+                ...(doctorProfile ? {
+                    verificationStatus: doctorProfile.verificationStatus,
+                    rejectionReason: doctorProfile.rejectionReason,
+                    doctorIsActive: doctorProfile.isActive,
+                    hasProfile: true
+                } : (user.role === 'doctor' ? { hasProfile: false } : {})),
+            },
             token: JWTToken
         });
 

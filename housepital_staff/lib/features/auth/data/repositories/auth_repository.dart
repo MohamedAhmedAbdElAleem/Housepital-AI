@@ -62,12 +62,21 @@ class AuthUser {
   final String role;
   final String name;
   final String email;
+  // Doctor-specific fields
+  final String? verificationStatus;
+  final String? rejectionReason;
+  final bool? doctorIsActive;
+  final bool? hasProfile;
 
   AuthUser({
     required this.id,
     required this.role,
     required this.name,
     required this.email,
+    this.verificationStatus,
+    this.rejectionReason,
+    this.doctorIsActive,
+    this.hasProfile,
   });
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
@@ -76,6 +85,10 @@ class AuthUser {
       role: json['role'] ?? 'customer',
       name: json['name'] ?? '',
       email: json['email'] ?? '',
+      verificationStatus: json['verificationStatus'],
+      rejectionReason: json['rejectionReason'],
+      doctorIsActive: json['doctorIsActive'],
+      hasProfile: json['hasProfile'],
     );
   }
 }

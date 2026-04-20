@@ -62,6 +62,45 @@ class TokenManager {
     await prefs.remove(_userRoleKey);
   }
 
+  // ========== Doctor Verification Status ==========
+  static const String _verificationStatusKey = 'verification_status';
+  static const String _hasProfileKey = 'has_profile';
+  static const String _rejectionReasonKey = 'rejection_reason';
+
+  static Future<void> saveVerificationStatus(String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_verificationStatusKey, status);
+  }
+
+  static Future<String?> getVerificationStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_verificationStatusKey);
+  }
+
+  static Future<void> saveHasProfile(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_hasProfileKey, value);
+  }
+
+  static Future<bool> getHasProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_hasProfileKey) ?? false;
+  }
+
+  static Future<void> saveRejectionReason(String? reason) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (reason != null) {
+      await prefs.setString(_rejectionReasonKey, reason);
+    } else {
+      await prefs.remove(_rejectionReasonKey);
+    }
+  }
+
+  static Future<String?> getRejectionReason() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_rejectionReasonKey);
+  }
+
   // ========== Remember Me ==========
   static Future<void> setRememberMe(bool value, {String? email}) async {
     final prefs = await SharedPreferences.getInstance();

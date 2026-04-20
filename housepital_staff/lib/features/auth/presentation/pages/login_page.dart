@@ -419,12 +419,22 @@ class _LoginPageState extends State<LoginPage>
     }
   }
 
-  void _navigateToDashboard(String role) {
+  void _navigateToDashboard(String role) async {
     String route;
-    // Auto-detect role and navigate accordingly
     switch (role.toLowerCase()) {
       case 'doctor':
-        route = AppRoutes.doctorHome;
+        // Check doctor verification workflow
+        final hasProfile = await TokenManager.getHasProfile();
+        final verificationStatus = await TokenManager.getVerificationStatus();
+        if (!hasProfile) {
+          route = AppRoutes.doctorProfileCompletion;
+        } else if (verificationStatus == 'rejected') {
+          route = AppRoutes.doctorRejected;
+        } else if (verificationStatus == 'pending') {
+          route = AppRoutes.doctorPendingApproval;
+        } else {
+          route = AppRoutes.doctorHome;
+        }
         break;
       case 'nurse':
         route = AppRoutes.nurseHome;
@@ -435,6 +445,8 @@ class _LoginPageState extends State<LoginPage>
       default:
         route = AppRoutes.login;
     }
-    Navigator.pushNamedAndRemoveUntil(context, route, (route) => false);
+    if (mounted) {
+      Navigator.pushNamedAndRemoveUntil(context, route, (route) => false);
+    }
   }
 }

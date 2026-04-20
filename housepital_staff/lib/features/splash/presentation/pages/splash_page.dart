@@ -77,13 +77,36 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       if (hasToken && userRole != null) {
         // Redirect based on role
         if (userRole.toLowerCase() == 'doctor') {
-          Navigator.pushReplacementNamed(context, AppRoutes.doctorHome);
+          // Check doctor verification workflow
+          final hasProfile = await TokenManager.getHasProfile();
+          final verificationStatus =
+              await TokenManager.getVerificationStatus();
+
+          if (!hasProfile) {
+            // No profile yet → complete profile
+            Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.doctorProfileCompletion,
+            );
+          } else if (verificationStatus == 'pending') {
+            Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.doctorPendingApproval,
+            );
+          } else if (verificationStatus == 'rejected') {
+            Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.doctorRejected,
+            );
+          } else {
+            // approved
+            Navigator.pushReplacementNamed(context, AppRoutes.doctorHome);
+          }
         } else if (userRole.toLowerCase() == 'nurse') {
           Navigator.pushReplacementNamed(context, AppRoutes.nurseHome);
         } else if (userRole.toLowerCase() == 'admin') {
           Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
         } else {
-          // Fallback if role is unknown or customer
           Navigator.pushReplacementNamed(context, AppRoutes.login);
         }
       } else {

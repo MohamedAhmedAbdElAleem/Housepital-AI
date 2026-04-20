@@ -61,6 +61,13 @@ class _DoctorHomePageState extends State<DoctorHomePage>
       color: Color(0xFF1746C0),
       route: AppRoutes.myServices,
     ),
+    _HomeAction(
+      title: 'My Wallet',
+      subtitle: 'Balance and payments',
+      icon: Icons.account_balance_wallet_outlined,
+      color: Color(0xFF8B5CF6),
+      route: AppRoutes.doctorWallet,
+    ),
   ];
 
   @override
@@ -129,6 +136,11 @@ class _DoctorHomePageState extends State<DoctorHomePage>
             ? doctorState.profile.rating.toStringAsFixed(1)
             : '--';
 
+    final isActive =
+        doctorState is DoctorProfileLoaded
+            ? doctorState.profile.isActive
+            : false;
+
     final unreadCount =
         notificationState is NotificationLoaded
             ? notificationState.unreadCount
@@ -152,10 +164,28 @@ class _DoctorHomePageState extends State<DoctorHomePage>
       ),
     ];
 
-    return Scaffold(
-      backgroundColor: _bg,
-      body: Stack(
-        children: [
+    return BlocListener<DoctorCubit, DoctorState>(
+      listener: (context, state) {
+        if (state is DoctorToggleError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+              action: SnackBarAction(
+                label: 'Wallet',
+                textColor: Colors.white,
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.doctorWallet);
+                },
+              ),
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: _bg,
+        body: Stack(
+          children: [
           Positioned(
             top: -120,
             right: -60,
@@ -189,7 +219,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 18),
                       sliver: SliverToBoxAdapter(
-                        child: _buildHeroCard(doctorName, metrics),
+                        child: _buildHeroCard(doctorName, metrics, isActive),
                       ),
                     ),
                     SliverPadding(
@@ -246,6 +276,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -337,31 +368,22 @@ class _DoctorHomePageState extends State<DoctorHomePage>
         _CircleActionButton(
           icon: Icons.logout_rounded,
           tooltip: 'Logout',
-          onTap: () => context.read<AuthCubit>().logout(),
+          onTap: () {
+            context.read<AuthCubit>().logout();
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              AppRoutes.login,
+              (route) => false,
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _buildBackgroundBlob({
-    required double size,
-    required List<Color> gradient,
-  }) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-    );
-  }
 
-  Widget _buildHeroCard(String doctorName, List<_OverviewMetric> metrics) {
+
+  Widget _buildHeroCard(String doctorName, List<_OverviewMetric> metrics, bool isActive) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
       decoration: BoxDecoration(
@@ -395,29 +417,49 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.circle, size: 8, color: Color(0xFF4ADE80)),
-                    SizedBox(width: 6),
-                    Text(
-                      'Online',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+              // Active toggle
+              GestureDetector(
+                onTap: () {
+                  context.read<DoctorCubit>().toggleActive(!isActive);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.circle,
+                        size: 8,
+                        color: isActive
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFFEF4444),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Text(
+                        isActive ? 'Active' : 'Inactive',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        isActive
+                            ? Icons.toggle_on_rounded
+                            : Icons.toggle_off_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

@@ -523,10 +523,9 @@ class _RegisterPageState extends State<RegisterPage>
 
   void _navigateToDashboard(String role) {
     String route;
-    // Auto-detect role and navigate accordingly
     switch (role.toLowerCase()) {
       case 'doctor':
-        route = AppRoutes.doctorHome;
+        route = AppRoutes.doctorProfileCompletion;
         break;
       case 'nurse':
         route = AppRoutes.nurseHome;

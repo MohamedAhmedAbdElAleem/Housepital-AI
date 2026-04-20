@@ -54,8 +54,8 @@ class _AppointmentsPageState extends State<AppointmentsPage>
   String _bookingId(dynamic b) => (b['_id'] ?? b['id'] ?? '') as String;
 
   String _priceText(dynamic price) {
-    if (price == null) return '0 جنيه';
-    return '$price جنيه';
+    if (price == null) return '0 EGP';
+    return '$price EGP';
   }
 
   // ── build ────────────────────────────────────────────────────────────────
@@ -89,7 +89,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
         appBar: AppBar(
-          title: const Text('المواعيد'),
+          title: const Text('Appointments'),
           backgroundColor: _orange,
           foregroundColor: Colors.white,
           elevation: 0,
@@ -109,10 +109,10 @@ class _AppointmentsPageState extends State<AppointmentsPage>
             tabs: const [
               Tab(
                 icon: Icon(Icons.pending_actions_rounded, size: 18),
-                text: 'طلبات',
+                text: 'Requests',
               ),
-              Tab(icon: Icon(Icons.upcoming_rounded, size: 18), text: 'قادمة'),
-              Tab(icon: Icon(Icons.history_rounded, size: 18), text: 'السابقة'),
+              Tab(icon: Icon(Icons.upcoming_rounded, size: 18), text: 'Upcoming'),
+              Tab(icon: Icon(Icons.history_rounded, size: 18), text: 'Past'),
             ],
           ),
         ),
@@ -147,7 +147,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                                   .read<AppointmentCubit>()
                                   .fetchAppointments(),
                       icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('إعادة المحاولة'),
+                      label: const Text('Retry'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _orange,
                         foregroundColor: Colors.white,
@@ -238,7 +238,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  'بانتظار التأكيد',
+                  'Awaiting Confirmation',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -278,7 +278,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            b['serviceName'] ?? 'خدمة',
+                            b['serviceName'] ?? 'Service',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
@@ -286,7 +286,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${b['patientName'] ?? 'مريض'}',
+                            '${b['patientName'] ?? 'Patient'}',
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[600],
@@ -405,7 +405,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
     final isQueue = b['timeOption'] == 'queue';
 
     final accentColor = isInProgress ? _orange : _blue;
-    final statusLabel = isInProgress ? 'جاري الكشف' : 'مؤكد';
+    final statusLabel = isInProgress ? 'In Progress' : 'Confirmed';
     final statusIcon =
         isInProgress ? Icons.play_circle_rounded : Icons.check_circle_rounded;
 
@@ -449,7 +449,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        b['serviceName'] ?? 'خدمة',
+                        b['serviceName'] ?? 'Service',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
@@ -457,7 +457,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        b['patientName'] ?? 'مريض',
+                        b['patientName'] ?? 'Patient',
                         style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 3),
@@ -513,7 +513,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${b['servicePrice'] ?? 0} جنيه',
+                      '${b['servicePrice'] ?? 0} EGP',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -628,7 +628,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    b['serviceName'] ?? 'خدمة',
+                    b['serviceName'] ?? 'Service',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
@@ -636,7 +636,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    b['patientName'] ?? 'مريض',
+                    b['patientName'] ?? 'Patient',
                     style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 3),
@@ -688,7 +688,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '${b['servicePrice'] ?? 0} جنيه',
+                  '${b['servicePrice'] ?? 0} EGP',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,

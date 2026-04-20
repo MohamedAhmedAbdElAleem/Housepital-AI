@@ -31,6 +31,11 @@ class DoctorRepositoryImpl implements DoctorRepository {
   }
 
   @override
+  Future<bool> toggleActive(bool isActive) async {
+    return await remoteDataSource.toggleActive(isActive);
+  }
+
+  @override
   Future<ClinicModel> addClinic(ClinicModel clinic) async {
     return await remoteDataSource.addClinic(clinic);
   }

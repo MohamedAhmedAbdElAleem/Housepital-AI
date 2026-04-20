@@ -5,6 +5,9 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/doctor/presentation/pages/doctor_profile_page.dart';
 import '../../features/doctor/presentation/pages/doctor_home_page.dart';
+import '../../features/doctor/presentation/pages/doctor_profile_completion_page.dart';
+import '../../features/doctor/presentation/pages/doctor_pending_approval_page.dart';
+import '../../features/doctor/presentation/pages/doctor_rejected_page.dart';
 import '../../features/doctor/presentation/pages/my_clinics_page.dart';
 import '../../features/doctor/presentation/pages/clinic_form_page.dart';
 import '../../features/doctor/presentation/pages/clinic_details_page.dart';
@@ -80,6 +83,24 @@ class AppRouter {
 
       case AppRoutes.doctorProfile:
         return _buildDoctorRoute(const DoctorProfilePage(), settings: settings);
+
+      case AppRoutes.doctorProfileCompletion:
+        return _buildDoctorRoute(
+          const DoctorProfileCompletionPage(),
+          settings: settings,
+        );
+
+      case AppRoutes.doctorPendingApproval:
+        return _buildDefaultRoute(
+          const DoctorPendingApprovalPage(),
+          settings: settings,
+        );
+
+      case AppRoutes.doctorRejected:
+        return _buildDefaultRoute(
+          const DoctorRejectedPage(),
+          settings: settings,
+        );
 
       case AppRoutes.myClinics:
         return _buildDoctorRoute(const MyClinicsPage(), settings: settings);

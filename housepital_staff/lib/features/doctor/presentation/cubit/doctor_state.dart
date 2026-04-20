@@ -6,6 +6,8 @@ class DoctorInitial extends DoctorState {}
 
 class DoctorLoading extends DoctorState {}
 
+class DoctorProfileNotFound extends DoctorState {}
+
 class DoctorProfileLoaded extends DoctorState {
   final DoctorModel profile;
   DoctorProfileLoaded(this.profile);
@@ -19,4 +21,9 @@ class DoctorOperationSuccess extends DoctorState {
 class DoctorError extends DoctorState {
   final String message;
   DoctorError(this.message);
+}
+
+class DoctorToggleError extends DoctorState {
+  final String message;
+  DoctorToggleError(this.message);
 }

@@ -26,7 +26,6 @@ class AuthCubit extends Cubit<AuthState> {
 
   AuthCubit({required this.repository}) : super(AuthInitial());
 
-  // Removed selectedRole parameter
   Future<void> login(String email, String password) async {
     emit(AuthLoading());
     try {
@@ -34,14 +33,26 @@ class AuthCubit extends Cubit<AuthState> {
       final response = await repository.login(request);
 
       if (response.success && response.user != null) {
-        // No client-side role validation against selection anymore.
-        // We trust the backend returning the user's correct role.
-
         if (response.token != null) {
           await TokenManager.saveToken(response.token!);
         }
         await TokenManager.saveUserId(response.user!.id);
         await TokenManager.saveUserRole(response.user!.role);
+
+        // Save doctor-specific verification data
+        if (response.user!.role == 'doctor') {
+          if (response.user!.hasProfile == true) {
+            await TokenManager.saveHasProfile(true);
+            await TokenManager.saveVerificationStatus(
+              response.user!.verificationStatus ?? 'pending',
+            );
+            await TokenManager.saveRejectionReason(
+              response.user!.rejectionReason,
+            );
+          } else {
+            await TokenManager.saveHasProfile(false);
+          }
+        }
 
         emit(AuthAuthenticated(response.user!));
       } else {

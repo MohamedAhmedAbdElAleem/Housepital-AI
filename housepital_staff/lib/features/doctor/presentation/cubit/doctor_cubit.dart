@@ -20,7 +20,7 @@ class DoctorCubit extends Cubit<DoctorState> {
       emit(DoctorProfileLoaded(profile));
     } on NotFoundException {
       // Profile not found is expected for new doctors
-      emit(DoctorInitial());
+      emit(DoctorProfileNotFound());
     } catch (e) {
       emit(DoctorError(e.toString()));
     }
@@ -51,6 +51,23 @@ class DoctorCubit extends Cubit<DoctorState> {
       return await repository.uploadImage(file);
     } catch (_) {
       rethrow;
+    }
+  }
+
+  // Toggle active status (wallet-gated on backend)
+  Future<void> toggleActive(bool isActive) async {
+    try {
+      final newActive = await repository.toggleActive(isActive);
+      // Re-fetch profile to get updated state
+      final profile = await repository.getProfile();
+      emit(DoctorProfileLoaded(profile));
+    } catch (e) {
+      emit(DoctorToggleError(e.toString()));
+      // Re-fetch to restore correct state
+      try {
+        final profile = await repository.getProfile();
+        emit(DoctorProfileLoaded(profile));
+      } catch (_) {}
     }
   }
 }

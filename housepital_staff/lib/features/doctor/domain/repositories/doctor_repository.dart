@@ -8,6 +8,7 @@ abstract class DoctorRepository {
   Future<DoctorModel> getProfile();
   Future<DoctorModel> updateProfile(DoctorModel doctor);
   Future<String> uploadImage(File file);
+  Future<bool> toggleActive(bool isActive);
 
   Future<ClinicModel> addClinic(ClinicModel clinic);
   Future<List<ClinicModel>> getMyClinics();

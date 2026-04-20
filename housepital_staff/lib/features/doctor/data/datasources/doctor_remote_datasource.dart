@@ -11,6 +11,7 @@ abstract class DoctorRemoteDataSource {
   Future<DoctorModel> getProfile();
   Future<DoctorModel> updateProfile(DoctorModel doctor);
   Future<String> uploadImage(File file);
+  Future<bool> toggleActive(bool isActive);
 
   Future<ClinicModel> addClinic(ClinicModel clinic);
   Future<List<ClinicModel>> getMyClinics();
@@ -74,16 +75,32 @@ class DoctorRemoteDataSourceImpl implements DoctorRemoteDataSource {
   Future<String> uploadImage(File file) async {
     try {
       final formData = FormData.fromMap({
-        'image': await MultipartFile.fromFile(file.path),
+        'file': await MultipartFile.fromFile(file.path),
+        'folder': 'doctors',
       });
       final response = await apiClient.postFormData(
-        '/doctors/upload',
+        '/cloudinary/upload',
         formData,
       );
       return response['data']['url'] as String;
     } on DioException catch (e) {
       throw ServerException(
         e.response?.data['message'] ?? 'Failed to upload image',
+      );
+    }
+  }
+
+  @override
+  Future<bool> toggleActive(bool isActive) async {
+    try {
+      final response = await apiClient.put(
+        '/doctors/toggle-active',
+        body: {'isActive': isActive},
+      );
+      return response['data']['isActive'] as bool;
+    } on DioException catch (e) {
+      throw ServerException(
+        e.response?.data['message'] ?? 'Failed to toggle active status',
       );
     }
   }

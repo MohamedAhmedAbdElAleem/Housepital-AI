@@ -430,7 +430,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Progress Indicator "طرش" style
+                                // Circular Progress Indicator
                                 SizedBox(
                                   width: 110, // Larger size
                                   height: 110,

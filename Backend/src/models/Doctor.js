@@ -53,6 +53,14 @@ const doctorSchema = new mongoose.Schema(
             type: String,
             trim: true
         },
+        degreeCertificateUrl: {
+            type: String,
+            trim: true
+        },
+        syndicateCardUrl: {
+            type: String,
+            trim: true
+        },
         verificationStatus: {
             type: String,
             enum: ["pending", "approved", "rejected"],
@@ -64,6 +72,11 @@ const doctorSchema = new mongoose.Schema(
         },
         verifiedAt: {
             type: Date
+        },
+        // Active status — doctor can toggle this to receive bookings
+        isActive: {
+            type: Boolean,
+            default: false
         },
         rejectionReason: {
             type: String,

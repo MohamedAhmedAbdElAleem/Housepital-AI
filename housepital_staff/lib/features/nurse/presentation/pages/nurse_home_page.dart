@@ -1179,7 +1179,12 @@ class _NurseHomePageState extends State<NurseHomePage>
                   AppRoutes.nurseProfileCompletion,
                 ),
           ),
-          _dockItem(Icons.account_balance_wallet_outlined, 'Earnings', false),
+          _dockItem(
+            Icons.account_balance_wallet_outlined,
+            'Earnings',
+            false,
+            onTap: () => Navigator.pushNamed(context, AppRoutes.nurseWallet),
+          ),
           _dockItem(
             Icons.settings_outlined,
             'Settings',

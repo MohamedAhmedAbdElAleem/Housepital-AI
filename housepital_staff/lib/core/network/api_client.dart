@@ -151,7 +151,24 @@ class ApiClient {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return response.data;
     } else if (response.statusCode == 400) {
-      throw ValidationException(response.data['message'] ?? 'Bad Request');
+      String errorMessage = response.data['message'] ?? 'Bad Request';
+      if (response.data['errors'] != null && response.data['errors'] is List) {
+        final errorsList = response.data['errors'] as List;
+        if (errorsList.isNotEmpty) {
+          final List<String> details = [];
+          for (var err in errorsList) {
+            if (err is Map && err['message'] != null) {
+              details.add(err['message'].toString());
+            } else if (err is String) {
+              details.add(err);
+            }
+          }
+          if (details.isNotEmpty) {
+            errorMessage = details.join('\n');
+          }
+        }
+      }
+      throw ValidationException(errorMessage);
     } else if (response.statusCode == 401) {
       throw UnauthorizedException(response.data['message'] ?? 'Unauthorized');
     } else if (response.statusCode == 403) {

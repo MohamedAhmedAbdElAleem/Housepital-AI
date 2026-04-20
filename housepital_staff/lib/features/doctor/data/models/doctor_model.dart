@@ -12,6 +12,9 @@ class DoctorModel {
   final String? profilePictureUrl;
   final String verificationStatus;
   final String? rejectionReason;
+  final String? degreeCertificateUrl;
+  final String? syndicateCardUrl;
+  final bool isActive;
   // Booking Settings
   final String bookingMode; // 'slots' or 'queue'
   final int minAdvanceBookingHours;
@@ -36,6 +39,9 @@ class DoctorModel {
     this.profilePictureUrl,
     this.verificationStatus = 'pending',
     this.rejectionReason,
+    this.degreeCertificateUrl,
+    this.syndicateCardUrl,
+    this.isActive = false,
     this.bookingMode = 'slots',
     this.minAdvanceBookingHours = 3,
     this.rushBookingEnabled = false,
@@ -62,6 +68,9 @@ class DoctorModel {
       profilePictureUrl: json['profilePictureUrl'],
       verificationStatus: json['verificationStatus'] ?? 'pending',
       rejectionReason: json['rejectionReason'],
+      degreeCertificateUrl: json['degreeCertificateUrl'],
+      syndicateCardUrl: json['syndicateCardUrl'],
+      isActive: json['isActive'] ?? false,
       bookingMode: json['bookingMode'] ?? 'slots',
       minAdvanceBookingHours: json['minAdvanceBookingHours'] ?? 3,
       rushBookingEnabled: json['rushBookingEnabled'] ?? false,
@@ -87,6 +96,9 @@ class DoctorModel {
       if (profilePictureUrl != null) 'profilePictureUrl': profilePictureUrl,
       'verificationStatus': verificationStatus,
       if (rejectionReason != null) 'rejectionReason': rejectionReason,
+      if (degreeCertificateUrl != null) 'degreeCertificateUrl': degreeCertificateUrl,
+      if (syndicateCardUrl != null) 'syndicateCardUrl': syndicateCardUrl,
+      'isActive': isActive,
       'bookingMode': bookingMode,
       'minAdvanceBookingHours': minAdvanceBookingHours,
       'rushBookingEnabled': rushBookingEnabled,
