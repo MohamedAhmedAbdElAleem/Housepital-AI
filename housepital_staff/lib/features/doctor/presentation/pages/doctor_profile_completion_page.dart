@@ -3,8 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/utils/token_manager.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../data/models/doctor_model.dart';
 import '../cubit/doctor_cubit.dart';
 
@@ -149,26 +151,96 @@ class _DoctorProfileCompletionPageState
   }
 
   Future<void> _pickDocument(String type) async {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Upload from',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt_outlined, color: _primary),
+                  title: const Text('Camera'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickFromSource(type, ImageSource.camera);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library_outlined, color: _primary),
+                  title: const Text('Gallery'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickFromSource(type, ImageSource.gallery);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.picture_as_pdf_outlined, color: _primary),
+                  title: const Text('Document (PDF)'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickFile(type);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickFromSource(String type, ImageSource source) async {
     try {
-      final image = await _picker.pickImage(source: ImageSource.gallery);
+      final image = await _picker.pickImage(source: source);
       if (image == null || !mounted) return;
       setState(() {
-        switch (type) {
-          case 'nationalId':
-            _nationalIdFile = File(image.path);
-            break;
-          case 'license':
-            _licenseFile = File(image.path);
-            break;
-          case 'degree':
-            _degreeCertificateFile = File(image.path);
-            break;
-          case 'syndicate':
-            _syndicateCardFile = File(image.path);
-            break;
-        }
+        _setFileByType(type, File(image.path));
       });
     } catch (_) {}
+  }
+
+  Future<void> _pickFile(String type) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+      if (result == null || result.files.single.path == null || !mounted) return;
+      setState(() {
+        _setFileByType(type, File(result.files.single.path!));
+      });
+    } catch (_) {}
+  }
+
+  void _setFileByType(String type, File file) {
+    switch (type) {
+      case 'nationalId':
+        _nationalIdFile = file;
+        break;
+      case 'license':
+        _licenseFile = file;
+        break;
+      case 'degree':
+        _degreeCertificateFile = file;
+        break;
+      case 'syndicate':
+        _syndicateCardFile = file;
+        break;
+    }
   }
 
   Future<void> _submitProfile() async {
@@ -269,9 +341,19 @@ class _DoctorProfileCompletionPageState
       await TokenManager.saveVerificationStatus('pending');
 
       if (mounted) {
+        context.read<AuthCubit>().logout();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile submitted successfully! Please login to check your status.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 4),
+          ),
+        );
+
         Navigator.pushNamedAndRemoveUntil(
           context,
-          AppRoutes.doctorPendingApproval,
+          AppRoutes.login,
           (route) => false,
         );
       }
