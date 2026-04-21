@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../data/models/booking_model.dart';
+import '../../data/models/visit_report_data.dart';
 
 // ─── States ──────────────────────────────────────────────────────────────────
 
@@ -322,33 +323,85 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
     }
   }
 
-  /// Complete the visit.
-  Future<void> completeVisit(String bookingId, {String? report}) async {
+  /// Complete the visit using the structured report form.
+  ///
+  /// - [bookingId]   — the booking to complete
+  /// - [reportData]  — full structured VisitReportData (new endpoint)
+  /// - [report]      — legacy plain-text fallback (used if reportData is null)
+  Future<void> completeVisit(
+    String bookingId, {
+    VisitReportData? reportData,
+    String? report,
+  }) async {
     emit(NurseBookingLoading());
-    try {
-      final response = await _apiClient.post(
-        ApiConstants.completeVisit(bookingId),
-        body: {'report': report ?? ''},
-      );
 
-      if (response['success'] == true) {
-        final booking = NurseBooking.fromJson(response['booking']);
-        _currentBooking = null;
-        _justCompleted = true; // prevent fetchBookings from re-entering active state
-        emit(NurseBookingCompleted(booking));
-        // Small delay so the user can see the success snackbar,
-        // then transition to idle/radar.
-        await Future.delayed(const Duration(milliseconds: 800));
-        await fetchBookings();
-      } else {
-        emit(
-          NurseBookingError(response['message'] ?? 'Failed to complete visit'),
-        );
-      }
-    } catch (e) {
-      print('❌ Error completing visit: $e');
-      emit(NurseBookingError('Failed to complete visit: ${e.toString()}'));
+    final Map<String, dynamic> body;
+    final String endpoint;
+
+    if (reportData != null) {
+      endpoint = ApiConstants.completeVisitWithReport(bookingId);
+      body = reportData.toJson();
+    } else {
+      endpoint = ApiConstants.completeVisit(bookingId);
+      body = {'report': report ?? ''};
     }
+
+    late Map<String, dynamic> response;
+    try {
+      response = await _apiClient.post(endpoint, body: body);
+    } catch (e) {
+      // Network / server error — visit was NOT completed
+      print('❌ Network error completing visit: $e');
+      emit(NurseBookingError('Failed to complete visit: ${e.toString()}'));
+      return;
+    }
+
+    // --- From here the HTTP call succeeded ---
+
+    if (response['success'] != true) {
+      emit(NurseBookingError(
+          response['message'] ?? 'Failed to complete visit'));
+      return;
+    }
+
+    // Visit completed on server. Parse the returned booking — but do NOT let
+    // a parse error undo the success (the DB is already updated).
+    NurseBooking? completed;
+    try {
+      if (response['booking'] != null) {
+        completed = NurseBooking.fromJson(
+            response['booking'] as Map<String, dynamic>);
+      }
+    } catch (parseError) {
+      print('⚠️ Could not parse completed booking response: $parseError');
+    }
+
+    // Fall back to the cached booking if parsing failed
+    completed ??= _currentBooking;
+
+    _currentBooking = null;
+    _justCompleted = true;
+
+    if (completed != null) {
+      emit(NurseBookingCompleted(completed));
+    } else {
+      // Edge case: no booking to show — still go to idle/completed state
+      emit(NurseBookingCompleted(NurseBooking(
+        id: bookingId,
+        type: 'home_nursing',
+        serviceName: '',
+        servicePrice: 0,
+        patientId: '',
+        patientName: '',
+        customerName: '',
+        status: 'completed',
+        timeOption: 'asap',
+        createdAt: DateTime.now(),
+      )));
+    }
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    await fetchBookings();
   }
 
   /// Reset to idle state.

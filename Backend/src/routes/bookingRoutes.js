@@ -18,6 +18,12 @@ const {
 	completeAppointment,
 	rateBooking,
 } = require("../controllers/bookingController");
+const {
+	completeWithReport,
+	getVisitReport,
+	getPatientVisitReports,
+	getLastVisitReport,
+} = require("../controllers/visitReportController");
 
 // All booking routes require authentication
 /**
@@ -174,6 +180,18 @@ router.post("/:id/verify-pin", authenticateToken, verifyPinAndStartVisit);
  *         description: Visit completed
  */
 router.post("/:id/complete", authenticateToken, completeVisit);
+
+// Submit structured visit report and complete visit (replaces bare /complete for new clients)
+router.post("/:id/complete-with-report", authenticateToken, completeWithReport);
+
+// Fetch the structured visit report for a completed booking
+router.get("/:id/visit-report", authenticateToken, getVisitReport);
+
+// Get all visit reports for a patient
+router.get("/patients/:patientId/visit-reports", authenticateToken, getPatientVisitReports);
+
+// Get last visit report for a patient (prefill)
+router.get("/patients/:patientId/last-visit-report", authenticateToken, getLastVisitReport);
 
 /**
  * @openapi

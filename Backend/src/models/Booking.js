@@ -190,9 +190,15 @@ const bookingSchema = new mongoose.Schema({
 	visitEndedAt: {
 		type: Date,
 	},
+	// Legacy plain-text summary (auto-generated from structured report)
 	visitReport: {
 		type: String,
 		trim: true,
+	},
+	// Reference to the full structured VisitReport document
+	visitReportId: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "VisitReport",
 	},
 
 	// Cancellation Details

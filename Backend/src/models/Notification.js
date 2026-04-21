@@ -47,6 +47,7 @@ const notificationSchema = new mongoose.Schema({
 			"profile_verified",
 			"profile_rejected",
 			"appointment_reminder",
+			"critical_alert",
 			"system",
 			"promotion",
 		],

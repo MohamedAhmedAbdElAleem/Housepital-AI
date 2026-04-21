@@ -745,12 +745,18 @@ exports.verifyPinAndStartVisit = async (req, res) => {
 		booking.checkedInAt = new Date();
 		await booking.save();
 
+		// Re-fetch with populated userId so Flutter client gets patient name/phone
+		const populatedBooking = await Booking.findById(booking._id).populate(
+			"userId",
+			"name email mobile"
+		);
+
 		console.log(`✅ Visit started for booking ${id}`);
 
 		res.status(200).json({
 			success: true,
 			message: "Visit started successfully",
-			booking: booking,
+			booking: populatedBooking,
 		});
 	} catch (error) {
 		console.error("❌ Error starting visit:", error);

@@ -4,8 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/token_manager.dart';
 import '../../data/models/booking_model.dart';
+import '../../data/models/visit_report_data.dart';
+import '../../data/services/visit_report_pdf_service.dart';
 import '../cubit/nurse_booking_cubit.dart';
+import '../widgets/visit_report_form.dart';
 
 /// Full-screen page the nurse sees **while a visit is in progress**.
 ///
@@ -24,16 +28,39 @@ class VisitInProgressPage extends StatefulWidget {
 class _VisitInProgressPageState extends State<VisitInProgressPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
-  late final TextEditingController _reportController;
 
   Timer? _durationTimer;
   Duration _elapsed = Duration.zero;
   bool _isCompleting = false;
 
+  // Visit report state
+  late VisitReportData _reportData;
+
+  // Nurse name (loaded from prefs for PDF header)
+  String _nurseName = 'Nurse';
+  bool _pdfGenerating = false;
+
+  // Scroll controller to jump to the report section on validation failure
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _reportSectionKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
-    _reportController = TextEditingController();
+    _reportData = VisitReportData(
+      servicesPerformed: [widget.booking.serviceName],
+    );
+
+    // Load nurse name from JWT for PDF header
+    TokenManager.getUserFromToken().then((user) {
+      if (mounted && user != null) {
+        setState(() {
+          _nurseName = (user['name'] as String?) ??
+              (user['fullName'] as String?) ??
+              'Nurse';
+        });
+      }
+    });
 
     _pulseController = AnimationController(
       vsync: this,
@@ -57,7 +84,7 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
   void dispose() {
     _durationTimer?.cancel();
     _pulseController.dispose();
-    _reportController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -71,8 +98,39 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
+  /// Returns a human-readable list of missing required fields.
+  List<String> get _missingFields {
+    final missing = <String>[];
+    if (_reportData.bpSystolic == null || _reportData.bpDiastolic == null) {
+      missing.add('Blood Pressure');
+    }
+    if (_reportData.heartRate == null) missing.add('Heart Rate');
+    if (_reportData.temperature == null) missing.add('Temperature');
+    if (_reportData.oxygenSaturation == null) missing.add('SpO₂');
+    if (_reportData.servicesPerformed.isEmpty) missing.add('Services Performed');
+    return missing;
+  }
+
   void _confirmCompleteVisit() {
-    final report = _reportController.text.trim();
+    if (!_reportData.isReadyToSubmit) {
+      // Scroll to the report section so the nurse can see what's missing
+      _scrollToReportSection();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Missing: ${_missingFields.join(', ')}. Please fill required fields first.',
+          ),
+          backgroundColor: AppColors.warning500,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'GO TO FORM',
+            textColor: Colors.white,
+            onPressed: _scrollToReportSection,
+          ),
+        ),
+      );
+      return;
+    }
 
     showModalBottomSheet(
       context: context,
@@ -155,13 +213,16 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
                   _summaryRow('Service', widget.booking.serviceName),
                   const SizedBox(height: 8),
                   _summaryRow('Duration', _formatDuration(_elapsed)),
-                  if (report.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _summaryRow(
+                    'Condition',
+                    _reportData.overallCondition.toUpperCase(),
+                  ),
+                  if (_reportData.bpSystolic != null) ...[
                     const SizedBox(height: 8),
                     _summaryRow(
-                      'Report',
-                      report.length > 60
-                          ? '${report.substring(0, 60)}...'
-                          : report,
+                      'BP',
+                      '${_reportData.bpSystolic}/${_reportData.bpDiastolic} mmHg',
                     ),
                   ],
                 ],
@@ -198,7 +259,7 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pop(ctx);
-                      _doCompleteVisit(report);
+                      _doCompleteVisit();
                     },
                     icon: const Icon(Icons.check_rounded, size: 20),
                     label: const Text(
@@ -255,13 +316,13 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
     );
   }
 
-  Future<void> _doCompleteVisit(String report) async {
+  Future<void> _doCompleteVisit() async {
     setState(() => _isCompleting = true);
     _durationTimer?.cancel();
 
     context.read<NurseBookingCubit>().completeVisit(
           widget.booking.id,
-          report: report.isNotEmpty ? report : null,
+          reportData: _reportData,
         );
   }
 
@@ -341,108 +402,216 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => PopScope(
-        canPop: false,
-        child: Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 600),
-                  curve: Curves.elasticOut,
-                  builder: (context, value, child) {
-                    return Transform.scale(
-                      scale: value,
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: const BoxDecoration(
-                          color: AppColors.success50,
-                          shape: BoxShape.circle,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => PopScope(
+          canPop: false,
+          child: Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Animated check
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.elasticOut,
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: const BoxDecoration(
+                            color: AppColors.success50,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check_circle_rounded,
+                            color: AppColors.success500,
+                            size: 48,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.check_circle_rounded,
-                          color: AppColors.success500,
-                          size: 48,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    'Visit Completed! 🎉',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Great job! The commission has been processed.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Stats strip
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.light100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _statItem(Icons.timer_outlined,
+                            _formatDuration(_elapsed)),
+                        Container(
+                            width: 1,
+                            height: 24,
+                            color: AppColors.light500),
+                        _statItem(Icons.medical_services_outlined,
+                            widget.booking.serviceName),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── PDF Buttons ──
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Visit Report PDF',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      // Preview button
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _pdfGenerating
+                              ? null
+                              : () async {
+                                  setDialogState(
+                                      () => _pdfGenerating = true);
+                                  try {
+                                    await VisitReportPdfService().preview(
+                                      widget.booking,
+                                      _reportData,
+                                      _nurseName,
+                                      _elapsed,
+                                    );
+                                  } finally {
+                                    if (mounted) {
+                                      setDialogState(() =>
+                                          _pdfGenerating = false);
+                                    }
+                                  }
+                                },
+                          icon: const Icon(Icons.visibility_rounded,
+                              size: 16),
+                          label: const Text('Preview',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary500,
+                            side: const BorderSide(
+                                color: AppColors.primary500),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
                       ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Visit Completed! 🎉',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Great job! The commission has been processed.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Stats row
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.light100,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _statItem(
-                          Icons.timer_outlined, _formatDuration(_elapsed)),
-                      Container(
-                          width: 1, height: 24, color: AppColors.light500),
-                      _statItem(Icons.medical_services_outlined,
-                          widget.booking.serviceName),
+                      const SizedBox(width: 10),
+                      // Download / Share button
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _pdfGenerating
+                              ? null
+                              : () async {
+                                  setDialogState(
+                                      () => _pdfGenerating = true);
+                                  try {
+                                    await VisitReportPdfService().share(
+                                      widget.booking,
+                                      _reportData,
+                                      _nurseName,
+                                      _elapsed,
+                                    );
+                                  } finally {
+                                    if (mounted) {
+                                      setDialogState(() =>
+                                          _pdfGenerating = false);
+                                    }
+                                  }
+                                },
+                          icon: _pdfGenerating
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white))
+                              : const Icon(
+                                  Icons.download_rounded,
+                                  size: 16),
+                          label: Text(
+                              _pdfGenerating ? 'Generating...' : 'Download',
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary500,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 12),
 
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(ctx); // Close dialog
-                      Navigator.pop(context); // Go back to home
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary500,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    child: const Text(
-                      'Back to Home',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
+                  // Back to Home
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Back to Home',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -471,6 +640,27 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
     );
   }
 
+  void _scrollToReportSection() {
+    final context = _reportSectionKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+        alignment: 0.0,
+      );
+    } else {
+      // Fallback: scroll to bottom of the scrollable area
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    }
+  }
+
   Widget _buildActiveVisitContent() {
     return Column(
       children: [
@@ -480,6 +670,7 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
         // ── Content ──
         Expanded(
           child: SingleChildScrollView(
+            controller: _scrollController,
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -496,6 +687,10 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
                 _buildServiceDetailsCard(),
                 const SizedBox(height: 20),
 
+                // ── Required Fields Reminder ──
+                if (!_reportData.isReadyToSubmit) _buildRequiredFieldsReminder(),
+                if (!_reportData.isReadyToSubmit) const SizedBox(height: 12),
+
                 // Visit Report
                 _buildReportSection(),
                 const SizedBox(height: 100), // Space for bottom button
@@ -507,6 +702,98 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
         // ── Bottom Complete Button ──
         _buildBottomCompleteButton(),
       ],
+    );
+  }
+
+  /// A banner shown above the report form reminding the nurse which fields
+  /// are required before the visit can be completed.
+  Widget _buildRequiredFieldsReminder() {
+    final missing = _missingFields;
+    if (missing.isEmpty) return const SizedBox.shrink();
+
+    return GestureDetector(
+      onTap: _scrollToReportSection,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFFF3CD), Color(0xFFFFE69C)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.warning300, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.warning300.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.warning500,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.assignment_late_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Required before completing visit:',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.warning700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: missing.map((field) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning600,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        field,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )).toList(),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.warning600,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -894,101 +1181,24 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
   }
 
   Widget _buildReportSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.warning50,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.description_rounded,
-                  color: AppColors.warning600,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Visit Report',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      'Document the services provided',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _reportController,
-            maxLines: 5,
-            minLines: 3,
-            textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(
-              hintText:
-                  'Describe the services you provided, observations, and any recommendations for follow-up...',
-              hintStyle: TextStyle(
-                color: Colors.grey[400],
-                fontSize: 14,
-                height: 1.5,
-              ),
-              filled: true,
-              fillColor: AppColors.light100,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: AppColors.light400),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide:
-                    const BorderSide(color: AppColors.primary500, width: 2),
-              ),
-              contentPadding: const EdgeInsets.all(16),
-            ),
-          ),
-        ],
+    return KeyedSubtree(
+      key: _reportSectionKey,
+      child: VisitReportForm(
+        initialService: widget.booking.serviceName,
+        onChanged: (data) {
+          setState(() => _reportData = data);
+        },
       ),
     );
   }
 
   Widget _buildBottomCompleteButton() {
+    final missing = _missingFields;
+    final isReady = missing.isEmpty;
+    final filledCount = 5 - missing.length; // 5 required fields total
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -1000,28 +1210,87 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
         ],
       ),
       child: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _confirmCompleteVisit,
-            icon: const Icon(Icons.check_circle_rounded, size: 22),
-            label: const Text(
-              'Complete Visit',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Progress bar showing required fields completion
+            if (!isReady) ...[
+              Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    size: 14,
+                    color: AppColors.warning600,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Fill required vitals to complete ($filledCount/5 done)',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.warning600,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: _scrollToReportSection,
+                    child: const Text(
+                      'Fill now ↑',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary500,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: filledCount / 5,
+                  minHeight: 5,
+                  backgroundColor: Colors.grey[200],
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isReady ? AppColors.success500 : AppColors.warning500,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _confirmCompleteVisit,
+                icon: Icon(
+                  isReady
+                      ? Icons.check_circle_rounded
+                      : Icons.assignment_late_rounded,
+                  size: 22,
+                ),
+                label: Text(
+                  isReady ? 'Complete Visit' : 'Complete Visit (${missing.length} fields missing)',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      isReady ? AppColors.success500 : AppColors.warning500,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 2,
+                ),
               ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success500,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 2,
-            ),
-          ),
+          ],
         ),
       ),
     );

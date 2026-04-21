@@ -120,8 +120,11 @@ class _NurseTrackingPageState extends State<NurseTrackingPage>
       final token = await TokenManager.getToken();
       if (token == null) return;
 
-      final url =
-          '${ApiConstants.baseUrl}/bookings/${widget.booking.id}/location';
+      // Prefer the cubit's real DB booking ID over the widget's (possibly
+      // synthetic) offer ID from the matching system.
+      final bookingId = context.read<NurseBookingCubit>().currentBooking?.id
+          ?? widget.booking.id;
+      final url = '${ApiConstants.baseUrl}/bookings/$bookingId/location';
       await http.post(
         Uri.parse(url),
         headers: {
@@ -208,8 +211,12 @@ class _NurseTrackingPageState extends State<NurseTrackingPage>
     } else if (newStatus == 'arrived') {
       _stopLiveTracking();
     }
+    // Use the cubit's real booking ID — widget.booking may still hold
+    // the synthetic matching-offer ID which the backend won't recognise.
+    final realId = context.read<NurseBookingCubit>().currentBooking?.id
+        ?? widget.booking.id;
     context.read<NurseBookingCubit>().updateBookingStatus(
-      widget.booking.id,
+      realId,
       newStatus,
     );
     // Navigation to PIN page is handled by NurseHomePage's BlocConsumer
@@ -238,10 +245,16 @@ class _NurseTrackingPageState extends State<NurseTrackingPage>
       color = AppColors.success;
       icon = Icons.pin_rounded;
       onPressed = () {
+        // Always use the cubit's authoritative booking so we send the
+        // real DB _id to the backend — not the synthetic offer ID.
+        final cubitBooking =
+            context.read<NurseBookingCubit>().currentBooking;
+        final bookingForPin = cubitBooking ?? widget.booking;
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PinVerificationPage(booking: widget.booking),
+            builder: (context) =>
+                PinVerificationPage(booking: bookingForPin),
           ),
         );
       };
@@ -281,11 +294,16 @@ class _NurseTrackingPageState extends State<NurseTrackingPage>
     return BlocBuilder<NurseBookingCubit, NurseBookingState>(
       builder: (context, state) {
         NurseBooking currentBooking = widget.booking;
-        if (state is NurseBookingActive &&
-            state.booking.id == widget.booking.id) {
+        // After the patient confirms the matching offer, the cubit replaces
+        // the synthetic offer-ID booking with the real DB booking. The IDs
+        // will differ (offer ID vs. real _id), so we accept ANY
+        // NurseBookingActive / NurseBookingInProgress state when the
+        // original widget booking is a matching-offer (i.e., its id == offer ID).
+        if (state is NurseBookingActive) {
+          // Use freshest booking from cubit — IDs may differ if it came
+          // from the matching system.
           currentBooking = state.booking;
-        } else if (state is NurseBookingInProgress &&
-            state.booking.id == widget.booking.id) {
+        } else if (state is NurseBookingInProgress) {
           currentBooking = state.booking;
         }
 
