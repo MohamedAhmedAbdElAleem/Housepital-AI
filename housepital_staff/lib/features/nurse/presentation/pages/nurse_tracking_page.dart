@@ -238,7 +238,7 @@ class _NurseTrackingPageState extends State<NurseTrackingPage>
       color = AppColors.success;
       icon = Icons.pin_rounded;
       onPressed = () {
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => PinVerificationPage(booking: widget.booking),

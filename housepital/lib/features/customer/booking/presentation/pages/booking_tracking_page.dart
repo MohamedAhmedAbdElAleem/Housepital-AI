@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
+import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -35,6 +37,11 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
 
   // Nurse location for map marker
   LatLng? _nurseLocation;
+
+  // Route data
+  List<LatLng> _routePoints = [];
+  double? _routeDistance; // meters
+  double? _routeDuration; // seconds
   LatLng? _patientLocation;
 
   @override
@@ -98,7 +105,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
         );
         if (_nurseLocation != newLoc) {
           _nurseLocation = newLoc;
-          _animatedMapMove(_nurseLocation!, _mapController.camera.zoom);
+          _fetchRoute();
         }
       }
     } catch (_) {}
@@ -114,10 +121,11 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
         final lat = data['latitude'] ?? data['lat'];
         final lng = data['longitude'] ?? data['lng'];
         if (lat != null && lng != null) {
+          final newLoc = LatLng((lat as num).toDouble(), (lng as num).toDouble());
           setState(() {
-            final newLoc = LatLng((lat as num).toDouble(), (lng as num).toDouble());
             _nurseLocation = newLoc;
           });
+          _fetchRoute();
         }
       }
     });
@@ -146,6 +154,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
         setState(() {
           _booking = Map<String, dynamic>.from(response['booking']);
           _parseNurseLocation(_booking);
+          _fetchRoute();
         });
 
         // Auto-navigate to invoice when completed
@@ -193,6 +202,62 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
     });
 
     controller.forward();
+  }
+
+  // --- Route Fetching ---
+  Future<void> _fetchRoute() async {
+    if (_nurseLocation == null || _patientLocation == null) return;
+    try {
+      final url =
+          'https://router.project-osrm.org/route/v1/driving/'
+          '${_nurseLocation!.longitude},${_nurseLocation!.latitude};'
+          '${_patientLocation!.longitude},${_patientLocation!.latitude}'
+          '?geometries=geojson';
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['routes'] != null && (data['routes'] as List).isNotEmpty) {
+          final route = data['routes'][0];
+          final coords = route['geometry']['coordinates'] as List;
+          if (mounted) {
+            setState(() {
+              _routePoints =
+                  coords.map<LatLng>((c) => LatLng(c[1], c[0])).toList();
+              _routeDistance = (route['distance'] as num?)?.toDouble();
+              _routeDuration = (route['duration'] as num?)?.toDouble();
+            });
+            _fitBounds();
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching route: $e');
+    }
+  }
+
+  void _fitBounds() {
+    if (_nurseLocation != null && _patientLocation != null) {
+      final bounds = LatLngBounds.fromPoints([
+        _nurseLocation!,
+        _patientLocation!,
+      ]);
+      _mapController.fitCamera(
+        CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(80)),
+      );
+    }
+  }
+
+  String _formatDuration(double seconds) {
+    int minutes = (seconds / 60).ceil();
+    if (minutes < 60) return '$minutes min';
+    int hours = minutes ~/ 60;
+    int rem = minutes % 60;
+    return '${hours}h ${rem}m';
+  }
+
+  String _formatDistance(double meters) {
+    if (meters < 1000) return '${meters.round()} m';
+    return '${(meters / 1000).toStringAsFixed(1)} km';
   }
 
   @override
@@ -273,8 +338,12 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   void _recenterMap() {
-    final center = _nurseLocation ?? _patientLocation ?? const LatLng(30.0444, 31.2357);
-    _animatedMapMove(center, 15.0);
+    if (_nurseLocation != null && _patientLocation != null) {
+      _fitBounds();
+    } else {
+      final center = _nurseLocation ?? _patientLocation ?? const LatLng(30.0444, 31.2357);
+      _animatedMapMove(center, 15.0);
+    }
   }
 
   @override
@@ -366,8 +435,21 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             TileLayer(
               urlTemplate:
                   'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.housepital.staff',
+              userAgentPackageName: 'com.housepital.app',
             ),
+            // Route polyline
+            if (_routePoints.isNotEmpty)
+              PolylineLayer(
+                polylines: <Polyline<Object>>[
+                  Polyline(
+                    points: _routePoints,
+                    color: _statusColor.withOpacity(0.8),
+                    strokeWidth: 5.0,
+                    strokeJoin: StrokeJoin.round,
+                    strokeCap: StrokeCap.round,
+                  ),
+                ],
+              ),
             MarkerLayer(
               markers: [
                 // Patient location marker
@@ -390,7 +472,103 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             ),
           ],
         ),
+        // Trip stats overlay
+        if (_routeDistance != null && _routeDuration != null && _status == 'on-the-way')
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 60,
+            left: 16,
+            right: 16,
+            child: _buildTripStats(),
+          ),
       ],
+    );
+  }
+
+  Widget _buildTripStats() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.85),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.5)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // ETA
+              Icon(Icons.access_time_filled_rounded,
+                  color: _statusColor, size: 22),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _formatDuration(_routeDuration!),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: _statusColor,
+                    ),
+                  ),
+                  const Text(
+                    'Est. arrival',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.dark400,
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              // Divider
+              Container(
+                width: 1,
+                height: 36,
+                color: AppColors.light400,
+              ),
+              const Spacer(),
+              // Distance
+              Icon(Icons.route_rounded,
+                  color: _statusColor, size: 22),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _formatDistance(_routeDistance!),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: _statusColor,
+                    ),
+                  ),
+                  const Text(
+                    'Distance',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.dark400,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

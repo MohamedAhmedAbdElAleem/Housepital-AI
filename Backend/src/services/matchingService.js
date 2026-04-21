@@ -732,7 +732,10 @@ async function handlePatientResponse(offerId, patientUserId, response, io = null
             scheduledTime: matchingRequest.scheduledTime,
             nurseGenderPreference: matchingRequest.nurseGenderPreference,
             notes: matchingRequest.notes,
-            address: matchingRequest.address,
+            address: {
+                ...(matchingRequest.address || {}),
+                coordinates: matchingRequest.location, // GeoJSON {type:"Point", coordinates:[lon,lat]}
+            },
             // Patient selected a nurse, so this booking is now assigned to that nurse.
             status: "assigned",
             assignedNurse: offer.nurseId,
