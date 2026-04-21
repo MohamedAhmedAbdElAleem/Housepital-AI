@@ -475,18 +475,24 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
     final lowerUrl = url.toLowerCase();
     if (lowerUrl.endsWith('.pdf') || lowerUrl.contains('.pdf?')) {
       String targetUrl = url;
+      // Force HTTPS
       if (targetUrl.startsWith('http://')) {
         targetUrl = targetUrl.replaceFirst('http://', 'https://');
       } else if (!targetUrl.startsWith('http')) {
         targetUrl = targetUrl.startsWith('//') ? 'https:$targetUrl' : 'https://$targetUrl';
       }
-      final uri = Uri.parse(targetUrl);
       
       try {
-        final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        // Encode URL to handle special characters or spaces
+        final encodedUrl = Uri.encodeFull(targetUrl);
+        final uri = Uri.parse(encodedUrl);
+        
+        // Use platformDefault to let the OS decide how to open it (Browser vs App)
+        final launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+        
         if (!launched && mounted) {
            ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Could not open PDF file. No PDF viewer installed.')),
+             const SnackBar(content: Text('Could not open PDF. Please check your browser.')),
            );
         }
       } catch (e) {
