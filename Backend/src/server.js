@@ -159,12 +159,6 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 const swaggerDocs = require("./config/swagger");
 swaggerDocs(app, PORT);
 
-// Start Server Immediately
-server.listen(PORT, "0.0.0.0", () => {
-	console.log(`🚀 Server running on port ${PORT}`);
-	console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
-	console.log(`📝 Docs available at: http://localhost:${PORT}/api-docs`);
-});
 
 app.use((req, res) => res.status(404).json({ message: "404 Not Found" }));
 
@@ -172,8 +166,9 @@ app.use(errorHandler);
 
 const startServer = () => {
 	server.listen(PORT, "0.0.0.0", () => {
-		console.log(`Server running on port ${PORT}`);
+		console.log(`🚀 Server running on port ${PORT}`);
 		console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
+		console.log(`📝 Docs available at: http://localhost:${PORT}/api-docs`);
 		console.log(`Socket.IO ready for real-time notifications`);
 	});
 };
