@@ -1,4 +1,21 @@
 class BookingUtils {
+  static String normalizeStatus(dynamic value) {
+    final raw = (value ?? '').toString().trim().toLowerCase();
+
+    switch (raw) {
+      case 'on_the_way':
+        return 'on-the-way';
+      case 'in_progress':
+        return 'in-progress';
+      case 'no_show':
+        return 'no-show';
+      case 'accepted':
+        return 'confirmed';
+      default:
+        return raw;
+    }
+  }
+
   static String formatScheduledTime(String? dateStr) {
     if (dateStr == null) return 'ASAP';
     try {
@@ -45,22 +62,39 @@ class BookingUtils {
   }
 
   static bool isLateCancel(String status) {
-    return status == 'confirmed' ||
-        status == 'clinic_confirmed' ||
-        status == 'nurse_waiting' ||
-        status == 'assigned';
+    final normalized = normalizeStatus(status);
+    return normalized == 'confirmed' ||
+        normalized == 'clinic_confirmed' ||
+        normalized == 'nurse_waiting' ||
+        normalized == 'assigned' ||
+        normalized == 'on-the-way' ||
+        normalized == 'arrived' ||
+        normalized == 'in-progress';
   }
 
   static List<String> get activeStatuses => [
-    'pending',
-    'searching',
-    'confirmed',
-    'assigned',
-    'in-progress',
-    'nurse_waiting',
-    'nurse_emergency',
-    'clinic_confirmed',
-  ];
+        'pending',
+        'searching',
+      'offers_pending',
+      'nurse_accepted',
+        'confirmed',
+        'assigned',
+        'on-the-way',
+        'arrived',
+        'in-progress',
+        'nurse_waiting',
+        'nurse_emergency',
+        'clinic_confirmed',
+      ];
 
-  static List<String> get historyStatuses => ['completed', 'cancelled'];
+  static List<String> get historyStatuses => ['completed', 'cancelled', 'no-show'];
+
+  static bool isTrackableStatus(String status) {
+    final normalized = normalizeStatus(status);
+    return normalized == 'confirmed' ||
+        normalized == 'assigned' ||
+        normalized == 'on-the-way' ||
+        normalized == 'arrived' ||
+        normalized == 'in-progress';
+  }
 }

@@ -16,6 +16,7 @@ const {
 	completeVisit,
 	updateNurseLocation,
 	completeAppointment,
+	rateBooking,
 } = require("../controllers/bookingController");
 
 // All booking routes require authentication
@@ -173,6 +174,42 @@ router.post("/:id/verify-pin", authenticateToken, verifyPinAndStartVisit);
  *         description: Visit completed
  */
 router.post("/:id/complete", authenticateToken, completeVisit);
+
+/**
+ * @openapi
+ * /api/bookings/{id}/rate:
+ *   post:
+ *     tags:
+ *       - Bookings
+ *     summary: Rate a completed booking
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rating
+ *             properties:
+ *               rating:
+ *                 type: number
+ *                 minimum: 1
+ *                 maximum: 5
+ *               review:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Rating submitted
+ */
+router.post("/:id/rate", authenticateToken, rateBooking);
 
 router.post("/:id/location", authenticateToken, updateNurseLocation);
 
