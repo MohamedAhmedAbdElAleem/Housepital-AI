@@ -9,14 +9,14 @@ class BookingCardConfirmedNursing extends StatelessWidget {
   final VoidCallback onCancel;
 
   const BookingCardConfirmedNursing({
-    Key? key,
+    super.key,
     required this.serviceName,
     required this.patientName,
     required this.nurseName,
     required this.scheduledTime,
     required this.onTrackNurse,
     required this.onCancel,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

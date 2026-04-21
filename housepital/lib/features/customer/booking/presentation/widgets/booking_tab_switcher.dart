@@ -5,10 +5,10 @@ class BookingTabSwitcher extends StatelessWidget {
   final Function(int) onTabChanged;
 
   const BookingTabSwitcher({
-    Key? key,
+    super.key,
     required this.activeTab,
     required this.onTabChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

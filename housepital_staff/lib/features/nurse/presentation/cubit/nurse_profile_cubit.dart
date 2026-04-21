@@ -208,18 +208,22 @@ class NurseProfileCubit extends Cubit<NurseProfileState> {
     int completed = 0;
     const int total = 9; // Total required fields
 
-    if (profile.licenseNumber != null && profile.licenseNumber!.isNotEmpty)
+    if (profile.licenseNumber != null && profile.licenseNumber!.isNotEmpty) {
       completed++;
-    if (profile.specialization != null && profile.specialization!.isNotEmpty)
+    }
+    if (profile.specialization != null && profile.specialization!.isNotEmpty) {
       completed++;
+    }
     if (profile.yearsOfExperience != null) completed++;
     if (profile.gender != null && profile.gender!.isNotEmpty) completed++;
     if (profile.bio != null && profile.bio!.isNotEmpty) completed++;
-    if (profile.nationalIdUrl != null && profile.nationalIdUrl!.isNotEmpty)
+    if (profile.nationalIdUrl != null && profile.nationalIdUrl!.isNotEmpty) {
       completed++;
+    }
     if (profile.degreeUrl != null && profile.degreeUrl!.isNotEmpty) completed++;
-    if (profile.licenseUrl != null && profile.licenseUrl!.isNotEmpty)
+    if (profile.licenseUrl != null && profile.licenseUrl!.isNotEmpty) {
       completed++;
+    }
 
     // Payout method (either bank or ewallet)
     final hasPayoutMethod =

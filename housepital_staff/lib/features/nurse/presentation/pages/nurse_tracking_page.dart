@@ -11,7 +11,6 @@ import 'package:http/http.dart' as http;
 import '../../../../core/constants/app_colors.dart';
 import '../../data/models/booking_model.dart';
 import '../cubit/nurse_booking_cubit.dart';
-import '../../../../core/network/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/utils/token_manager.dart';
 import 'pin_verification_page.dart';

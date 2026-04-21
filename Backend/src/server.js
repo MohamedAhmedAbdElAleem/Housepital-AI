@@ -1,4 +1,6 @@
 const path = require("path");
+const dns = require("dns");
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 const express = require("express");
 const mongoose = require("mongoose");
@@ -157,6 +159,13 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 const swaggerDocs = require("./config/swagger");
 swaggerDocs(app, PORT);
 
+// Start Server Immediately
+server.listen(PORT, "0.0.0.0", () => {
+	console.log(`🚀 Server running on port ${PORT}`);
+	console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
+	console.log(`📝 Docs available at: http://localhost:${PORT}/api-docs`);
+});
+
 app.use((req, res) => res.status(404).json({ message: "404 Not Found" }));
 
 app.use(errorHandler);
@@ -164,6 +173,7 @@ app.use(errorHandler);
 const startServer = () => {
 	server.listen(PORT, "0.0.0.0", () => {
 		console.log(`Server running on port ${PORT}`);
+		console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
 		console.log(`Socket.IO ready for real-time notifications`);
 	});
 };
@@ -183,8 +193,8 @@ const mongoRetryInterval = setInterval(async () => {
 	}
 }, 15000);
 
-mongoose.connection.on("open", () => {
-	console.log("Connected to MongoDB");
+mongoose.connection.once("open", () => {
+	console.log("✅ MongoDB Connection Established Successfully");
 });
 
 // Graceful Shutdown Logic

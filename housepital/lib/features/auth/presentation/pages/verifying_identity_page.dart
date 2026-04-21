@@ -4,7 +4,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
 
 class VerifyingIdentityPage extends StatefulWidget {
-  const VerifyingIdentityPage({Key? key}) : super(key: key);
+  const VerifyingIdentityPage({super.key});
 
   @override
   State<VerifyingIdentityPage> createState() => _VerifyingIdentityPageState();

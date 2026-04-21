@@ -5,8 +5,7 @@ import 'booking_invoice_page.dart';
 class BookingTrackingPage extends StatefulWidget {
   final Map<String, dynamic> booking;
 
-  const BookingTrackingPage({Key? key, required this.booking})
-    : super(key: key);
+  const BookingTrackingPage({super.key, required this.booking});
 
   @override
   State<BookingTrackingPage> createState() => _BookingTrackingPageState();

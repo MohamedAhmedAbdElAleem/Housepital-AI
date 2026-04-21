@@ -242,19 +242,20 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
         zipCode: _zipController.text.isNotEmpty ? _zipController.text : null,
       );
 
-      final workingHours = _workingHoursMap.values
-          .where((d) => d.isOpen)
-          .map(
-            (e) => WorkingHour(
-              day: e.day.toLowerCase(),
-              isOpen: e.isOpen,
-              openTime: e.openTime,
-              closeTime: e.closeTime,
-              breakStart: e.breakStart,
-              breakEnd: e.breakEnd,
-            ),
-          )
-          .toList();
+      final workingHours =
+          _workingHoursMap.values
+              .where((d) => d.isOpen)
+              .map(
+                (e) => WorkingHour(
+                  day: e.day.toLowerCase(),
+                  isOpen: e.isOpen,
+                  openTime: e.openTime,
+                  closeTime: e.closeTime,
+                  breakStart: e.breakStart,
+                  breakEnd: e.breakEnd,
+                ),
+              )
+              .toList();
 
       final slotDuration = int.tryParse(_slotDurationController.text) ?? 30;
 
@@ -466,19 +467,23 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                             size: const Size(110, 110),
                                             painter:
                                                 GradientCircularProgressPainter(
-                                              progress:
-                                                  value, // Use animated value
-                                              strokeWidth: 8,
-                                              gradient: const LinearGradient(
-                                                colors: [
-                                                  Color(0xFF2196F3),
-                                                  Color(0xFF00BCD4),
-                                                  Color(0xFF9C27B0),
-                                                ],
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                              ),
-                                            ),
+                                                  progress:
+                                                      value, // Use animated value
+                                                  strokeWidth: 8,
+                                                  gradient:
+                                                      const LinearGradient(
+                                                        colors: [
+                                                          Color(0xFF2196F3),
+                                                          Color(0xFF00BCD4),
+                                                          Color(0xFF9C27B0),
+                                                        ],
+                                                        begin:
+                                                            Alignment.topLeft,
+                                                        end:
+                                                            Alignment
+                                                                .bottomRight,
+                                                      ),
+                                                ),
                                           );
                                         },
                                       ),
@@ -488,40 +493,44 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                         duration: const Duration(
                                           milliseconds: 400,
                                         ),
-                                        transitionBuilder: (child, anim) =>
-                                            ScaleTransition(
-                                          scale: anim,
-                                          child: child,
-                                        ),
-                                        child: _uploadProgressValue >= 1.0
-                                            ? Container(
-                                                key: const ValueKey('done'),
-                                                decoration: const BoxDecoration(
-                                                  color: Colors.green,
-                                                  shape: BoxShape.circle,
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.greenAccent,
-                                                      blurRadius: 15,
-                                                      spreadRadius: 2,
-                                                    ),
-                                                  ],
+                                        transitionBuilder:
+                                            (child, anim) => ScaleTransition(
+                                              scale: anim,
+                                              child: child,
+                                            ),
+                                        child:
+                                            _uploadProgressValue >= 1.0
+                                                ? Container(
+                                                  key: const ValueKey('done'),
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                        color: Colors.green,
+                                                        shape: BoxShape.circle,
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color:
+                                                                Colors
+                                                                    .greenAccent,
+                                                            blurRadius: 15,
+                                                            spreadRadius: 2,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                  padding: const EdgeInsets.all(
+                                                    12,
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.check,
+                                                    size: 40,
+                                                    color: Colors.white,
+                                                  ),
+                                                )
+                                                : Icon(
+                                                  Icons.cloud_upload_rounded,
+                                                  key: const ValueKey('upload'),
+                                                  size: 45,
+                                                  color: Colors.blue[300],
                                                 ),
-                                                padding: const EdgeInsets.all(
-                                                  12,
-                                                ),
-                                                child: const Icon(
-                                                  Icons.check,
-                                                  size: 40,
-                                                  color: Colors.white,
-                                                ),
-                                              )
-                                            : Icon(
-                                                Icons.cloud_upload_rounded,
-                                                key: const ValueKey('upload'),
-                                                size: 45,
-                                                color: Colors.blue[300],
-                                              ),
                                       ),
                                     ],
                                   ),
@@ -540,8 +549,9 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                     fontWeight: FontWeight.w700,
                                     color: Colors.black87,
                                     letterSpacing: 0.5,
-                                    decoration: TextDecoration
-                                        .none, // Explicit fix for yellow lines
+                                    decoration:
+                                        TextDecoration
+                                            .none, // Explicit fix for yellow lines
                                   ),
                                 ),
 
@@ -557,11 +567,13 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                     style: TextStyle(
                                       fontSize: 15,
                                       height: 1.4, // Better line height
-                                      color: Colors.grey[
-                                          700], // Darker grey for readability
+                                      color:
+                                          Colors
+                                              .grey[700], // Darker grey for readability
                                       fontWeight: FontWeight.w500,
-                                      decoration: TextDecoration
-                                          .none, // Explicit fix for yellow lines
+                                      decoration:
+                                          TextDecoration
+                                              .none, // Explicit fix for yellow lines
                                     ),
                                   ),
                                 ),
@@ -615,22 +627,27 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: isCompleted
-            ? Colors.green
-            : (isActive ? Colors.blue : Colors.white),
+        color:
+            isCompleted
+                ? Colors.green
+                : (isActive ? Colors.blue : Colors.white),
         shape: BoxShape.circle,
         border: Border.all(
-          color: isCompleted
-              ? Colors.green
-              : (isActive ? Colors.blue : Colors.grey[300]!),
+          color:
+              isCompleted
+                  ? Colors.green
+                  : (isActive ? Colors.blue : Colors.grey[300]!),
           width: 2,
         ),
-        boxShadow: isActive
-            ? [
-                BoxShadow(
-                    color: Colors.blue.withValues(alpha: 0.3), blurRadius: 8)
-              ]
-            : [],
+        boxShadow:
+            isActive
+                ? [
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                  ),
+                ]
+                : [],
       ),
       child: Center(
         child: Icon(
@@ -720,8 +737,8 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
           _clinicImages,
           _pickClinicImages,
           existingImages: _existingClinicImages,
-          onRemoveExisting: (index) =>
-              setState(() => _existingClinicImages.removeAt(index)),
+          onRemoveExisting:
+              (index) => setState(() => _existingClinicImages.removeAt(index)),
         ),
       ],
     );
@@ -815,17 +832,18 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            children: [10, 15, 20, 30, 45, 60].map((val) {
-              return ActionChip(
-                label: Text('$val min'),
-                backgroundColor: Colors.blue[50],
-                onPressed: () {
-                  setState(() {
-                    _slotDurationController.text = val.toString();
-                  });
-                },
-              );
-            }).toList(),
+            children:
+                [10, 15, 20, 30, 45, 60].map((val) {
+                  return ActionChip(
+                    label: Text('$val min'),
+                    backgroundColor: Colors.blue[50],
+                    onPressed: () {
+                      setState(() {
+                        _slotDurationController.text = val.toString();
+                      });
+                    },
+                  );
+                }).toList(),
           ),
         ],
         const SizedBox(height: 24),
@@ -849,8 +867,8 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
           _pickOwnershipDocs,
           subtitle: 'Please upload a valid contract or utility bill.',
           existingImages: _existingDocs,
-          onRemoveExisting: (index) =>
-              setState(() => _existingDocs.removeAt(index)),
+          onRemoveExisting:
+              (index) => setState(() => _existingDocs.removeAt(index)),
         ),
       ],
     );
@@ -975,7 +993,8 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             vertical: 16,
           ),
         ),
-        validator: validator ??
+        validator:
+            validator ??
             (isRequired
                 ? (val) => (val == null || val.isEmpty) ? 'Required' : null
                 : null),
@@ -1192,7 +1211,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             children: [
               Switch(
                 value: wh.isOpen,
-                activeColor: Colors.blue,
+                activeThumbColor: Colors.blue,
                 onChanged: (val) {
                   setState(() {
                     _workingHoursMap[day] = WorkingHour(
@@ -1332,13 +1351,14 @@ class GradientCircularProgressPainter extends CustomPainter {
     // Draw background track (optional, if we want it part of this or separate)
     // We already have a Container for background, so we just draw progress.
 
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round
-      ..shader = gradient.createShader(
-        Rect.fromCircle(center: center, radius: radius),
-      );
+    final paint =
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.round
+          ..shader = gradient.createShader(
+            Rect.fromCircle(center: center, radius: radius),
+          );
 
     // -pi/2 to start from top
     canvas.drawArc(

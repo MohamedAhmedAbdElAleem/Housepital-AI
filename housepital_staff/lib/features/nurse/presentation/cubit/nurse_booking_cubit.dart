@@ -82,8 +82,9 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
   Future<void> fetchBookings() async {
     if (state is! NurseBookingIdle &&
         state is! NurseBookingInProgress &&
-        state is! NurseBookingActive)
+        state is! NurseBookingActive) {
       emit(NurseBookingLoading());
+    }
 
     try {
       // First check if there's an active booking

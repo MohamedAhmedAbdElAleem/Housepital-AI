@@ -1,42 +1,56 @@
 class ApiConstants {
-  // Base URL - Use your computer's IP for physical device testing
-  static const String baseUrl = 'http://192.168.56.212:3500/api';
+  // Base URL for the API
+  // For Physical Device: Use http://192.168.1.208:3500
+  static const String baseUrl = 'http://172.20.10.3:3500';
 
   // Auth Endpoints
-  static const String login = '/auth/login';
-  static const String register = '/auth/register';
-  static const String verifyEmail = '/auth/verify-email';
-  static const String verifyOTP = '/auth/verify-otp';
-  static const String forgotPassword = '/auth/forgot-password';
-  static const String resetPassword = '/auth/reset-password';
+  static const String register = '/api/auth/register';
+  static const String login = '/api/auth/login';
+  static const String getCurrentUser = '/api/auth/me';
 
-  // User Endpoints
-  static const String profile = '/user/profile';
-  static const String updateProfile = '/user/update';
-  static const String medicalHistory = '/user/medical-history';
+  // OTP Endpoints
+  static const String otpRequest = '/api/otp/request';
+  static const String otpVerify = '/api/otp/verify';
+  static const String otpResend = '/api/otp/resend';
+  static const String resetPassword = '/api/otp/reset-password';
 
-  // Services Endpoints
-  static const String services = '/services';
-  static const String serviceDetails = '/services/:id';
-  static const String bookService = '/services/book';
-  static const String serviceHistory = '/services/history';
+  // AI Endpoints
+  static const String predictWoundType = '/api/ai/predict/wound-type';
+  static const String predictSeverity = '/api/ai/predict/severity';
+  static const String aiHealth = '/api/ai/health';
 
-  // Nurse/Doctor Endpoints
-  static const String requests = '/requests';
-  static const String acceptRequest = '/requests/accept';
-  static const String currentServices = '/requests/current';
-  static const String uploadReport = '/requests/report';
+  // Triage Chatbot Endpoints
+  static const String triageChat = '/api/triage/chat';
+  static const String triageServices = '/api/triage/services';
+  static const String triageReset = '/api/triage/reset';
 
-  // Chat Endpoints
-  static const String chatMessages = '/chat/messages';
-  static const String sendMessage = '/chat/send';
+  // Profile Endpoints
+  static const String profileBase = '/api/profile';
+  static const String updateMedicalInfo = '/api/profile/medical-info';
+  static const String uploadIdDocument = '/api/profile/upload-id';
+  static const String verificationStatus = '/api/profile/verification-status';
+  static const String completeProfileSetup = '/api/profile/complete-setup';
 
-  // AI Chatbot
-  static const String chatbot = '/ai/chatbot';
-  static const String triage = '/ai/triage';
-  static const String recommendations = '/ai/recommendations';
+  // Cloudinary Endpoints
+  static const String cloudinaryBase = '/api/cloudinary';
+  static const String cloudinaryUpload = '/api/cloudinary/upload';
+  static const String cloudinaryUploadBase64 = '/api/cloudinary/upload-base64';
+  static const String cloudinaryDelete = '/api/cloudinary/delete';
 
-  // Plans
-  static const String plans = '/plans';
-  static const String subscribe = '/plans/subscribe';
+  // Notification Endpoints
+  static const String notifications = '/api/notifications';
+  static const String notificationsUnreadCount =
+      '/api/notifications/unread-count';
+  static const String notificationsReadAll = '/api/notifications/read-all';
+  static const String notificationsClearAll = '/api/notifications/clear-all';
+
+  // Headers
+  static Map<String, String> get headers => {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+
+  // Timeout durations
+  static const Duration connectionTimeout = Duration(seconds: 30);
+  static const Duration receiveTimeout = Duration(seconds: 30);
 }

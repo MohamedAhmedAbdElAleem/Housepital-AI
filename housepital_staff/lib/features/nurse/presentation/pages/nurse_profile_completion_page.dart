@@ -170,9 +170,9 @@ class _NurseProfileCompletionPageState
       ),
       body: BlocConsumer<NurseProfileCubit, NurseProfileState>(
         listener: (context, state) {
-          if (state is NurseProfileLoaded)
+          if (state is NurseProfileLoaded) {
             _populateFields(state.profile);
-          else if (state is DocumentUploaded) {
+          } else if (state is DocumentUploaded) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('✅ Document Uploaded'),
@@ -278,7 +278,7 @@ class _NurseProfileCompletionPageState
                     title: 'Professional Details',
                     children: [
                       DropdownButtonFormField<String>(
-                        value: _selectedSpec,
+                        initialValue: _selectedSpec,
                         decoration: _inputDecoration(
                           'Primary Specialization',
                           Icons.medical_services_outlined,
@@ -339,10 +339,11 @@ class _NurseProfileCompletionPageState
                                 selected: isSelected,
                                 onSelected: (selected) {
                                   setState(() {
-                                    if (selected)
+                                    if (selected) {
                                       _selectedSkills.add(skill);
-                                    else
+                                    } else {
                                       _selectedSkills.remove(skill);
+                                    }
                                   });
                                 },
                                 backgroundColor: Colors.grey[100],
@@ -387,7 +388,7 @@ class _NurseProfileCompletionPageState
                     title: 'Personal Info',
                     children: [
                       DropdownButtonFormField<String>(
-                        value: _gender,
+                        initialValue: _gender,
                         decoration: _inputDecoration(
                           'Gender',
                           Icons.person_outline,

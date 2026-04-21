@@ -220,9 +220,9 @@ class _NurseHomePageState extends State<NurseHomePage>
           }
 
           NurseProfile? profile;
-          if (profileState is NurseProfileLoaded)
+          if (profileState is NurseProfileLoaded) {
             profile = profileState.profile;
-          else if (profileState is NurseProfileUpdated)
+          } else if (profileState is NurseProfileUpdated)
             profile = profileState.profile;
           else
             profile = context.read<NurseProfileCubit>().currentProfile;
@@ -633,7 +633,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                         }
                       }
                       : null,
-              activeColor: Colors.white,
+              activeThumbColor: Colors.white,
               activeTrackColor: Colors.white.withOpacity(0.3),
               inactiveThumbColor: Colors.grey,
               inactiveTrackColor: Colors.grey.shade200,

@@ -169,7 +169,7 @@ class _EditDependentPageState extends State<EditDependentPage>
               surface: Colors.white,
               onSurface: _DependentDesign.textPrimary,
             ),
-            dialogBackgroundColor: Colors.white,
+            dialogTheme: DialogThemeData(backgroundColor: Colors.white),
           ),
           child: child!,
         );
@@ -1123,7 +1123,7 @@ class _EditDependentPageState extends State<EditDependentPage>
 
   Widget _buildDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedRelationship,
+      initialValue: _selectedRelationship,
       decoration: InputDecoration(
         labelText: 'Relationship',
         labelStyle: const TextStyle(color: _DependentDesign.textSecondary),

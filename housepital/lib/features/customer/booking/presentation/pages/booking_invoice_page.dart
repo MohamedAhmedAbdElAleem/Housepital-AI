@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class BookingInvoicePage extends StatefulWidget {
   final Map<String, dynamic> booking;
 
-  const BookingInvoicePage({Key? key, required this.booking}) : super(key: key);
+  const BookingInvoicePage({super.key, required this.booking});
 
   @override
   State<BookingInvoicePage> createState() => _BookingInvoicePageState();

@@ -124,53 +124,45 @@ exports.login = async (req, res, next) => {
         const user = await User.findOne({ email: emailLowerCase }).select('+password_hash');
 
         if (!user) {
+            console.log('❌ Login failed: User not found in second check');
             return res.status(401).json({
                 success: false,
                 message: 'Invalid email or password'
             });
         }
 
-        // Compare password with stored hash - THIS MUST ALWAYS HAPPEN
+        // Compare password
+        console.log('🔑 Comparing password...');
         const isPasswordValid = await user.comparePassword(password);
 
         if (!isPasswordValid) {
-            // Log failed login attempt
-            logEvents(
-                `Failed login attempt for: ${email}`,
-                'authLog.log'
-            );
-
+            console.log('❌ Login failed: Invalid password');
             return res.status(401).json({
                 success: false,
                 message: 'Invalid email or password'
             });
         }
 
-
-
-        // Log successful login
-        logEvents(
-            `User logged in: ${email}`,
-            'authLog.log'
-        );
-
-
+        console.log('✅ Password valid, generating token...');
         const payload = {
             id: user._id,
             name: user.name,
             email: user.email,
             role: user.role
         };
-        const secretKey = process.env.JWT_SECRET_KEY || 'housepital_secret_key_2024';
+        
+        const secretKey = process.env.JWT_SECRET_KEY || 'housepital_secure_key_2025';
         const options = { expiresIn: '30d' };
 
         const JWTToken = jwt.sign(payload, secretKey, options);
 
-
-
-        redis.set(emailLowerCase, JSON.stringify(user), { ex: 2592000 }); // 30 days in seconds
-
-        console.log(`user ${email} added to the redis cache`);
+        // Safely set redis cache
+        try {
+            await redis.set(emailLowerCase, JSON.stringify(user), { ex: 2592000 }); // 30 days in seconds
+            console.log(`💾 user ${email} added to the redis cache`);
+        } catch (redisErr) {
+            console.warn('⚠️ Redis cache failed, but login continues:', redisErr.message);
+        }
 
         // Build extended user data for doctor/nurse roles
         let doctorProfile = null;
@@ -181,7 +173,7 @@ exports.login = async (req, res, next) => {
         }
 
         // Return success response with user data
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: 'User logged in successfully',
             user: {

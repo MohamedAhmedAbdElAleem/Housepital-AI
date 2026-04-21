@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 class BookingEmptyState extends StatelessWidget {
   final bool isHistory;
 
-  const BookingEmptyState({Key? key, required this.isHistory})
-    : super(key: key);
+  const BookingEmptyState({super.key, required this.isHistory});
 
   @override
   Widget build(BuildContext context) {

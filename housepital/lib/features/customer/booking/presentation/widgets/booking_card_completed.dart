@@ -10,7 +10,7 @@ class BookingCardCompleted extends StatelessWidget {
   final VoidCallback onRate;
 
   const BookingCardCompleted({
-    Key? key,
+    super.key,
     required this.serviceName,
     required this.patientName,
     required this.providerName,
@@ -18,7 +18,7 @@ class BookingCardCompleted extends StatelessWidget {
     required this.price,
     required this.onRebook,
     required this.onRate,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

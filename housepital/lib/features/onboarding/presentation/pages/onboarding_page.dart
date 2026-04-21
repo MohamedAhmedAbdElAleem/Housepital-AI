@@ -4,7 +4,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/utils/token_manager.dart';
 
 class OnboardingPage extends StatefulWidget {
-  const OnboardingPage({Key? key}) : super(key: key);
+  const OnboardingPage({super.key});
 
   @override
   State<OnboardingPage> createState() => _OnboardingPageState();

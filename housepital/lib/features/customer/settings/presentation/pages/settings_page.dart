@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/utils/token_manager.dart';
-import '../../../../../core/constants/app_routes.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/providers/notification_provider.dart';
 import '../../../../auth/data/models/user_model.dart';

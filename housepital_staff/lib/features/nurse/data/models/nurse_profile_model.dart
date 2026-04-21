@@ -153,7 +153,7 @@ class WorkZone {
               ? (coords[1] as num).toDouble()
               : 0.0,
       longitude:
-          coords is List && coords.length > 0
+          coords is List && coords.isNotEmpty
               ? (coords[0] as num).toDouble()
               : 0.0,
       radiusKm: (json['radiusKm'] as num?)?.toDouble() ?? 10.0,

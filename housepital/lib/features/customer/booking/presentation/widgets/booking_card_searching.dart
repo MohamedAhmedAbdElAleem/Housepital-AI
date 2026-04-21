@@ -8,13 +8,13 @@ class BookingCardSearching extends StatelessWidget {
   final VoidCallback onCancel;
 
   const BookingCardSearching({
-    Key? key,
+    super.key,
     required this.serviceName,
     required this.patientName,
     required this.price,
     required this.scheduledTime,
     required this.onCancel,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

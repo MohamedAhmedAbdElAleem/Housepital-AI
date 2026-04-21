@@ -200,16 +200,17 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                                       borderRadius: BorderRadius.circular(14),
                                     ),
                                   ),
-                                  icon: isLoading
-                                      ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const Icon(Icons.save_rounded),
+                                  icon:
+                                      isLoading
+                                          ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                          : const Icon(Icons.save_rounded),
                                   label: Text(
                                     isLoading ? 'Saving...' : 'Save Profile',
                                     style: const TextStyle(
@@ -234,8 +235,10 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
     );
   }
 
-  Widget _buildBackgroundBlob(
-      {required double size, required List<Color> colors}) {
+  Widget _buildBackgroundBlob({
+    required double size,
+    required List<Color> colors,
+  }) {
     return Container(
       width: size,
       height: size,
@@ -343,8 +346,11 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                 ],
               ),
             ),
-            child:
-                const Icon(Icons.person_rounded, color: _primaryDark, size: 36),
+            child: const Icon(
+              Icons.person_rounded,
+              color: _primaryDark,
+              size: 36,
+            ),
           ),
           const SizedBox(width: 14),
           const Expanded(
@@ -390,14 +396,18 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
           _sectionLabel('Medical Details'),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _selectedSpecialization,
+            initialValue: _selectedSpecialization,
             decoration: _fieldDecoration(
               label: 'Specialization',
               icon: Icons.medical_services_outlined,
             ),
-            items: _specializations.map((spec) {
-              return DropdownMenuItem<String>(value: spec, child: Text(spec));
-            }).toList(),
+            items:
+                _specializations.map((spec) {
+                  return DropdownMenuItem<String>(
+                    value: spec,
+                    child: Text(spec),
+                  );
+                }).toList(),
             onChanged: (value) {
               setState(() {
                 _selectedSpecialization = value;
@@ -447,7 +457,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _selectedGender,
+            initialValue: _selectedGender,
             decoration: _fieldDecoration(
               label: 'Gender',
               icon: Icons.person_outline_rounded,

@@ -6,11 +6,11 @@ class BookingCancellationModal extends StatelessWidget {
   final VoidCallback onCancel;
 
   const BookingCancellationModal({
-    Key? key,
+    super.key,
     required this.isLateCancel,
     required this.onConfirm,
     required this.onCancel,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

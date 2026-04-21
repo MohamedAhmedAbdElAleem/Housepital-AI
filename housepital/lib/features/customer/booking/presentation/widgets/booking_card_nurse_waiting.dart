@@ -10,14 +10,14 @@ class BookingCardNurseWaiting extends StatefulWidget {
   final VoidCallback onCall;
 
   const BookingCardNurseWaiting({
-    Key? key,
+    super.key,
     required this.serviceName,
     required this.patientName,
     required this.nurseName,
     required this.remainingSeconds,
     required this.onCheckIn,
     required this.onCall,
-  }) : super(key: key);
+  });
 
   @override
   State<BookingCardNurseWaiting> createState() =>

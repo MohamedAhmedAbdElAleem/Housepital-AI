@@ -11,7 +11,7 @@ class BookingTicketModal extends StatelessWidget {
   final VoidCallback onClose;
 
   const BookingTicketModal({
-    Key? key,
+    super.key,
     required this.serviceName,
     required this.patientName,
     required this.clinicName,
@@ -20,7 +20,7 @@ class BookingTicketModal extends StatelessWidget {
     required this.scheduledTime,
     required this.checkInPin,
     required this.onClose,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

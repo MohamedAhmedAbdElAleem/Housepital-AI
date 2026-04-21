@@ -265,10 +265,12 @@ class _AddStaffPageState extends State<AddStaffPage> {
                       hint: 'Enter full name',
                       icon: Icons.person_outline,
                       validator: (value) {
-                        if (value == null || value.isEmpty)
+                        if (value == null || value.isEmpty) {
                           return 'Name is required';
-                        if (value.length < 2)
+                        }
+                        if (value.length < 2) {
                           return 'Name must be at least 2 characters';
+                        }
                         return null;
                       },
                     ),
@@ -395,13 +397,15 @@ class _AddStaffPageState extends State<AddStaffPage> {
                       icon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
-                        if (value == null || value.isEmpty)
+                        if (value == null || value.isEmpty) {
                           return 'Email is required';
+                        }
                         final emailRegex = RegExp(
                           r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                         );
-                        if (!emailRegex.hasMatch(value))
+                        if (!emailRegex.hasMatch(value)) {
                           return 'Enter a valid email';
+                        }
                         return null;
                       },
                     ),
@@ -414,11 +418,13 @@ class _AddStaffPageState extends State<AddStaffPage> {
                       icon: Icons.phone_outlined,
                       keyboardType: TextInputType.phone,
                       validator: (value) {
-                        if (value == null || value.isEmpty)
+                        if (value == null || value.isEmpty) {
                           return 'Mobile is required';
+                        }
                         final mobileRegex = RegExp(r'^01[0125][0-9]{8}$');
-                        if (!mobileRegex.hasMatch(value))
+                        if (!mobileRegex.hasMatch(value)) {
                           return 'Enter a valid Egyptian mobile';
+                        }
                         return null;
                       },
                     ),
@@ -446,10 +452,12 @@ class _AddStaffPageState extends State<AddStaffPage> {
                             ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty)
+                        if (value == null || value.isEmpty) {
                           return 'Password is required';
-                        if (value.length < 6)
+                        }
+                        if (value.length < 6) {
                           return 'Password must be at least 6 characters';
+                        }
                         return null;
                       },
                     ),
@@ -475,10 +483,12 @@ class _AddStaffPageState extends State<AddStaffPage> {
                             ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty)
+                        if (value == null || value.isEmpty) {
                           return 'Please confirm password';
-                        if (value != _passwordController.text)
+                        }
+                        if (value != _passwordController.text) {
                           return 'Passwords do not match';
+                        }
                         return null;
                       },
                     ),

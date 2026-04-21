@@ -55,7 +55,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  String _currentPlan = 'free';
+  final String _currentPlan = 'free';
   int _selectedPlanIndex = -1;
 
   final List<Map<String, dynamic>> _plans = [

@@ -21,7 +21,7 @@ class _BookingsPageState extends State<BookingsPage>
     with TickerProviderStateMixin {
   List<dynamic> _bookings = [];
   bool _isLoading = false;
-  int _currentNavIndex = 1;
+  final int _currentNavIndex = 1;
   int _selectedTab = 0;
   int _selectedType = 0; // 0=All, 1=Nursing, 2=Clinic
   late AnimationController _fadeController;
@@ -157,7 +157,8 @@ class _BookingsPageState extends State<BookingsPage>
         'patientName': 'Ahmed Ali',
         'status': 'confirmed',
         'servicePrice': 250,
-        'scheduledDate': DateTime.now().add(const Duration(days: 2)).toIso8601String(),
+        'scheduledDate':
+            DateTime.now().add(const Duration(days: 2)).toIso8601String(),
         'scheduledTime': '10:30',
         'doctorName': 'Dr. Mona Saleh',
         'doctorSpecialization': 'Dermatologist',
@@ -171,7 +172,8 @@ class _BookingsPageState extends State<BookingsPage>
         'patientName': 'Ahmed Ali',
         'status': 'pending',
         'servicePrice': 150,
-        'scheduledDate': DateTime.now().add(const Duration(days: 4)).toIso8601String(),
+        'scheduledDate':
+            DateTime.now().add(const Duration(days: 4)).toIso8601String(),
         'doctorName': 'Dr. Karim Hassan',
         'doctorSpecialization': 'General Practitioner',
         'clinicName': 'City Medical Center',
@@ -184,7 +186,8 @@ class _BookingsPageState extends State<BookingsPage>
         'patientName': 'Ahmed Ali',
         'status': 'completed',
         'servicePrice': 200,
-        'scheduledDate': DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
+        'scheduledDate':
+            DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
         'scheduledTime': '14:00',
         'doctorName': 'Dr. Sara Nour',
         'doctorSpecialization': 'Ophthalmologist',
@@ -511,28 +514,38 @@ class _BookingsPageState extends State<BookingsPage>
                   color: selected ? color : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: selected ? Colors.transparent : const Color(0xFFE2E8F0),
+                    color:
+                        selected ? Colors.transparent : const Color(0xFFE2E8F0),
                   ),
-                  boxShadow: selected
-                      ? [BoxShadow(
-                          color: color.withOpacity(0.25),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3))]
-                      : [],
+                  boxShadow:
+                      selected
+                          ? [
+                            BoxShadow(
+                              color: color.withOpacity(0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ]
+                          : [],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(icon,
-                        color: selected ? Colors.white : const Color(0xFF94A3B8),
-                        size: 15),
+                    Icon(
+                      icon,
+                      color: selected ? Colors.white : const Color(0xFF94A3B8),
+                      size: 15,
+                    ),
                     const SizedBox(width: 6),
-                    Text(label,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: selected ? Colors.white : const Color(0xFF64748B),
-                        )),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color:
+                            selected ? Colors.white : const Color(0xFF64748B),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -630,11 +643,12 @@ class _BookingsPageState extends State<BookingsPage>
     final nurseName = booking['nurseName'] as String?;
     final doctorName = _doctorName(booking);
     final providerName = isClinic ? doctorName : nurseName;
-    final providerSub = isClinic
-        ? (_doctorSpec(booking).isNotEmpty
-            ? _doctorSpec(booking)
-            : _clinicName(booking))
-        : '${booking['nurseRating'] ?? 4.5}';
+    final providerSub =
+        isClinic
+            ? (_doctorSpec(booking).isNotEmpty
+                ? _doctorSpec(booking)
+                : _clinicName(booking))
+            : '${booking['nurseRating'] ?? 4.5}';
 
     // Scheduled info
     final scheduledDate = booking['scheduledDate'] as String?;
@@ -642,7 +656,8 @@ class _BookingsPageState extends State<BookingsPage>
     final isQueue = booking['timeOption'] == 'queue';
 
     // Colors
-    final baseColor = isClinic ? const Color(0xFF3B82F6) : const Color(0xFF00B870);
+    final baseColor =
+        isClinic ? const Color(0xFF3B82F6) : const Color(0xFF00B870);
 
     Color statusColor;
     String statusLabel;
@@ -652,9 +667,10 @@ class _BookingsPageState extends State<BookingsPage>
       case 'in-progress':
         statusColor = baseColor;
         statusLabel = isClinic ? 'In Clinic' : 'In Progress';
-        statusIcon = isClinic
-            ? Icons.local_hospital_rounded
-            : Icons.directions_car_rounded;
+        statusIcon =
+            isClinic
+                ? Icons.local_hospital_rounded
+                : Icons.directions_car_rounded;
         break;
       case 'confirmed':
       case 'on-the-way':
@@ -667,7 +683,8 @@ class _BookingsPageState extends State<BookingsPage>
       case 'pending':
         statusColor = const Color(0xFFF59E0B);
         statusLabel = isClinic ? 'Awaiting Confirmation' : 'Finding Nurse';
-        statusIcon = isClinic ? Icons.hourglass_top_rounded : Icons.search_rounded;
+        statusIcon =
+            isClinic ? Icons.hourglass_top_rounded : Icons.search_rounded;
         break;
       default:
         statusColor = const Color(0xFF64748B);
@@ -811,7 +828,7 @@ class _BookingsPageState extends State<BookingsPage>
                               ],
                             ),
                             // Clinic: show scheduled date/time or queue badge
-                            if (isClinic) ...[  
+                            if (isClinic) ...[
                               const SizedBox(height: 4),
                               Row(
                                 children: [
@@ -828,21 +845,28 @@ class _BookingsPageState extends State<BookingsPage>
                                       isQueue
                                           ? 'طابور'
                                           : [
-                                              if (scheduledDate != null)
-                                                () {
-                                                  try {
-                                                    return DateFormat('d MMM').format(
-                                                        DateTime.parse(scheduledDate));
-                                                  } catch (_) {
-                                                    return scheduledDate;
-                                                  }
-                                                }(),
-                                              if (scheduledTime != null) scheduledTime,
-                                            ].join(' · '),
+                                            if (scheduledDate != null)
+                                              () {
+                                                try {
+                                                  return DateFormat(
+                                                    'd MMM',
+                                                  ).format(
+                                                    DateTime.parse(
+                                                      scheduledDate,
+                                                    ),
+                                                  );
+                                                } catch (_) {
+                                                  return scheduledDate;
+                                                }
+                                              }(),
+                                            if (scheduledTime != null)
+                                              scheduledTime,
+                                          ].join(' · '),
                                       style: TextStyle(
-                                          fontSize: 12,
-                                          color: baseColor,
-                                          fontWeight: FontWeight.w500),
+                                        fontSize: 12,
+                                        color: baseColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -860,9 +884,10 @@ class _BookingsPageState extends State<BookingsPage>
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: isClinic
-                                  ? const Color(0xFF3B82F6)
-                                  : const Color(0xFF00B870),
+                              color:
+                                  isClinic
+                                      ? const Color(0xFF3B82F6)
+                                      : const Color(0xFF00B870),
                             ),
                           ),
                         ],
@@ -922,9 +947,10 @@ class _BookingsPageState extends State<BookingsPage>
                                       isClinic
                                           ? Icons.info_outline_rounded
                                           : Icons.star,
-                                      color: isClinic
-                                          ? const Color(0xFF64748B)
-                                          : const Color(0xFFF59E0B),
+                                      color:
+                                          isClinic
+                                              ? const Color(0xFF64748B)
+                                              : const Color(0xFFF59E0B),
                                       size: 13,
                                     ),
                                     const SizedBox(width: 4),
@@ -977,13 +1003,16 @@ class _BookingsPageState extends State<BookingsPage>
                             label: 'Track',
                             icon: Icons.location_on_rounded,
                             color: const Color(0xFF00B870),
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    BookingTrackingPage(booking: booking),
-                              ),
-                            ),
+                            onTap:
+                                () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (_) => BookingTrackingPage(
+                                          booking: booking,
+                                        ),
+                                  ),
+                                ),
                           ),
                         ),
                       if (!isClinic &&
@@ -1017,14 +1046,16 @@ class _BookingsPageState extends State<BookingsPage>
     final rating = booking['nurseRating'] ?? 0.0;
 
     // Provider name
-    final providerName = isClinic
-        ? (_doctorName(booking) ?? _clinicName(booking))
-        : (booking['nurseName'] ?? 'Nurse');
-    final providerSub = isClinic
-        ? (_clinicName(booking).isNotEmpty
-            ? _clinicName(booking)
-            : _doctorSpec(booking))
-        : null;
+    final providerName =
+        isClinic
+            ? (_doctorName(booking) ?? _clinicName(booking))
+            : (booking['nurseName'] ?? 'Nurse');
+    final providerSub =
+        isClinic
+            ? (_clinicName(booking).isNotEmpty
+                ? _clinicName(booking)
+                : _doctorSpec(booking))
+            : null;
 
     final cardColor =
         isClinic ? const Color(0xFF3B82F6) : const Color(0xFF00B870);
@@ -1107,22 +1138,31 @@ class _BookingsPageState extends State<BookingsPage>
                       Flexible(
                         child: Text(
                           providerName,
-                          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                  if (isClinic && providerSub != null && providerSub.isNotEmpty) ...[  
+                  if (isClinic &&
+                      providerSub != null &&
+                      providerSub.isNotEmpty) ...[
                     const SizedBox(height: 3),
                     Row(
                       children: [
-                        Icon(Icons.local_hospital_rounded,
-                            size: 12, color: cardColor),
+                        Icon(
+                          Icons.local_hospital_rounded,
+                          size: 12,
+                          color: cardColor,
+                        ),
                         const SizedBox(width: 4),
-                        Text(providerSub,
-                            style: TextStyle(
-                                fontSize: 11, color: cardColor)),
+                        Text(
+                          providerSub,
+                          style: TextStyle(fontSize: 11, color: cardColor),
+                        ),
                       ],
                     ),
                   ],
@@ -1149,9 +1189,10 @@ class _BookingsPageState extends State<BookingsPage>
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: isClinic
-                        ? const Color(0xFF3B82F6)
-                        : const Color(0xFF1E293B),
+                    color:
+                        isClinic
+                            ? const Color(0xFF3B82F6)
+                            : const Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 8),

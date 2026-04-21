@@ -30,8 +30,9 @@ class AppointmentCubit extends Cubit<AppointmentState> {
       // upcoming = confirmed or in-progress and date in the future (or no date yet)
       final upcoming =
           all.where((b) {
-            if (!['confirmed', 'in-progress'].contains(b['status']))
+            if (!['confirmed', 'in-progress'].contains(b['status'])) {
               return false;
+            }
             final d = b['scheduledDate'];
             if (d == null) return true;
             try {

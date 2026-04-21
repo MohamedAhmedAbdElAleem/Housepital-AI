@@ -6,11 +6,11 @@ class BookingCardNurseEmergency extends StatelessWidget {
   final String scheduledTime;
 
   const BookingCardNurseEmergency({
-    Key? key,
+    super.key,
     required this.serviceName,
     required this.patientName,
     required this.scheduledTime,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -30,7 +30,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>
   int _currentIndex = 0;
   UserModel? _user;
   bool _isLoading = true;
-  bool _hasActiveBooking = true; // TODO: Get from API
+  final bool _hasActiveBooking = true; // TODO: Get from API
 
   late AnimationController _mainController;
   late AnimationController _pulseController;

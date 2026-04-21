@@ -66,7 +66,7 @@ class _ChatDesign {
 // Chatbot Page
 // ═══════════════════════════════════════════════════════════════════════════════
 class ChatbotPage extends StatefulWidget {
-  const ChatbotPage({Key? key}) : super(key: key);
+  const ChatbotPage({super.key});
 
   @override
   State<ChatbotPage> createState() => _ChatbotPageState();
@@ -640,9 +640,7 @@ class _ChatbotPageState extends State<ChatbotPage>
                 // Service Buttons
                 if (message.serviceRoutes.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  ...message.serviceRoutes
-                      .map((s) => _buildServiceCard(s))
-                      .toList(),
+                  ...message.serviceRoutes.map((s) => _buildServiceCard(s)),
                 ],
 
                 // Time

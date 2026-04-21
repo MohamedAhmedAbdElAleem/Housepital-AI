@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
 import '../../../nurse/data/models/nurse_profile_model.dart';
-import '../../../../core/constants/app_colors.dart';
 
 // -----------------------------------------------------------------------------
 // 1. STATUS BANNER (Collapsible)
