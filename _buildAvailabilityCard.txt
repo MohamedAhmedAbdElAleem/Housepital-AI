@@ -1,0 +1,80 @@
+Widget _buildAvailabilityCard(bool isOnline, bool isApproved) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors:
+              isOnline
+                  ? [AppColors.primary500, AppColors.primary400]
+                  : [Colors.white, Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color:
+                isOnline ? AppColors.primary200 : Colors.grey.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+        border: !isOnline ? Border.all(color: Colors.grey.shade200) : null,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isOnline ? 'YOU ARE ONLINE' : 'YOU ARE OFFLINE',
+                style: TextStyle(
+                  color: isOnline ? Colors.white : AppColors.textPrimary,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                isOnline ? 'Receiving requests...' : 'Go online to start',
+                style: TextStyle(
+                  color:
+                      isOnline
+                          ? Colors.white.withOpacity(0.9)
+                          : AppColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+          Transform.scale(
+            scale: 1.2,
+            child: Switch(
+              value: isOnline,
+              onChanged:
+                  isApproved
+                      ? (val) {
+                        context.read<NurseProfileCubit>().toggleOnlineStatus(
+                          val,
+                        );
+                        _syncSocketPresence(isOnlineOverride: val);
+                        print(
+                          '🔄 Toggle switch clicked: $val, isApproved: $isApproved',
+                        );
+                        if (val) {
+                          context.read<NurseBookingCubit>().fetchBookings();
+                        }
+                      }
+                      : null,
+              activeColor: Colors.white,
+              activeTrackColor: Colors.white.withOpacity(0.3),
+              inactiveThumbColor: Colors.grey,
+              inactiveTrackColor: Colors.grey.shade200,
+            ),
+          ),
+        ],
+      ),
+    );
+  }

@@ -1,0 +1,123 @@
+Widget _buildIncomingRequestView(NurseBooking booking) {
+    return Container(
+      color: AppColors.primary50,
+      width: double.infinity,
+      height: double.infinity,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'INCOMING REQUEST',
+                style: TextStyle(
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary600,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.grey[200],
+                      radius: 30,
+                      child: const Icon(
+                        Icons.person,
+                        color: Colors.grey,
+                        size: 35,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      booking.patientName,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (booking.patientPhone != null)
+                      Text(
+                        booking.patientPhone!,
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    const Divider(height: 24),
+                    _infoRow(Icons.medical_services, booking.serviceName),
+                    const SizedBox(height: 10),
+                    _infoRow(
+                      Icons.access_time,
+                      booking.isAsap ? 'ASAP Request' : 'Scheduled',
+                    ),
+                    if (booking.address != null) ...[
+                      const SizedBox(height: 10),
+                      _infoRow(Icons.location_on, booking.address!.fullAddress),
+                    ],
+                    if (booking.notes != null && booking.notes!.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      _infoRow(Icons.message, booking.notes!),
+                    ],
+                    const SizedBox(height: 10),
+                    _infoRow(
+                      Icons.attach_money,
+                      'EGP ${booking.servicePrice.toStringAsFixed(0)}',
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              context.read<NurseBookingCubit>().declineBooking(
+                                booking.id,
+                              );
+                            },
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              side: const BorderSide(color: Colors.red),
+                              foregroundColor: Colors.red,
+                            ),
+                            child: const Text('Decline'),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              context.read<NurseBookingCubit>().acceptBooking(
+                                booking.id,
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: AppColors.primary500,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Accept'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }

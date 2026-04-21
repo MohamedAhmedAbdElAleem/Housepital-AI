@@ -1,0 +1,152 @@
+Widget _buildRadarView() {
+    final profileCubitState = context.read<NurseProfileCubit>().state;
+    double centerLat = 30.0444;
+    double centerLng = 31.2357;
+
+    if (_currentLocation != null) {
+      centerLat = _currentLocation!.latitude;
+      centerLng = _currentLocation!.longitude;
+    } else if (profileCubitState is NurseProfileLoaded) {
+      final workZone = profileCubitState.profile.workZone;
+      if (workZone != null && workZone.latitude != 0.0) {
+        centerLat = workZone.latitude;
+        centerLng = workZone.longitude;
+      }
+    }
+
+    return Stack(
+      children: [
+        // Map Background
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: LatLng(centerLat, centerLng),
+            initialZoom: 15.0,
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+            ),
+          ),
+          children: [
+            TileLayer(
+              // Minimal light map without 3D buildings
+              urlTemplate:
+                  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.housepital.staff',
+            ),
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: LatLng(centerLat, centerLng),
+                  width: 300,
+                  height: 300,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Pulsing Rings
+                      ...List.generate(3, (index) {
+                        return AnimatedBuilder(
+                          animation: _rippleController,
+                          builder: (context, child) {
+                            double progress =
+                                (_rippleController.value + (index * 0.33)) %
+                                1.0;
+                            double size = 50 + (progress * 250);
+                            double opacity = (1.0 - progress).clamp(0.0, 1.0);
+                            return Container(
+                              width: size,
+                              height: size,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.primary500.withOpacity(
+                                    opacity * 0.5,
+                                  ),
+                                  width: 2,
+                                ),
+                                color: AppColors.primary500.withOpacity(
+                                  opacity * 0.1,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      }),
+                      // Center Pin
+                      FadeTransition(
+                        opacity: _pulseController,
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primary50.withOpacity(0.9),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary500.withOpacity(0.3),
+                                blurRadius: 15,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons
+                                .local_hospital, // Updated shape for map marker
+                            size: 40,
+                            color: AppColors.primary500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        // Overlay scanning text
+        Positioned(
+          bottom: 40,
+          left: 0,
+          right: 0,
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 40),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Scanning for patients nearby...',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Requests will appear automatically',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
