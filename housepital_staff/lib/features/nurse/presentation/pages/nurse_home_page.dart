@@ -40,29 +40,75 @@ class _NurseHomePageState extends State<NurseHomePage>
   LatLng? _currentLocation;
   final MapController _mapController = MapController();
   IO.Socket? _socket;
+  StreamSubscription<Position>? _locationStream;
 
   Future<void> _fetchCurrentLocation() async {
     try {
+      debugPrint('📍 === LOCATION DEBUG: Starting _fetchCurrentLocation ===');
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
+      debugPrint('📍 LOCATION DEBUG: Service enabled: $serviceEnabled');
+      if (!serviceEnabled) {
+        debugPrint('📍 LOCATION DEBUG: Failing because service not enabled');
+        return;
+      }
       LocationPermission permission = await Geolocator.checkPermission();
+      debugPrint('📍 LOCATION DEBUG: Permission status: $permission');
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
+        debugPrint('📍 LOCATION DEBUG: Requested permission: $permission');
         if (permission == LocationPermission.denied) return;
       }
       if (permission == LocationPermission.deniedForever) return;
+
+      // Get initial position
+      debugPrint('📍 LOCATION DEBUG: Awaiting initial position...');
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
+        desiredAccuracy: LocationAccuracy.high, // Changed to high for better emulator response
       );
+      debugPrint('📍 LOCATION DEBUG: Initial Position received: ${position.latitude}, ${position.longitude}');
       if (mounted) {
         setState(() {
           _currentLocation = LatLng(position.latitude, position.longitude);
         });
-        _mapController.move(_currentLocation!, 15.0);
+        
+        try {
+          _mapController.move(_currentLocation!, 15.0);
+        } catch (e) {
+          debugPrint('📍 LOCATION DEBUG: Map not ready yet for initial move, ignoring.');
+        }
+
         _syncSocketPresence();
       }
+
+      // Start continuous GPS stream so location stays fresh
+      debugPrint('📍 LOCATION DEBUG: Starting position stream...');
+      _locationStream?.cancel();
+      _locationStream = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.best, // Changed to best for debugging
+          distanceFilter: 0, // Force every update
+        ),
+      ).listen((Position pos) {
+        debugPrint('📍 LOCATION DEBUG: Stream fired! New location: ${pos.latitude}, ${pos.longitude}');
+        if (mounted) {
+          final newLoc = LatLng(pos.latitude, pos.longitude);
+          debugPrint('📍 LOCATION DEBUG: Updating state and MapCenter...');
+          setState(() {
+            _currentLocation = newLoc;
+          });
+          
+          try {
+            // Also move the map center
+            _mapController.move(newLoc, _mapController.camera.zoom);
+          } catch (e) {
+            debugPrint('📍 LOCATION DEBUG: Map not ready for stream move, ignoring.');
+          }
+
+          _syncSocketPresence(); // Push new location to server
+        }
+      });
     } catch (e) {
-      debugPrint('Error fetching location: $e');
+      debugPrint('📍 LOCATION DEBUG ERROR: $e');
     }
   }
 
@@ -185,6 +231,7 @@ class _NurseHomePageState extends State<NurseHomePage>
     _rippleController.dispose();
     _pollingTimer?.cancel();
     _presenceSyncTimer?.cancel();
+    _locationStream?.cancel();
     _socket?.disconnect();
     _socket?.dispose();
     super.dispose();
@@ -236,8 +283,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                     : 'Unable to connect to the server';
             return _buildErrorView(errorMsg);
           }
-
-          final bool isApproved = profile.profileStatus == 'approved';
+          final bool isApproved = profile.profileStatus == 'approved' || profile.verificationStatus == 'approved';
           final bool isOnline = profile.isOnline;
 
           // Debug: Print profile status
@@ -478,7 +524,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                   vertical: 16,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(20),
                 ),
               ),
             ),
@@ -492,10 +538,10 @@ class _NurseHomePageState extends State<NurseHomePage>
                   (route) => false,
                 );
               },
-              icon: const Icon(Icons.logout, color: Colors.redAccent),
+              icon: const Icon(Icons.logout, color: AppColors.error),
               label: const Text(
                 'Logout',
-                style: TextStyle(color: Colors.redAccent),
+                style: TextStyle(color: AppColors.error),
               ),
             ),
           ],
@@ -601,7 +647,7 @@ class _NurseHomePageState extends State<NurseHomePage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF2664EC).withValues(alpha: 0.35),
@@ -613,10 +659,10 @@ class _NurseHomePageState extends State<NurseHomePage>
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
                 isOnTheWay
@@ -655,7 +701,7 @@ class _NurseHomePageState extends State<NurseHomePage>
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: const Text(
                 'Resume →',
@@ -698,7 +744,7 @@ class _NurseHomePageState extends State<NurseHomePage>
             ],
           ),
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
@@ -1044,8 +1090,8 @@ class _NurseHomePageState extends State<NurseHomePage>
                             },
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              side: const BorderSide(color: Colors.red),
-                              foregroundColor: Colors.red,
+                              side: const BorderSide(color: AppColors.error),
+                              foregroundColor: AppColors.error,
                             ),
                             child: const Text('Decline'),
                           ),
@@ -1059,10 +1105,14 @@ class _NurseHomePageState extends State<NurseHomePage>
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              backgroundColor: AppColors.primary500,
-                              foregroundColor: Colors.white,
-                            ),
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        backgroundColor: AppColors.primary500,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+        ),
+    ),
                             child: const Text('Accept'),
                           ),
                         ),
@@ -1183,10 +1233,10 @@ class _NurseHomePageState extends State<NurseHomePage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: AppColors.success50,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
@@ -1312,7 +1362,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(24),
                 ),
               ),
               child: const Text(
@@ -1472,7 +1522,7 @@ class _NurseHomePageState extends State<NurseHomePage>
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(20),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(

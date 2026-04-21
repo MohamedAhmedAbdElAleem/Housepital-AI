@@ -1,0 +1,154 @@
+Widget _buildActiveVisitView(NurseBooking booking) {
+    final duration =
+        booking.visitStartedAt != null
+            ? DateTime.now().difference(booking.visitStartedAt!)
+            : Duration.zero;
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.success50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.local_hospital, color: AppColors.success600),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Visit In Progress',
+                    style: TextStyle(
+                      color: AppColors.success700,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${duration.inMinutes}m ${duration.inSeconds % 60}s',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.success700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Patient Info
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: AppColors.primary50,
+                      child: const Icon(
+                        Icons.person,
+                        size: 35,
+                        color: AppColors.primary500,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            booking.patientName,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            booking.serviceName,
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (booking.patientPhone != null)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.phone,
+                          color: AppColors.primary500,
+                        ),
+                        onPressed: () {
+                          // TODO: Call patient
+                        },
+                      ),
+                  ],
+                ),
+                if (booking.address != null) ...[
+                  const Divider(height: 24),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: Colors.grey,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          booking.address!.fullAddress,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          const Spacer(),
+
+          // Complete Visit Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                _showCompleteVisitDialog(booking);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success500,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: const Text(
+                'Complete Visit',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }

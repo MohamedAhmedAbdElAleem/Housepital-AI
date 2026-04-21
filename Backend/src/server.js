@@ -61,6 +61,16 @@ io.on("connection", (socket) => {
 	if (userRole === "nurse") {
 		socket.join(`nurse_${userId}`);
 		socket.join("online_nurses"); // All nurses listen to new requests
+
+		// Clear any pending offline timer from a previous disconnect
+		// (nurse reconnected before the grace period expired)
+		const allSockets = io.sockets.sockets;
+		for (const [, s] of allSockets) {
+			if (s.userId === userId && s.id !== socket.id && s._nurseDisconnectTimer) {
+				clearTimeout(s._nurseDisconnectTimer);
+				s._nurseDisconnectTimer = null;
+			}
+		}
 	} else if (userRole === "customer") {
 		socket.join(`patient_${userId}`);
 	}
@@ -103,7 +113,8 @@ io.on("connection", (socket) => {
 
 	socket.on("disconnect", async () => {
 		console.log(`🔌 Socket disconnected: ${userId}`);
-		// Mark nurse as offline on disconnect
+		// Mark nurse as offline after a grace period (60s)
+		// so brief network drops don't remove them from matching
 		if (userRole === "nurse") {
 			try {
 				const Nurse = require("./models/Nurse");

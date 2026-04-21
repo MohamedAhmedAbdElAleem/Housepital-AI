@@ -37,8 +37,8 @@ const MATCHING_CONFIG = {
     // This keeps the system usable in low-supply environments.
     ENABLE_RADIUS_EXPANSION:
         String(process.env.MATCHING_ENABLE_RADIUS_EXPANSION || "true").toLowerCase() !== "false",
-    RADIUS_EXPANSION_STEPS_KM: [30, 60, 120, 250, 500, 1000],
-    MAX_SEARCH_RADIUS_KM: 1000,
+    RADIUS_EXPANSION_STEPS_KM: [30, 50, 75, 100],
+    MAX_SEARCH_RADIUS_KM: 100,
 
     // Maximum nurses to show to the patient
     MAX_NURSES_TO_MATCH: 5,
@@ -252,12 +252,17 @@ async function findNearbyNurses({ coordinates, radiusKm, genderPreference, servi
         {
             locationKey: "currentLocation",
             locationLabel: "currentLocation",
-            locationCoordinatesField: "$currentLocation.coordinates"
+            locationCoordinatesField: "$currentLocation.coordinates",
+            extraMatch: {} // no extra filter needed
         },
         {
             locationKey: "workZone.center",
             locationLabel: "workZone.center",
-            locationCoordinatesField: "$workZone.center.coordinates"
+            locationCoordinatesField: "$workZone.center.coordinates",
+            // Skip nurses whose workZone is still default [0,0]
+            extraMatch: {
+                "workZone.center.coordinates": { $ne: [0, 0] }
+            }
         }
     ];
 
@@ -272,7 +277,7 @@ async function findNearbyNurses({ coordinates, radiusKm, genderPreference, servi
                     locationKey: strategy.locationKey,
                     locationLabel: strategy.locationLabel,
                     locationCoordinatesField: strategy.locationCoordinatesField,
-                    matchConditions,
+                    matchConditions: { ...matchConditions, ...(strategy.extraMatch || {}) },
                     serviceCategory
                 })
             )
