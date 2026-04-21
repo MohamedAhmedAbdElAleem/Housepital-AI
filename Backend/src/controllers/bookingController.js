@@ -244,7 +244,11 @@ exports.getMyBookings = async (req, res) => {
 
 		const bookings = await Booking.find({ userId })
 			.sort({ createdAt: -1 })
-			.populate("assignedNurse", "name email mobile")
+			.populate({
+				path: "assignedNurse",
+				select: "user rating totalRatings",
+				populate: { path: "user", select: "name mobile" },
+			})
 			.populate("clinicId", "name address")
 			.populate({
 				path: "doctorId",
@@ -252,9 +256,20 @@ exports.getMyBookings = async (req, res) => {
 				populate: { path: "user", select: "name" },
 			});
 
+		// Enrich bookings with nurseName, nurseRating, nursePhone
+		const enriched = bookings.map((b) => {
+			const obj = b.toObject();
+			if (obj.assignedNurse && obj.assignedNurse.user) {
+				obj.nurseName = obj.assignedNurse.user.name || "Nurse";
+				obj.nursePhone = obj.assignedNurse.user.mobile || null;
+				obj.nurseRating = obj.assignedNurse.rating || 0;
+			}
+			return obj;
+		});
+
 		res.status(200).json({
 			success: true,
-			bookings: bookings,
+			bookings: enriched,
 		});
 	} catch (error) {
 		console.error("❌ Error fetching bookings:", error);
@@ -276,10 +291,11 @@ exports.getBookingById = async (req, res) => {
 		const { id } = req.params;
 		const userId = req.user?.id;
 
-		const booking = await Booking.findById(id).populate(
-			"assignedNurse",
-			"name email mobile",
-		);
+		const booking = await Booking.findById(id).populate({
+			path: "assignedNurse",
+			select: "user rating totalRatings",
+			populate: { path: "user", select: "name mobile" },
+		});
 
 		if (!booking) {
 			return res.status(404).json({
@@ -296,9 +312,17 @@ exports.getBookingById = async (req, res) => {
 			});
 		}
 
+		// Enrich with nurseName, nurseRating, nursePhone
+		const obj = booking.toObject();
+		if (obj.assignedNurse && obj.assignedNurse.user) {
+			obj.nurseName = obj.assignedNurse.user.name || "Nurse";
+			obj.nursePhone = obj.assignedNurse.user.mobile || null;
+			obj.nurseRating = obj.assignedNurse.rating || 0;
+		}
+
 		res.status(200).json({
 			success: true,
-			booking: booking,
+			booking: obj,
 		});
 	} catch (error) {
 		console.error("❌ Error fetching booking:", error);
@@ -993,6 +1017,117 @@ exports.getNurseBookingHistory = async (req, res) => {
 		res.status(500).json({
 			success: false,
 			message: "Error fetching booking history",
+			error: error.message,
+		});
+	}
+};
+
+// ============ RATING ============
+
+/**
+ * Rate a completed booking (patient rates nurse)
+ * POST /bookings/:id/rate
+ */
+exports.rateBooking = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { rating, review } = req.body;
+		const Rating = require("../models/Rating");
+		const Nurse = require("../models/Nurse");
+
+		if (!rating || rating < 1 || rating > 5) {
+			return res.status(400).json({
+				success: false,
+				message: "Rating must be between 1 and 5",
+			});
+		}
+
+		const booking = await Booking.findById(id);
+		if (!booking) {
+			return res.status(404).json({
+				success: false,
+				message: "Booking not found",
+			});
+		}
+
+		// Verify user owns this booking
+		if (booking.userId.toString() !== req.user.id) {
+			return res.status(403).json({
+				success: false,
+				message: "Not authorized to rate this booking",
+			});
+		}
+
+		if (booking.status !== "completed") {
+			return res.status(400).json({
+				success: false,
+				message: "Can only rate completed bookings",
+			});
+		}
+
+		// Check if already rated
+		if (booking.customerRating) {
+			return res.status(400).json({
+				success: false,
+				message: "You have already rated this booking",
+			});
+		}
+
+		// Get nurse user ID for the Rating document
+		const nurseProfile = await Nurse.findById(booking.assignedNurse).select("user");
+		if (!nurseProfile) {
+			return res.status(404).json({
+				success: false,
+				message: "Nurse profile not found",
+			});
+		}
+
+		// Create Rating document
+		await Rating.create({
+			bookingId: booking._id,
+			raterUserId: req.user.id,
+			raterRole: "customer",
+			ratedUserId: nurseProfile.user,
+			ratedRole: "nurse",
+			overallRating: rating,
+			review: review || "",
+		});
+
+		// Update booking
+		booking.customerRating = rating;
+		booking.customerReview = review || "";
+		await booking.save();
+
+		// Recalculate nurse average rating
+		const { avgRating, totalRatings } = await Rating.calculateAverageRating(nurseProfile.user);
+		
+		// Update nurse profile with new average
+		await Nurse.findByIdAndUpdate(booking.assignedNurse, {
+			rating: avgRating,
+			totalRatings: totalRatings,
+		});
+
+		console.log(`⭐ Booking ${id} rated ${rating}/5 by patient. Nurse avg: ${avgRating}`);
+
+		res.status(200).json({
+			success: true,
+			message: "Rating submitted successfully",
+			booking: booking,
+			nurseAvgRating: avgRating,
+			nurseTotalRatings: totalRatings,
+		});
+	} catch (error) {
+		// Handle duplicate rating (unique index on bookingId + raterRole)
+		if (error.code === 11000) {
+			return res.status(400).json({
+				success: false,
+				message: "You have already rated this booking",
+			});
+		}
+		console.error("❌ Error rating booking:", error);
+		res.status(500).json({
+			success: false,
+			message: "Error submitting rating",
 			error: error.message,
 		});
 	}

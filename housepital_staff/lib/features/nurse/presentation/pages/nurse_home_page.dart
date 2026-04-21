@@ -12,6 +12,7 @@ import '../widgets/nurse_home_widgets.dart';
 import 'pin_verification_page.dart';
 import 'nurse_tracking_page.dart';
 import 'nurse_history_page.dart';
+import 'visit_in_progress_page.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -274,6 +275,23 @@ class _NurseHomePageState extends State<NurseHomePage>
                     ),
                   ).then((_) {
                     if (mounted) setState(() => _isNavigatingToPin = false);
+                  });
+                }
+              } else if (bookingState is NurseBookingInProgress) {
+                // Visit is in progress (e.g. app restarted during visit)
+                if (!_isNavigatingToPin) {
+                  _isNavigatingToPin = true;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => VisitInProgressPage(
+                        booking: bookingState.booking,
+                      ),
+                    ),
+                  ).then((_) {
+                    if (mounted) setState(() => _isNavigatingToPin = false);
+                    // Refresh bookings after returning from visit
+                    context.read<NurseBookingCubit>().fetchBookings();
                   });
                 }
               } else if (bookingState is NurseBookingCompleted) {

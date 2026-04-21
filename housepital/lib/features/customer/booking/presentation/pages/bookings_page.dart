@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
 import 'booking_tracking_page.dart';
+import 'booking_matching_screen.dart';
 import '../../../home/presentation/widgets/custom_bottom_nav_bar.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../widgets/booking_cancellation_modal.dart';
@@ -72,13 +73,64 @@ class _BookingsPageState extends State<BookingsPage>
       }
 
       final apiService = ApiService();
-      final response = await apiService.get('/api/bookings/my-bookings');
+      final bookingResponse = await apiService.get('/api/bookings/my-bookings');
+      final matchingResponse = await apiService.get('/api/matching/my-requests');
+
+      final user = await TokenManager.getUserFromToken();
+      final patientName = (user?['name'] ?? 'Patient').toString();
+
+      final fetchedBookings =
+          bookingResponse is List
+              ? bookingResponse
+              : (bookingResponse['bookings'] ?? []) as List;
+
+      final matchingRequests =
+          (matchingResponse is Map<String, dynamic>
+                  ? matchingResponse['requests']
+                  : null)
+              as List? ??
+          const [];
+
+      final matchingCards =
+          matchingRequests
+              .whereType<Map>()
+              .map((request) {
+                final data = Map<String, dynamic>.from(request);
+                final id = (data['id'] ?? '').toString();
+                return {
+                  'id': id,
+                  'matchingRequestId': id,
+                  'isMatchingRequest': true,
+                  'bookingType': 'nursing',
+                  'type': 'home_nursing',
+                  'status': data['status'] ?? 'searching',
+                  'serviceName': data['serviceName'] ?? 'Home Nursing Service',
+                  'servicePrice': (data['servicePrice'] ?? 0),
+                  'patientName': patientName,
+                  'timeOption': 'asap',
+                  'createdAt': data['createdAt'],
+                  'address': data['location'] ?? {},
+                };
+              })
+              .toList();
+
+      final merged = [
+        ...fetchedBookings.whereType<Map>().map((e) => Map<String, dynamic>.from(e)),
+        ...matchingCards,
+      ];
+
+      merged.sort((a, b) {
+        final aDate = DateTime.tryParse((a['createdAt'] ?? '').toString());
+        final bDate = DateTime.tryParse((b['createdAt'] ?? '').toString());
+        if (aDate == null && bDate == null) return 0;
+        if (aDate == null) return 1;
+        if (bDate == null) return -1;
+        return bDate.compareTo(aDate);
+      });
 
       if (mounted) {
-        final fetched =
-            response is List ? response : (response['bookings'] ?? []) as List;
         setState(() {
-          if (fetched.isNotEmpty) _bookings = fetched;
+          if (merged.isNotEmpty) _bookings = merged;
           _isLoading = false;
         });
       }
@@ -234,12 +286,22 @@ class _BookingsPageState extends State<BookingsPage>
 
   List<dynamic> get _activeBookings =>
       _filteredBookings
-          .where((b) => BookingUtils.activeStatuses.contains(b['status']))
+          .where((b) {
+            final status = BookingUtils.normalizeStatus(
+              b is Map ? b['status'] : null,
+            );
+            return BookingUtils.activeStatuses.contains(status);
+          })
           .toList();
 
   List<dynamic> get _historyBookings =>
       _filteredBookings
-          .where((b) => BookingUtils.historyStatuses.contains(b['status']))
+          .where((b) {
+            final status = BookingUtils.normalizeStatus(
+              b is Map ? b['status'] : null,
+            );
+            return BookingUtils.historyStatuses.contains(status);
+          })
           .toList();
 
   @override
@@ -620,7 +682,13 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   Widget _buildActiveBookingCard(Map<String, dynamic> booking, int index) {
-    final status = booking['status'] ?? 'pending';
+    final status = BookingUtils.normalizeStatus(booking['status']);
+    final isMatchingRequest = booking['isMatchingRequest'] == true;
+    final canResumeMatching =
+      isMatchingRequest &&
+      (status == 'searching' ||
+        status == 'offers_pending' ||
+        status == 'nurse_accepted');
     final isClinic = _isClinic(booking);
     final serviceName = booking['serviceName'] ?? 'Service';
     final patientName = booking['patientName'] ?? 'Patient';
@@ -656,8 +724,17 @@ class _BookingsPageState extends State<BookingsPage>
             ? Icons.local_hospital_rounded
             : Icons.directions_car_rounded;
         break;
-      case 'confirmed':
+      case 'arrived':
+        statusColor = const Color(0xFFEA580C);
+        statusLabel = isClinic ? 'Ready For Visit' : 'Nurse Arrived';
+        statusIcon = Icons.location_on_rounded;
+        break;
       case 'on-the-way':
+        statusColor = const Color(0xFF0EA5E9);
+        statusLabel = isClinic ? 'Confirmed' : 'On The Way';
+        statusIcon = Icons.directions_car_rounded;
+        break;
+      case 'confirmed':
       case 'assigned':
         statusColor = const Color(0xFF3B82F6);
         statusLabel = 'Confirmed';
@@ -668,6 +745,16 @@ class _BookingsPageState extends State<BookingsPage>
         statusColor = const Color(0xFFF59E0B);
         statusLabel = isClinic ? 'Awaiting Confirmation' : 'Finding Nurse';
         statusIcon = isClinic ? Icons.hourglass_top_rounded : Icons.search_rounded;
+        break;
+      case 'offers_pending':
+        statusColor = const Color(0xFFF59E0B);
+        statusLabel = 'Finding Nurse';
+        statusIcon = Icons.search_rounded;
+        break;
+      case 'nurse_accepted':
+        statusColor = const Color(0xFF16A34A);
+        statusLabel = 'Nurse Offers Ready';
+        statusIcon = Icons.local_offer_rounded;
         break;
       default:
         statusColor = const Color(0xFF64748B);
@@ -971,23 +1058,37 @@ class _BookingsPageState extends State<BookingsPage>
                   Row(
                     children: [
                       if (!isClinic &&
-                          (status == 'in-progress' || status == 'confirmed'))
+                          (BookingUtils.isTrackableStatus(status) ||
+                              canResumeMatching))
                         Expanded(
                           child: _buildActionButton(
-                            label: 'Track',
-                            icon: Icons.location_on_rounded,
-                            color: const Color(0xFF00B870),
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    BookingTrackingPage(booking: booking),
-                              ),
-                            ),
+                            label:
+                                canResumeMatching ? 'Continue Search' : 'Track',
+                            icon:
+                                canResumeMatching
+                                    ? Icons.search_rounded
+                                    : Icons.location_on_rounded,
+                            color:
+                                canResumeMatching
+                                    ? const Color(0xFF3B82F6)
+                                    : const Color(0xFF00B870),
+                            onTap:
+                                canResumeMatching
+                                    ? () => _openMatchingSearch(booking)
+                                    : () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (_) => BookingTrackingPage(
+                                              booking: booking,
+                                            ),
+                                      ),
+                                    ),
                           ),
                         ),
                       if (!isClinic &&
-                          (status == 'in-progress' || status == 'confirmed'))
+                          (BookingUtils.isTrackableStatus(status) ||
+                              canResumeMatching))
                         const SizedBox(width: 10),
                       Expanded(
                         child: _buildActionButton(
@@ -1010,6 +1111,7 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   Widget _buildHistoryBookingCard(Map<String, dynamic> booking, int index) {
+    final status = BookingUtils.normalizeStatus(booking['status']);
     final isClinic = _isClinic(booking);
     final serviceName = booking['serviceName'] ?? 'Service';
     final price = (booking['servicePrice'] ?? 0).toDouble();
@@ -1029,11 +1131,34 @@ class _BookingsPageState extends State<BookingsPage>
     final cardColor =
         isClinic ? const Color(0xFF3B82F6) : const Color(0xFF00B870);
 
-    String dateLabel = 'Completed';
+    Color historyStatusColor;
+    String historyStatusLabel;
+    IconData historyStatusIcon;
+
+    switch (status) {
+      case 'cancelled':
+        historyStatusColor = const Color(0xFFEF4444);
+        historyStatusLabel = 'Cancelled';
+        historyStatusIcon = Icons.cancel_rounded;
+        break;
+      case 'no-show':
+        historyStatusColor = const Color(0xFFF59E0B);
+        historyStatusLabel = 'No Show';
+        historyStatusIcon = Icons.event_busy_rounded;
+        break;
+      case 'completed':
+      default:
+        historyStatusColor = const Color(0xFF00B870);
+        historyStatusLabel = 'Completed';
+        historyStatusIcon = Icons.check_circle_rounded;
+        break;
+    }
+
+    String dateLabel = historyStatusLabel;
     if (scheduledDate != null) {
       try {
         final date = DateTime.parse(scheduledDate);
-        dateLabel = DateFormat('MMM d, yyyy').format(date);
+        dateLabel = '$historyStatusLabel · ${DateFormat('MMM d, yyyy').format(date)}';
       } catch (_) {}
     }
 
@@ -1066,12 +1191,12 @@ class _BookingsPageState extends State<BookingsPage>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: historyStatusColor.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(
-                Icons.check_circle_rounded,
-                color: Color(0xFF00B870),
+              child: Icon(
+                historyStatusIcon,
+                color: historyStatusColor,
                 size: 26,
               ),
             ),
@@ -1152,6 +1277,25 @@ class _BookingsPageState extends State<BookingsPage>
                     color: isClinic
                         ? const Color(0xFF3B82F6)
                         : const Color(0xFF1E293B),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: historyStatusColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    historyStatusLabel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: historyStatusColor,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1295,6 +1439,8 @@ class _BookingsPageState extends State<BookingsPage>
 
   void _handleCancelBooking(Map<String, dynamic> booking) {
     final isLate = BookingUtils.isLateCancel(booking['status']);
+    final isMatchingRequest = booking['isMatchingRequest'] == true;
+
     showDialog(
       context: context,
       builder:
@@ -1302,9 +1448,16 @@ class _BookingsPageState extends State<BookingsPage>
             isLateCancel: isLate,
             onConfirm: () {
               Navigator.pop(context);
-              final bookingId =
-                  (booking['_id'] ?? booking['id'] ?? '') as String;
-              _performCancelBooking(bookingId);
+              if (isMatchingRequest) {
+                final requestId =
+                    (booking['matchingRequestId'] ?? booking['id'] ?? '')
+                        .toString();
+                _performCancelMatchingRequest(requestId);
+              } else {
+                final bookingId =
+                    (booking['_id'] ?? booking['id'] ?? '').toString();
+                _performCancelBooking(bookingId);
+              }
             },
             onCancel: () => Navigator.pop(context),
           ),
@@ -1336,6 +1489,92 @@ class _BookingsPageState extends State<BookingsPage>
       }
     } catch (e) {
       // Handle error
+    }
+  }
+
+  double? _toDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  Future<void> _openMatchingSearch(Map<String, dynamic> booking) async {
+    final matchingRequestId =
+        (booking['matchingRequestId'] ?? booking['id'] ?? '').toString();
+    if (matchingRequestId.isEmpty) return;
+
+    try {
+      final apiService = ApiService();
+      final response = await apiService.get(
+        '/api/matching/request/$matchingRequestId',
+      );
+
+      final request =
+          (response is Map<String, dynamic>)
+              ? (response['matchingRequest'] as Map<String, dynamic>?) ?? {}
+              : <String, dynamic>{};
+
+      final latitude = _toDouble(request['latitude']) ?? 30.0444;
+      final longitude = _toDouble(request['longitude']) ?? 31.2357;
+      final serviceName =
+          (request['serviceName'] ?? booking['serviceName'] ?? 'Service')
+              .toString();
+
+      final user = await TokenManager.getUserFromToken();
+      final patientName =
+          (user?['name'] ?? booking['patientName'] ?? 'Patient').toString();
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (_) => BookingMatchingScreen(
+                matchingRequestId: matchingRequestId,
+                serviceName: serviceName,
+                patientName: patientName,
+                patientLatitude: latitude,
+                patientLongitude: longitude,
+              ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not resume matching request')),
+      );
+    }
+  }
+
+  Future<void> _performCancelMatchingRequest(String requestId) async {
+    if (requestId.isEmpty) return;
+
+    try {
+      final apiService = ApiService();
+      await apiService.put('/api/matching/request/$requestId/cancel', body: {});
+      _fetchBookings();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 12),
+              Text('Matching request cancelled'),
+            ],
+          ),
+          backgroundColor: const Color(0xFF00B870),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to cancel matching request')),
+      );
     }
   }
 }
