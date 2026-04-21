@@ -381,8 +381,6 @@ class _DoctorHomePageState extends State<DoctorHomePage>
     );
   }
 
-
-
   Widget _buildHeroCard(String doctorName, List<_OverviewMetric> metrics, bool isActive) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),

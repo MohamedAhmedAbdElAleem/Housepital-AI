@@ -11,6 +11,7 @@ import '../../data/models/booking_model.dart';
 import '../widgets/nurse_home_widgets.dart';
 import 'pin_verification_page.dart';
 import 'nurse_tracking_page.dart';
+import 'nurse_history_page.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -299,6 +300,11 @@ class _NurseHomePageState extends State<NurseHomePage>
             builder: (context, bookingState) {
               final bool hasActiveVisit =
                   bookingState is NurseBookingInProgress;
+              // Active = assigned/on-the-way booking nurse can resume
+              final NurseBooking? activeBooking =
+                  bookingState is NurseBookingActive
+                      ? bookingState.booking
+                      : null;
 
               return Stack(
                 children: [
@@ -327,6 +333,10 @@ class _NurseHomePageState extends State<NurseHomePage>
                       children: [
                         // Header
                         _buildHeader(context, user?.name ?? 'Nurse'),
+
+                        // ── Active booking banner (nurse pressed back from map) ──
+                        if (activeBooking != null)
+                          _buildActiveBookingBanner(context, activeBooking),
 
                         // Availability (Hide during active visit)
                         if (!hasActiveVisit)
@@ -508,11 +518,116 @@ class _NurseHomePageState extends State<NurseHomePage>
       }
     }
 
+    if (bookingState is NurseBookingWaitingForPatient) {
+      return _buildWaitingForPatientView(bookingState.booking);
+    }
+
     if (bookingState is NurseBookingInProgress) {
       return _buildActiveVisitView(bookingState.booking);
     }
 
     return _buildRadarView();
+  }
+
+  // ── Active booking banner shown when nurse presses back ─────────────────
+
+  Widget _buildActiveBookingBanner(
+    BuildContext context,
+    NurseBooking booking,
+  ) {
+    final bool isOnTheWay = booking.status == 'on-the-way';
+    return GestureDetector(
+      onTap: () {
+        if (!_isNavigatingToPin) {
+          _isNavigatingToPin = true;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => NurseTrackingPage(booking: booking),
+            ),
+          ).then((_) {
+            if (mounted) setState(() => _isNavigatingToPin = false);
+          });
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF2664EC), Color(0xFF113AA8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF2664EC).withValues(alpha: 0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isOnTheWay
+                    ? Icons.navigation_rounded
+                    : Icons.medical_services_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isOnTheWay ? 'On the Way' : 'Active Booking',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    booking.patientName,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Text(
+                'Resume →',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // --- WIDGETS ---
@@ -921,6 +1036,99 @@ class _NurseHomePageState extends State<NurseHomePage>
     );
   }
 
+  Widget _buildWaitingForPatientView(NurseBooking booking) {
+    return Container(
+      color: AppColors.primary50,
+      width: double.infinity,
+      height: double.infinity,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 60,
+                height: 60,
+                child: CircularProgressIndicator(
+                  strokeWidth: 4,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary500),
+                ),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'OFFER ACCEPTED',
+                style: TextStyle(
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary600,
+                  fontSize: 18,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 20,
+                      offset: Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Waiting for patient confirmation...',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[700],
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.person, color: AppColors.primary500, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            booking.patientName,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.medical_services, color: AppColors.primary500, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            booking.serviceName,
+                            style: TextStyle(color: Colors.grey[800]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildActiveVisitView(NurseBooking booking) {
     final duration =
         booking.visitStartedAt != null
@@ -1169,6 +1377,17 @@ class _NurseHomePageState extends State<NurseHomePage>
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _dockItem(Icons.grid_view_rounded, 'Home', true),
+          _dockItem(
+            Icons.history_rounded,
+            'History',
+            false,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const NurseHistoryPage(),
+              ),
+            ),
+          ),
           _dockItem(
             Icons.person_outline_rounded,
             'Profile',

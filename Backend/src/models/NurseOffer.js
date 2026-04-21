@@ -89,7 +89,7 @@ const nurseOfferSchema = new mongoose.Schema(
         },
         nurseExpiresAt: {
             type: Date,
-            default: () => new Date(Date.now() + 60 * 1000) // 60 second window
+            default: () => new Date(Date.now() + 10 * 60 * 1000) // 10 minute window
         },
 
         // Patient response (only relevant after nurse accepts)

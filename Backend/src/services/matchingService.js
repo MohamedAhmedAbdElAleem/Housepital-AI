@@ -24,6 +24,8 @@ const {
     calculateDistanceKm
 } = require("./pricingService");
 
+const configuredOfferExpirySeconds = Number(process.env.MATCHING_NURSE_OFFER_EXPIRY_SECONDS);
+
 // ============================================================
 // MATCHING CONFIGURATION
 // ============================================================
@@ -42,7 +44,10 @@ const MATCHING_CONFIG = {
     MAX_NURSES_TO_MATCH: 5,
 
     // Nurse offer expiry time in seconds
-    NURSE_OFFER_EXPIRY_SECONDS: 60,
+    NURSE_OFFER_EXPIRY_SECONDS:
+        Number.isFinite(configuredOfferExpirySeconds) && configuredOfferExpirySeconds > 0
+            ? configuredOfferExpirySeconds
+            : 600,
 
     // Scoring weights (must sum to 1.0)
     WEIGHTS: {
@@ -379,6 +384,14 @@ function rankNurses(nurses, maxRadiusKm, limit) {
 async function createNurseOffers(matchingRequest, rankedNurses) {
     const offers = [];
 
+    const now = Date.now();
+    const expiryFromConfig = new Date(now + MATCHING_CONFIG.NURSE_OFFER_EXPIRY_SECONDS * 1000);
+    const requestExpiry = matchingRequest.expiresAt ? new Date(matchingRequest.expiresAt) : null;
+    const offerExpiry =
+        requestExpiry && requestExpiry.getTime() > now && requestExpiry < expiryFromConfig
+            ? requestExpiry
+            : expiryFromConfig;
+
     for (const nurse of rankedNurses) {
         // Calculate pricing for this specific nurse-patient pair
         const nurseCoords =
@@ -430,8 +443,8 @@ async function createNurseOffers(matchingRequest, rankedNurses) {
             nurseStatus: "pending",
             patientStatus: "not_applicable",
 
-            // Expiry (60 seconds for nurse to respond)
-            nurseExpiresAt: new Date(Date.now() + MATCHING_CONFIG.NURSE_OFFER_EXPIRY_SECONDS * 1000)
+            // Keep offer alive for the configured window (capped by request expiry).
+            nurseExpiresAt: new Date(offerExpiry)
         });
 
         await offer.save();
@@ -607,10 +620,18 @@ async function handleNurseResponse(offerId, nurseUserId, response, io = null) {
         offer.patientStatus = "pending";
     }
 
-    await offer.save();
-
     // Update matching request status
     const matchingRequest = await MatchingRequest.findById(offer.matchingRequestId);
+
+    if (response === "accepted" && matchingRequest?.expiresAt) {
+        const requestExpiry = new Date(matchingRequest.expiresAt);
+        if (requestExpiry > new Date()) {
+            offer.nurseExpiresAt = requestExpiry;
+        }
+    }
+
+    await offer.save();
+
     if (matchingRequest && response === "accepted") {
         // Check if at least one nurse has accepted
         const acceptedOffers = await NurseOffer.find({
@@ -712,7 +733,8 @@ async function handlePatientResponse(offerId, patientUserId, response, io = null
             nurseGenderPreference: matchingRequest.nurseGenderPreference,
             notes: matchingRequest.notes,
             address: matchingRequest.address,
-            status: "confirmed",
+            // Patient selected a nurse, so this booking is now assigned to that nurse.
+            status: "assigned",
             assignedNurse: offer.nurseId,
             matchingAttempts: 1,
             visitPin,
@@ -732,14 +754,10 @@ async function handlePatientResponse(offerId, patientUserId, response, io = null
 
         await booking.save();
 
-        // Update offer with booking reference
-        offer.bookingId = booking._id;
-
-        // Update matching request
-        matchingRequest.status = "accepted";
-        matchingRequest.acceptedOfferId = offer._id;
-        matchingRequest.bookingId = booking._id;
-        await matchingRequest.save();
+        // Request finished successfully - delete it and the offer! 
+        // As requested by user, we do not hold matching transients in DB after conversion.
+        await MatchingRequest.findByIdAndDelete(matchingRequest._id);
+        await NurseOffer.findByIdAndDelete(offer._id);
 
         const otherOffers = await NurseOffer.find({
             matchingRequestId: matchingRequest._id,
@@ -747,21 +765,11 @@ async function handlePatientResponse(offerId, patientUserId, response, io = null
             nurseStatus: { $in: ["pending", "accepted"] }
         }).select("_id nurseId");
 
-        // Expire all other offers so they disappear from nurse pending queues.
-        await NurseOffer.updateMany(
-            {
-                matchingRequestId: matchingRequest._id,
-                _id: { $ne: offer._id },
-                nurseStatus: { $in: ["pending", "accepted"] }
-            },
-            {
-                $set: {
-                    nurseStatus: "expired",
-                    patientStatus: "declined",
-                    patientRespondedAt: new Date()
-                }
-            }
-        );
+        // Delete all other extraneous offers (cleaning house)
+        await NurseOffer.deleteMany({
+            matchingRequestId: matchingRequest._id,
+            _id: { $ne: offer._id }
+        });
 
         // Create platform fee transaction
         const platformTransaction = new Transaction({
@@ -813,10 +821,11 @@ async function handlePatientResponse(offerId, patientUserId, response, io = null
             }
         }
 
-        console.log(`🎉 Booking ${booking._id} created! Nurse ${offer.nurseId} → Patient ${offer.patientId}`);
+        console.log(`🎉 Booking ${booking._id} created! MatchingRequest removed securely.`);
+    } else {
+        // If declined, just save the offer state
+        await offer.save();
     }
-
-    await offer.save();
 
     return {
         offer,
@@ -899,11 +908,14 @@ async function getNursePendingOffers(nurseUserId) {
         throw new Error("Nurse profile not found");
     }
 
-    // Get pending offers
+    // Get offers that need nurse attention or are waiting for patient confirmation.
     const offers = await NurseOffer.find({
         nurseId: nurse._id,
-        nurseStatus: "pending",
-        nurseExpiresAt: { $gt: new Date() }
+        nurseExpiresAt: { $gt: new Date() },
+        $or: [
+            { nurseStatus: "pending" },
+            { nurseStatus: "accepted", patientStatus: "pending" }
+        ]
     })
         .populate({
             path: "matchingRequestId",
@@ -922,6 +934,8 @@ async function getNursePendingOffers(nurseUserId) {
 
         formattedOffers.push({
             offerId: offer._id,
+            nurseStatus: offer.nurseStatus,
+            patientStatus: offer.patientStatus,
             patient: {
                 name: patient?.name || "Patient",
                 profilePictureUrl: patient?.profilePictureUrl || "",
@@ -985,15 +999,8 @@ async function cancelMatchingRequest(matchingRequestId, patientUserId, io = null
         nurseStatus: { $in: ["pending", "accepted"] }
     });
 
-    await NurseOffer.updateMany(
-        {
-            matchingRequestId,
-            nurseStatus: { $in: ["pending", "accepted"] }
-        },
-        {
-            $set: { nurseStatus: "expired", patientStatus: "declined" }
-        }
-    );
+    // Explicitly delete offers associated with this request
+    await NurseOffer.deleteMany({ matchingRequestId });
 
     // Notify nurses
     if (io) {
@@ -1005,8 +1012,8 @@ async function cancelMatchingRequest(matchingRequestId, patientUserId, io = null
         }
     }
 
-    matchingRequest.status = "cancelled";
-    await matchingRequest.save();
+    // Delete matching request since it's cancelled
+    await MatchingRequest.findByIdAndDelete(matchingRequestId);
 
     return matchingRequest;
 }
@@ -1035,19 +1042,9 @@ async function expireMatchingRequestIfNeeded(matchingRequest, io = null) {
         nurseStatus: { $in: ["pending", "accepted"] }
     });
 
-    await NurseOffer.updateMany(
-        {
-            matchingRequestId: matchingRequest._id,
-            nurseStatus: { $in: ["pending", "accepted"] }
-        },
-        {
-            $set: {
-                nurseStatus: "expired",
-                patientStatus: "declined",
-                patientRespondedAt: new Date()
-            }
-        }
-    );
+    await NurseOffer.deleteMany({
+        matchingRequestId: matchingRequest._id
+    });
 
     if (io) {
         for (const offer of offers) {
@@ -1063,10 +1060,9 @@ async function expireMatchingRequestIfNeeded(matchingRequest, io = null) {
         });
     }
 
-    matchingRequest.status = "expired";
-    await matchingRequest.save();
+    await MatchingRequest.findByIdAndDelete(matchingRequest._id);
 
-    return matchingRequest;
+    return null;
 }
 
 module.exports = {

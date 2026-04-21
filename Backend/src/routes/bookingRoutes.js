@@ -10,6 +10,7 @@ const {
 	getDoctorAppointments,
 	getNursePendingBookings,
 	getNurseActiveBooking,
+	getNurseBookingHistory,
 	acceptBooking,
 	verifyPinAndStartVisit,
 	completeVisit,
@@ -96,6 +97,8 @@ router.get("/nurse/pending", authenticateToken, getNursePendingBookings);
  *         description: Active booking if any
  */
 router.get("/nurse/active", authenticateToken, getNurseActiveBooking);
+
+router.get("/nurse/history", authenticateToken, getNurseBookingHistory);
 
 /**
  * @openapi

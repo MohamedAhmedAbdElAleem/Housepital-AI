@@ -95,7 +95,7 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
       if (token == null) return;
 
       final url =
-          '${ApiConstants.baseUrl}/api/bookings/${widget.booking.id}/location';
+          '${ApiConstants.baseUrl}/bookings/${widget.booking.id}/location';
       await http.post(
         Uri.parse(url),
         headers: {
@@ -487,7 +487,7 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                     ),
                     const SizedBox(height: 20),
 
-                    if (status == 'assigned')
+                    if (status == 'confirmed' || status == 'assigned')
                       ElevatedButton(
                         onPressed: () => _updateStatus('on-the-way'),
                         style: ElevatedButton.styleFrom(
