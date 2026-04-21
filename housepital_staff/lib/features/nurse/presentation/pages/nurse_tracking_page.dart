@@ -197,16 +197,9 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
       widget.booking.id,
       newStatus,
     );
-
-    // Check if arrived to show pin bottom sheet or navigate
-    if (newStatus == 'arrived') {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PinVerificationPage(booking: widget.booking),
-        ),
-      );
-    }
+    // Navigation to PIN page is handled by NurseHomePage's BlocConsumer
+    // when it sees NurseBookingActive with needsPinVerification: true.
+    // Do NOT push here to avoid double-navigation.
   }
 
   @override
@@ -514,12 +507,12 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                     else if (status == 'arrived')
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.pushReplacement(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder:
                                   (context) => PinVerificationPage(
-                                    booking: widget.booking,
+                                    booking: currentBooking,
                                   ),
                             ),
                           );

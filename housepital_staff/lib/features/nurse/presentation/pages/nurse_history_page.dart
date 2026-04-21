@@ -13,6 +13,9 @@ class NurseHistoryPage extends StatefulWidget {
 }
 
 class _NurseHistoryPageState extends State<NurseHistoryPage> {
+  List<NurseBooking> _cachedHistory = [];
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -68,34 +71,40 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
           ),
         ],
       ),
-      body: BlocBuilder<NurseBookingCubit, NurseBookingState>(
-        builder: (context, state) {
+      body: BlocConsumer<NurseBookingCubit, NurseBookingState>(
+        listener: (context, state) {
           if (state is NurseBookingHistoryLoading) {
+            setState(() => _isLoading = true);
+          } else if (state is NurseBookingHistoryLoaded) {
+            setState(() {
+              _cachedHistory = state.history;
+              _isLoading = false;
+            });
+          }
+          // All other states (Idle, Active, etc. from polling) are ignored here.
+        },
+        builder: (context, state) {
+          if (_isLoading && _cachedHistory.isEmpty) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.primary500),
             );
           }
 
-          if (state is NurseBookingHistoryLoaded) {
-            if (state.history.isEmpty) {
-              return _buildEmpty();
-            }
-            return RefreshIndicator(
-              color: AppColors.primary500,
-              onRefresh: () =>
-                  context.read<NurseBookingCubit>().fetchHistory(),
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                itemCount: state.history.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) =>
-                    _buildHistoryCard(state.history[index], index),
-              ),
-            );
+          if (_cachedHistory.isEmpty) {
+            return _buildEmpty();
           }
 
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary500),
+          return RefreshIndicator(
+            color: AppColors.primary500,
+            onRefresh: () =>
+                context.read<NurseBookingCubit>().fetchHistory(),
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              itemCount: _cachedHistory.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) =>
+                  _buildHistoryCard(_cachedHistory[index], index),
+            ),
           );
         },
       ),

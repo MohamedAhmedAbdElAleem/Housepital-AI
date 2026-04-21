@@ -115,8 +115,9 @@ class _PinVerificationPageState extends State<PinVerificationPage> {
             });
             _clearPin();
           } else if (state is NurseBookingInProgress) {
-            // Successfully started, pop back to home
-            Navigator.pop(context);
+            // PIN accepted — pop all the way back to the home page
+            // so the nurse sees the active visit view
+            Navigator.popUntil(context, (route) => route.isFirst);
           }
         },
         child: SafeArea(
@@ -318,10 +319,13 @@ class _PinVerificationPageState extends State<PinVerificationPage> {
                 // Cancel button
                 TextButton(
                   onPressed: () {
+                    // Pop back to tracking page first, then cancel the booking.
+                    // This prevents home page from immediately re-pushing
+                    // PinVerificationPage on next fetchBookings.
+                    Navigator.pop(context);
                     context.read<NurseBookingCubit>().declineBooking(
                       widget.booking.id,
                     );
-                    Navigator.pop(context);
                   },
                   child: Text(
                     'Cancel Visit',

@@ -66,6 +66,11 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
   /// pending-bookings API so that accept/decline can route to the right endpoint.
   String _pendingSource = 'matching';
 
+  /// Set after a visit is completed so that the next fetchBookings call
+  /// does NOT re-enter the active-booking branch (which would show the
+  /// completed booking again while the DB is still catching up).
+  bool _justCompleted = false;
+
   NurseBookingCubit(this._apiClient) : super(NurseBookingInitial());
 
   NurseBooking? get currentBooking => _currentBooking;
@@ -120,27 +125,32 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
 
     try {
       // 1️⃣ Check for an already-active booking
-      final activeResponse = await _apiClient.get(
-        ApiConstants.nurseActiveBooking,
-      );
+      //    Skip this check right after a visit was just completed so the
+      //    nurse goes back to idle/radar instead of looping.
+      if (!_justCompleted) {
+        final activeResponse = await _apiClient.get(
+          ApiConstants.nurseActiveBooking,
+        );
 
-      if (activeResponse['success'] == true &&
-          activeResponse['booking'] != null) {
-        final booking = NurseBooking.fromJson(activeResponse['booking']);
-        _currentBooking = booking;
+        if (activeResponse['success'] == true &&
+            activeResponse['booking'] != null) {
+          final booking = NurseBooking.fromJson(activeResponse['booking']);
+          _currentBooking = booking;
 
-        if (booking.isAssigned) {
-          emit(
-            NurseBookingActive(
-              booking,
-              needsPinVerification: booking.status == 'arrived',
-            ),
-          );
-        } else if (booking.isInProgress) {
-          emit(NurseBookingInProgress(booking));
+          if (booking.isAssigned) {
+            emit(
+              NurseBookingActive(
+                booking,
+                needsPinVerification: booking.status == 'arrived',
+              ),
+            );
+          } else if (booking.isInProgress) {
+            emit(NurseBookingInProgress(booking));
+          }
+          return;
         }
-        return;
       }
+      _justCompleted = false; // reset after skipping once
 
       // 2️⃣ No active booking — exclusively fetch matching offers
       final matchingResponse = await _apiClient.get(
@@ -250,14 +260,32 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
   }
 
   /// Decline a pending booking or matching offer.
+  /// For active bookings (assigned/on-the-way/arrived), cancel via status update.
   Future<void> declineBooking(String bookingId) async {
     try {
-      await _apiClient.put(
-        ApiConstants.respondToNurseOffer(bookingId),
-        body: {'response': 'declined'},
-      );
+      final currentStatus = _currentBooking?.status ?? '';
+      final isActiveBooking = [
+        'confirmed',
+        'assigned',
+        'on-the-way',
+        'arrived',
+      ].contains(currentStatus);
+
+      if (isActiveBooking) {
+        // Cancel an already-assigned booking via the status endpoint
+        await _apiClient.put(
+          ApiConstants.updateBookingStatus(bookingId),
+          body: {'status': 'cancelled'},
+        );
+      } else {
+        // Decline a matching offer that hasn't been accepted yet
+        await _apiClient.put(
+          ApiConstants.respondToNurseOffer(bookingId),
+          body: {'response': 'declined'},
+        );
+      }
     } catch (e) {
-      print('❌ Error declining offer: $e');
+      print('❌ Error declining/cancelling booking: $e');
     }
 
     _currentBooking = null;
@@ -306,8 +334,11 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
       if (response['success'] == true) {
         final booking = NurseBooking.fromJson(response['booking']);
         _currentBooking = null;
+        _justCompleted = true; // prevent fetchBookings from re-entering active state
         emit(NurseBookingCompleted(booking));
-        await Future.delayed(const Duration(seconds: 2));
+        // Small delay so the user can see the success snackbar,
+        // then transition to idle/radar.
+        await Future.delayed(const Duration(milliseconds: 800));
         await fetchBookings();
       } else {
         emit(

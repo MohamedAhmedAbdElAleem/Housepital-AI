@@ -677,6 +677,19 @@ exports.verifyPinAndStartVisit = async (req, res) => {
 			});
 		}
 
+		// Prevent starting a second visit while one is already in-progress
+		const existingInProgress = await Booking.findOne({
+			assignedNurse: nurseProfile._id,
+			status: "in-progress",
+			_id: { $ne: id },
+		});
+		if (existingInProgress) {
+			return res.status(400).json({
+				success: false,
+				message: "You already have a visit in progress. Please complete it first.",
+			});
+		}
+
 		const booking = await Booking.findById(id);
 
 		if (!booking) {

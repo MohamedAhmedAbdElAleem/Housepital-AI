@@ -260,33 +260,21 @@ class _NurseHomePageState extends State<NurseHomePage>
                 // Prevents multiple pages from opening sequentially
                 if (!_isNavigatingToPin) {
                   _isNavigatingToPin = true;
-
-                  if (bookingState.needsPinVerification) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => PinVerificationPage(
-                              booking: bookingState.booking,
-                            ),
-                      ),
-                    ).then((_) {
-                      if (mounted) setState(() => _isNavigatingToPin = false);
-                    });
-                  } else {
-                    // Status is assigned or on-the-way -> Show tracking map
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => NurseTrackingPage(
-                              booking: bookingState.booking,
-                            ),
-                      ),
-                    ).then((_) {
-                      if (mounted) setState(() => _isNavigatingToPin = false);
-                    });
-                  }
+                  // Always go to the tracking page — the tracking page shows
+                  // the PIN entry button when status == 'arrived'.
+                  // We do NOT push PinVerificationPage from here to avoid
+                  // double-navigation (tracking page would also push it).
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => NurseTrackingPage(
+                            booking: bookingState.booking,
+                          ),
+                    ),
+                  ).then((_) {
+                    if (mounted) setState(() => _isNavigatingToPin = false);
+                  });
                 }
               } else if (bookingState is NurseBookingCompleted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -503,7 +491,7 @@ class _NurseHomePageState extends State<NurseHomePage>
     bool isApproved,
     NurseBookingState bookingState,
   ) {
-    if (!isOnline) return _buildOfflineView(isApproved);
+    if (!isOnline) return _buildOfflineView(isApproved, isOnline);
 
     if (bookingState is NurseBookingLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -520,6 +508,42 @@ class _NurseHomePageState extends State<NurseHomePage>
 
     if (bookingState is NurseBookingWaitingForPatient) {
       return _buildWaitingForPatientView(bookingState.booking);
+    }
+
+    if (bookingState is NurseBookingCompleted) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.success50,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle,
+                color: AppColors.success500,
+                size: 80,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Visit Completed! 🎉',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Great work! Returning to home...',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
     }
 
     if (bookingState is NurseBookingInProgress) {
@@ -1328,7 +1352,7 @@ class _NurseHomePageState extends State<NurseHomePage>
     );
   }
 
-  Widget _buildOfflineView(bool isApproved) {
+  Widget _buildOfflineView(bool isApproved, bool isOnline) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1355,12 +1379,12 @@ class _NurseHomePageState extends State<NurseHomePage>
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Text(
               isApproved
-                  ? 'You are currently offline. Switch on above when you are ready to work.'
+                  ? 'Toggle the switch above to go online and start receiving requests.'
                   : 'Please complete your profile verification to start working.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: AppColors.textSecondary,
-                height: 1.5,
+                fontSize: 14,
               ),
             ),
           ),
