@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/admin_cubit.dart';
@@ -470,7 +471,34 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
     );
   }
 
-  void _showDocumentPreview(String title, String url) {
+  void _showDocumentPreview(String title, String url) async {
+    final lowerUrl = url.toLowerCase();
+    if (lowerUrl.endsWith('.pdf') || lowerUrl.contains('.pdf?')) {
+      String targetUrl = url;
+      if (targetUrl.startsWith('http://')) {
+        targetUrl = targetUrl.replaceFirst('http://', 'https://');
+      } else if (!targetUrl.startsWith('http')) {
+        targetUrl = targetUrl.startsWith('//') ? 'https:$targetUrl' : 'https://$targetUrl';
+      }
+      final uri = Uri.parse(targetUrl);
+      
+      try {
+        final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (!launched && mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             const SnackBar(content: Text('Could not open PDF file. No PDF viewer installed.')),
+           );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open PDF file')),
+          );
+        }
+      }
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (ctx) => Dialog(

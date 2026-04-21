@@ -101,6 +101,13 @@ class TokenManager {
     return prefs.getString(_rejectionReasonKey);
   }
 
+  static Future<void> deleteVerificationData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_hasProfileKey);
+    await prefs.remove(_verificationStatusKey);
+    await prefs.remove(_rejectionReasonKey);
+  }
+
   // ========== Remember Me ==========
   static Future<void> setRememberMe(bool value, {String? email}) async {
     final prefs = await SharedPreferences.getInstance();
