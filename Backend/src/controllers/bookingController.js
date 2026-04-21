@@ -545,7 +545,7 @@ exports.getNurseActiveBooking = async (req, res) => {
 
 		const booking = await Booking.findOne({
 			assignedNurse: nurseProfile._id,
-			status: { $in: ["assigned", "in-progress"] },
+			status: { $in: ["confirmed", "assigned", "on-the-way", "arrived", "in-progress"] },
 		}).populate("userId", "name email mobile address");
 
 		res.status(200).json({
@@ -674,6 +674,19 @@ exports.verifyPinAndStartVisit = async (req, res) => {
 			return res.status(404).json({
 				success: false,
 				message: "Nurse profile not found",
+			});
+		}
+
+		// Prevent starting a second visit while one is already in-progress
+		const existingInProgress = await Booking.findOne({
+			assignedNurse: nurseProfile._id,
+			status: "in-progress",
+			_id: { $ne: id },
+		});
+		if (existingInProgress) {
+			return res.status(400).json({
+				success: false,
+				message: "You already have a visit in progress. Please complete it first.",
 			});
 		}
 
@@ -939,6 +952,47 @@ exports.completeAppointment = async (req, res) => {
 		res.status(500).json({
 			success: false,
 			message: "Error completing appointment",
+			error: error.message,
+		});
+	}
+};
+
+/**
+ * @desc    Get nurse's booking history (last 10 completed/cancelled)
+ * @route   GET /api/bookings/nurse/history
+ * @access  Private (Nurse)
+ */
+exports.getNurseBookingHistory = async (req, res) => {
+	try {
+		const Nurse = require("../models/Nurse");
+		const nurseProfile = await Nurse.findOne({ user: req.user?.id });
+
+		if (!nurseProfile) {
+			return res.status(404).json({
+				success: false,
+				message: "Nurse profile not found",
+			});
+		}
+
+		const bookings = await Booking.find({
+			assignedNurse: nurseProfile._id,
+			status: { $in: ["completed", "cancelled"] },
+		})
+			.sort({ updatedAt: -1 })
+			.limit(10)
+			.populate("userId", "name email mobile");
+
+		console.log(`✅ Found ${bookings.length} history bookings for nurse ${nurseProfile._id}`);
+
+		res.status(200).json({
+			success: true,
+			bookings: bookings,
+		});
+	} catch (error) {
+		console.error("❌ Error fetching nurse history:", error);
+		res.status(500).json({
+			success: false,
+			message: "Error fetching booking history",
 			error: error.message,
 		});
 	}

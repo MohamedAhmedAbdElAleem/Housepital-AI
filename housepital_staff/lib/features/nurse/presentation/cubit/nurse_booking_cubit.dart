@@ -3,7 +3,8 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../data/models/booking_model.dart';
 
-// States
+// ─── States ──────────────────────────────────────────────────────────────────
+
 abstract class NurseBookingState {}
 
 class NurseBookingInitial extends NurseBookingState {}
@@ -18,6 +19,11 @@ class NurseBookingIdle extends NurseBookingState {
 class NurseBookingIncoming extends NurseBookingState {
   final NurseBooking booking;
   NurseBookingIncoming(this.booking);
+}
+
+class NurseBookingWaitingForPatient extends NurseBookingState {
+  final NurseBooking booking;
+  NurseBookingWaitingForPatient(this.booking);
 }
 
 class NurseBookingActive extends NurseBookingState {
@@ -41,21 +47,48 @@ class NurseBookingError extends NurseBookingState {
   NurseBookingError(this.message);
 }
 
-// Cubit
+/// Emitted while history is being fetched
+class NurseBookingHistoryLoading extends NurseBookingState {}
+
+/// Emitted once history is ready (up to 10 recent completed/cancelled sessions)
+class NurseBookingHistoryLoaded extends NurseBookingState {
+  final List<NurseBooking> history;
+  NurseBookingHistoryLoaded(this.history);
+}
+
+// ─── Cubit ───────────────────────────────────────────────────────────────────
+
 class NurseBookingCubit extends Cubit<NurseBookingState> {
   final ApiClient _apiClient;
   NurseBooking? _currentBooking;
+
+  /// Tracks whether pending items came from the matching API or the legacy
+  /// pending-bookings API so that accept/decline can route to the right endpoint.
   String _pendingSource = 'matching';
+
+  /// Set after a visit is completed so that the next fetchBookings call
+  /// does NOT re-enter the active-booking branch (which would show the
+  /// completed booking again while the DB is still catching up).
+  bool _justCompleted = false;
 
   NurseBookingCubit(this._apiClient) : super(NurseBookingInitial());
 
   NurseBooking? get currentBooking => _currentBooking;
+
+  // ── Helper: convert a matching offer map into a NurseBooking ─────────────
 
   NurseBooking _matchingOfferToBooking(Map<String, dynamic> offer) {
     final patient = (offer['patient'] as Map<String, dynamic>?) ?? {};
     final service = (offer['service'] as Map<String, dynamic>?) ?? {};
     final pricing = (offer['pricing'] as Map<String, dynamic>?) ?? {};
     final location = (offer['location'] as Map<String, dynamic>?) ?? {};
+    final nurseStatus = (offer['nurseStatus'] ?? 'pending').toString();
+    final patientStatus = (offer['patientStatus'] ?? 'not_applicable').toString();
+
+    final bookingStatus =
+        (nurseStatus == 'accepted' && patientStatus == 'pending')
+        ? 'waiting-patient'
+        : 'pending';
 
     return NurseBooking.fromJson({
       '_id': offer['offerId'],
@@ -65,7 +98,7 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
       'patientId': '',
       'patientName': patient['name'] ?? 'Patient',
       'userId': {'name': patient['name'] ?? 'Patient'},
-      'status': 'pending',
+      'status': bookingStatus,
       'notes': offer['notes'] ?? '',
       'timeOption': offer['timeOption'] ?? 'asap',
       'address': {
@@ -78,69 +111,65 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
     });
   }
 
-  /// Fetch pending bookings and check for active booking
+  // ── Main booking flow ────────────────────────────────────────────────────
+
+  /// Fetch pending bookings and check for active booking.
+  /// Tries the matching API first, falls back to legacy pending-bookings API.
   Future<void> fetchBookings() async {
     if (state is! NurseBookingIdle &&
+        state is! NurseBookingWaitingForPatient &&
         state is! NurseBookingInProgress &&
         state is! NurseBookingActive) {
       emit(NurseBookingLoading());
     }
 
     try {
-      // First check if there's an active booking
-      final activeResponse = await _apiClient.get(
-        ApiConstants.nurseActiveBooking,
-      );
-
-      if (activeResponse['success'] == true &&
-          activeResponse['booking'] != null) {
-        final booking = NurseBooking.fromJson(activeResponse['booking']);
-        _currentBooking = booking;
-
-        if (booking.isAssigned) {
-          // If arrived, we might need PIN. Otherwise, just show map.
-          emit(
-            NurseBookingActive(
-              booking,
-              needsPinVerification: booking.status == 'arrived',
-            ),
-          );
-        } else if (booking.isInProgress) {
-          // Visit already started
-          emit(NurseBookingInProgress(booking));
-        }
-        return;
-      }
-
-      // No active booking, fetch pending matching offers first
-      try {
-        final matchingResponse = await _apiClient.get(
-          ApiConstants.nurseMatchingOffers,
+      // 1️⃣ Check for an already-active booking
+      //    Skip this check right after a visit was just completed so the
+      //    nurse goes back to idle/radar instead of looping.
+      if (!_justCompleted) {
+        final activeResponse = await _apiClient.get(
+          ApiConstants.nurseActiveBooking,
         );
 
-        if (matchingResponse['success'] == true) {
-          _pendingSource = 'matching';
-          final offers = (matchingResponse['offers'] as List? ?? []);
-          final bookings =
-              offers.map((o) => _matchingOfferToBooking(o)).toList();
-          emit(NurseBookingIdle(bookings));
+        if (activeResponse['success'] == true &&
+            activeResponse['booking'] != null) {
+          final booking = NurseBooking.fromJson(activeResponse['booking']);
+          _currentBooking = booking;
+
+          if (booking.isAssigned) {
+            emit(
+              NurseBookingActive(
+                booking,
+                needsPinVerification: booking.status == 'arrived',
+              ),
+            );
+          } else if (booking.isInProgress) {
+            emit(NurseBookingInProgress(booking));
+          }
           return;
         }
-      } catch (_) {
-        // Fall back to the legacy pending-booking API if matching API is unavailable.
       }
+      _justCompleted = false; // reset after skipping once
 
-      final pendingResponse = await _apiClient.get(
-        ApiConstants.nursePendingBookings,
+      // 2️⃣ No active booking — exclusively fetch matching offers
+      final matchingResponse = await _apiClient.get(
+        ApiConstants.nurseMatchingOffers,
       );
 
-      _pendingSource = 'legacy';
-      if (pendingResponse['success'] == true) {
-        final bookings =
-            (pendingResponse['bookings'] as List)
-                .map((b) => NurseBooking.fromJson(b))
-                .toList();
-        emit(NurseBookingIdle(bookings));
+      if (matchingResponse['success'] == true) {
+        final offers = (matchingResponse['offers'] as List? ?? []);
+        final bookings = offers.map((o) => _matchingOfferToBooking(o)).toList();
+        final waitingBookings =
+            bookings.where((b) => b.isWaitingForPatient).toList();
+        final pendingBookings =
+            bookings.where((b) => !b.isWaitingForPatient).toList();
+
+        if (waitingBookings.isNotEmpty) {
+          emit(NurseBookingWaitingForPatient(waitingBookings.first));
+        } else {
+          emit(NurseBookingIdle(pendingBookings));
+        }
       } else {
         emit(NurseBookingIdle([]));
       }
@@ -150,56 +179,65 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
     }
   }
 
-  /// Accept a booking request
-  Future<void> acceptBooking(String bookingId) async {
-    emit(NurseBookingLoading());
+  // ── History ──────────────────────────────────────────────────────────────
 
+  /// Fetch the last 10 completed / cancelled sessions for this nurse.
+  Future<void> fetchHistory() async {
+    emit(NurseBookingHistoryLoading());
     try {
-      if (_pendingSource == 'matching') {
-        final response = await _apiClient.put(
-          ApiConstants.respondToNurseOffer(bookingId),
-          body: {'response': 'accepted'},
-        );
-
-        if (response['success'] == true) {
-          await fetchBookings();
-          return;
-        }
-
-        emit(
-          NurseBookingError(response['message'] ?? 'Failed to accept offer'),
-        );
-        await fetchBookings();
-        return;
-      }
-
-      final response = await _apiClient.post(
-        ApiConstants.acceptBooking(bookingId),
-        body: {},
-      );
-
+      final response = await _apiClient.get(ApiConstants.nurseBookingHistory);
       if (response['success'] == true) {
-        final booking = NurseBooking.fromJson(response['booking']);
-        _currentBooking = booking;
-        emit(
-          NurseBookingActive(
-            booking,
-            needsPinVerification: booking.status == 'arrived',
-          ),
-        );
+        final bookings = (response['bookings'] as List)
+            .map((b) => NurseBooking.fromJson(b))
+            .toList();
+        emit(NurseBookingHistoryLoaded(bookings));
       } else {
-        emit(
-          NurseBookingError(response['message'] ?? 'Failed to accept booking'),
-        );
-        await fetchBookings();
+        emit(NurseBookingHistoryLoaded([]));
       }
     } catch (e) {
-      print('❌ Error accepting booking: $e');
-      emit(NurseBookingError('Failed to accept booking: ${e.toString()}'));
+      print('❌ Error fetching history: $e');
+      emit(NurseBookingHistoryLoaded([]));
     }
   }
 
-  /// Update booking status (e.g., to on-the-way or arrived)
+  // ── Actions ──────────────────────────────────────────────────────────────
+
+  /// Accept a booking / matching offer.
+  Future<void> acceptBooking(String bookingId) async {
+    NurseBooking? acceptedOffer;
+    if (state is NurseBookingIdle) {
+      try {
+        acceptedOffer = (state as NurseBookingIdle).pendingBookings.firstWhere((b) => b.id == bookingId);
+      } catch (_) {}
+    }
+
+    emit(NurseBookingLoading());
+    try {
+      final response = await _apiClient.put(
+        ApiConstants.respondToNurseOffer(bookingId),
+        body: {'response': 'accepted'},
+      );
+
+      if (response['success'] == true) {
+        if (acceptedOffer != null) {
+          emit(NurseBookingWaitingForPatient(acceptedOffer));
+        } else {
+          await fetchBookings();
+        }
+        return;
+      }
+
+      emit(
+        NurseBookingError(response['message'] ?? 'Failed to accept offer'),
+      );
+      await fetchBookings();
+    } catch (e) {
+      print('❌ Error accepting offer: $e');
+      emit(NurseBookingError('Failed to accept offer: ${e.toString()}'));
+    }
+  }
+
+  /// Update booking status (e.g., to on-the-way or arrived).
   Future<void> updateBookingStatus(String bookingId, String status) async {
     try {
       final response = await _apiClient.put(
@@ -209,7 +247,6 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
       if (response['success'] == true) {
         final booking = NurseBooking.fromJson(response['booking']);
         _currentBooking = booking;
-        // Keep it in active state but maybe refresh the map
         emit(
           NurseBookingActive(
             booking,
@@ -222,27 +259,42 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
     }
   }
 
-  /// Decline a pending item.
+  /// Decline a pending booking or matching offer.
+  /// For active bookings (assigned/on-the-way/arrived), cancel via status update.
   Future<void> declineBooking(String bookingId) async {
     try {
-      if (_pendingSource == 'matching') {
+      final currentStatus = _currentBooking?.status ?? '';
+      final isActiveBooking = [
+        'confirmed',
+        'assigned',
+        'on-the-way',
+        'arrived',
+      ].contains(currentStatus);
+
+      if (isActiveBooking) {
+        // Cancel an already-assigned booking via the status endpoint
+        await _apiClient.put(
+          ApiConstants.updateBookingStatus(bookingId),
+          body: {'status': 'cancelled'},
+        );
+      } else {
+        // Decline a matching offer that hasn't been accepted yet
         await _apiClient.put(
           ApiConstants.respondToNurseOffer(bookingId),
           body: {'response': 'declined'},
         );
       }
     } catch (e) {
-      print('❌ Error declining booking/offer: $e');
+      print('❌ Error declining/cancelling booking: $e');
     }
 
     _currentBooking = null;
     fetchBookings();
   }
 
-  /// Verify PIN and start visit
+  /// Verify PIN and start visit.
   Future<void> verifyPinAndStartVisit(String bookingId, String pin) async {
     emit(NurseBookingLoading());
-
     try {
       final response = await _apiClient.post(
         ApiConstants.verifyPin(bookingId),
@@ -255,7 +307,6 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
         emit(NurseBookingInProgress(booking));
       } else {
         emit(NurseBookingError(response['message'] ?? 'Invalid PIN'));
-        // Go back to active state for retry
         if (_currentBooking != null) {
           emit(
             NurseBookingActive(_currentBooking!, needsPinVerification: true),
@@ -271,10 +322,9 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
     }
   }
 
-  /// Complete the visit
+  /// Complete the visit.
   Future<void> completeVisit(String bookingId, {String? report}) async {
     emit(NurseBookingLoading());
-
     try {
       final response = await _apiClient.post(
         ApiConstants.completeVisit(bookingId),
@@ -284,10 +334,11 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
       if (response['success'] == true) {
         final booking = NurseBooking.fromJson(response['booking']);
         _currentBooking = null;
+        _justCompleted = true; // prevent fetchBookings from re-entering active state
         emit(NurseBookingCompleted(booking));
-
-        // Refresh after a short delay
-        await Future.delayed(const Duration(seconds: 2));
+        // Small delay so the user can see the success snackbar,
+        // then transition to idle/radar.
+        await Future.delayed(const Duration(milliseconds: 800));
         await fetchBookings();
       } else {
         emit(
@@ -300,7 +351,7 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
     }
   }
 
-  /// Reset to idle state
+  /// Reset to idle state.
   void resetToIdle() {
     _currentBooking = null;
     fetchBookings();

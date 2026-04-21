@@ -50,6 +50,7 @@ class AuthCubit extends Cubit<AuthState> {
               response.user!.rejectionReason,
             );
           } else {
+            await TokenManager.deleteVerificationData();
             await TokenManager.saveHasProfile(false);
           }
         }
@@ -105,6 +106,11 @@ class AuthCubit extends Cubit<AuthState> {
         await TokenManager.saveUserRole(response.user!.role);
         print('   User data saved');
 
+        if (response.user!.role.toLowerCase() == 'doctor') {
+            await TokenManager.deleteVerificationData();
+            await TokenManager.saveHasProfile(false);
+        }
+
         emit(AuthAuthenticated(response.user!));
       } else {
         print('❌ Registration failed: ${response.message}');
@@ -123,6 +129,7 @@ class AuthCubit extends Cubit<AuthState> {
     await TokenManager.deleteToken();
     await TokenManager.deleteUserId();
     await TokenManager.deleteUserRole();
+    await TokenManager.deleteVerificationData();
     emit(AuthInitial());
   }
 }

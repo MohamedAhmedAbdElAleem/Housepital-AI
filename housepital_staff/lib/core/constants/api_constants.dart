@@ -51,6 +51,7 @@ class ApiConstants {
   // Booking Endpoints (Nurse)
   static const String nursePendingBookings = '/bookings/nurse/pending';
   static const String nurseActiveBooking = '/bookings/nurse/active';
+  static const String nurseBookingHistory = '/bookings/nurse/history';
 
   // Matching Endpoints (Nurse)
   static const String nurseMatchingOffers = '/matching/nurse-offers';

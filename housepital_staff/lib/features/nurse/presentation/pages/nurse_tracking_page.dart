@@ -94,7 +94,7 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
       if (token == null) return;
 
       final url =
-          '${ApiConstants.baseUrl}/api/bookings/${widget.booking.id}/location';
+          '${ApiConstants.baseUrl}/bookings/${widget.booking.id}/location';
       await http.post(
         Uri.parse(url),
         headers: {
@@ -196,16 +196,9 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
       widget.booking.id,
       newStatus,
     );
-
-    // Check if arrived to show pin bottom sheet or navigate
-    if (newStatus == 'arrived') {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PinVerificationPage(booking: widget.booking),
-        ),
-      );
-    }
+    // Navigation to PIN page is handled by NurseHomePage's BlocConsumer
+    // when it sees NurseBookingActive with needsPinVerification: true.
+    // Do NOT push here to avoid double-navigation.
   }
 
   @override
@@ -486,7 +479,7 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                     ),
                     const SizedBox(height: 20),
 
-                    if (status == 'assigned')
+                    if (status == 'confirmed' || status == 'assigned')
                       ElevatedButton(
                         onPressed: () => _updateStatus('on-the-way'),
                         style: ElevatedButton.styleFrom(
@@ -513,12 +506,12 @@ class _NurseTrackingPageState extends State<NurseTrackingPage> {
                     else if (status == 'arrived')
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.pushReplacement(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder:
                                   (context) => PinVerificationPage(
-                                    booking: widget.booking,
+                                    booking: currentBooking,
                                   ),
                             ),
                           );
