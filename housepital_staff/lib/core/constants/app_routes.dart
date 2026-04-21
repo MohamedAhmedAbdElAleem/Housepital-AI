@@ -10,6 +10,7 @@ class AppRoutes {
 
   // Nurse
   static const String nurseHome = '/nurse/home';
+  static const String nurseProfile = '/nurse/profile';
   static const String nurseWallet = '/nurse/wallet';
 
   // Doctor

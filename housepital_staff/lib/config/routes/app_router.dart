@@ -15,6 +15,7 @@ import '../../features/doctor/presentation/pages/my_services_page.dart';
 import '../../features/doctor/presentation/pages/appointments_page.dart';
 import '../../features/doctor/data/models/clinic_model.dart';
 import '../../features/nurse/presentation/pages/nurse_home_page.dart';
+import '../../features/nurse/presentation/pages/nurse_profile_page.dart';
 import '../../features/nurse/presentation/pages/nurse_profile_completion_page.dart';
 import '../../features/nurse/presentation/pages/wallet_page.dart';
 import '../../features/doctor/presentation/pages/wallet_page.dart';
@@ -72,6 +73,11 @@ class AppRouter {
 
       case AppRoutes.nurseHome:
         return _buildDefaultRoute(const NurseHomePage(), settings: settings);
+
+      case AppRoutes.nurseProfile:
+        return MaterialPageRoute(
+          builder: (_) => const NurseProfilePage(),
+        );
 
       case AppRoutes.nurseProfileCompletion:
         return MaterialPageRoute(

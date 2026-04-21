@@ -28,7 +28,7 @@ class NurseHomePage extends StatefulWidget {
 }
 
 class _NurseHomePageState extends State<NurseHomePage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _pulseController;
   late AnimationController _rippleController;
   Timer? _pollingTimer;
@@ -203,6 +203,7 @@ class _NurseHomePageState extends State<NurseHomePage>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     context.read<NurseProfileCubit>().loadProfile();
 
     // Fetch bookings
@@ -226,7 +227,18 @@ class _NurseHomePageState extends State<NurseHomePage>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Reload profile when app resumes (e.g., returning from profile completion page)
+    if (state == AppLifecycleState.resumed) {
+      if (mounted) {
+        context.read<NurseProfileCubit>().loadProfile();
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pulseController.dispose();
     _rippleController.dispose();
     _pollingTimer?.cancel();
@@ -1481,33 +1493,19 @@ class _NurseHomePageState extends State<NurseHomePage>
             ),
           ),
           _dockItem(
-            Icons.person_outline_rounded,
-            'Profile',
-            false,
-            onTap:
-                () => Navigator.pushNamed(
-                  context,
-                  AppRoutes.nurseProfileCompletion,
-                ),
-          ),
-          _dockItem(
             Icons.account_balance_wallet_outlined,
             'Earnings',
             false,
             onTap: () => Navigator.pushNamed(context, AppRoutes.nurseWallet),
           ),
           _dockItem(
-            Icons.settings_outlined,
-            'Settings',
+            Icons.person_rounded,
+            'Profile',
             false,
-            onTap: () {
-              context.read<AuthCubit>().logout();
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                AppRoutes.login,
-                (r) => false,
-              );
-            },
+            onTap: () => Navigator.pushNamed(
+              context,
+              AppRoutes.nurseProfile,
+            ),
           ),
         ],
       ),
