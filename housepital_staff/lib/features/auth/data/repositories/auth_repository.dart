@@ -65,7 +65,7 @@ class AuthUser {
   // Doctor-specific fields
   final String? verificationStatus;
   final String? rejectionReason;
-  final bool? doctorIsActive;
+  final bool? isActive;
   final bool? hasProfile;
 
   AuthUser({
@@ -75,7 +75,7 @@ class AuthUser {
     required this.email,
     this.verificationStatus,
     this.rejectionReason,
-    this.doctorIsActive,
+    this.isActive,
     this.hasProfile,
   });
 
@@ -87,7 +87,7 @@ class AuthUser {
       email: json['email'] ?? '',
       verificationStatus: json['verificationStatus'],
       rejectionReason: json['rejectionReason'],
-      doctorIsActive: json['doctorIsActive'],
+      isActive: json['isActive'] ?? json['doctorIsActive'],
       hasProfile: json['hasProfile'],
     );
   }

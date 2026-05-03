@@ -17,9 +17,15 @@ import '../../features/doctor/data/models/clinic_model.dart';
 import '../../features/nurse/presentation/pages/nurse_home_page.dart';
 import '../../features/nurse/presentation/pages/nurse_profile_page.dart';
 import '../../features/nurse/presentation/pages/nurse_profile_completion_page.dart';
+import '../../features/nurse/presentation/pages/nurse_pending_approval_page.dart';
+import '../../features/nurse/presentation/pages/nurse_rejected_page.dart';
 import '../../features/nurse/presentation/pages/wallet_page.dart';
 import '../../features/doctor/presentation/pages/wallet_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
+import '../../features/admin/presentation/pages/admin_home_page.dart';
+import '../../features/admin/presentation/pages/admin_users_page.dart';
+import '../../features/admin/presentation/pages/add_staff_page.dart';
+import '../../features/admin/presentation/pages/admin_bookings_page.dart';
 
 class AppRouter {
   static Route<dynamic> _buildDefaultRoute(
@@ -84,6 +90,18 @@ class AppRouter {
           builder: (_) => const NurseProfileCompletionPage(),
         );
 
+      case AppRoutes.nursePendingApproval:
+        return _buildDefaultRoute(
+          const NursePendingApprovalPage(),
+          settings: settings,
+        );
+
+      case AppRoutes.nurseRejected:
+        return _buildDefaultRoute(
+          const NurseRejectedPage(),
+          settings: settings,
+        );
+
       case AppRoutes.doctorHome:
         return _buildDoctorRoute(const DoctorHomePage(), settings: settings);
 
@@ -119,10 +137,7 @@ class AppRouter {
         );
 
       case AppRoutes.clinicDetails:
-        return _buildDoctorRoute(
-          const ClinicDetailsPage(),
-          settings: settings,
-        );
+        return _buildDoctorRoute(const ClinicDetailsPage(), settings: settings);
 
       case AppRoutes.myServices:
         return _buildDoctorRoute(const MyServicesPage(), settings: settings);
@@ -131,8 +146,34 @@ class AppRouter {
         return _buildDoctorRoute(const AppointmentsPage(), settings: settings);
 
       case AppRoutes.adminDashboard:
+      case AppRoutes.adminVerifications:
         return _buildDefaultRoute(
           const AdminDashboardPage(),
+          settings: settings,
+        );
+
+      case AppRoutes.adminHome:
+        return _buildDefaultRoute(
+          const AdminHomePage(),
+          settings: settings,
+        );
+
+      case AppRoutes.adminUsers:
+        return _buildDefaultRoute(
+          const AdminUsersPage(),
+          settings: settings,
+        );
+
+      case AppRoutes.adminBookings:
+        return _buildDefaultRoute(
+          const AdminBookingsPage(),
+          settings: settings,
+        );
+
+      case AppRoutes.adminAddStaff:
+        final staffType = settings.arguments as String? ?? 'nurse';
+        return _buildDefaultRoute(
+          AddStaffPage(staffType: staffType),
           settings: settings,
         );
 

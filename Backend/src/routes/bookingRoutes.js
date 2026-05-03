@@ -17,6 +17,7 @@ const {
 	updateNurseLocation,
 	completeAppointment,
 	rateBooking,
+	getAllBookingsAdmin,
 } = require("../controllers/bookingController");
 const {
 	completeWithReport,
@@ -315,5 +316,8 @@ router.put("/:id/cancel", authenticateToken, cancelBooking);
  *         description: Booking status updated
  */
 router.put("/:id/status", authenticateToken, updateBookingStatus);
+
+// Admin-only: Get all bookings across the platform
+router.get("/admin/all", authenticateToken, getAllBookingsAdmin);
 
 module.exports = router;

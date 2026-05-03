@@ -162,6 +162,7 @@ app.use("/api/notifications", require("./routes/notificationRoutes"));
 app.use("/api/services", require("./routes/serviceRoutes"));
 app.use("/api/nurse", require("./routes/nurseRoutes"));
 app.use("/api/wallet", require("./routes/walletRoutes"));
+app.use("/api/settings", require("./routes/settingsRoutes"));
 
 // Serve static files (for ID document images)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));

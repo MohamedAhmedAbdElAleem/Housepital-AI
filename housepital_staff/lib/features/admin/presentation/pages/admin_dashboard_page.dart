@@ -19,6 +19,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
 
   late final TabController _tabController;
   final _rejectionController = TextEditingController();
+  int _selectedType = 0; // 0: Doctors, 1: Clinics
 
   @override
   void initState() {
@@ -30,10 +31,18 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
 
   void _onTabChanged() {
     if (!_tabController.indexIsChanging) {
-      final statuses = ['pending', 'approved', 'rejected'];
-      context.read<AdminCubit>().fetchDoctors(
-            status: statuses[_tabController.index],
-          );
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    final statuses = ['pending', 'approved', 'rejected'];
+    final status = statuses[_tabController.index];
+
+    if (_selectedType == 0) {
+      context.read<AdminCubit>().fetchDoctors(status: status);
+    } else {
+      context.read<AdminCubit>().fetchClinics(status: status);
     }
   }
 
@@ -110,26 +119,108 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
           }
         },
         builder: (context, state) {
-          if (state is AdminLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: _primary),
-            );
-          }
-
-          if (state is AdminDoctorsLoaded) {
-            if (state.doctors.isEmpty) {
-              return _buildEmptyState();
-            }
-            return _buildDoctorList(state.doctors);
-          }
-
-          return _buildEmptyState();
+          return Column(
+            children: [
+              _buildTypeSelector(),
+              Expanded(child: _buildContent(state)),
+            ],
+          );
         },
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildTypeSelector() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            _typeButton(0, 'Doctors', Icons.medical_services_rounded),
+            _typeButton(1, 'Clinics', Icons.local_hospital_rounded),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _typeButton(int index, String label, IconData icon) {
+    final isSelected = _selectedType == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (_selectedType != index) {
+            setState(() => _selectedType = index);
+            _fetchData();
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(5),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    )
+                  ]
+                : [],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isSelected ? _primary : Colors.grey[600],
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? _primary : Colors.grey[600],
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(AdminState state) {
+    if (state is AdminLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: _primary),
+      );
+    }
+
+    if (state is AdminDoctorsLoaded) {
+      if (state.doctors.isEmpty) return _buildEmptyState('No doctors found');
+      return _buildDoctorList(state.doctors);
+    }
+
+    if (state is AdminClinicsLoaded) {
+      if (state.clinics.isEmpty) return _buildEmptyState('No clinics found');
+      return _buildClinicList(state.clinics);
+    }
+
+    return _buildEmptyState('Loading...');
+  }
+
+  Widget _buildEmptyState(String message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -137,7 +228,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
           Icon(Icons.inbox_rounded, size: 72, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
-            'No doctors found',
+            message,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -146,7 +237,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
           ),
           const SizedBox(height: 8),
           Text(
-            'There are no doctors in this category.',
+            'There are no registrations in this category.',
             style: TextStyle(color: Colors.grey[400]),
           ),
         ],
@@ -166,7 +257,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
   }
 
   Widget _buildDoctorCard(Map<String, dynamic> doc) {
-    final user = doc['user'] as Map<String, dynamic>? ?? {};
+    final user = doc['user'] is Map ? doc['user'] as Map : {};
     final name = user['name'] ?? 'Unknown';
     final email = user['email'] ?? '--';
     final mobile = user['mobile'] ?? '--';
@@ -183,7 +274,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withAlpha(10),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -194,7 +285,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
         childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         leading: CircleAvatar(
-          backgroundColor: _primary.withValues(alpha: 0.1),
+          backgroundColor: _primary.withAlpha(25),
           child: Text(
             name[0].toUpperCase(),
             style: const TextStyle(
@@ -218,8 +309,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
           _detailRow(Icons.email_outlined, 'Email', email),
           _detailRow(Icons.phone_outlined, 'Mobile', mobile),
           _detailRow(Icons.badge_outlined, 'License', licenseNumber),
-          _detailRow(Icons.work_history_outlined, 'Experience',
-              '${doc['yearsOfExperience'] ?? '--'} years'),
+          _detailRow(
+            Icons.work_history_outlined,
+            'Experience',
+            '${doc['yearsOfExperience'] ?? '--'} years',
+          ),
           // Document links
           const SizedBox(height: 12),
           const Text(
@@ -313,12 +407,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
               color: Colors.grey[600],
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 13),
-            ),
-          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
         ],
       ),
     );
@@ -326,6 +415,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
 
   Widget _docLink(String label, String? url) {
     final hasDoc = url != null && url.isNotEmpty;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -378,11 +468,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
       ),
       child: Text(
         status[0].toUpperCase() + status.substring(1),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: fg,
-        ),
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: fg),
       ),
     );
   }
@@ -390,29 +476,33 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
   void _approveDoctor(String doctorId) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Approve Doctor'),
-        content:
-            const Text('Are you sure you want to approve this doctor account?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.read<AdminCubit>().approveDoctor(doctorId);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: const Text('Approve'),
+            title: const Text('Approve Doctor'),
+            content: const Text(
+              'Are you sure you want to approve this doctor account?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  context.read<AdminCubit>().approveDoctor(doctorId);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Approve'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -420,9 +510,299 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
     _rejectionController.clear();
     showDialog(
       context: context,
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text('Reject Doctor'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Please provide a reason for rejection:'),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _rejectionController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Document unclear, license expired...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final reason = _rejectionController.text.trim();
+                  if (reason.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Rejection reason is required'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+                  Navigator.pop(ctx);
+                  context.read<AdminCubit>().rejectDoctor(doctorId, reason);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Reject'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showDocumentPreview(String title, String url) {
+    String previewUrl = url;
+    bool isPdf = false;
+    final lowerUrl = url.toLowerCase();
+    
+    if (lowerUrl.endsWith('.pdf') || lowerUrl.contains('.pdf?')) {
+      isPdf = true;
+      final pdfIndex = previewUrl.lastIndexOf('.pdf');
+      if (pdfIndex != -1) {
+        previewUrl = '${previewUrl.substring(0, pdfIndex)}.jpg${previewUrl.substring(pdfIndex + 4)}';
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black,
+      builder: (context) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: Column(
+          children: [
+            AppBar(
+              backgroundColor: Colors.black,
+              title: Text(title, style: const TextStyle(color: Colors.white)),
+              actions: [
+                if (isPdf)
+                  IconButton(
+                    icon: const Icon(Icons.open_in_browser, color: Colors.blueAccent),
+                    tooltip: 'Open PDF',
+                    onPressed: () async {
+                      final uri = Uri.parse(url);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    },
+                  ),
+                IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.pop(context)),
+              ],
+              elevation: 0,
+            ),
+            Expanded(
+              child: Center(
+                child: InteractiveViewer(
+                  panEnabled: true,
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: Image.network(
+                    previewUrl,
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, loading) {
+                      if (loading == null) return child;
+                      return const CircularProgressIndicator(color: Colors.white);
+                    },
+                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 80, color: Colors.white54),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text(
+                'Pinch to zoom • Drag to pan' + (isPdf ? '\nTap browser icon above to open full PDF' : ''),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClinicList(List<Map<String, dynamic>> clinics) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: clinics.length,
+      itemBuilder: (context, index) {
+        final clinic = clinics[index];
+        return _buildClinicCard(clinic);
+      },
+    );
+  }
+
+  Widget _buildClinicCard(Map<String, dynamic> clinic) {
+    final name = clinic['name'] ?? 'Unknown Clinic';
+    final doctor = clinic['doctor'] is Map ? clinic['doctor'] as Map : {};
+    final doctorUser = doctor['user'] is Map ? doctor['user'] as Map : {};
+    final doctorName = doctorUser['name'] ?? 'Unknown Doctor';
+    final status = clinic['verificationStatus'] ?? 'pending';
+    final clinicId = clinic['_id'] ?? '';
+    final address = clinic['address'] is Map ? clinic['address'] as Map : {};
+    final fullAddress = '${address['street'] ?? ''}, ${address['area'] ?? ''}, ${address['city'] ?? ''}';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(10),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        leading: CircleAvatar(
+          backgroundColor: Colors.orange.withAlpha(25),
+          child: const Icon(Icons.local_hospital_rounded, color: Colors.orange),
+        ),
+        title: Text(
+          name,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        subtitle: Text(
+          'Dr. $doctorName',
+          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+        ),
+        trailing: _buildStatusBadge(status),
+        children: [
+          const Divider(),
+          const SizedBox(height: 8),
+          _detailRow(Icons.location_on_outlined, 'Address', fullAddress),
+          _detailRow(Icons.phone_outlined, 'Phone', clinic['phone'] ?? doctorUser['mobile'] ?? '--'),
+          _detailRow(Icons.access_time_outlined, 'Mode', clinic['bookingMode'] ?? 'slots'),
+          
+          const SizedBox(height: 12),
+          const Text(
+            'Verification Documents',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          const SizedBox(height: 8),
+          ...?((clinic['verificationDocuments'] as List?)?.asMap().entries.map((entry) {
+            return _docLink('Document ${entry.key + 1}', entry.value);
+          })),
+          if (clinic['verificationDocuments'] == null || (clinic['verificationDocuments'] as List).isEmpty)
+             Text('No documents uploaded', style: TextStyle(color: Colors.grey[500], fontSize: 12, fontStyle: FontStyle.italic)),
+
+          if (clinic['rejectionReason'] != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber, color: Colors.red[700], size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Rejection: ${clinic['rejectionReason']}',
+                      style: TextStyle(color: Colors.red[800], fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          if (status == 'pending') ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showRejectClinicDialog(clinicId),
+                    icon: const Icon(Icons.close, size: 18),
+                    label: const Text('Reject'),
+                    style: _actionButtonStyle(Colors.red, outline: true),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _approveClinic(clinicId),
+                    icon: const Icon(Icons.check, size: 18),
+                    label: const Text('Approve'),
+                    style: _actionButtonStyle(Colors.green),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  ButtonStyle _actionButtonStyle(Color color, {bool outline = false}) {
+    return outline 
+      ? OutlinedButton.styleFrom(
+          foregroundColor: color,
+          side: BorderSide(color: color),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        )
+      : ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        );
+  }
+
+  void _approveClinic(String clinicId) {
+    showDialog(
+      context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Reject Doctor'),
+        title: const Text('Approve Clinic'),
+        content: const Text('Are you sure you want to approve this clinic?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<AdminCubit>().approveClinic(clinicId);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+            child: const Text('Approve'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRejectClinicDialog(String clinicId) {
+    _rejectionController.clear();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Reject Clinic'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -432,141 +812,28 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
               controller: _rejectionController,
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: 'e.g. Document unclear, license expired...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                hintText: 'e.g. Incomplete address, invalid documentation...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               final reason = _rejectionController.text.trim();
               if (reason.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Rejection reason is required'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reason required'), backgroundColor: Colors.red));
                 return;
               }
               Navigator.pop(ctx);
-              context.read<AdminCubit>().rejectDoctor(doctorId, reason);
+              context.read<AdminCubit>().rejectClinic(clinicId, reason);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
             child: const Text('Reject'),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showDocumentPreview(String title, String url) async {
-    final lowerUrl = url.toLowerCase();
-    if (lowerUrl.endsWith('.pdf') || lowerUrl.contains('.pdf?')) {
-      String targetUrl = url;
-      // Force HTTPS
-      if (targetUrl.startsWith('http://')) {
-        targetUrl = targetUrl.replaceFirst('http://', 'https://');
-      } else if (!targetUrl.startsWith('http')) {
-        targetUrl = targetUrl.startsWith('//') ? 'https:$targetUrl' : 'https://$targetUrl';
-      }
-      
-      try {
-        // Encode URL to handle special characters or spaces
-        final encodedUrl = Uri.encodeFull(targetUrl);
-        final uri = Uri.parse(encodedUrl);
-        
-        // Use platformDefault to let the OS decide how to open it (Browser vs App)
-        final launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
-        
-        if (!launched && mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Could not open PDF. Please check your browser.')),
-           );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open PDF file')),
-          );
-        }
-      }
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-            ),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 400),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(16),
-                ),
-                child: Image.network(
-                  url,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loading) {
-                    if (loading == null) return child;
-                    return const SizedBox(
-                      height: 200,
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return const SizedBox(
-                      height: 200,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.broken_image, size: 48, color: Colors.grey),
-                            SizedBox(height: 8),
-                            Text('Failed to load image'),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

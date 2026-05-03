@@ -39,8 +39,8 @@ class AuthCubit extends Cubit<AuthState> {
         await TokenManager.saveUserId(response.user!.id);
         await TokenManager.saveUserRole(response.user!.role);
 
-        // Save doctor-specific verification data
-        if (response.user!.role == 'doctor') {
+        // Save role-specific verification data
+        if (response.user!.role == 'doctor' || response.user!.role == 'nurse') {
           if (response.user!.hasProfile == true) {
             await TokenManager.saveHasProfile(true);
             await TokenManager.saveVerificationStatus(
@@ -106,9 +106,9 @@ class AuthCubit extends Cubit<AuthState> {
         await TokenManager.saveUserRole(response.user!.role);
         print('   User data saved');
 
-        if (response.user!.role.toLowerCase() == 'doctor') {
-            await TokenManager.deleteVerificationData();
-            await TokenManager.saveHasProfile(false);
+        if (['doctor', 'nurse'].contains(response.user!.role.toLowerCase())) {
+          await TokenManager.deleteVerificationData();
+          await TokenManager.saveHasProfile(false);
         }
 
         emit(AuthAuthenticated(response.user!));

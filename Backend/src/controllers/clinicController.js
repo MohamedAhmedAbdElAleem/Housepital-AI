@@ -1,5 +1,6 @@
 const Clinic = require("../models/Clinic");
 const Doctor = require("../models/Doctor");
+const emailService = require("../services/emailService");
 
 /**
  * Normalise an Egyptian mobile number to the 01XXXXXXXXX format.
@@ -40,6 +41,7 @@ const addClinic = async (req, res) => {
 			workingHours,
 			slotDurationMinutes,
 			maxPatientsPerSlot,
+			verificationDocuments,
 		} = req.body;
 
 		const clinic = new Clinic({
@@ -53,6 +55,7 @@ const addClinic = async (req, res) => {
 			workingHours,
 			slotDurationMinutes,
 			maxPatientsPerSlot,
+			verificationDocuments,
 		});
 
 		await clinic.save();
@@ -132,6 +135,7 @@ const updateClinic = async (req, res) => {
 			"maxPatientsPerSlot",
 			"bookingMode",
 			"isActive",
+			"verificationDocuments",
 		];
 
 		allowedUpdates.forEach((field) => {
@@ -192,14 +196,7 @@ const deleteClinic = async (req, res) => {
 	}
 };
 
-module.exports = {
-	addClinic,
-	getMyClinics,
-	updateClinic,
-	deleteClinic,
-	getAllClinicsPublic,
-	getClinicByIdPublic,
-};
+
 
 // ── Public (no auth) ──────────────────────────────────────────────────────
 
@@ -254,3 +251,133 @@ async function getClinicByIdPublic(req, res) {
 		res.status(500).json({ success: false, message: "Server Error" });
 	}
 }
+
+// ── Admin routes ──────────────────────────────────────────────────────────
+
+// @desc    Get all pending clinics (for admin review)
+// @route   GET /api/clinics/pending
+// @access  Private (Admin only)
+const getPendingClinics = async (req, res) => {
+	try {
+		if (req.user.role !== "admin") {
+			return res.status(403).json({ message: "Admin access only" });
+		}
+
+		const status = req.query.status || "pending";
+		const filter = {};
+		if (status !== "all") {
+			filter.verificationStatus = status;
+		}
+
+		const clinics = await Clinic.find(filter)
+			.populate({
+				path: "doctor",
+				populate: { path: "user", select: "name email mobile" },
+			})
+			.sort({ createdAt: -1 });
+
+		res.json({
+			success: true,
+			count: clinics.length,
+			data: clinics,
+		});
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Server Error" });
+	}
+};
+
+// @desc    Approve or reject a clinic
+// @route   PUT /api/clinics/:id/verify
+// @access  Private (Admin only)
+const verifyClinic = async (req, res) => {
+	try {
+		if (req.user.role !== "admin") {
+			return res.status(403).json({ message: "Admin access only" });
+		}
+
+		const { id } = req.params;
+		const { action, rejectionReason } = req.body; // action: 'approve' or 'reject'
+
+		if (!["approve", "reject"].includes(action)) {
+			return res
+				.status(400)
+				.json({ message: "Action must be 'approve' or 'reject'" });
+		}
+
+		const clinic = await Clinic.findById(id).populate({
+			path: "doctor",
+			populate: { path: "user", select: "name email" },
+		});
+
+		if (!clinic) {
+			return res.status(404).json({ message: "Clinic not found" });
+		}
+
+		if (action === "approve") {
+			clinic.verificationStatus = "approved";
+			clinic.rejectionReason = null;
+			clinic.verifiedBy = req.user.id;
+			clinic.verifiedAt = new Date();
+			await clinic.save();
+
+			// Send approval email to doctor
+			const doctorUser = clinic.doctor?.user;
+			if (doctorUser?.email) {
+				await emailService.sendApprovalEmail(
+					doctorUser.email,
+					`${doctorUser.name} (Clinic: ${clinic.name})`,
+				);
+			}
+
+			res.json({
+				success: true,
+				message: `Clinic "${clinic.name}" has been approved.`,
+				data: clinic,
+			});
+		} else {
+			// Reject
+			if (!rejectionReason || rejectionReason.trim() === "") {
+				return res.status(400).json({ message: "Rejection reason is required" });
+			}
+
+			clinic.verificationStatus = "rejected";
+			clinic.rejectionReason = rejectionReason;
+			clinic.isActive = false;
+			clinic.verifiedBy = req.user.id;
+			clinic.verifiedAt = new Date();
+			await clinic.save();
+
+			// Send rejection email to doctor
+			const doctorUser = clinic.doctor?.user;
+			if (doctorUser?.email) {
+				await emailService.sendRejectionEmail(
+					doctorUser.email,
+					`${doctorUser.name} (Clinic: ${clinic.name})`,
+					rejectionReason,
+				);
+			}
+
+			res.json({
+				success: true,
+				message: `Clinic "${clinic.name}" has been rejected.`,
+				data: clinic,
+			});
+		}
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Server Error", error: error.message });
+	}
+};
+
+module.exports = {
+	addClinic,
+	getMyClinics,
+	updateClinic,
+	deleteClinic,
+	getAllClinicsPublic,
+	getClinicByIdPublic,
+	getPendingClinics,
+	verifyClinic,
+};
+

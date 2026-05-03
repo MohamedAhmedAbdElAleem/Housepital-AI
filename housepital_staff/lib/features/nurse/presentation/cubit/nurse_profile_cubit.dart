@@ -150,6 +150,27 @@ class NurseProfileCubit extends Cubit<NurseProfileState> {
     }
   }
 
+  Future<void> submitProfile(Map<String, dynamic> data) async {
+    emit(NurseProfileUpdating());
+    try {
+      print('🔄 Consolidated Submit: Updating profile data first...');
+      await repository.updateProfile(data);
+
+      print('🔄 Consolidated Submit: Triggering submission for review...');
+      final profile = await repository.submitForReview();
+      _currentProfile = profile;
+
+      print('✅ Profile submitted successfully!');
+      emit(NurseProfileSubmitted(profile));
+    } on AppException catch (e) {
+      print('❌ Consolidated Submit Error: ${e.message}');
+      emit(NurseProfileError(e.message));
+    } catch (e) {
+      print('❌ Consolidated Submit Unexpected Error: $e');
+      emit(NurseProfileError('Failed to submit profile'));
+    }
+  }
+
   Future<void> submitForReview() async {
     emit(NurseProfileUpdating());
     try {

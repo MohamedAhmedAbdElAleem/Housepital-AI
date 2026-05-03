@@ -165,10 +165,14 @@ exports.login = async (req, res, next) => {
         }
 
         // Build extended user data for doctor/nurse roles
-        let doctorProfile = null;
+        let profileData = null;
         if (user.role === 'doctor') {
             const Doctor = require('../models/Doctor');
-            doctorProfile = await Doctor.findOne({ user: user._id })
+            profileData = await Doctor.findOne({ user: user._id })
+                .select('verificationStatus rejectionReason isActive');
+        } else if (user.role === 'nurse') {
+            const Nurse = require('../models/Nurse');
+            profileData = await Nurse.findOne({ user: user._id })
                 .select('verificationStatus rejectionReason isActive');
         }
 
@@ -178,13 +182,13 @@ exports.login = async (req, res, next) => {
             message: 'User logged in successfully',
             user: {
                 ...user.toJSON(),
-                // Include doctor-specific fields
-                ...(doctorProfile ? {
-                    verificationStatus: doctorProfile.verificationStatus,
-                    rejectionReason: doctorProfile.rejectionReason,
-                    doctorIsActive: doctorProfile.isActive,
+                // Include profile-specific fields
+                ...(profileData ? {
+                    verificationStatus: profileData.verificationStatus,
+                    rejectionReason: profileData.rejectionReason,
+                    isActive: profileData.isActive,
                     hasProfile: true
-                } : (user.role === 'doctor' ? { hasProfile: false } : {})),
+                } : (['doctor', 'nurse'].includes(user.role) ? { hasProfile: false } : {})),
             },
             token: JWTToken
         });

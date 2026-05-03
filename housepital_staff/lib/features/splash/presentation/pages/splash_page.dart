@@ -47,8 +47,10 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       ),
     );
 
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
@@ -79,8 +81,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
         if (userRole.toLowerCase() == 'doctor') {
           // Check doctor verification workflow
           final hasProfile = await TokenManager.getHasProfile();
-          final verificationStatus =
-              await TokenManager.getVerificationStatus();
+          final verificationStatus = await TokenManager.getVerificationStatus();
 
           if (!hasProfile) {
             // No profile yet → complete profile
@@ -94,16 +95,32 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
               AppRoutes.doctorPendingApproval,
             );
           } else if (verificationStatus == 'rejected') {
-            Navigator.pushReplacementNamed(
-              context,
-              AppRoutes.doctorRejected,
-            );
+            Navigator.pushReplacementNamed(context, AppRoutes.doctorRejected);
           } else {
             // approved
             Navigator.pushReplacementNamed(context, AppRoutes.doctorHome);
           }
         } else if (userRole.toLowerCase() == 'nurse') {
-          Navigator.pushReplacementNamed(context, AppRoutes.nurseHome);
+          // Check nurse verification workflow
+          final hasProfile = await TokenManager.getHasProfile();
+          final verificationStatus = await TokenManager.getVerificationStatus();
+
+          if (!hasProfile) {
+            Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.nurseProfileCompletion,
+            );
+          } else if (verificationStatus == 'pending') {
+            Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.nursePendingApproval,
+            );
+          } else if (verificationStatus == 'rejected') {
+            Navigator.pushReplacementNamed(context, AppRoutes.nurseRejected);
+          } else {
+            // approved
+            Navigator.pushReplacementNamed(context, AppRoutes.nurseHome);
+          }
         } else if (userRole.toLowerCase() == 'admin') {
           Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
         } else {

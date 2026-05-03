@@ -9,6 +9,7 @@ const walletService = require("../services/walletService");
  * @route   POST /api/bookings/create
  * @access  Private
  */
+
 exports.createBooking = async (req, res) => {
 	try {
 		console.log("📋 Creating booking...");
@@ -1106,7 +1107,7 @@ exports.rateBooking = async (req, res) => {
 
 		// Recalculate nurse average rating
 		const { avgRating, totalRatings } = await Rating.calculateAverageRating(nurseProfile.user);
-		
+
 		// Update nurse profile with new average
 		await Nurse.findByIdAndUpdate(booking.assignedNurse, {
 			rating: avgRating,
@@ -1138,3 +1139,59 @@ exports.rateBooking = async (req, res) => {
 		});
 	}
 };
+
+// ============ ADMIN ============
+
+/**
+ * @desc    Get all bookings for admin
+ * @route   GET /api/bookings/admin/all
+ * @access  Private (Admin)
+ */
+exports.getAllBookingsAdmin = async (req, res) => {
+	try {
+		const { status, type, page = 1, limit = 20 } = req.query;
+		const query = {};
+
+		if (status) query.status = status;
+		if (type) query.type = type;
+
+		const skip = (parseInt(page) - 1) * parseInt(limit);
+
+		const bookings = await Booking.find(query)
+			.sort({ createdAt: -1 })
+			.skip(skip)
+			.limit(parseInt(limit))
+			.populate("userId", "name email mobile")
+			.populate({
+				path: "assignedNurse",
+				select: "specialization user",
+				populate: { path: "user", select: "name mobile" },
+			})
+			.populate("clinicId", "name address")
+			.populate({
+				path: "doctorId",
+				select: "specialization user",
+				populate: { path: "user", select: "name mobile" },
+			});
+
+		const total = await Booking.countDocuments(query);
+
+		res.status(200).json({
+			success: true,
+			bookings,
+			pagination: {
+				total,
+				page: parseInt(page),
+				pages: Math.ceil(total / parseInt(limit)),
+			},
+		});
+	} catch (error) {
+		console.error("❌ Error fetching all bookings (Admin):", error);
+		res.status(500).json({
+			success: false,
+			message: "Error fetching bookings",
+			error: error.message,
+		});
+	}
+};
+

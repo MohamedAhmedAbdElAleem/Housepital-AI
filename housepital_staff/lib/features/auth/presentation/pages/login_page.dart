@@ -440,7 +440,7 @@ class _LoginPageState extends State<LoginPage>
         route = AppRoutes.nurseHome;
         break;
       case 'admin':
-        route = AppRoutes.adminDashboard;
+        route = AppRoutes.adminHome;
         break;
       default:
         route = AppRoutes.login;

@@ -38,8 +38,8 @@ const getDashboardInsights = async (req, res) => {
             providerAvailability,
             // Recent activity
             recentBookings,
-            // Top performers
-            topNurses
+            topNurses,
+            topUsers
         ] = await Promise.all([
             // 1. User Statistics
             User.aggregate([
@@ -137,6 +137,7 @@ const getDashboardInsights = async (req, res) => {
             Promise.all([
                 Nurse.countDocuments({ isOnline: true, verificationStatus: "approved" }),
                 Nurse.countDocuments({ verificationStatus: "approved" }),
+                Doctor.countDocuments({ isOnline: true, verificationStatus: "approved" }),
                 Doctor.countDocuments({ verificationStatus: "approved" })
             ]),
 
@@ -152,7 +153,14 @@ const getDashboardInsights = async (req, res) => {
                 .sort({ rating: -1, completedVisits: -1 })
                 .limit(5)
                 .populate("user", "name")
-                .select("rating completedVisits completionRate")
+                .select("rating completedVisits completionRate totalEarnings")
+                .lean(),
+
+            // 9. Top Customers (by visits)
+            User.find({ role: 'customer' })
+                .sort({ totalVisits: -1 })
+                .limit(5)
+                .select("name totalVisits email profilePictureUrl")
                 .lean()
         ]);
 
@@ -236,7 +244,8 @@ const getDashboardInsights = async (req, res) => {
                     total: providerAvailability[1]
                 },
                 doctors: {
-                    total: providerAvailability[2]
+                    online: providerAvailability[2],
+                    total: providerAvailability[3]
                 }
             },
 
@@ -254,9 +263,19 @@ const getDashboardInsights = async (req, res) => {
             topNurses: topNurses.map(n => ({
                 id: n._id,
                 name: n.user?.name || "Unknown",
-                rating: n.rating,
-                completedVisits: n.completedVisits,
-                completionRate: n.completionRate
+                rating: n.rating || 0.0,
+                visits: n.completedVisits || 0,
+                earnings: n.totalEarnings || 0,
+                completionRate: n.completionRate || 0
+            })),
+
+            // Top Customers
+            topCustomers: topUsers.map(u => ({
+                id: u._id,
+                name: u.name || "Unknown",
+                visits: u.totalVisits || 0,
+                email: u.email,
+                avatar: u.profilePictureUrl
             }))
         };
 

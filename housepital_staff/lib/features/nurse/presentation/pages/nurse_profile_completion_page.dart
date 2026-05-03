@@ -657,9 +657,20 @@ class _NurseProfileCompletionPageState
 
   Future<void> _submitProfile() async {
     if (_formKey.currentState!.validate() && _selectedSkills.isNotEmpty) {
-      await _saveProgress();
-      if (!mounted) return;
-      context.read<NurseProfileCubit>().submitForReview();
+      final data = {
+        'licenseNumber': _licenseNumController.text,
+        'specialization': _selectedSpec,
+        'yearsOfExperience': int.tryParse(_yearsController.text),
+        'bio': _bioController.text,
+        'gender': _gender,
+        'skills': _selectedSkills,
+        'bankAccount': {
+          'bankName': _bankNameController.text,
+          'accountNumber': _accountNumController.text,
+          'accountHolderName': _accountHolderController.text,
+        },
+      };
+      context.read<NurseProfileCubit>().submitProfile(data);
     } else if (_selectedSkills.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

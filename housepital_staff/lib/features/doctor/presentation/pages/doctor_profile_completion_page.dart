@@ -146,7 +146,12 @@ class _DoctorProfileCompletionPageState
         curve: Curves.easeInOut,
       );
     } else {
-      Navigator.pop(context);
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      } else {
+        context.read<AuthCubit>().logout();
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
+      }
     }
   }
 
@@ -328,6 +333,10 @@ class _DoctorProfileCompletionPageState
       } else {
         await cubit.createProfile(profile);
       }
+      
+      if (cubit.state is DoctorError) {
+        throw Exception((cubit.state as DoctorError).message);
+      }
 
       setState(() {
         _uploadProgressText = 'Done!';
@@ -375,8 +384,13 @@ class _DoctorProfileCompletionPageState
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Scaffold(
-          backgroundColor: const Color(0xFFF4F8FF),
+        WillPopScope(
+          onWillPop: () async {
+            _prevStep();
+            return false;
+          },
+          child: Scaffold(
+            backgroundColor: const Color(0xFFF4F8FF),
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -413,6 +427,7 @@ class _DoctorProfileCompletionPageState
               _buildBottomBar(),
             ],
           ),
+        ),
         ),
         if (_isSubmitting) _buildOverlay(),
       ],
