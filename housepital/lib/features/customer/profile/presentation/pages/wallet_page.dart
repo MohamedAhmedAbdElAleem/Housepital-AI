@@ -1,13 +1,14 @@
-import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/network/api_constants.dart';
 import '../../../../../core/utils/token_manager.dart';
 
 class WalletPage extends StatefulWidget {
   const WalletPage({super.key});
-
   @override
   State<WalletPage> createState() => _WalletPageState();
 }
@@ -21,7 +22,6 @@ class _WalletPageState extends State<WalletPage>
   double _threshold = -150;
   List<dynamic> _transactions = [];
   String? _errorMessage;
-
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
 
@@ -45,20 +45,22 @@ class _WalletPageState extends State<WalletPage>
     super.dispose();
   }
 
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await TokenManager.getToken();
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
   Future<void> _loadWalletData() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
-
     try {
-      final token = await TokenManager.getToken();
-      final headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      };
-
+      final headers = await _authHeaders();
       final results = await Future.wait([
         http.get(
           Uri.parse('${ApiConstants.baseUrl}${ApiConstants.walletBalance}'),
@@ -71,23 +73,17 @@ class _WalletPageState extends State<WalletPage>
           headers: headers,
         ),
       ]);
-
-      final balanceResponse = results[0];
-      final transactionsResponse = results[1];
-
-      if (balanceResponse.statusCode == 200) {
-        final data = jsonDecode(balanceResponse.body)['data'];
+      if (results[0].statusCode == 200) {
+        final data = jsonDecode(results[0].body)['data'];
         _balance = (data['balance'] ?? 0).toDouble();
         _walletBlocked = data['walletBlocked'] ?? false;
         _walletBlockReason = data['walletBlockReason'];
         _threshold = (data['threshold'] ?? -150).toDouble();
       }
-
-      if (transactionsResponse.statusCode == 200) {
-        final data = jsonDecode(transactionsResponse.body)['data'];
+      if (results[1].statusCode == 200) {
+        final data = jsonDecode(results[1].body)['data'];
         _transactions = data['transactions'] ?? [];
       }
-
       setState(() => _isLoading = false);
       _animController.forward();
     } catch (e) {
@@ -98,27 +94,44 @@ class _WalletPageState extends State<WalletPage>
     }
   }
 
-  IconData _getTransactionIcon(String type) {
-    switch (type) {
-      case 'booking_payment':
-        return Icons.medical_services_rounded;
-      case 'commission_deduction':
-        return Icons.percent_rounded;
-      case 'wallet_recharge':
-        return Icons.add_circle_rounded;
-      case 'refund':
-        return Icons.replay_rounded;
-      case 'cancellation_fee':
-        return Icons.cancel_rounded;
-      case 'no_show_fee':
-        return Icons.person_off_rounded;
-      default:
-        return Icons.swap_horiz_rounded;
+  void _showRechargeSheet() async {
+    final headers = await _authHeaders();
+    try {
+      final resp = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.walletPaymentInfo}'),
+        headers: headers,
+      );
+      if (!mounted) return;
+      if (resp.statusCode != 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to load payment info'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+      final data = jsonDecode(resp.body)['data'];
+      final methods = data['methods'] as List<dynamic>? ?? [];
+      if (!mounted) return;
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder:
+            (ctx) => _RechargeSheet(
+              methods: methods,
+              baseUrl: ApiConstants.baseUrl,
+              authHeaders: headers,
+              onSuccess: _loadWalletData,
+            ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+      );
     }
-  }
-
-  Color _getTransactionColor(String direction) {
-    return direction == 'credit' ? AppColors.success : AppColors.error;
   }
 
   @override
@@ -135,23 +148,12 @@ class _WalletPageState extends State<WalletPage>
         foregroundColor: AppColors.textPrimary,
         centerTitle: true,
       ),
-      body: _isLoading ? _buildLoading() : _buildContent(),
-    );
-  }
-
-  Widget _buildLoading() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: AppColors.primary),
-          SizedBox(height: 16),
-          Text(
-            'Loading wallet...',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-          ),
-        ],
-      ),
+      body:
+          _isLoading
+              ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              )
+              : _buildContent(),
     );
   }
 
@@ -189,7 +191,6 @@ class _WalletPageState extends State<WalletPage>
         ),
       );
     }
-
     return FadeTransition(
       opacity: _fadeAnim,
       child: RefreshIndicator(
@@ -207,8 +208,8 @@ class _WalletPageState extends State<WalletPage>
               const SizedBox(height: 16),
               _buildWarningBanner(),
             ],
-            const SizedBox(height: 24),
-            _buildInfoCard(),
+            const SizedBox(height: 16),
+            _buildRechargeButton(),
             const SizedBox(height: 24),
             _buildTransactionsSection(),
           ],
@@ -360,37 +361,11 @@ class _WalletPageState extends State<WalletPage>
           const SizedBox(height: 8),
           Text(
             _walletBlockReason ??
-                'Your wallet balance has exceeded the minimum threshold. You cannot request new services until resolved.',
+                'Your wallet balance has exceeded the minimum threshold.',
             style: const TextStyle(
               color: AppColors.error700,
               fontSize: 13,
               height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Please contact support at housepitalai@gmail.com',
-                    ),
-                    backgroundColor: AppColors.info500,
-                  ),
-                );
-              },
-              icon: const Icon(Icons.support_agent_rounded, size: 18),
-              label: const Text('Contact Support'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: const BorderSide(color: AppColors.error300),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
             ),
           ),
         ],
@@ -429,29 +404,25 @@ class _WalletPageState extends State<WalletPage>
     );
   }
 
-  Widget _buildInfoCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.info50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.info100),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.info_outline_rounded, color: AppColors.info600, size: 22),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'As a patient, your wallet is used for change and debts from cash payments. Pay the exact amount to your nurse or doctor to maintain a zero balance.',
-              style: TextStyle(
-                color: AppColors.info700,
-                fontSize: 13,
-                height: 1.4,
-              ),
-            ),
+  Widget _buildRechargeButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _showRechargeSheet,
+        icon: const Icon(Icons.add_circle_outline_rounded, size: 22),
+        label: Text(
+          _walletBlocked ? 'Recharge to Unblock' : 'Recharge Wallet',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _walletBlocked ? AppColors.error : AppColors.primary,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        ],
+          elevation: 2,
+        ),
       ),
     );
   }
@@ -496,10 +467,10 @@ class _WalletPageState extends State<WalletPage>
             ),
           )
         else
-          ...List.generate(_transactions.length, (index) {
-            final tx = _transactions[index];
-            return _buildTransactionTile(tx);
-          }),
+          ...List.generate(
+            _transactions.length,
+            (i) => _buildTransactionTile(_transactions[i]),
+          ),
       ],
     );
   }
@@ -511,7 +482,6 @@ class _WalletPageState extends State<WalletPage>
     final description = tx['description'] ?? type;
     final createdAt = tx['createdAt'] ?? '';
     final status = tx['status'] ?? 'completed';
-
     String dateStr = '';
     if (createdAt.isNotEmpty) {
       try {
@@ -520,7 +490,25 @@ class _WalletPageState extends State<WalletPage>
             '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
       } catch (_) {}
     }
-
+    final color = direction == 'credit' ? AppColors.success : AppColors.error;
+    IconData icon;
+    switch (type) {
+      case 'booking_payment':
+        icon = Icons.medical_services_rounded;
+        break;
+      case 'wallet_recharge':
+      case 'receipt_recharge':
+        icon = Icons.add_circle_rounded;
+        break;
+      case 'refund':
+        icon = Icons.replay_rounded;
+        break;
+      case 'cancellation_fee':
+        icon = Icons.cancel_rounded;
+        break;
+      default:
+        icon = Icons.swap_horiz_rounded;
+    }
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -534,14 +522,10 @@ class _WalletPageState extends State<WalletPage>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: _getTransactionColor(direction).withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              _getTransactionIcon(type),
-              color: _getTransactionColor(direction),
-              size: 22,
-            ),
+            child: Icon(icon, color: color, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -599,10 +583,485 @@ class _WalletPageState extends State<WalletPage>
             style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 15,
-              color: _getTransactionColor(direction),
+              color: color,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Recharge Bottom Sheet ──────────────────────────────────────
+
+class _RechargeSheet extends StatefulWidget {
+  final List<dynamic> methods;
+  final String baseUrl;
+  final Map<String, String> authHeaders;
+  final VoidCallback onSuccess;
+  const _RechargeSheet({
+    required this.methods,
+    required this.baseUrl,
+    required this.authHeaders,
+    required this.onSuccess,
+  });
+  @override
+  State<_RechargeSheet> createState() => _RechargeSheetState();
+}
+
+class _RechargeSheetState extends State<_RechargeSheet> {
+  final _amountController = TextEditingController();
+  String _selectedMethod = 'instapay';
+  File? _receiptFile;
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickReceipt() async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder:
+          (ctx) => SafeArea(
+            child: Wrap(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.camera_alt_rounded),
+                  title: const Text('Camera'),
+                  onTap: () => Navigator.pop(ctx, ImageSource.camera),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library_rounded),
+                  title: const Text('Gallery'),
+                  onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+                ),
+              ],
+            ),
+          ),
+    );
+    if (source == null) return;
+    final picked = await picker.pickImage(
+      source: source,
+      maxWidth: 1200,
+      imageQuality: 80,
+    );
+    if (picked != null) setState(() => _receiptFile = File(picked.path));
+  }
+
+  Future<void> _submit() async {
+    final amount = double.tryParse(_amountController.text);
+    if (amount == null || amount < 10 || amount > 50000) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Enter a valid amount (10 - 50,000 EGP)'),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+      return;
+    }
+    if (_receiptFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please upload your transfer receipt'),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+      return;
+    }
+    setState(() => _isSubmitting = true);
+    try {
+      final bytes = await _receiptFile!.readAsBytes();
+      final base64Str = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      final resp = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.walletSubmitReceipt}'),
+        headers: widget.authHeaders,
+        body: jsonEncode({
+          'amount': amount,
+          'paymentMethod': _selectedMethod,
+          'receiptBase64': base64Str,
+        }),
+      );
+      if (!mounted) return;
+      final body = jsonDecode(resp.body);
+      if (resp.statusCode == 201 || resp.statusCode == 200) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(body['message'] ?? 'Receipt submitted!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        widget.onSuccess();
+      } else {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(body['message'] ?? 'Failed'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isSubmitting = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final instapay =
+        widget.methods.cast<dynamic>().firstWhere(
+              (m) => m['method'] == 'instapay',
+              orElse: () => null,
+            )
+            as Map?;
+    final mobileWallet =
+        widget.methods.cast<dynamic>().firstWhere(
+              (m) => m['method'] == 'mobile_wallet',
+              orElse: () => null,
+            )
+            as Map?;
+    return Container(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.light500,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Recharge Wallet',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Transfer the amount then upload your receipt.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            ),
+            const SizedBox(height: 20),
+
+            const Text(
+              'Payment Method',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _MethodCard(
+                    icon: Icons.account_balance_rounded,
+                    label: 'Instapay',
+                    isSelected: _selectedMethod == 'instapay',
+                    onTap: () => setState(() => _selectedMethod = 'instapay'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _MethodCard(
+                    icon: Icons.phone_android_rounded,
+                    label: 'Mobile Wallet',
+                    isSelected: _selectedMethod == 'mobile_wallet',
+                    onTap:
+                        () => setState(() => _selectedMethod = 'mobile_wallet'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.primary200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _selectedMethod == 'instapay'
+                        ? '📱 Instapay Details'
+                        : '📱 Mobile Wallet Details',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_selectedMethod == 'instapay' && instapay != null) ...[
+                    _infoRow('Phone', instapay['phoneNumber'] ?? ''),
+                    _infoRow('Name', instapay['receiverName'] ?? ''),
+                    if (instapay['link'] != null)
+                      _infoRow('Link', instapay['link']),
+                  ] else if (mobileWallet != null) ...[
+                    _infoRow('Phone', mobileWallet['phoneNumber'] ?? ''),
+                    _infoRow('Name', mobileWallet['receiverName'] ?? ''),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            Row(
+              children:
+                  [50, 100, 200, 500]
+                      .map(
+                        (a) => Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: OutlinedButton(
+                              onPressed:
+                                  () => setState(
+                                    () => _amountController.text = a.toString(),
+                                  ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: const BorderSide(
+                                  color: AppColors.primary200,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                              ),
+                              child: Text(
+                                '$a',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+            ),
+            const SizedBox(height: 12),
+
+            TextField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Amount (EGP)',
+                hintText: 'Min 10',
+                prefixIcon: const Icon(Icons.payments_rounded),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.light500),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(
+                    color: AppColors.primary,
+                    width: 2,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            GestureDetector(
+              onTap: _pickReceipt,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color:
+                        _receiptFile != null
+                            ? AppColors.success
+                            : AppColors.light500,
+                    width: _receiptFile != null ? 2 : 1,
+                  ),
+                  color:
+                      _receiptFile != null
+                          ? AppColors.success.withValues(alpha: 0.05)
+                          : null,
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      _receiptFile != null
+                          ? Icons.check_circle_rounded
+                          : Icons.cloud_upload_rounded,
+                      size: 40,
+                      color:
+                          _receiptFile != null
+                              ? AppColors.success
+                              : AppColors.textSecondary,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _receiptFile != null
+                          ? 'Receipt uploaded ✓'
+                          : 'Tap to upload receipt photo',
+                      style: TextStyle(
+                        color:
+                            _receiptFile != null
+                                ? AppColors.success
+                                : AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (_receiptFile != null)
+                      TextButton(
+                        onPressed: _pickReceipt,
+                        child: const Text('Change photo'),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isSubmitting ? null : _submit,
+                icon:
+                    _isSubmitting
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                        : const Icon(Icons.send_rounded),
+                label: Text(
+                  _isSubmitting ? 'Submitting...' : 'Submit Receipt',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Text(
+            '$label: ',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MethodCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  const _MethodCard({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color:
+              isSelected
+                  ? AppColors.primary.withValues(alpha: 0.08)
+                  : AppColors.light100,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.light400,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 28,
+              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

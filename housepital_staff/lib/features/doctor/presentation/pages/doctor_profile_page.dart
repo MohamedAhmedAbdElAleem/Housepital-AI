@@ -396,7 +396,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
           _sectionLabel('Medical Details'),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            initialValue: _selectedSpecialization,
+            value: _selectedSpecialization,
             decoration: _fieldDecoration(
               label: 'Specialization',
               icon: Icons.medical_services_outlined,
@@ -457,7 +457,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            initialValue: _selectedGender,
+            value: _selectedGender,
             decoration: _fieldDecoration(
               label: 'Gender',
               icon: Icons.person_outline_rounded,

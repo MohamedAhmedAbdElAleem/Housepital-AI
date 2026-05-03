@@ -134,6 +134,7 @@ class _NurseProfileCompletionPageState
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -233,7 +234,7 @@ class _NurseProfileCompletionPageState
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary500.withOpacity(0.3),
+                          color: AppColors.primary500.withValues(alpha: 0.3),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -278,7 +279,7 @@ class _NurseProfileCompletionPageState
                     title: 'Professional Details',
                     children: [
                       DropdownButtonFormField<String>(
-                        initialValue: _selectedSpec,
+                        value: _selectedSpec,
                         decoration: _inputDecoration(
                           'Primary Specialization',
                           Icons.medical_services_outlined,
@@ -388,7 +389,7 @@ class _NurseProfileCompletionPageState
                     title: 'Personal Info',
                     children: [
                       DropdownButtonFormField<String>(
-                        initialValue: _gender,
+                        value: _gender,
                         decoration: _inputDecoration(
                           'Gender',
                           Icons.person_outline,
@@ -533,7 +534,7 @@ class _NurseProfileCompletionPageState
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.06),
+            color: Colors.grey.withValues(alpha: 0.06),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -595,7 +596,7 @@ class _NurseProfileCompletionPageState
           color: hasFile ? AppColors.success200 : Colors.grey.shade200,
         ),
         borderRadius: BorderRadius.circular(12),
-        color: hasFile ? AppColors.success50.withOpacity(0.5) : Colors.white,
+        color: hasFile ? AppColors.success50.withValues(alpha: 0.5) : Colors.white,
       ),
       child: ListTile(
         onTap: onTap,

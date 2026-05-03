@@ -30,28 +30,23 @@ class WalletLoaded extends WalletState {
   });
 }
 
-class WalletRechargeCard extends WalletState {
-  final String iframeUrl;
-  final int orderId;
-  final double amount;
+class WalletPaymentInfoLoaded extends WalletState {
+  final List<dynamic> methods;
+  final Map<String, dynamic> instructions;
 
-  WalletRechargeCard({
-    required this.iframeUrl,
-    required this.orderId,
-    required this.amount,
+  WalletPaymentInfoLoaded({
+    required this.methods,
+    required this.instructions,
   });
 }
 
-class WalletRechargeWallet extends WalletState {
-  final String redirectUrl;
-  final int orderId;
-  final double amount;
+class WalletReceiptSubmitting extends WalletState {}
 
-  WalletRechargeWallet({
-    required this.redirectUrl,
-    required this.orderId,
-    required this.amount,
-  });
+class WalletReceiptSubmitted extends WalletState {
+  final String message;
+  final String receiptId;
+
+  WalletReceiptSubmitted({required this.message, required this.receiptId});
 }
 
 class WalletError extends WalletState {
@@ -91,50 +86,45 @@ class NurseWalletCubit extends Cubit<WalletState> {
     }
   }
 
-  /// Initiate card payment — returns iframe URL
-  Future<void> initiateCardRecharge(double amount) async {
+  /// Fetch available payment methods (Instapay / Mobile Wallet)
+  Future<Map<String, dynamic>?> fetchPaymentInfo() async {
     try {
-      final response = await apiClient.post(
-        ApiConstants.walletRechargeInitiate,
-        body: {'amount': amount, 'paymentMethod': 'card'},
-      );
-
+      final response = await apiClient.get(ApiConstants.walletPaymentInfo);
       if (response['success'] == true) {
-        final data = response['data'];
-        emit(WalletRechargeCard(
-          iframeUrl: data['iframeUrl'],
-          orderId: data['orderId'],
-          amount: amount,
-        ));
-      } else {
-        emit(WalletError(response['message'] ?? 'Failed to initiate card payment'));
+        return response['data'];
       }
+      return null;
     } catch (e) {
-      emit(WalletError(e.toString()));
+      return null;
     }
   }
 
-  /// Initiate mobile wallet payment — returns redirect URL
-  Future<void> initiateWalletRecharge(double amount, String phoneNumber) async {
+  /// Submit a recharge receipt
+  Future<void> submitReceipt({
+    required double amount,
+    required String paymentMethod,
+    required String receiptBase64,
+  }) async {
+    emit(WalletReceiptSubmitting());
     try {
       final response = await apiClient.post(
-        ApiConstants.walletRechargeInitiate,
+        ApiConstants.walletSubmitReceipt,
         body: {
           'amount': amount,
-          'paymentMethod': 'wallet',
-          'walletPhoneNumber': phoneNumber,
+          'paymentMethod': paymentMethod,
+          'receiptBase64': receiptBase64,
         },
       );
 
       if (response['success'] == true) {
-        final data = response['data'];
-        emit(WalletRechargeWallet(
-          redirectUrl: data['redirectUrl'],
-          orderId: data['orderId'],
-          amount: amount,
+        emit(WalletReceiptSubmitted(
+          message: response['message'] ?? 'Receipt submitted successfully!',
+          receiptId: response['data']?['receiptId'] ?? '',
         ));
+        // Reload wallet data after submission
+        await loadWallet();
       } else {
-        emit(WalletError(response['message'] ?? 'Failed to initiate wallet payment'));
+        emit(WalletError(response['message'] ?? 'Failed to submit receipt'));
       }
     } catch (e) {
       emit(WalletError(e.toString()));

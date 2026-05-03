@@ -9,7 +9,6 @@ import '../cubit/nurse_booking_cubit.dart';
 import '../../data/models/nurse_profile_model.dart';
 import '../../data/models/booking_model.dart';
 import '../widgets/nurse_home_widgets.dart';
-import 'pin_verification_page.dart';
 import 'nurse_tracking_page.dart';
 import 'nurse_history_page.dart';
 import 'visit_in_progress_page.dart';
@@ -133,12 +132,16 @@ class _NurseHomePageState extends State<NurseHomePage>
     if (token == null) return;
 
     final socketUrl = ApiConstants.baseUrl.replaceAll('/api', '');
+    debugPrint('🔌 Nurse socket connecting to $socketUrl');
 
     _socket = IO.io(
       socketUrl,
       IO.OptionBuilder()
-          .setTransports(['websocket'])
+          .setTransports(['websocket', 'polling'])
           .disableAutoConnect()
+          .enableReconnection()
+          .setReconnectionAttempts(5)
+          .setReconnectionDelay(3000)
           .setAuth({'token': token})
           .build(),
     );
@@ -146,17 +149,17 @@ class _NurseHomePageState extends State<NurseHomePage>
     _socket?.connect();
 
     _socket?.onConnect((_) {
-      debugPrint('Nurse Socket Connected!');
+      debugPrint('✅ Nurse Socket Connected!');
       _syncSocketPresence();
       _refreshBookings('socket:connect');
     });
 
     _socket?.onDisconnect((_) {
-      debugPrint('Nurse Socket Disconnected');
+      debugPrint('🔌 Nurse Socket Disconnected');
     });
 
     _socket?.onConnectError((error) {
-      debugPrint('Nurse Socket Connect Error: $error');
+      debugPrint('⚠️ Nurse Socket Connect Error: $error');
     });
 
     _socket?.on('new_booking_request', (data) {
@@ -283,10 +286,11 @@ class _NurseHomePageState extends State<NurseHomePage>
           NurseProfile? profile;
           if (profileState is NurseProfileLoaded) {
             profile = profileState.profile;
-          } else if (profileState is NurseProfileUpdated)
+          } else if (profileState is NurseProfileUpdated) {
             profile = profileState.profile;
-          else
+          } else {
             profile = context.read<NurseProfileCubit>().currentProfile;
+          }
 
           if (profile == null) {
             String errorMsg =
@@ -299,7 +303,7 @@ class _NurseHomePageState extends State<NurseHomePage>
           final bool isOnline = profile.isOnline;
 
           // Debug: Print profile status
-          print(
+          debugPrint(
             '🔍 Profile Status: ${profile.profileStatus}, isApproved: $isApproved',
           );
 
@@ -347,9 +351,11 @@ class _NurseHomePageState extends State<NurseHomePage>
                       ),
                     ),
                   ).then((_) {
-                    if (mounted) setState(() => _isNavigatingToPin = false);
-                    // Refresh bookings after returning from visit
-                    context.read<NurseBookingCubit>().fetchBookings();
+                    if (mounted) {
+                      setState(() => _isNavigatingToPin = false);
+                      // Refresh bookings after returning from visit
+                      context.read<NurseBookingCubit>().fetchBookings();
+                    }
                   });
                 }
               } else if (bookingState is NurseBookingCompleted) {
@@ -381,11 +387,11 @@ class _NurseHomePageState extends State<NurseHomePage>
                       height: 300,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.primary100.withOpacity(0.3),
+                        color: AppColors.primary100.withValues(alpha: 0.3),
                         boxShadow: [
                           BoxShadow(
                             blurRadius: 100,
-                            color: AppColors.primary100.withOpacity(0.2),
+                            color: AppColors.primary100.withValues(alpha: 0.2),
                           ),
                         ],
                       ),
@@ -450,7 +456,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.05),
+                                  color: Colors.grey.withValues(alpha: 0.05),
                                   blurRadius: 20,
                                   offset: const Offset(0, -5),
                                 ),
@@ -762,7 +768,7 @@ class _NurseHomePageState extends State<NurseHomePage>
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -794,7 +800,7 @@ class _NurseHomePageState extends State<NurseHomePage>
         boxShadow: [
           BoxShadow(
             color:
-                isOnline ? AppColors.primary200 : Colors.grey.withOpacity(0.1),
+                isOnline ? AppColors.primary200 : Colors.grey.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -822,7 +828,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                 style: TextStyle(
                   color:
                       isOnline
-                          ? Colors.white.withOpacity(0.9)
+                          ? Colors.white.withValues(alpha: 0.9)
                           : AppColors.textSecondary,
                   fontSize: 13,
                 ),
@@ -840,7 +846,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                           val,
                         );
                         _syncSocketPresence(isOnlineOverride: val);
-                        print(
+                        debugPrint(
                           '🔄 Toggle switch clicked: $val, isApproved: $isApproved',
                         );
                         if (val) {
@@ -848,8 +854,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                         }
                       }
                       : null,
-              activeThumbColor: Colors.white,
-              activeTrackColor: Colors.white.withOpacity(0.3),
+              activeColor: Colors.white,
               inactiveThumbColor: Colors.grey,
               inactiveTrackColor: Colors.grey.shade200,
             ),
@@ -919,13 +924,13 @@ class _NurseHomePageState extends State<NurseHomePage>
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: AppColors.primary500.withOpacity(
-                                    opacity * 0.5,
+                                  color: AppColors.primary500.withValues(
+                                    alpha: opacity * 0.5,
                                   ),
                                   width: 2,
                                 ),
-                                color: AppColors.primary500.withOpacity(
-                                  opacity * 0.1,
+                                color: AppColors.primary500.withValues(
+                                  alpha: opacity * 0.1,
                                 ),
                               ),
                             );
@@ -940,10 +945,10 @@ class _NurseHomePageState extends State<NurseHomePage>
                           height: 80,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.primary50.withOpacity(0.9),
+                            color: AppColors.primary50.withValues(alpha: 0.9),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary500.withOpacity(0.3),
+                                color: AppColors.primary500.withValues(alpha: 0.3),
                                 blurRadius: 15,
                                 spreadRadius: 5,
                               ),
@@ -978,11 +983,11 @@ class _NurseHomePageState extends State<NurseHomePage>
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.95),
+                  color: Colors.white.withValues(alpha: 0.95),
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),

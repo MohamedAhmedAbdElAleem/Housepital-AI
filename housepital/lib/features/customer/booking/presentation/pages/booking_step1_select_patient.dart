@@ -1726,7 +1726,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                 Switch(
                   value: _nurseHasSupplies,
                   onChanged: (v) => setState(() => _nurseHasSupplies = v),
-                  activeThumbColor: const Color(0xFF00B870),
+                  activeColor: const Color(0xFF00B870),
                 ),
               ],
             ),

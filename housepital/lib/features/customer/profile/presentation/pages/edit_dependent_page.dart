@@ -1123,7 +1123,7 @@ class _EditDependentPageState extends State<EditDependentPage>
 
   Widget _buildDropdown() {
     return DropdownButtonFormField<String>(
-      initialValue: _selectedRelationship,
+      value: _selectedRelationship,
       decoration: InputDecoration(
         labelText: 'Relationship',
         labelStyle: const TextStyle(color: _DependentDesign.textSecondary),

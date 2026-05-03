@@ -19,6 +19,8 @@ class SocketNotificationService {
   socket_io.Socket? _socket;
   bool _isConnected = false;
   Timer? _reconnectTimer;
+  int _reconnectAttempts = 0;
+  static const int _maxReconnectAttempts = 5;
 
   /// Stream controller to broadcast incoming notifications to the app
   final StreamController<NotificationModel> _notificationController =
@@ -44,7 +46,7 @@ class SocketNotificationService {
     }
 
     // Disconnect existing connection if any
-    disconnect();
+    _cleanupSocket();
 
     final baseUrl = ApiConstants.baseUrl;
     debugPrint('🔌 Connecting to Socket.IO at $baseUrl');
@@ -57,13 +59,14 @@ class SocketNotificationService {
           .setQuery({'token': token})
           .enableAutoConnect()
           .enableReconnection()
-          .setReconnectionAttempts(10)
-          .setReconnectionDelay(2000)
+          .setReconnectionAttempts(5)
+          .setReconnectionDelay(3000)
           .build(),
     );
 
     _socket!.onConnect((_) {
       _isConnected = true;
+      _reconnectAttempts = 0; // Reset on successful connection
       _reconnectTimer?.cancel();
       debugPrint('🔌 Socket.IO connected successfully');
     });
@@ -77,7 +80,9 @@ class SocketNotificationService {
     _socket!.onConnectError((error) {
       _isConnected = false;
       debugPrint('🔌 Socket.IO connection error: $error');
-      _scheduleReconnect();
+      // Don't schedule manual reconnect here — the socket's built-in
+      // reconnection (setReconnectionAttempts) handles connect errors.
+      // Manual reconnect is only for unexpected disconnects.
     });
 
     // Listen for real-time notifications
@@ -212,25 +217,38 @@ class SocketNotificationService {
     _socket?.emit('ping_server');
   }
 
-  /// Schedule reconnection
+  /// Schedule reconnection with exponential backoff and max retries
   void _scheduleReconnect() {
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(const Duration(seconds: 5), () async {
+    if (_reconnectAttempts >= _maxReconnectAttempts) {
+      debugPrint('🔌 Max reconnect attempts reached ($_maxReconnectAttempts). Stopping.');
+      return;
+    }
+    // Exponential backoff: 5s, 10s, 20s, 40s, 80s
+    final delay = Duration(seconds: 5 * (1 << _reconnectAttempts));
+    _reconnectAttempts++;
+    debugPrint('🔌 Scheduling reconnect attempt $_reconnectAttempts/$_maxReconnectAttempts in ${delay.inSeconds}s');
+    _reconnectTimer = Timer(delay, () async {
       final hasToken = await TokenManager.hasToken();
       if (hasToken && !_isConnected) {
-        debugPrint('🔌 Attempting to reconnect...');
         connect();
       }
     });
   }
 
-  /// Disconnect from Socket.IO
-  void disconnect() {
+  /// Cleanup socket without logging "disconnected" (internal use)
+  void _cleanupSocket() {
     _reconnectTimer?.cancel();
     _socket?.disconnect();
     _socket?.dispose();
     _socket = null;
     _isConnected = false;
+  }
+
+  /// Disconnect from Socket.IO
+  void disconnect() {
+    _cleanupSocket();
+    _reconnectAttempts = 0;
     debugPrint('🔌 Socket.IO disconnected and disposed');
   }
 
@@ -240,3 +258,4 @@ class SocketNotificationService {
     _notificationController.close();
   }
 }
+

@@ -1211,7 +1211,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             children: [
               Switch(
                 value: wh.isOpen,
-                activeThumbColor: Colors.blue,
+                activeColor: Colors.blue,
                 onChanged: (val) {
                   setState(() {
                     _workingHoursMap[day] = WorkingHour(
