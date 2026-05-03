@@ -17,7 +17,8 @@ const transactionSchema = new mongoose.Schema(
                 "platform_fee",         // Platform commission
                 "bonus_credit",         // Good faith bonus
                 "no_show_fee",          // No-show penalty
-                "wallet_recharge",      // PayMob wallet top-up
+                "wallet_recharge",      // PayMob wallet top-up (legacy)
+                "receipt_recharge",     // Receipt-based wallet top-up
                 "commission_deduction"  // Platform commission deducted
             ],
             required: [true, "Transaction type is required"]
@@ -60,7 +61,7 @@ const transactionSchema = new mongoose.Schema(
         // Payment details
         paymentMethod: {
             type: String,
-            enum: ["cash", "card", "wallet", "fawry", "bank_transfer", "vodafone_cash", "paymob"]
+            enum: ["cash", "card", "wallet", "fawry", "bank_transfer", "vodafone_cash", "paymob", "instapay", "mobile_wallet"]
         },
         paymentReference: {
             type: String,
@@ -95,11 +96,16 @@ const transactionSchema = new mongoose.Schema(
         balanceAfter: {
             type: Number
         },
-        // PayMob tracking
+        // PayMob tracking (legacy)
         paymobOrderId: {
             type: String,
             trim: true,
             sparse: true
+        },
+        // Receipt-based recharge tracking
+        receiptId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Receipt"
         }
     },
     { timestamps: true }

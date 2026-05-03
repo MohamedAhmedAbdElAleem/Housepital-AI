@@ -158,9 +158,9 @@ async function testWallet() {
     const rechargeResult = await walletService.adjustWallet({
         userId,
         amount: rechargeAmount,
-        type: "wallet_recharge",
-        description: `Test recharge: +${rechargeAmount} EGP (simulated PayMob)`,
-        paymentMethod: "paymob",
+        type: "receipt_recharge",
+        description: `Test recharge: +${rechargeAmount} EGP (simulated receipt approval)`,
+        paymentMethod: "instapay",
     });
 
     console.log(`   💳 Recharged: +${rechargeAmount} EGP`);

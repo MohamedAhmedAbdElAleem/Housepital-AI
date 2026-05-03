@@ -46,6 +46,7 @@ const FOLDERS = {
   ID_DOCUMENTS: 'housepital/id-documents',
   MEDICAL_RECORDS: 'housepital/medical-records',
   PRESCRIPTIONS: 'housepital/prescriptions',
+  RECEIPTS: 'housepital/receipts',
   GENERAL: 'housepital/general',
 };
 

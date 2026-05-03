@@ -1,8 +1,9 @@
 /**
  * Wallet Routes
  *
- * Protected routes require JWT authentication.
- * The PayMob callback endpoint is public but HMAC-verified.
+ * Receipt-based wallet recharge system.
+ * All routes require JWT authentication.
+ * Admin routes additionally require the "admin" role.
  */
 
 const express = require("express");
@@ -10,7 +11,7 @@ const router = express.Router();
 const walletController = require("../controllers/walletController");
 const { authenticateToken, authorizeRole } = require("../middleware/authMiddleware");
 
-// ── Protected Routes (JWT required) ──────────────────────────
+// ── User Routes (all authenticated users) ────────────────────
 
 // Get wallet balance & status
 router.get("/balance", authenticateToken, walletController.getBalance);
@@ -18,24 +19,39 @@ router.get("/balance", authenticateToken, walletController.getBalance);
 // Get transaction history (paginated)
 router.get("/transactions", authenticateToken, walletController.getTransactions);
 
-// Initiate PayMob recharge (nurses & doctors only)
-router.post(
-    "/recharge/initiate",
-    authenticateToken,
-    authorizeRole("nurse", "doctor"),
-    walletController.initiateRecharge
-);
+// Get payment info (Instapay / Mobile Wallet details)
+router.get("/payment-info", authenticateToken, walletController.getPaymentInfo);
 
-// Check recharge status
+// Submit a recharge receipt
+router.post("/receipts/submit", authenticateToken, walletController.submitReceipt);
+
+// Get my receipts (history with statuses)
+router.get("/receipts/my", authenticateToken, walletController.getMyReceipts);
+
+// ── Admin Routes ─────────────────────────────────────────────
+
+// Get all pending receipts (admin review queue)
 router.get(
-    "/recharge/status/:orderId",
-    authenticateToken,
-    walletController.getRechargeStatus
+	"/receipts/pending",
+	authenticateToken,
+	authorizeRole("admin"),
+	walletController.getPendingReceipts
 );
 
-// ── Public Routes (HMAC-verified) ────────────────────────────
+// Get all receipts (paginated, filterable)
+router.get(
+	"/receipts/all",
+	authenticateToken,
+	authorizeRole("admin"),
+	walletController.getAllReceipts
+);
 
-// PayMob webhook callback
-router.post("/recharge/callback", walletController.rechargeCallback);
+// Review a receipt (approve / reject)
+router.put(
+	"/receipts/:id/review",
+	authenticateToken,
+	authorizeRole("admin"),
+	walletController.reviewReceipt
+);
 
 module.exports = router;

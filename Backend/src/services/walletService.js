@@ -53,7 +53,8 @@ async function getWalletBalance(userId) {
  * @param {string} params.description - Human-readable description
  * @param {string} [params.bookingId] - Related booking ID
  * @param {string} [params.paymentMethod] - Payment method used
- * @param {string} [params.paymobOrderId] - PayMob order ID for recharges
+ * @param {string} [params.paymobOrderId] - PayMob order ID for recharges (legacy)
+ * @param {string} [params.receiptId] - Receipt ID for receipt-based recharges
  * @returns {Object} { transaction, newBalance, walletBlocked }
  */
 async function adjustWallet({
@@ -64,6 +65,7 @@ async function adjustWallet({
     bookingId = null,
     paymentMethod = null,
     paymobOrderId = null,
+    receiptId = null,
 }) {
     // Atomically update the balance
     const updatedUser = await User.findByIdAndUpdate(
@@ -90,6 +92,7 @@ async function adjustWallet({
         status: "completed",
         paymentMethod: paymentMethod || undefined,
         paymobOrderId: paymobOrderId || undefined,
+        receiptId: receiptId || undefined,
         description,
         balanceAfter: newBalance,
     });
