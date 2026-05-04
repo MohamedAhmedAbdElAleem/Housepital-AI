@@ -82,7 +82,12 @@ class _DoctorWalletPageState extends State<DoctorWalletPage> with SingleTickerPr
         if (state.walletBlocked) ...[const SizedBox(height: 16), _buildBlockedBanner(state)],
         const SizedBox(height: 16), _buildRechargeButton(state),
         const SizedBox(height: 16), _buildCommissionInfoCard(state),
-        const SizedBox(height: 24), _buildTransactionsSection(state),
+        const SizedBox(height: 24),
+        if (state.receipts.isNotEmpty) ...[
+          _buildReceiptsSection(state),
+          const SizedBox(height: 24),
+        ],
+        _buildTransactionsSection(state),
       ])));
   }
 
@@ -141,6 +146,68 @@ class _DoctorWalletPageState extends State<DoctorWalletPage> with SingleTickerPr
       child: Row(children: [const Icon(Icons.info_outline_rounded, color: AppColors.info600, size: 22), const SizedBox(width: 12),
         Expanded(child: Text('A ${(state.commissionRate * 100).toStringAsFixed(0)}% platform commission is deducted for each completed appointment.',
           style: const TextStyle(color: AppColors.info700, fontSize: 13, height: 1.4)))]));
+  }
+
+  Widget _buildReceiptsSection(DoctorWalletLoaded state) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('My Receipts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+      const SizedBox(height: 4),
+      const Text('Track the status of your recharge requests', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+      const SizedBox(height: 16),
+      ...state.receipts.map((r) => _buildReceiptTile(r)),
+    ]);
+  }
+
+  Widget _buildReceiptTile(dynamic r) {
+    final status = r['status'] ?? 'pending';
+    final amount = (r['amount'] ?? 0).toDouble();
+    final method = r['paymentMethod'] ?? '';
+    final createdAt = r['createdAt'] ?? '';
+    final rejectionReason = r['rejectionReason'];
+
+    Color statusColor;
+    IconData statusIcon;
+    String statusLabel;
+    switch (status) {
+      case 'approved': statusColor = AppColors.success; statusIcon = Icons.check_circle_rounded; statusLabel = 'APPROVED'; break;
+      case 'rejected': statusColor = AppColors.error; statusIcon = Icons.cancel_rounded; statusLabel = 'REJECTED'; break;
+      default: statusColor = AppColors.warning; statusIcon = Icons.schedule_rounded; statusLabel = 'PENDING';
+    }
+
+    String dateStr = '';
+    if (createdAt.toString().isNotEmpty) {
+      try { final dt = DateTime.parse(createdAt); dateStr = '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}'; } catch (_) {}
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: statusColor.withValues(alpha: 0.3))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+            child: Icon(statusIcon, color: statusColor, size: 22)),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('${amount.toStringAsFixed(0)} EGP via ${method == 'instapay' ? 'Instapay' : 'Mobile Wallet'}',
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.textPrimary)),
+            const SizedBox(height: 3),
+            Text(dateStr, style: const TextStyle(fontSize: 12, color: AppColors.textHint)),
+          ])),
+          Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+            child: Text(statusLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: statusColor))),
+        ]),
+        if (status == 'rejected' && rejectionReason != null) ...[
+          const SizedBox(height: 8),
+          Container(padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(8)),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.info_outline_rounded, size: 16, color: AppColors.error), const SizedBox(width: 6),
+              Expanded(child: Text('Reason: $rejectionReason', style: const TextStyle(fontSize: 12, color: AppColors.error700, height: 1.3))),
+            ])),
+        ],
+      ]),
+    );
   }
 
   Widget _buildTransactionsSection(DoctorWalletLoaded state) {

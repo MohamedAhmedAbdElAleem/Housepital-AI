@@ -98,7 +98,7 @@ class _HomeTabViewState extends State<HomeTabView> with TickerProviderStateMixin
       final response = await authRepository.getCurrentUser();
       if (mounted) {
         setState(() {
-          _user = _user ?? response.user; // Don't wipe on refresh
+          _user = response.user; // Always use latest to get updated wallet balance
           _isLoading = false;
         });
       }

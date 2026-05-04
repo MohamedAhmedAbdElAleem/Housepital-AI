@@ -35,6 +35,7 @@ class AppRoutes {
   static const String adminUsers = '/admin/users';
   static const String adminAddStaff = '/admin/add-staff';
   static const String adminBookings = '/admin/bookings';
+  static const String adminReceipts = '/admin/receipts';
 
   // Common
   static const String settings = '/settings';

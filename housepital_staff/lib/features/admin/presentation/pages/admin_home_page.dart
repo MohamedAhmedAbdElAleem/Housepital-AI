@@ -80,89 +80,30 @@ class _AdminHomePageState extends State<AdminHomePage>
 
   Map<String, dynamic> _getMockData() {
     return {
-      'users': {'total': 1247},
-      'bookings': {'total': 3456, 'completed': 2890},
+      'users': {'total': 0},
+      'bookings': {'total': 0, 'completed': 0},
       'pendingVerifications': {
-        'total': 15,
-        'nurses': 8,
-        'doctors': 2,
-        'users': 5,
+        'total': 0,
+        'nurses': 0,
+        'doctors': 0,
+        'users': 0,
       },
       'today': {
-        'newBookings': 47,
-        'completedBookings': 38,
-        'newRegistrations': 12,
-        'activeBookings': 20,
+        'newBookings': 0,
+        'completedBookings': 0,
+        'newRegistrations': 0,
+        'activeBookings': 0,
       },
       'financial': {
-        'today': {'revenue': 4250},
-        'thisMonth': {'revenue': 87500},
+        'today': {'revenue': 0},
+        'thisMonth': {'revenue': 0},
       },
       'providers': {
-        'nurses': {'online': 45, 'total': 128},
+        'nurses': {'online': 0, 'total': 0},
       },
-      'recentActivity': [
-        {
-          'type': 'booking',
-          'title': 'New booking received',
-          'subtitle': 'IV Therapy - Ahmed Ali',
-          'time': '2 min ago',
-          'icon': Icons.calendar_today,
-        },
-        {
-          'type': 'nurse',
-          'title': 'Nurse went online',
-          'subtitle': 'Sarah Ahmed is now available',
-          'time': '5 min ago',
-          'icon': Icons.person,
-        },
-        {
-          'type': 'payment',
-          'title': 'Payment received',
-          'subtitle': '250 EGP from Mohamed',
-          'time': '12 min ago',
-          'icon': Icons.payments,
-        },
-        {
-          'type': 'verification',
-          'title': 'New verification request',
-          'subtitle': 'Dr. Khaled submitted documents',
-          'time': '25 min ago',
-          'icon': Icons.verified,
-        },
-        {
-          'type': 'booking',
-          'title': 'Booking completed',
-          'subtitle': 'Wound Care - Fatima Hassan',
-          'time': '1 hour ago',
-          'icon': Icons.check_circle,
-        },
-      ],
-      'topNurses': [
-        {
-          'name': 'Sarah Ahmed',
-          'rating': 4.9,
-          'visits': 234,
-          'earnings': 23400,
-        },
-        {
-          'name': 'Mohamed Hassan',
-          'rating': 4.8,
-          'visits': 198,
-          'earnings': 19800,
-        },
-        {
-          'name': 'Laila Mahmoud',
-          'rating': 4.8,
-          'visits': 187,
-          'earnings': 18700,
-        },
-      ],
-      'pendingUsers': [
-        {'name': 'Dr. Khaled Omar', 'type': 'Doctor', 'date': 'Dec 24'},
-        {'name': 'Nurse Amal Hassan', 'type': 'Nurse', 'date': 'Dec 24'},
-        {'name': 'Nurse Fatima Ali', 'type': 'Nurse', 'date': 'Dec 23'},
-      ],
+      'recentActivity': [],
+      'topNurses': [],
+      'pendingUsers': [],
     };
   }
 
@@ -180,7 +121,7 @@ class _AdminHomePageState extends State<AdminHomePage>
         _showReportsSheet();
         break;
       case 3:
-        _showSettingsSheet();
+        Navigator.pushNamed(context, AppRoutes.adminReceipts);
         break;
     }
   }
@@ -2186,8 +2127,8 @@ class _AdminHomePageState extends State<AdminHomePage>
         'badge': 0,
       },
       {
-        'icon': Icons.settings_rounded,
-        'label': 'Settings',
+        'icon': Icons.receipt_long_rounded,
+        'label': 'Receipts',
         'color': const Color(0xFF8B5CF6),
         'badge': 0,
       },

@@ -254,16 +254,6 @@ class _BookingInvoicePageState extends State<BookingInvoicePage> {
             _buildInvoiceRow('Destination Fee', _destinationFee),
           ],
 
-          // Platform fee (if shown)
-          if (_platformFee > 0) ...[
-            const SizedBox(height: 12),
-            _buildInvoiceRow(
-              'Platform Fee',
-              _platformFee,
-              isSubtle: true,
-            ),
-          ],
-
           const SizedBox(height: 16),
           Container(
             height: 1,
