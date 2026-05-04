@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../utils/booking_utils.dart';
 import '../pages/booking_tracking_page.dart';
+import '../pages/booking_matching_screen.dart';
 import '../widgets/booking_cancellation_modal.dart';
 import '../../../../../core/network/api_service.dart';
 
@@ -487,13 +488,45 @@ class BookingsActiveCard extends StatelessWidget {
                             label: 'Track',
                             icon: Icons.location_on_rounded,
                             isFilled: true,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    BookingTrackingPage(booking: booking),
-                              ),
-                            ),
+                            onTap: () {
+                              if (canResumeMatching) {
+                                // Extract coordinates safely
+                                double lat = 30.0444;
+                                double lon = 31.2357;
+                                final location = booking['location'] ?? booking['locationGeo'];
+                                if (location is Map) {
+                                  final coords = location['coordinates'];
+                                  if (coords is List && coords.length >= 2) {
+                                    lon = (coords[0] as num).toDouble();
+                                    lat = (coords[1] as num).toDouble();
+                                  }
+                                } else if (booking['latitude'] != null && booking['longitude'] != null) {
+                                  lat = (booking['latitude'] as num).toDouble();
+                                  lon = (booking['longitude'] as num).toDouble();
+                                }
+                                
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => BookingMatchingScreen(
+                                      matchingRequestId: booking['_id'] ?? '',
+                                      serviceName: serviceName,
+                                      patientName: patientName,
+                                      patientLatitude: lat,
+                                      patientLongitude: lon,
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        BookingTrackingPage(booking: booking),
+                                  ),
+                                );
+                              }
+                            },
                           ),
                         ),
                       if (!isClinic &&

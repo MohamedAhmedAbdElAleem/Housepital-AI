@@ -500,20 +500,14 @@ async function executeMatching(matchingRequestId, io = null) {
     console.log(`   👩‍⚕️ Found ${nearbyNurses.length} nearby nurses`);
 
     if (nearbyNurses.length === 0) {
-        matchingRequest.status = "no_nurses_found";
-        await matchingRequest.save();
+        console.log(`   ⏳ No nurses online currently. Request ${matchingRequest._id} will stay in searching state.`);
 
-        // Notify patient via Socket.io
-        if (io) {
-            io.to(`patient_${matchingRequest.patientId}`).emit("matching:no_nurses_found", {
-                matchingRequestId: matchingRequest._id,
-                message: "No nurses are currently available in your area. Please try again later."
-            });
-        }
+        // We do NOT set status to "no_nurses_found" here anymore.
+        // We let the frontend wait for the 10-minute expiry window.
 
         return {
-            success: false,
-            message: "No nurses found in your area",
+            success: true,
+            message: "Searching for nurses in your area...",
             matchedCount: 0,
             offers: []
         };
@@ -1073,6 +1067,26 @@ async function expireMatchingRequestIfNeeded(matchingRequest, io = null) {
     return null;
 }
 
+/**
+ * Find all matching requests in the "searching" state and re-execute matching.
+ * This is useful when a nurse comes online or updates their location.
+ *
+ * @param {Object} io - Socket.io instance
+ */
+async function recheckSearchingRequests(io) {
+    try {
+        const searchingRequests = await MatchingRequest.find({ status: "searching" });
+        if (searchingRequests.length > 0) {
+            console.log(`🔄 Rechecking ${searchingRequests.length} searching requests due to nurse status/location update.`);
+            for (const req of searchingRequests) {
+                await executeMatching(req._id, io);
+            }
+        }
+    } catch (error) {
+        console.error("Error rechecking searching requests:", error);
+    }
+}
+
 module.exports = {
     MATCHING_CONFIG,
     findNearbyNurses,
@@ -1085,5 +1099,6 @@ module.exports = {
     getPatientOffers,
     getNursePendingOffers,
     cancelMatchingRequest,
-    expireMatchingRequestIfNeeded
+    expireMatchingRequestIfNeeded,
+    recheckSearchingRequests
 };

@@ -92,6 +92,9 @@ io.on("connection", (socket) => {
 					lastOnlineAt: new Date(),
 				},
 			);
+			// Check for pending requests since nurse is now online and active
+			const { recheckSearchingRequests } = require("./services/matchingService");
+			recheckSearchingRequests(io);
 		} catch (err) {
 			console.error("Error updating nurse location:", err.message);
 		}
@@ -108,6 +111,10 @@ io.on("connection", (socket) => {
 			console.log(
 				`👩‍⚕️ Nurse ${userId} is now ${isOnline ? "online" : "offline"}`,
 			);
+			if (isOnline) {
+				const { recheckSearchingRequests } = require("./services/matchingService");
+				recheckSearchingRequests(io);
+			}
 		} catch (err) {
 			console.error("Error toggling nurse online:", err.message);
 		}

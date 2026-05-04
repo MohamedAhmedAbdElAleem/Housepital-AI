@@ -90,7 +90,20 @@ exports.updateNurseProfile = async (req, res) => {
             if (licenseUrl) nurse.licenseUrl = licenseUrl;
             if (bankAccount) nurse.bankAccount = bankAccount;
             if (eWallet) nurse.eWallet = eWallet;
-            if (typeof req.body.isOnline !== 'undefined') nurse.isOnline = req.body.isOnline;
+            
+            if (typeof req.body.isOnline !== 'undefined') {
+                const wentOnline = req.body.isOnline === true && nurse.isOnline === false;
+                nurse.isOnline = req.body.isOnline;
+                
+                // If the nurse just went online via API, trigger the matching recheck
+                if (wentOnline) {
+                    const { recheckSearchingRequests } = require('../services/matchingService');
+                    const io = req.app.get("io");
+                    if (io) {
+                        recheckSearchingRequests(io);
+                    }
+                }
+            }
         }
 
         // Check if profile is complete

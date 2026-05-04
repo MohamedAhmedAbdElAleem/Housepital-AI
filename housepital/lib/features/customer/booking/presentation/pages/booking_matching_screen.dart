@@ -977,7 +977,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: _buildMetricCard(label: 'Nurses found', value: '$_nursesInRange', icon: Icons.people_outline)),
+            Expanded(child: _buildMetricCard(label: 'Nurses viewing request', value: '$_nursesInRange', icon: Icons.people_outline)),
             const SizedBox(width: 12),
             Expanded(child: _buildMetricCard(label: 'Time left', value: _timeLeftText(), icon: Icons.timer_outlined, isHighlight: true)),
           ],
@@ -1002,7 +1002,14 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
             children: [
               Icon(icon, size: 16, color: color),
               const SizedBox(width: 6),
-              Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.dark200)),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.dark200),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
