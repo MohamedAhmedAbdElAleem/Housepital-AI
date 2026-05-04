@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../../../home/presentation/widgets/custom_bottom_nav_bar.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../../auth/data/repositories/auth_repository_impl.dart';
 import '../../../../auth/data/datasources/auth_remote_datasource.dart';
@@ -56,7 +55,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage>
     with TickerProviderStateMixin {
-  int _currentIndex = 4;
   UserModel? _user;
   bool _isLoading = true;
 
@@ -841,21 +839,6 @@ class _ProfilePageState extends State<ProfilePage>
                 ),
               ),
             ),
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          HapticFeedback.lightImpact();
-          setState(() => _currentIndex = index);
-          if (index == 0) {
-            Navigator.pop(context);
-          } else if (index == 1) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const BookingsPage()),
-            );
-          }
-        },
       ),
     );
   }

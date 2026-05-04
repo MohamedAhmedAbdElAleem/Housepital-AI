@@ -351,11 +351,10 @@ class _NurseHomePageState extends State<NurseHomePage>
                       ),
                     ),
                   ).then((_) {
-                    if (mounted) {
-                      setState(() => _isNavigatingToPin = false);
-                      // Refresh bookings after returning from visit
-                      context.read<NurseBookingCubit>().fetchBookings();
-                    }
+                    if (!mounted) return;
+                    setState(() => _isNavigatingToPin = false);
+                    // Refresh bookings after returning from visit
+                    context.read<NurseBookingCubit>().fetchBookings();
                   });
                 }
               } else if (bookingState is NurseBookingCompleted) {

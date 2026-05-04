@@ -33,6 +33,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   final ApiService _apiService = ApiService();
 
   Timer? _pollTimer;
+  Timer? _routeRefreshTimer;
   Map<String, dynamic> _booking = {};
 
   // Nurse location for map marker
@@ -74,28 +75,48 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
     _pollTimer = Timer.periodic(const Duration(seconds: 8), (_) {
       _refreshBooking();
     });
+
+    // Periodically refresh route every 10 seconds (in case nurse location updates)
+    _routeRefreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (_nurseLocation != null && _patientLocation != null) {
+        _fetchRoute();
+      }
+    });
+
+    // Initial route fetch after a short delay to let everything settle
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) _fetchRoute();
+    });
   }
 
   void _parsePatientLocation() {
     try {
       final address = _booking['address'];
+      debugPrint('🗺️ ROUTE DEBUG: _parsePatientLocation called');
+      debugPrint('🗺️ ROUTE DEBUG: address = $address');
       if (address != null && address['coordinates'] != null) {
         final coords = address['coordinates']['coordinates'];
+        debugPrint('🗺️ ROUTE DEBUG: coords = $coords');
         if (coords is List && coords.length >= 2) {
           _patientLocation = LatLng(
             (coords[1] as num).toDouble(),
             (coords[0] as num).toDouble(),
           );
+          debugPrint('🗺️ ROUTE DEBUG: Patient location parsed: $_patientLocation');
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('🗺️ ROUTE DEBUG: Error parsing patient location: $e');
+    }
     // Default Cairo if no location
     _patientLocation ??= const LatLng(30.0444, 31.2357);
+    debugPrint('🗺️ ROUTE DEBUG: Final patient location: $_patientLocation');
   }
 
   void _parseNurseLocation(Map<String, dynamic> booking) {
     try {
       final nurseLoc = booking['nurseLocation'];
+      debugPrint('🗺️ ROUTE DEBUG: _parseNurseLocation called, nurseLoc = $nurseLoc');
       if (nurseLoc != null &&
           nurseLoc['latitude'] != null &&
           nurseLoc['longitude'] != null) {
@@ -103,12 +124,17 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
           (nurseLoc['latitude'] as num).toDouble(),
           (nurseLoc['longitude'] as num).toDouble(),
         );
+        debugPrint('🗺️ ROUTE DEBUG: Nurse location parsed: $newLoc');
         if (_nurseLocation != newLoc) {
           _nurseLocation = newLoc;
           _fetchRoute();
         }
+      } else {
+        debugPrint('🗺️ ROUTE DEBUG: No nurse location in booking data');
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('🗺️ ROUTE DEBUG: Error parsing nurse location: $e');
+    }
   }
 
   void _setupSocketListeners() {
@@ -206,19 +232,27 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
 
   // --- Route Fetching ---
   Future<void> _fetchRoute() async {
-    if (_nurseLocation == null || _patientLocation == null) return;
+    debugPrint('🗺️ ROUTE DEBUG: _fetchRoute called');
+    debugPrint('🗺️ ROUTE DEBUG: nurseLocation=$_nurseLocation, patientLocation=$_patientLocation');
+    if (_nurseLocation == null || _patientLocation == null) {
+      debugPrint('🗺️ ROUTE DEBUG: SKIPPING - nurse or patient location is null');
+      return;
+    }
     try {
       final url =
           'https://router.project-osrm.org/route/v1/driving/'
           '${_nurseLocation!.longitude},${_nurseLocation!.latitude};'
           '${_patientLocation!.longitude},${_patientLocation!.latitude}'
           '?geometries=geojson';
+      debugPrint('🗺️ ROUTE DEBUG: OSRM URL = $url');
       final response = await http.get(Uri.parse(url));
+      debugPrint('🗺️ ROUTE DEBUG: OSRM response status = ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['routes'] != null && (data['routes'] as List).isNotEmpty) {
           final route = data['routes'][0];
           final coords = route['geometry']['coordinates'] as List;
+          debugPrint('🗺️ ROUTE DEBUG: Got ${coords.length} route points, distance=${route['distance']}, duration=${route['duration']}');
           if (mounted) {
             setState(() {
               _routePoints =
@@ -228,10 +262,14 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             });
             _fitBounds();
           }
+        } else {
+          debugPrint('🗺️ ROUTE DEBUG: No routes in OSRM response: ${response.body.substring(0, 200)}');
         }
+      } else {
+        debugPrint('🗺️ ROUTE DEBUG: OSRM error response: ${response.body.substring(0, 200)}');
       }
     } catch (e) {
-      debugPrint('Error fetching route: $e');
+      debugPrint('🗺️ ROUTE DEBUG ERROR: $e');
     }
   }
 
@@ -265,6 +303,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
     _pulseController.dispose();
     _bottomSheetController.dispose();
     _pollTimer?.cancel();
+    _routeRefreshTimer?.cancel();
     _removeSocketListeners();
     super.dispose();
   }

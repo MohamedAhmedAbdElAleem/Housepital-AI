@@ -163,21 +163,31 @@ class _NurseTrackingPageState extends State<NurseTrackingPage>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _fitBounds();
       });
+
+      // Auto-start live tracking if status is already on-the-way
+      if (widget.booking.status == 'on-the-way') {
+        _startLiveTracking();
+      }
     }
   }
 
   Future<void> _fetchRoute() async {
+    debugPrint('🗺️ NURSE ROUTE DEBUG: _fetchRoute called');
+    debugPrint('🗺️ NURSE ROUTE DEBUG: currentLocation=$_currentLocation, patientLocation=$_patientLocation');
     if (_currentLocation != null && _patientLocation != null) {
       final url =
           'https://router.project-osrm.org/route/v1/driving/${_currentLocation!.longitude},${_currentLocation!.latitude};${_patientLocation!.longitude},${_patientLocation!.latitude}?geometries=geojson';
+      debugPrint('🗺️ NURSE ROUTE DEBUG: OSRM URL = $url');
       try {
         final response = await http.get(Uri.parse(url));
+        debugPrint('🗺️ NURSE ROUTE DEBUG: OSRM status = ${response.statusCode}');
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           if (data['routes'] != null && data['routes'].isNotEmpty) {
             final route = data['routes'][0];
             final geometry = route['geometry'];
             final coords = geometry['coordinates'] as List;
+            debugPrint('🗺️ NURSE ROUTE DEBUG: Got ${coords.length} route points, distance=${route['distance']}, duration=${route['duration']}');
             if (mounted) {
               setState(() {
                 _routePoints = coords.map((c) => LatLng(c[1], c[0])).toList();
@@ -185,11 +195,17 @@ class _NurseTrackingPageState extends State<NurseTrackingPage>
                 _duration = (route['duration'] as num?)?.toDouble();
               });
             }
+          } else {
+            debugPrint('🗺️ NURSE ROUTE DEBUG: No routes in response: ${response.body.substring(0, 200)}');
           }
+        } else {
+          debugPrint('🗺️ NURSE ROUTE DEBUG: OSRM error: ${response.body.substring(0, 200)}');
         }
       } catch (e) {
-        debugPrint('Error fetching route: $e');
+        debugPrint('🗺️ NURSE ROUTE DEBUG ERROR: $e');
       }
+    } else {
+      debugPrint('🗺️ NURSE ROUTE DEBUG: SKIPPING - location is null');
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../../../../../core/network/api_service.dart';
+import '../../../../../core/providers/theme_provider.dart';
 import '../../../../../core/providers/notification_provider.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../../../../auth/data/repositories/auth_repository_impl.dart';
@@ -360,16 +361,12 @@ class _SettingsPageState extends State<SettingsPage>
                         ),
                         const SizedBox(height: 12),
                         _buildSettingsCard([
-                          _buildToggleTile(
+                          _buildSettingsTile(
                             icon: Icons.dark_mode_outlined,
                             iconColor: const Color(0xFF6366F1),
-                            title: 'Dark Mode',
-                            subtitle: 'Easier on the eyes',
-                            value: _darkMode,
-                            onChanged: (v) {
-                              HapticFeedback.mediumImpact();
-                              setState(() => _darkMode = v);
-                            },
+                            title: 'Theme',
+                            subtitle: _getThemeName(context),
+                            onTap: () => _showThemeSheet(),
                           ),
                           _buildSettingsTile(
                             icon: Icons.language_rounded,
@@ -943,6 +940,111 @@ class _SettingsPageState extends State<SettingsPage>
     if (result == true) {
       _loadUserData();
     }
+  }
+
+  String _getThemeName(BuildContext context) {
+    final themeMode = context.watch<ThemeProvider>().themeMode;
+    switch (themeMode) {
+      case ThemeMode.system:
+        return 'System Default';
+      case ThemeMode.light:
+        return 'Light Mode';
+      case ThemeMode.dark:
+        return 'Dark Mode';
+    }
+  }
+
+  void _showThemeSheet() {
+    HapticFeedback.mediumImpact();
+    final themeProvider = context.read<ThemeProvider>();
+    final currentMode = themeProvider.themeMode;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Title
+            const Text(
+              'Select Theme',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Theme Options
+            _buildThemeOption('System Default', ThemeMode.system, currentMode, themeProvider),
+            _buildThemeOption('Light Mode', ThemeMode.light, currentMode, themeProvider),
+            _buildThemeOption('Dark Mode', ThemeMode.dark, currentMode, themeProvider),
+
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeOption(String title, ThemeMode mode, ThemeMode currentMode, ThemeProvider provider) {
+    final isSelected = currentMode == mode;
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        provider.setThemeMode(mode);
+        Navigator.pop(context);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? _SettingsDesign.primaryGreen.withOpacity(0.1) : _SettingsDesign.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.divider,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.textPrimary,
+                ),
+              ),
+            ),
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: _SettingsDesign.primaryGreen,
+                size: 22,
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showLanguageSheet() {

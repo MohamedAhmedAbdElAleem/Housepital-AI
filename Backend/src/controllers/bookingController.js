@@ -795,11 +795,13 @@ exports.updateNurseLocation = async (req, res) => {
 		};
 		await booking.save();
 
-		// If socket available, emit to a room specific to this booking or user
-		if (req.app.get("io")) {
-			req.app.get("io").emit("nurse_location_update", {
+		// Emit to the specific patient who made this booking
+		if (req.app.get("io") && booking.userId) {
+			req.app.get("io").to(`patient_${booking.userId}`).emit("nurse_location_update", {
 				bookingId: id,
-				location: booking.nurseLocation,
+				latitude,
+				longitude,
+				lastUpdated: new Date(),
 			});
 		}
 

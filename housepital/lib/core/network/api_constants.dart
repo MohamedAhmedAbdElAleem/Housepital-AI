@@ -4,7 +4,7 @@ class ApiConstants {
   // For Physical Device: Use your computer's actual IP address
   // For Android Emulator: Use 10.0.2.2
   // For Physical Device: Use your computer's actual IP address
-  static const String baseUrl = 'http://172.20.10.3:3500';
+  static const String baseUrl = 'http://10.0.2.2:3500';
 
   // API Endpoints
   static const String register = '/api/auth/register';
@@ -64,4 +64,7 @@ class ApiConstants {
   // Wallet Endpoints
   static const String walletBalance = '/api/wallet/balance';
   static const String walletTransactions = '/api/wallet/transactions';
+  static const String walletPaymentInfo = '/api/wallet/payment-info';
+  static const String walletSubmitReceipt = '/api/wallet/receipts/submit';
+  static const String walletMyReceipts = '/api/wallet/receipts/my';
 }

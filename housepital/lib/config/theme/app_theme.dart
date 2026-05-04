@@ -271,11 +271,92 @@ class AppTheme {
     ),
   );
 
-  // Dark Theme (Optional - can be implemented later)
+  // Dark Theme
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     fontFamily: fontFamilyPrimary,
     brightness: Brightness.dark,
-    // TODO: Implement dark theme using dark palette
+    
+    // Color Scheme
+    primaryColor: AppColors.primary500,
+    scaffoldBackgroundColor: AppColors.dark900,
+    colorScheme: const ColorScheme.dark(
+      primary: AppColors.primary500,
+      primaryContainer: AppColors.primary800,
+      onPrimary: AppColors.light50,
+      secondary: AppColors.secondary500,
+      secondaryContainer: AppColors.secondary800,
+      onSecondary: AppColors.light50,
+      error: AppColors.error500,
+      errorContainer: AppColors.error800,
+      onError: AppColors.light50,
+      surface: AppColors.dark700,
+      onSurface: AppColors.light50,
+      surfaceContainerHighest: AppColors.dark600,
+      outline: AppColors.dark300,
+    ),
+
+    // App Bar Theme
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.dark900,
+      foregroundColor: AppColors.light50,
+      elevation: 0,
+      centerTitle: true,
+      titleTextStyle: TextStyle(
+        fontFamily: fontFamilyPrimary,
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: AppColors.light50,
+      ),
+    ),
+
+    // Text Theme
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(fontFamily: fontFamilyPrimary, fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.light50),
+      displayMedium: TextStyle(fontFamily: fontFamilyPrimary, fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.light50),
+      displaySmall: TextStyle(fontFamily: fontFamilyPrimary, fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.light50),
+      headlineLarge: TextStyle(fontFamily: fontFamilyPrimary, fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.light50),
+      headlineMedium: TextStyle(fontFamily: fontFamilyPrimary, fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.light50),
+      headlineSmall: TextStyle(fontFamily: fontFamilyPrimary, fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.light50),
+      titleLarge: TextStyle(fontFamily: fontFamilyPrimary, fontSize: 18, fontWeight: FontWeight.w500, color: AppColors.light50),
+      titleMedium: TextStyle(fontFamily: fontFamilySecondary, fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.light50),
+      titleSmall: TextStyle(fontFamily: fontFamilySecondary, fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.light50),
+      bodyLarge: TextStyle(fontFamily: fontFamilySecondary, fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.light50),
+      bodyMedium: TextStyle(fontFamily: fontFamilySecondary, fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.light50),
+      bodySmall: TextStyle(fontFamily: fontFamilySecondary, fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.light700),
+      labelLarge: TextStyle(fontFamily: fontFamilySecondary, fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.light50),
+      labelMedium: TextStyle(fontFamily: fontFamilySecondary, fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.light700),
+      labelSmall: TextStyle(fontFamily: fontFamilySecondary, fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.dark200),
+    ),
+
+    // Elevated Button Theme
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary500,
+        foregroundColor: AppColors.light50,
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: const TextStyle(fontFamily: fontFamilyPrimary, fontSize: 16, fontWeight: FontWeight.w600),
+      ),
+    ),
+
+    // Bottom Navigation Bar Theme
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: AppColors.dark700,
+      selectedItemColor: AppColors.primary500,
+      unselectedItemColor: AppColors.light700,
+      selectedLabelStyle: TextStyle(fontFamily: fontFamilySecondary, fontSize: 12, fontWeight: FontWeight.w500),
+      unselectedLabelStyle: TextStyle(fontFamily: fontFamilySecondary, fontSize: 12),
+      type: BottomNavigationBarType.fixed,
+    ),
+
+    // Card Theme
+    cardTheme: CardThemeData(
+      elevation: 2,
+      color: AppColors.dark700,
+      shadowColor: Colors.black.withOpacity(0.3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
   );
 }

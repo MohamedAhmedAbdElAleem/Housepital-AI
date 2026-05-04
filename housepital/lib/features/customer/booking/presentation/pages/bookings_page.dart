@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
-import 'booking_tracking_page.dart';
-import 'booking_matching_screen.dart';
-import '../../../home/presentation/widgets/custom_bottom_nav_bar.dart';
-import '../../../profile/presentation/pages/profile_page.dart';
-import '../widgets/booking_cancellation_modal.dart';
 
 import '../../utils/booking_utils.dart';
+import '../widgets/bookings_canopy_header.dart';
+import '../widgets/bookings_glass_tab_bar.dart';
+import '../widgets/bookings_type_filter.dart';
+import '../widgets/bookings_active_card.dart';
+import '../widgets/bookings_history_card.dart';
+import '../widgets/bookings_empty_state_card.dart';
 
 class BookingsPage extends StatefulWidget {
   const BookingsPage({super.key});
@@ -22,7 +22,6 @@ class _BookingsPageState extends State<BookingsPage>
     with TickerProviderStateMixin {
   List<dynamic> _bookings = [];
   bool _isLoading = false;
-  final int _currentNavIndex = 1;
   int _selectedTab = 0;
   int _selectedType = 0; // 0=All, 1=Nursing, 2=Clinic
   late AnimationController _fadeController;
@@ -252,34 +251,6 @@ class _BookingsPageState extends State<BookingsPage>
   bool _isClinic(dynamic b) =>
       (b['type'] ?? b['bookingType'] ?? '') == 'clinic_appointment';
 
-  /// Extract doctor/clinic names from populated API objects or flat mock fields
-  String? _doctorName(Map<String, dynamic> b) {
-    // Flat field (mock or client-enriched)
-    if (b['doctorName'] != null) return b['doctorName'] as String;
-    // Populated: doctorId -> { user: { name } }
-    final doc = b['doctorId'];
-    if (doc is Map) {
-      final user = doc['user'];
-      if (user is Map) return user['name'] as String?;
-      return doc['name'] as String?;
-    }
-    return null;
-  }
-
-  String _doctorSpec(Map<String, dynamic> b) {
-    if (b['doctorSpecialization'] != null) return b['doctorSpecialization'];
-    final doc = b['doctorId'];
-    if (doc is Map) return (doc['specialization'] ?? '') as String;
-    return '';
-  }
-
-  String _clinicName(Map<String, dynamic> b) {
-    if (b['clinicName'] != null) return b['clinicName'] as String;
-    final c = b['clinicId'];
-    if (c is Map) return (c['name'] ?? '') as String;
-    return '';
-  }
-
   List<dynamic> get _filteredBookings {
     if (_selectedType == 0) return _bookings;
     return _bookings
@@ -307,6 +278,8 @@ class _BookingsPageState extends State<BookingsPage>
           })
           .toList();
 
+
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
@@ -317,303 +290,56 @@ class _BookingsPageState extends State<BookingsPage>
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Column(
+      backgroundColor: const Color(0xFFF9F9F9),
+      body: Stack(
         children: [
-          _buildHeader(),
-          _buildTabSelector(),
-          _buildTypeFilter(),
-          Expanded(
-            child:
-                _isLoading
-                    ? _buildLoadingState()
-                    : FadeTransition(
-                      opacity: _fadeAnimation,
-                      child:
-                          _selectedTab == 0
-                              ? _buildActiveBookings()
-                              : _buildHistoryBookings(),
-                    ),
+          // ── 1. The Canopy (Background Header) ──
+          BookingsCanopyHeader(
+            activeCount: _activeBookings.length,
+            historyCount: _historyBookings.length,
+            onRefresh: _fetchBookings,
           ),
-        ],
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentNavIndex,
-        onTap: (index) {
-          if (index == 0) Navigator.pop(context);
-          if (index == 4) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const ProfilePage()),
-            );
-          }
-        },
-      ),
-    );
-  }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        MediaQuery.of(context).padding.top + 20,
-        20,
-        24,
-      ),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF00D47F), Color(0xFF00B870), Color(0xFF009960)],
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          // ── 2. The Overlapping Grid Body ──
+          // Pulls content up over the canopy with negative offset
+          Padding(
+            padding: const EdgeInsets.only(top: 220),
+            child: Transform.translate(
+              offset: const Offset(0, -20),
+              child: Column(
                 children: [
-                  Text(
-                    'My Bookings',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  // Glassmorphic Tab Bar
+                  BookingsGlassTabBar(
+                    selectedTab: _selectedTab,
+                    activeCount: _activeBookings.length,
+                    onTabChanged: (tab) => setState(() => _selectedTab = tab),
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Track and manage your appointments',
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
+
+                  // Type Filter
+                  BookingsTypeFilter(
+                    selectedType: _selectedType,
+                    onTypeChanged: (type) =>
+                        setState(() => _selectedType = type),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Content
+                  Expanded(
+                    child: _isLoading
+                        ? _buildLoadingState()
+                        : FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: _selectedTab == 0
+                                ? _buildActiveBookings()
+                                : _buildHistoryBookings(),
+                          ),
                   ),
                 ],
               ),
-              GestureDetector(
-                onTap: _fetchBookings,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(
-                    Icons.refresh_rounded,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          // Quick Stats
-          Row(
-            children: [
-              _buildStatChip(
-                icon: Icons.schedule_rounded,
-                label: '${_activeBookings.length} Active',
-                color: Colors.white,
-              ),
-              const SizedBox(width: 12),
-              _buildStatChip(
-                icon: Icons.check_circle_rounded,
-                label: '${_historyBookings.length} Completed',
-                color: Colors.white70,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatChip({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: color,
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTabSelector() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(child: _buildTab(0, 'Active', Icons.flash_on_rounded)),
-          Expanded(child: _buildTab(1, 'History', Icons.history_rounded)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTab(int index, String label, IconData icon) {
-    final isSelected = _selectedTab == index;
-
-    return GestureDetector(
-      onTap: () => setState(() => _selectedTab = index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          gradient:
-              isSelected
-                  ? const LinearGradient(
-                    colors: [Color(0xFF00D47F), Color(0xFF00B870)],
-                  )
-                  : null,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : const Color(0xFF94A3B8),
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : const Color(0xFF94A3B8),
-              ),
-            ),
-            if (index == 0 && _activeBookings.isNotEmpty) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color:
-                      isSelected
-                          ? Colors.white.withOpacity(0.2)
-                          : const Color(0xFF00B870),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${_activeBookings.length}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTypeFilter() {
-    const types = [
-      ('الكل', Icons.apps_rounded),
-      ('تمريض', Icons.medical_services_rounded),
-      ('عيادة', Icons.local_hospital_rounded),
-    ];
-    final activeColors = [
-      const Color(0xFF00B870),
-      const Color(0xFF00B870),
-      const Color(0xFF3B82F6),
-    ];
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-      child: Row(
-        children: List.generate(types.length, (i) {
-          final selected = _selectedType == i;
-          final (label, icon) = types[i];
-          final color = activeColors[i];
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedType = i),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: EdgeInsets.only(right: i < 2 ? 8 : 0),
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: selected ? color : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color:
-                        selected ? Colors.transparent : const Color(0xFFE2E8F0),
-                  ),
-                  boxShadow:
-                      selected
-                          ? [
-                            BoxShadow(
-                              color: color.withOpacity(0.25),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ]
-                          : [],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      icon,
-                      color: selected ? Colors.white : const Color(0xFF94A3B8),
-                      size: 15,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color:
-                            selected ? Colors.white : const Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }),
       ),
     );
   }
@@ -626,18 +352,27 @@ class _BookingsPageState extends State<BookingsPage>
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF00B870).withOpacity(0.1),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF2ECC71).withAlpha(25),
+                  const Color(0xFF3498BB).withAlpha(20),
+                ],
+              ),
               shape: BoxShape.circle,
             ),
             child: const CircularProgressIndicator(
-              color: Color(0xFF00B870),
+              color: Color(0xFF2ECC71),
               strokeWidth: 3,
             ),
           ),
           const SizedBox(height: 20),
-          Text(
+          const Text(
             'Loading bookings...',
-            style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 16,
+              color: Color(0xFF94A3B8),
+            ),
           ),
         ],
       ),
@@ -646,24 +381,29 @@ class _BookingsPageState extends State<BookingsPage>
 
   Widget _buildActiveBookings() {
     if (_activeBookings.isEmpty) {
-      return _buildEmptyState(
+      return BookingsEmptyState(
         icon: Icons.calendar_today_rounded,
         title: 'No Active Bookings',
         subtitle: 'Your upcoming appointments will appear here',
         showAction: true,
+        onAction: () => Navigator.pop(context),
       );
     }
 
     return RefreshIndicator(
       onRefresh: _fetchBookings,
-      color: const Color(0xFF00B870),
+      color: const Color(0xFF2ECC71),
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: _activeBookings.length,
         itemBuilder: (context, index) {
           final booking = Map<String, dynamic>.from(_activeBookings[index]);
-          return _buildActiveBookingCard(booking, index);
+          return BookingsActiveCard(
+            booking: booking,
+            index: index,
+            onRefresh: _fetchBookings,
+          );
         },
       ),
     );
@@ -671,7 +411,7 @@ class _BookingsPageState extends State<BookingsPage>
 
   Widget _buildHistoryBookings() {
     if (_historyBookings.isEmpty) {
-      return _buildEmptyState(
+      return const BookingsEmptyState(
         icon: Icons.history_rounded,
         title: 'No Booking History',
         subtitle: 'Your completed bookings will appear here',
@@ -681,926 +421,19 @@ class _BookingsPageState extends State<BookingsPage>
 
     return RefreshIndicator(
       onRefresh: _fetchBookings,
-      color: const Color(0xFF00B870),
+      color: const Color(0xFF2ECC71),
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: _historyBookings.length,
         itemBuilder: (context, index) {
           final booking = Map<String, dynamic>.from(_historyBookings[index]);
-          return _buildHistoryBookingCard(booking, index);
+          return BookingsHistoryCard(
+            booking: booking,
+            index: index,
+          );
         },
       ),
     );
-  }
-
-  Widget _buildActiveBookingCard(Map<String, dynamic> booking, int index) {
-    final status = BookingUtils.normalizeStatus(booking['status']);
-    final isMatchingRequest = booking['isMatchingRequest'] == true;
-    final canResumeMatching =
-      isMatchingRequest &&
-      (status == 'searching' ||
-        status == 'offers_pending' ||
-        status == 'nurse_accepted');
-    final isClinic = _isClinic(booking);
-    final serviceName = booking['serviceName'] ?? 'Service';
-    final patientName = booking['patientName'] ?? 'Patient';
-    final price = (booking['servicePrice'] ?? 0).toDouble();
-
-    // Provider row data
-    final nurseName = booking['nurseName'] as String?;
-    final doctorName = _doctorName(booking);
-    final providerName = isClinic ? doctorName : nurseName;
-    final providerSub =
-        isClinic
-            ? (_doctorSpec(booking).isNotEmpty
-                ? _doctorSpec(booking)
-                : _clinicName(booking))
-            : '${booking['nurseRating'] ?? 4.5}';
-
-    // Scheduled info
-    final scheduledDate = booking['scheduledDate'] as String?;
-    final scheduledTime = booking['scheduledTime'] as String?;
-    final isQueue = booking['timeOption'] == 'queue';
-
-    // Colors
-    final baseColor =
-        isClinic ? const Color(0xFF3B82F6) : const Color(0xFF00B870);
-
-    Color statusColor;
-    String statusLabel;
-    IconData statusIcon;
-
-    switch (status) {
-      case 'in-progress':
-        statusColor = baseColor;
-        statusLabel = isClinic ? 'In Clinic' : 'In Progress';
-        statusIcon =
-            isClinic
-                ? Icons.local_hospital_rounded
-                : Icons.directions_car_rounded;
-        break;
-      case 'arrived':
-        statusColor = const Color(0xFFEA580C);
-        statusLabel = isClinic ? 'Ready For Visit' : 'Nurse Arrived';
-        statusIcon = Icons.location_on_rounded;
-        break;
-      case 'on-the-way':
-        statusColor = const Color(0xFF0EA5E9);
-        statusLabel = isClinic ? 'Confirmed' : 'On The Way';
-        statusIcon = Icons.directions_car_rounded;
-        break;
-      case 'confirmed':
-      case 'assigned':
-        statusColor = const Color(0xFF3B82F6);
-        statusLabel = 'Confirmed';
-        statusIcon = Icons.check_circle_rounded;
-        break;
-      case 'searching':
-      case 'pending':
-        statusColor = const Color(0xFFF59E0B);
-        statusLabel = isClinic ? 'Awaiting Confirmation' : 'Finding Nurse';
-        statusIcon =
-            isClinic ? Icons.hourglass_top_rounded : Icons.search_rounded;
-        break;
-      case 'offers_pending':
-        statusColor = const Color(0xFFF59E0B);
-        statusLabel = 'Finding Nurse';
-        statusIcon = Icons.search_rounded;
-        break;
-      case 'nurse_accepted':
-        statusColor = const Color(0xFF16A34A);
-        statusLabel = 'Nurse Offers Ready';
-        statusIcon = Icons.local_offer_rounded;
-        break;
-      default:
-        statusColor = const Color(0xFF64748B);
-        statusLabel = 'Pending';
-        statusIcon = Icons.schedule_rounded;
-    }
-
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 400 + (index * 100)),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 30 * (1 - value)),
-          child: Opacity(opacity: value, child: child),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: statusColor.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // Status Banner
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [statusColor, statusColor.withOpacity(0.8)],
-                ),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(statusIcon, color: Colors.white, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    statusLabel,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (status == 'in-progress')
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            '~15 min',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Icon(
-                          isClinic
-                              ? Icons.local_hospital_rounded
-                              : Icons.medical_services_rounded,
-                          color: statusColor,
-                          size: 26,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              serviceName,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.person_outline,
-                                  size: 14,
-                                  color: Colors.grey[500],
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  patientName,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[500],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            // Clinic: show scheduled date/time or queue badge
-                            if (isClinic) ...[
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(
-                                    isQueue
-                                        ? Icons.people_rounded
-                                        : Icons.calendar_today_rounded,
-                                    size: 13,
-                                    color: baseColor,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      isQueue
-                                          ? 'طابور'
-                                          : [
-                                            if (scheduledDate != null)
-                                              () {
-                                                try {
-                                                  return DateFormat(
-                                                    'd MMM',
-                                                  ).format(
-                                                    DateTime.parse(
-                                                      scheduledDate,
-                                                    ),
-                                                  );
-                                                } catch (_) {
-                                                  return scheduledDate;
-                                                }
-                                              }(),
-                                            if (scheduledTime != null)
-                                              scheduledTime,
-                                          ].join(' · '),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: baseColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${price.toStringAsFixed(0)} EGP',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  isClinic
-                                      ? const Color(0xFF3B82F6)
-                                      : const Color(0xFF00B870),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  if (providerName != null) ...[
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  statusColor,
-                                  statusColor.withOpacity(0.7),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Center(
-                              child: Text(
-                                providerName[0],
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  providerName,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      isClinic
-                                          ? Icons.info_outline_rounded
-                                          : Icons.star,
-                                      color:
-                                          isClinic
-                                              ? const Color(0xFF64748B)
-                                              : const Color(0xFFF59E0B),
-                                      size: 13,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        providerSub,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600],
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {},
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: baseColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                isClinic
-                                    ? Icons.directions_rounded
-                                    : Icons.phone_rounded,
-                                color: baseColor,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 14),
-
-                  // Actions — clinic: no Track button
-                  Row(
-                    children: [
-                      if (!isClinic &&
-                          (BookingUtils.isTrackableStatus(status) ||
-                              canResumeMatching))
-                        Expanded(
-                          child: _buildActionButton(
-                            label: 'Track',
-                            icon: Icons.location_on_rounded,
-                            color: const Color(0xFF00B870),
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    BookingTrackingPage(booking: booking),
-                              ),
-                            ),
-                          ),
-                        ),
-                      if (!isClinic &&
-                          (BookingUtils.isTrackableStatus(status) ||
-                              canResumeMatching))
-                        const SizedBox(width: 10),
-                      Expanded(
-                        child: _buildActionButton(
-                          label: 'Cancel',
-                          icon: Icons.close_rounded,
-                          color: const Color(0xFFEF4444),
-                          isOutlined: true,
-                          onTap: () => _handleCancelBooking(booking),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHistoryBookingCard(Map<String, dynamic> booking, int index) {
-    final status = BookingUtils.normalizeStatus(booking['status']);
-    final isClinic = _isClinic(booking);
-    final serviceName = booking['serviceName'] ?? 'Service';
-    final price = (booking['servicePrice'] ?? 0).toDouble();
-    final scheduledDate = booking['scheduledDate'];
-    final rating = booking['nurseRating'] ?? 0.0;
-
-    // Provider name
-    final providerName =
-        isClinic
-            ? (_doctorName(booking) ?? _clinicName(booking))
-            : (booking['nurseName'] ?? 'Nurse');
-    final providerSub =
-        isClinic
-            ? (_clinicName(booking).isNotEmpty
-                ? _clinicName(booking)
-                : _doctorSpec(booking))
-            : null;
-
-    final cardColor =
-        isClinic ? const Color(0xFF3B82F6) : const Color(0xFF00B870);
-
-    Color historyStatusColor;
-    String historyStatusLabel;
-    IconData historyStatusIcon;
-
-    switch (status) {
-      case 'cancelled':
-        historyStatusColor = const Color(0xFFEF4444);
-        historyStatusLabel = 'Cancelled';
-        historyStatusIcon = Icons.cancel_rounded;
-        break;
-      case 'no-show':
-        historyStatusColor = const Color(0xFFF59E0B);
-        historyStatusLabel = 'No Show';
-        historyStatusIcon = Icons.event_busy_rounded;
-        break;
-      case 'completed':
-      default:
-        historyStatusColor = const Color(0xFF00B870);
-        historyStatusLabel = 'Completed';
-        historyStatusIcon = Icons.check_circle_rounded;
-        break;
-    }
-
-    String dateLabel = historyStatusLabel;
-    if (scheduledDate != null) {
-      try {
-        final date = DateTime.parse(scheduledDate);
-        dateLabel = '$historyStatusLabel · ${DateFormat('MMM d, yyyy').format(date)}';
-      } catch (_) {}
-    }
-
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 400 + (index * 100)),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 30 * (1 - value)),
-          child: Opacity(opacity: value, child: child),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: historyStatusColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                historyStatusIcon,
-                color: historyStatusColor,
-                size: 26,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    serviceName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        dateLabel,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                        width: 4,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[400],
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      Flexible(
-                        child: Text(
-                          providerName,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[500],
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (isClinic &&
-                      providerSub != null &&
-                      providerSub.isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.local_hospital_rounded,
-                          size: 12,
-                          color: cardColor,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          providerSub,
-                          style: TextStyle(fontSize: 11, color: cardColor),
-                        ),
-                      ],
-                    ),
-                  ],
-                  if (!isClinic && rating > 0) ...[
-                    const SizedBox(height: 6),
-                    Row(
-                      children: List.generate(5, (i) {
-                        return Icon(
-                          i < rating.round() ? Icons.star : Icons.star_border,
-                          color: const Color(0xFFF59E0B),
-                          size: 14,
-                        );
-                      }),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${price.toStringAsFixed(0)} EGP',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color:
-                        isClinic
-                            ? const Color(0xFF3B82F6)
-                            : const Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: historyStatusColor.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    historyStatusLabel,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: historyStatusColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00B870).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Rebook',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF00B870),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required String label,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-    bool isOutlined = false,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isOutlined ? Colors.white : color,
-          borderRadius: BorderRadius.circular(12),
-          border: isOutlined ? Border.all(color: color) : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: isOutlined ? color : Colors.white, size: 18),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isOutlined ? color : Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool showAction,
-  }) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00B870).withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 48, color: const Color(0xFF00B870)),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-            ),
-            if (showAction) ...[
-              const SizedBox(height: 28),
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 28,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF00D47F), Color(0xFF00B870)],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.add, color: Colors.white, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'Book a Service',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _handleCancelBooking(Map<String, dynamic> booking) {
-    final isLate = BookingUtils.isLateCancel(booking['status']);
-    final isMatchingRequest = booking['isMatchingRequest'] == true;
-
-    showDialog(
-      context: context,
-      builder:
-          (context) => BookingCancellationModal(
-            isLateCancel: isLate,
-            onConfirm: () {
-              Navigator.pop(context);
-              if (isMatchingRequest) {
-                final requestId =
-                    (booking['matchingRequestId'] ?? booking['id'] ?? '')
-                        .toString();
-                _performCancelMatchingRequest(requestId);
-              } else {
-                final bookingId =
-                    (booking['_id'] ?? booking['id'] ?? '').toString();
-                _performCancelBooking(bookingId);
-              }
-            },
-            onCancel: () => Navigator.pop(context),
-          ),
-    );
-  }
-
-  Future<void> _performCancelBooking(String bookingId) async {
-    try {
-      final apiService = ApiService();
-      await apiService.put('/api/bookings/$bookingId/cancel', body: {});
-      _fetchBookings();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 12),
-                Text('Booking cancelled'),
-              ],
-            ),
-            backgroundColor: const Color(0xFF00B870),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      // Handle error
-    }
-  }
-
-  double? _toDouble(dynamic value) {
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value);
-    return null;
-  }
-
-  Future<void> _openMatchingSearch(Map<String, dynamic> booking) async {
-    final matchingRequestId =
-        (booking['matchingRequestId'] ?? booking['id'] ?? '').toString();
-    if (matchingRequestId.isEmpty) return;
-
-    try {
-      final apiService = ApiService();
-      final response = await apiService.get(
-        '/api/matching/request/$matchingRequestId',
-      );
-
-      final request =
-          (response is Map<String, dynamic>)
-              ? (response['matchingRequest'] as Map<String, dynamic>?) ?? {}
-              : <String, dynamic>{};
-
-      final latitude = _toDouble(request['latitude']) ?? 30.0444;
-      final longitude = _toDouble(request['longitude']) ?? 31.2357;
-      final serviceName =
-          (request['serviceName'] ?? booking['serviceName'] ?? 'Service')
-              .toString();
-
-      final user = await TokenManager.getUserFromToken();
-      final patientName =
-          (user?['name'] ?? booking['patientName'] ?? 'Patient').toString();
-
-      if (!mounted) return;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder:
-              (_) => BookingMatchingScreen(
-                matchingRequestId: matchingRequestId,
-                serviceName: serviceName,
-                patientName: patientName,
-                patientLatitude: latitude,
-                patientLongitude: longitude,
-              ),
-        ),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not resume matching request')),
-      );
-    }
-  }
-
-  Future<void> _performCancelMatchingRequest(String requestId) async {
-    if (requestId.isEmpty) return;
-
-    try {
-      final apiService = ApiService();
-      await apiService.put('/api/matching/request/$requestId/cancel', body: {});
-      _fetchBookings();
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 12),
-              Text('Matching request cancelled'),
-            ],
-          ),
-          backgroundColor: const Color(0xFF00B870),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to cancel matching request')),
-      );
-    }
   }
 }

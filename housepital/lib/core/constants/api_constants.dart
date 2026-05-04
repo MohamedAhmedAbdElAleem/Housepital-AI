@@ -1,7 +1,9 @@
 class ApiConstants {
   // Base URL for the API
   // For Physical Device: Use http://192.168.1.208:3500
-  static const String baseUrl = 'http://172.20.10.3:3500';
+  // For Android Emulator: Use 10.0.2.2
+
+  static const String baseUrl = 'http://10.0.2.2:3500';
 
   // Auth Endpoints
   static const String register = '/api/auth/register';
@@ -43,6 +45,13 @@ class ApiConstants {
       '/api/notifications/unread-count';
   static const String notificationsReadAll = '/api/notifications/read-all';
   static const String notificationsClearAll = '/api/notifications/clear-all';
+
+  // Wallet Endpoints
+  static const String walletBalance = '/api/wallet/balance';
+  static const String walletTransactions = '/api/wallet/transactions';
+  static const String walletPaymentInfo = '/api/wallet/payment-info';
+  static const String walletSubmitReceipt = '/api/wallet/receipts/submit';
+  static const String walletMyReceipts = '/api/wallet/receipts/my';
 
   // Headers
   static Map<String, String> get headers => {
