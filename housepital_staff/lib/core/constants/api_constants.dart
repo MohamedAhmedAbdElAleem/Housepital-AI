@@ -1,6 +1,9 @@
 class ApiConstants {
   // For Android Emulator: 10.0.2.2  |  For iOS Simulator: localhost  |  For Physical Device: 192.168.1.3 or 172.20.10.3
-  static const String baseUrl = 'http://10.0.2.2:3500/api';
+  // static const String baseUrl = 'http://10.0.2.2:3500/api';
+  // Base URL - Use localhost for emulator/simulator
+  static const String baseUrl = 'http://172.20.10.6:3500/api';
+  // For physical device testing, use your computer's IP: http://172.20.10.3:3500/api
   // Auth Endpoints
   static const String login = '/auth/login';
   static const String register = '/auth/register';
@@ -60,9 +63,11 @@ class ApiConstants {
   static String acceptBooking(String id) => '/bookings/$id/accept';
   static String verifyPin(String id) => '/bookings/$id/verify-pin';
   static String completeVisit(String id) => '/bookings/$id/complete';
-  static String completeVisitWithReport(String id) => '/bookings/$id/complete-with-report';
+  static String completeVisitWithReport(String id) =>
+      '/bookings/$id/complete-with-report';
   static String getVisitReport(String id) => '/bookings/$id/visit-report';
-  static String getLastVisitReport(String patientId) => '/bookings/patients/$patientId/last-visit-report';
+  static String getLastVisitReport(String patientId) =>
+      '/bookings/patients/$patientId/last-visit-report';
   static String updateBookingStatus(String id) => '/bookings/$id/status';
 
   // Wallet Endpoints
@@ -71,4 +76,7 @@ class ApiConstants {
   static const String walletPaymentInfo = '/wallet/payment-info';
   static const String walletSubmitReceipt = '/wallet/receipts/submit';
   static const String walletMyReceipts = '/wallet/receipts/my';
+  static const String walletRechargeInitiate = '/wallet/recharge/initiate';
+  static String walletRechargeStatus(String orderId) =>
+      '/wallet/recharge/status/$orderId';
 }
