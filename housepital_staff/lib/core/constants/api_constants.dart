@@ -60,9 +60,11 @@ class ApiConstants {
   static String acceptBooking(String id) => '/bookings/$id/accept';
   static String verifyPin(String id) => '/bookings/$id/verify-pin';
   static String completeVisit(String id) => '/bookings/$id/complete';
-  static String completeVisitWithReport(String id) => '/bookings/$id/complete-with-report';
+  static String completeVisitWithReport(String id) =>
+      '/bookings/$id/complete-with-report';
   static String getVisitReport(String id) => '/bookings/$id/visit-report';
-  static String getLastVisitReport(String patientId) => '/bookings/patients/$patientId/last-visit-report';
+  static String getLastVisitReport(String patientId) =>
+      '/bookings/patients/$patientId/last-visit-report';
   static String updateBookingStatus(String id) => '/bookings/$id/status';
 
   // Wallet Endpoints
