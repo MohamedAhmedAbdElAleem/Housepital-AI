@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/utils/token_manager.dart';
+import '../../../nurse/presentation/cubit/nurse_profile_cubit.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -103,23 +105,50 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
         } else if (userRole.toLowerCase() == 'nurse') {
           // Check nurse verification workflow
           final hasProfile = await TokenManager.getHasProfile();
-          final verificationStatus = await TokenManager.getVerificationStatus();
+          final cachedStatus = await TokenManager.getVerificationStatus();
 
           if (!hasProfile) {
             Navigator.pushReplacementNamed(
               context,
               AppRoutes.nurseProfileCompletion,
             );
-          } else if (verificationStatus == 'pending') {
-            Navigator.pushReplacementNamed(
-              context,
-              AppRoutes.nursePendingApproval,
-            );
-          } else if (verificationStatus == 'rejected') {
-            Navigator.pushReplacementNamed(context, AppRoutes.nurseRejected);
           } else {
-            // approved
-            Navigator.pushReplacementNamed(context, AppRoutes.nurseHome);
+            // Always fetch live status when cached is pending/null so that
+            // an admin-approved nurse is routed to home without manual check.
+            String verificationStatus = cachedStatus ?? 'pending';
+
+            if (verificationStatus == 'pending' || cachedStatus == null) {
+              try {
+                final cubit = context.read<NurseProfileCubit>();
+                await cubit.loadProfileStatus();
+                final state = cubit.state;
+                if (state is NurseProfileStatusLoaded) {
+                  verificationStatus = state.status.verificationStatus;
+                  // Persist so next launch is instant
+                  await TokenManager.saveVerificationStatus(verificationStatus);
+                  if (state.status.rejectionReason != null) {
+                    await TokenManager.saveRejectionReason(
+                      state.status.rejectionReason,
+                    );
+                  }
+                }
+              } catch (_) {
+                // Network error — fall back to cached value
+              }
+            }
+
+            if (!mounted) return;
+            if (verificationStatus == 'approved') {
+              Navigator.pushReplacementNamed(context, AppRoutes.nurseHome);
+            } else if (verificationStatus == 'rejected') {
+              Navigator.pushReplacementNamed(context, AppRoutes.nurseRejected);
+            } else {
+              // pending
+              Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.nursePendingApproval,
+              );
+            }
           }
         } else if (userRole.toLowerCase() == 'admin') {
           Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);

@@ -4,7 +4,9 @@ const {
     getNurseProfile,
     updateNurseProfile,
     submitProfileForReview,
-    getProfileStatus
+    getProfileStatus,
+    getPendingNurses,
+    verifyNurse
 } = require('../controllers/nurseController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
@@ -104,4 +106,53 @@ router.post('/profile/submit', authenticateToken, submitProfileForReview);
  */
 router.get('/profile/status', authenticateToken, getProfileStatus);
 
+/**
+ * @openapi
+ * /api/nurse/pending:
+ *   get:
+ *     tags:
+ *       - Nurse
+ *     summary: Get all pending nurses for admin review
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Pending nurses list
+ */
+router.get('/pending', authenticateToken, getPendingNurses);
+
+/**
+ * @openapi
+ * /api/nurse/{nurseId}/verify:
+ *   put:
+ *     tags:
+ *       - Nurse
+ *     summary: Approve or reject a nurse (admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: nurseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               action:
+ *                 type: string
+ *                 enum: [approve, reject]
+ *               rejectionReason:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Nurse verification updated
+ */
+router.put('/:nurseId/verify', authenticateToken, verifyNurse);
+
 module.exports = router;
+

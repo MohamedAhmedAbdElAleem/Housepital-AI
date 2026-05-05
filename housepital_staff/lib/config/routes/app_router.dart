@@ -17,6 +17,12 @@ import '../../features/doctor/data/models/clinic_model.dart';
 import '../../features/nurse/presentation/pages/nurse_home_page.dart';
 import '../../features/nurse/presentation/pages/nurse_profile_page.dart';
 import '../../features/nurse/presentation/pages/nurse_profile_completion_page.dart';
+import '../../features/nurse/presentation/pages/nurse_personal_info_page.dart';
+import '../../features/nurse/presentation/pages/nurse_credentials_page.dart';
+import '../../features/nurse/presentation/pages/nurse_service_areas_page.dart';
+import '../../features/nurse/presentation/pages/nurse_schedule_page.dart';
+import '../../features/nurse/presentation/pages/nurse_reviews_page.dart';
+import '../../features/nurse/presentation/pages/nurse_settings_page.dart';
 import '../../features/nurse/presentation/pages/nurse_pending_approval_page.dart';
 import '../../features/nurse/presentation/pages/nurse_rejected_page.dart';
 import '../../features/nurse/presentation/pages/wallet_page.dart';
@@ -88,6 +94,36 @@ class AppRouter {
       case AppRoutes.nurseProfileCompletion:
         return MaterialPageRoute(
           builder: (_) => const NurseProfileCompletionPage(),
+        );
+
+      case AppRoutes.nursePersonalInfo:
+        return MaterialPageRoute(
+          builder: (_) => const NursePersonalInfoPage(),
+        );
+
+      case AppRoutes.nurseCredentials:
+        return MaterialPageRoute(
+          builder: (_) => const NurseCredentialsPage(),
+        );
+
+      case AppRoutes.nurseServiceAreas:
+        return MaterialPageRoute(
+          builder: (_) => const NurseServiceAreasPage(),
+        );
+
+      case AppRoutes.nurseSchedule:
+        return MaterialPageRoute(
+          builder: (_) => const NurseSchedulePage(),
+        );
+
+      case AppRoutes.nurseReviews:
+        return MaterialPageRoute(
+          builder: (_) => const NurseReviewsPage(),
+        );
+
+      case AppRoutes.nurseSettings:
+        return MaterialPageRoute(
+          builder: (_) => const NurseSettingsPage(),
         );
 
       case AppRoutes.nursePendingApproval:

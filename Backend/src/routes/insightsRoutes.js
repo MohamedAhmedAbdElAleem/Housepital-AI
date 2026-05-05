@@ -538,7 +538,27 @@ router.patch("/user/:id/status", async (req, res) => {
 
         const previousStatus = user.status;
         user.status = status;
+        if (status === 'approved') user.verificationStatus = 'verified';
+        else if (status === 'rejected') user.verificationStatus = 'rejected';
         await user.save();
+
+        // Sync with Nurse/Doctor profile
+        if (user.role === 'nurse') {
+            const Nurse = require('../models/Nurse');
+            await Nurse.updateMany(
+                { user: user._id },
+                { 
+                    verificationStatus: status === 'approved' ? 'approved' : status,
+                    profileStatus: status === 'approved' ? 'approved' : status
+                }
+            );
+        } else if (user.role === 'doctor') {
+            const Doctor = require('../models/Doctor');
+            await Doctor.updateMany(
+                { user: user._id },
+                { verificationStatus: status === 'approved' ? 'approved' : status }
+            );
+        }
 
         // Log the action
         try {

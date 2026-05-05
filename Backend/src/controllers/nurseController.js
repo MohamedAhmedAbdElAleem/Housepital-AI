@@ -105,6 +105,7 @@ exports.updateNurseProfile = async (req, res) => {
 
         if (isProfileComplete && nurse.profileStatus === 'incomplete') {
             nurse.profileStatus = 'pending_review';
+            nurse.verificationStatus = 'pending';
             console.log('✅ Profile is complete, status changed to pending_review');
         }
 
@@ -246,5 +247,94 @@ exports.getProfileStatus = async (req, res) => {
     }
 };
 
-// Functions are already exported using exports.functionName syntax above
-// No need for module.exports
+/**
+ * @desc    Get all pending nurses (for admin review)
+ * @route   GET /api/nurse/pending
+ * @access  Private (Admin only)
+ */
+exports.getPendingNurses = async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Admin access only" });
+        }
+
+        const status = req.query.status || 'pending';
+        const filter = {};
+        if (status !== 'all') {
+            filter.verificationStatus = status;
+        }
+
+        const nurses = await Nurse.find(filter)
+            .populate("user", "name email mobile profilePictureUrl createdAt")
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            count: nurses.length,
+            data: nurses
+        });
+    } catch (error) {
+        logEvents(`Get pending nurses error: ${error.message}`, 'nurseErrLog.log');
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+/**
+ * @desc    Approve or reject a nurse
+ * @route   PUT /api/nurse/:nurseId/verify
+ * @access  Private (Admin only)
+ */
+exports.verifyNurse = async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Admin access only" });
+        }
+
+        const { nurseId } = req.params;
+        const { action, rejectionReason } = req.body;
+
+        if (!['approve', 'reject'].includes(action)) {
+            return res.status(400).json({ message: "Action must be 'approve' or 'reject'" });
+        }
+
+        const nurse = await Nurse.findById(nurseId).populate("user", "name email");
+        if (!nurse) {
+            return res.status(404).json({ message: "Nurse not found" });
+        }
+
+        if (action === 'approve') {
+            nurse.verificationStatus = 'approved';
+            nurse.profileStatus = 'approved';
+            nurse.rejectionReason = null;
+            nurse.verifiedBy = req.user.id;
+            nurse.verifiedAt = new Date();
+            await nurse.save();
+
+            res.json({
+                success: true,
+                message: `Nurse ${nurse.user?.name || 'Unknown'} has been approved.`,
+                data: nurse
+            });
+        } else {
+            if (!rejectionReason || rejectionReason.trim() === '') {
+                return res.status(400).json({ message: "Rejection reason is required" });
+            }
+
+            nurse.verificationStatus = 'rejected';
+            nurse.profileStatus = 'rejected';
+            nurse.rejectionReason = rejectionReason;
+            nurse.verifiedBy = req.user.id;
+            nurse.verifiedAt = new Date();
+            await nurse.save();
+
+            res.json({
+                success: true,
+                message: `Nurse ${nurse.user?.name || 'Unknown'} has been rejected.`,
+                data: nurse
+            });
+        }
+    } catch (error) {
+        logEvents(`Verify nurse error: ${error.message}`, 'nurseErrLog.log');
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+};

@@ -528,7 +528,8 @@ class _RegisterPageState extends State<RegisterPage>
         route = AppRoutes.doctorProfileCompletion;
         break;
       case 'nurse':
-        route = AppRoutes.nurseHome;
+        // Mirror doctor flow: new nurses must complete profile first
+        route = AppRoutes.nurseProfileCompletion;
         break;
       case 'admin':
         route = AppRoutes.adminDashboard;

@@ -34,18 +34,41 @@ class _NursePendingApprovalPageState extends State<NursePendingApprovalPage>
   }
 
   Future<void> _checkStatus() async {
+    print('\n========== [CHECK STATUS] STARTED ==========');
     setState(() => _isChecking = true);
     final cubit = context.read<NurseProfileCubit>();
-    await cubit.loadProfile();
+
+    print('[CHECK STATUS] Calling GET /api/nurse/profile/status ...');
+    await cubit.loadProfileStatus();
 
     if (!mounted) return;
     final state = cubit.state;
 
-    if (state is NurseProfileLoaded) {
-      final status = state.profile.verificationStatus;
-      await TokenManager.saveVerificationStatus(status ?? 'pending');
+    print('[CHECK STATUS] Cubit state type: ${state.runtimeType}');
 
-      if (status == 'approved') {
+    if (state is NurseProfileStatusLoaded) {
+      final status = state.status.verificationStatus;
+      final profileStatus = state.status.profileStatus;
+      final profileExists = state.status.profileExists;
+      final completionPct = state.status.completionPercentage;
+      final rejectionReason = state.status.rejectionReason;
+
+      print('[CHECK STATUS] ✅ API response parsed successfully:');
+      print('  → verificationStatus : "$status"');
+      print('  → profileStatus      : "$profileStatus"');
+      print('  → profileExists      : $profileExists');
+      print('  → completionPct      : $completionPct%');
+      print('  → rejectionReason    : $rejectionReason');
+
+      // Persist the latest status so splash screen reflects it on next launch
+      await TokenManager.saveVerificationStatus(status);
+      print('[CHECK STATUS] Saved verificationStatus to local storage: "$status"');
+
+      print('[CHECK STATUS] Evaluating: status=="approved" → ${status == 'approved'}');
+      print('[CHECK STATUS] Evaluating: profileStatus=="approved" → ${profileStatus == 'approved'}');
+
+      if (status == 'approved' || profileStatus == 'approved') {
+        print('[CHECK STATUS] 🟢 APPROVED → navigating to nurseHome');
         if (mounted) {
           Navigator.pushNamedAndRemoveUntil(
             context,
@@ -55,7 +78,8 @@ class _NursePendingApprovalPageState extends State<NursePendingApprovalPage>
         }
         return;
       } else if (status == 'rejected') {
-          await TokenManager.saveRejectionReason(state.profile.rejectionReason);
+        print('[CHECK STATUS] 🔴 REJECTED → navigating to nurseRejected');
+        await TokenManager.saveRejectionReason(rejectionReason);
         if (mounted) {
           Navigator.pushNamedAndRemoveUntil(
             context,
@@ -65,17 +89,39 @@ class _NursePendingApprovalPageState extends State<NursePendingApprovalPage>
         }
         return;
       }
-    }
 
-    if (mounted) {
-      setState(() => _isChecking = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Your application is still under review.'),
-          backgroundColor: Color(0xFF2664EC),
-        ),
-      );
+      // Still pending
+      print('[CHECK STATUS] 🟡 PENDING → showing snackbar (status="$status", profileStatus="$profileStatus")');
+      if (mounted) {
+        setState(() => _isChecking = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Still under review. '
+              '[verificationStatus: $status | profileStatus: $profileStatus]',
+            ),
+            backgroundColor: const Color(0xFF2664EC),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+      }
+    } else if (state is NurseProfileError) {
+      print('[CHECK STATUS] ❌ ERROR state: ${state.message}');
+      if (mounted) {
+        setState(() => _isChecking = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${state.message}'),
+            backgroundColor: Colors.red[700],
+            duration: const Duration(seconds: 8),
+          ),
+        );
+      }
+    } else {
+      print('[CHECK STATUS] ⚠️ UNEXPECTED state: ${state.runtimeType}');
+      if (mounted) setState(() => _isChecking = false);
     }
+    print('========== [CHECK STATUS] DONE ==========\n');
   }
 
   @override

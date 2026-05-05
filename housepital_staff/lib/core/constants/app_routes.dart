@@ -11,6 +11,12 @@ class AppRoutes {
   // Nurse
   static const String nurseHome = '/nurse/home';
   static const String nurseProfile = '/nurse/profile';
+  static const String nursePersonalInfo = '/nurse/personal-info';
+  static const String nurseCredentials = '/nurse/credentials';
+  static const String nurseServiceAreas = '/nurse/service-areas';
+  static const String nurseSchedule = '/nurse/schedule';
+  static const String nurseReviews = '/nurse/reviews';
+  static const String nurseSettings = '/nurse/settings';
   static const String nurseWallet = '/nurse/wallet';
   static const String nursePendingApproval = '/nurse/pending-approval';
   static const String nurseRejected = '/nurse/rejected';

@@ -437,7 +437,18 @@ class _LoginPageState extends State<LoginPage>
         }
         break;
       case 'nurse':
-        route = AppRoutes.nurseHome;
+        // Mirror doctor's verification workflow
+        final hasNurseProfile = await TokenManager.getHasProfile();
+        final nurseVerificationStatus = await TokenManager.getVerificationStatus();
+        if (!hasNurseProfile) {
+          route = AppRoutes.nurseProfileCompletion;
+        } else if (nurseVerificationStatus == 'rejected') {
+          route = AppRoutes.nurseRejected;
+        } else if (nurseVerificationStatus == 'pending') {
+          route = AppRoutes.nursePendingApproval;
+        } else {
+          route = AppRoutes.nurseHome;
+        }
         break;
       case 'admin':
         route = AppRoutes.adminHome;

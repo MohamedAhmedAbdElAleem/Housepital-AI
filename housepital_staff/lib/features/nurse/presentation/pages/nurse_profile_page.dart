@@ -112,113 +112,116 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
                 const SizedBox(height: 24),
 
                 // Status Section
-                if (profile.profileStatus != 'approved')
-                  ...[
-                    _buildStatusCard(profile),
-                    const SizedBox(height: 24),
-                  ],
+                if (profile.profileStatus != 'approved') ...[
+                  _buildStatusCard(profile),
+                  const SizedBox(height: 24),
+                ],
 
-                // Professional Information
-                _buildSectionCard(
-                  title: 'Professional Information',
-                  children: [
-                    _buildInfoRow(
-                      'Specialization',
-                      profile.specialization ?? 'Not set',
-                      Icons.medical_services,
-                    ),
-                    const Divider(height: 20),
-                    _buildInfoRow(
-                      'Experience',
-                      '${profile.yearsOfExperience ?? 0} years',
-                      Icons.history_edu,
-                    ),
-                    const Divider(height: 20),
-                    _buildInfoRow(
-                      'License Number',
-                      profile.licenseNumber ?? 'Not set',
-                      Icons.badge,
-                    ),
-                    if (profile.skills.isNotEmpty) ...[
-                      const Divider(height: 20),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.verified,
-                                color: AppColors.primary500,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 12),
-                              const Text(
-                                'Skills',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: profile.skills
-                                .map(
-                                  (skill) => Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary100,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: AppColors.primary300,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      skill.replaceAll('_', ' '),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.primary500,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
+                // Account Section
+                _buildSectionTitle('Account'),
+                _buildSettingsCard([
+                  _buildSettingsTile(
+                    icon: Icons.person_outline,
+                    title: 'My Profile',
+                    subtitle: 'Standard personal info',
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.nursePersonalInfo,
+                      );
+                    },
+                  ),
+                  _buildSettingsTile(
+                    icon: Icons.badge_outlined,
+                    title: 'Professional Credentials',
+                    subtitle: 'Medical licenses, ID, and certificates',
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.nurseCredentials,
+                      );
+                    },
+                  ),
+                  _buildSettingsTile(
+                    icon: Icons.map_outlined,
+                    title: 'Service Areas',
+                    subtitle: 'Geographical zones for travel',
+                    showBottomDivider: false,
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.nurseServiceAreas,
+                      );
+                    },
+                  ),
+                ]),
                 const SizedBox(height: 24),
 
-                // Bio Section
-                if ((profile.bio ?? '').isNotEmpty)
-                  _buildSectionCard(
-                    title: 'About',
-                    children: [
-                      Text(
-                        profile.bio!,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          height: 1.6,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
+                // Services Section
+                _buildSectionTitle('Services'),
+                _buildSettingsCard([
+                  _buildSettingsTile(
+                    icon: Icons.schedule,
+                    title: 'Availability & Schedule',
+                    subtitle: 'Working hours, days off, shift preferences',
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.nurseSchedule,
+                      );
+                    },
                   ),
-                if ((profile.bio ?? '').isNotEmpty)
-                  const SizedBox(height: 24),
+                  _buildSettingsTile(
+                    icon: Icons.account_balance_wallet_outlined,
+                    title: 'Wallet & Earnings',
+                    subtitle: 'Payouts, pending balance, history',
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.nurseWallet,
+                      );
+                    },
+                  ),
+                  _buildSettingsTile(
+                    icon: Icons.star_outline,
+                    title: 'Performance & Reviews',
+                    subtitle: 'Read patient feedback',
+                    showBottomDivider: false,
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.nurseReviews,
+                      );
+                    },
+                  ),
+                ]),
+                const SizedBox(height: 24),
 
-                // Action Buttons
-                _buildActionButtons(context, profile),
+                // Support Section
+                _buildSectionTitle('Support'),
+                _buildSettingsCard([
+                  _buildSettingsTile(
+                    icon: Icons.settings_outlined,
+                    title: 'Settings',
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.nurseSettings,
+                      );
+                    },
+                  ),
+                  _buildSettingsTile(
+                    icon: Icons.logout_rounded,
+                    title: 'Sign Out',
+                    iconColor: Colors.red,
+                    textColor: Colors.red,
+                    showBottomDivider: false,
+                    onTap: () {
+                      _showLogoutConfirmation(context);
+                    },
+                  ),
+                ]),
+                const SizedBox(height: 40),
               ],
             ),
           );
@@ -228,8 +231,9 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
   }
 
   Widget _buildProfileHeader(NurseProfile profile) {
-    final userName = profile.userId ?? 'Nurse';
+    final userName = profile.userName ?? 'Nurse';
     final userInitial = userName.isNotEmpty ? userName[0].toUpperCase() : 'N';
+    final specialization = profile.specialization ?? 'Registered Nurse';
 
     return Container(
       width: double.infinity,
@@ -255,63 +259,227 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar
+          Row(
+            children: [
+              // Avatar
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    userInitial,
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary500,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Name and Specialization
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      userName,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      specialization,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Quick Stats
           Container(
-            width: 80,
-            height: 80,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildQuickStat(
+                  'Visits',
+                  '${profile.completedVisits}',
+                  Icons.check_circle_outline,
+                ),
+                Container(width: 1, height: 40, color: Colors.white.withOpacity(0.3)),
+                _buildQuickStat(
+                  'Rating',
+                  '⭐ ${profile.rating.toStringAsFixed(1)}',
+                  Icons.star_border,
+                ),
+                Container(width: 1, height: 40, color: Colors.white.withOpacity(0.3)),
+                _buildQuickStat(
+                  'Earnings',
+                  'EGP 0', // Using placeholder as earnings aren't in profile yet
+                  Icons.account_balance_wallet_outlined,
                 ),
               ],
             ),
-            child: Center(
-              child: Text(
-                userInitial,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary500,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickStat(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.white, size: 20),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.8),
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, bottom: 12),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsCard(List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildSettingsTile({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    Color? iconColor,
+    Color? textColor,
+    bool showBottomDivider = true,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16), // Match card border radius
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: (iconColor ?? AppColors.primary500).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: iconColor ?? AppColors.primary500,
+                    size: 22,
+                  ),
                 ),
-              ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: textColor ?? AppColors.textPrimary,
+                        ),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.grey[400],
+                  size: 24,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-
-          // Name
-          Text(
-            userName,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          if (showBottomDivider)
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: Colors.grey[100],
+              indent: 64,
             ),
-          ),
-          const SizedBox(height: 8),
-
-          // Specialization badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.25),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.5),
-              ),
-            ),
-            child: Text(
-              profile.specialization ?? 'Nursing Professional',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -362,149 +530,6 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSectionCard({
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey[200]!,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value, IconData icon) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: AppColors.primary500,
-          size: 20,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context, NurseProfile profile) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Edit Profile Button
-        ElevatedButton.icon(
-          onPressed: () {
-            Navigator.pushNamed(
-              context,
-              AppRoutes.nurseProfileCompletion,
-            );
-          },
-          icon: const Icon(Icons.edit),
-          label: const Text('Edit Profile'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary500,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Change Password Button
-        OutlinedButton.icon(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Change Password feature coming soon'),
-              ),
-            );
-          },
-          icon: const Icon(Icons.lock),
-          label: const Text('Change Password'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.primary500,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            side: const BorderSide(color: AppColors.primary500),
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Logout Button
-        OutlinedButton.icon(
-          onPressed: () {
-            _showLogoutConfirmation(context);
-          },
-          icon: const Icon(Icons.logout),
-          label: const Text('Logout'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.red,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            side: const BorderSide(color: Colors.red),
-          ),
-        ),
-      ],
     );
   }
 

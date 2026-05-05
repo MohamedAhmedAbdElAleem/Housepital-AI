@@ -67,7 +67,7 @@ exports.register = async (req, res, next) => {
         // Generate JWT token for the new user
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
-            process.env.ACCESS_TOKEN_SECRET || 'housepital_secret_key_2024',
+            process.env.JWT_SECRET_KEY || 'housepital_secret_key_2024',
             { expiresIn: '30d' }
         );
 
@@ -151,7 +151,7 @@ exports.login = async (req, res, next) => {
             role: user.role
         };
         
-        const secretKey = process.env.JWT_SECRET_KEY || 'housepital_secure_key_2025';
+        const secretKey = process.env.JWT_SECRET_KEY || 'housepital_secret_key_2024';
         const options = { expiresIn: '30d' };
 
         const JWTToken = jwt.sign(payload, secretKey, options);

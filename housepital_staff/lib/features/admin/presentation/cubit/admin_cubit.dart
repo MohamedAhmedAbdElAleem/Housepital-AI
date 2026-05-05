@@ -14,6 +14,11 @@ class AdminDoctorsLoaded extends AdminState {
   AdminDoctorsLoaded(this.doctors);
 }
 
+class AdminNursesLoaded extends AdminState {
+  final List<Map<String, dynamic>> nurses;
+  AdminNursesLoaded(this.nurses);
+}
+
 class AdminClinicsLoaded extends AdminState {
   final List<Map<String, dynamic>> clinics;
   AdminClinicsLoaded(this.clinics);
@@ -56,6 +61,8 @@ class AdminCubit extends Cubit<AdminState> {
 
   AdminCubit({required this.apiClient}) : super(AdminInitial());
 
+  // ── Doctor Approval ──
+
   Future<void> fetchDoctors({String status = 'pending'}) async {
     emit(AdminLoading());
     try {
@@ -97,6 +104,51 @@ class AdminCubit extends Cubit<AdminState> {
     }
   }
 
+  // ── Nurse Approval (mirrors Doctor flow) ──
+
+  Future<void> fetchNurses({String status = 'pending'}) async {
+    emit(AdminLoading());
+    try {
+      final response = await apiClient.get('/nurse/pending?status=$status');
+      final data = response['data'] is List ? response['data'] as List : [];
+      emit(AdminNursesLoaded(List<Map<String, dynamic>>.from(data)));
+    } on DioException catch (e) {
+      emit(AdminError(e.response?.data['message'] ?? 'Failed to load nurses'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> approveNurse(String nurseId) async {
+    try {
+      final response = await apiClient.put(
+        '/nurse/$nurseId/verify',
+        body: {'action': 'approve'},
+      );
+      emit(AdminActionSuccess(response['message'] ?? 'Nurse approved'));
+    } on DioException catch (e) {
+      emit(AdminError(e.response?.data['message'] ?? 'Failed to approve nurse'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> rejectNurse(String nurseId, String reason) async {
+    try {
+      final response = await apiClient.put(
+        '/nurse/$nurseId/verify',
+        body: {'action': 'reject', 'rejectionReason': reason},
+      );
+      emit(AdminActionSuccess(response['message'] ?? 'Nurse rejected'));
+    } on DioException catch (e) {
+      emit(AdminError(e.response?.data['message'] ?? 'Failed to reject nurse'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  // ── Clinics ──
+
   Future<void> fetchClinics({String status = 'pending'}) async {
     emit(AdminLoading());
     try {
@@ -137,6 +189,8 @@ class AdminCubit extends Cubit<AdminState> {
       emit(AdminError(e.toString()));
     }
   }
+
+  // ── Dashboard & Insights ──
 
   Future<void> fetchDashboardInsights() async {
     emit(AdminLoading());
@@ -207,6 +261,8 @@ class AdminCubit extends Cubit<AdminState> {
     }
   }
 
+  // ── Settings ──
+
   Future<void> fetchSettings() async {
     emit(AdminLoading());
     try {
@@ -249,3 +305,4 @@ class AdminCubit extends Cubit<AdminState> {
     }
   }
 }
+

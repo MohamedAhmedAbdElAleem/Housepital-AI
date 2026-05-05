@@ -73,15 +73,13 @@ class NurseRemoteDataSourceImpl implements NurseRemoteDataSource {
   @override
   Future<ProfileStatus> getProfileStatus() async {
     try {
-      print('📥 Fetching profile status...');
+      print('[DATASOURCE] 📡 GET /api/nurse/profile/status');
       final response = await apiClient.get(ApiConstants.nurseProfileStatus);
-      print(
-        '✅ Status fetched: ${response is String ? jsonDecode(response)['profileStatus'] ?? jsonDecode(response)['status'] : response['profileStatus'] ?? response['status']}',
-      );
       final responseData = response is String ? jsonDecode(response) : response;
+      print('[DATASOURCE] 📥 Raw response from server: $responseData');
       return ProfileStatus.fromJson(responseData);
     } catch (e) {
-      print('❌ Error fetching status: $e');
+      print('[DATASOURCE] ❌ Error in getProfileStatus: $e');
       rethrow;
     }
   }

@@ -88,24 +88,47 @@ class NurseProfileCubit extends Cubit<NurseProfileState> {
       );
     } on AppException catch (e) {
       print('❌ Error loading profile: ${e.message}');
-      emit(NurseProfileError(e.message));
+      if (e.message.toLowerCase().contains('not found') || e.message.toLowerCase().contains('404')) {
+        print('✨ Initializing empty profile for new user');
+        _currentProfile = NurseProfile();
+        emit(NurseProfileLoaded(
+          profile: _currentProfile!,
+          completionPercentage: 0,
+        ));
+      } else {
+        emit(NurseProfileError(e.message));
+      }
     } catch (e) {
       print('❌ Unexpected error: $e');
-      emit(NurseProfileError('Failed to load profile'));
+      if (e.toString().toLowerCase().contains('not found')) {
+        _currentProfile = NurseProfile();
+        emit(NurseProfileLoaded(
+          profile: _currentProfile!,
+          completionPercentage: 0,
+        ));
+      } else {
+        emit(NurseProfileError('Failed to load profile'));
+      }
     }
   }
 
   Future<void> loadProfileStatus() async {
     try {
-      print('🔄 Loading profile status...');
+      print('\n[CUBIT] 🔄 loadProfileStatus: calling GET /api/nurse/profile/status');
       final status = await repository.getProfileStatus();
-      print('✅ Status loaded: ${status.profileStatus}');
+      print('[CUBIT] ✅ Raw parsed ProfileStatus:');
+      print('  → profileStatus      : "${status.profileStatus}"');
+      print('  → verificationStatus : "${status.verificationStatus}"');
+      print('  → profileExists      : ${status.profileExists}');
+      print('  → completionPct      : ${status.completionPercentage}%');
+      print('  → rejectionReason    : ${status.rejectionReason}');
       emit(NurseProfileStatusLoaded(status));
+      print('[CUBIT] 📤 Emitted: NurseProfileStatusLoaded');
     } on AppException catch (e) {
-      print('❌ Error loading status: ${e.message}');
+      print('[CUBIT] ❌ AppException in loadProfileStatus: ${e.message}');
       emit(NurseProfileError(e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      print('[CUBIT] ❌ Unexpected error in loadProfileStatus: $e');
       emit(NurseProfileError('Failed to load status'));
     }
   }
@@ -136,11 +159,25 @@ class NurseProfileCubit extends Cubit<NurseProfileState> {
       print('🔄 Uploading $documentType...');
       final url = await repository.uploadDocument(filePath, documentType);
       print('✅ Document uploaded: $url');
+      
+      if (_currentProfile != null) {
+        if (documentType == 'national_id') {
+          _currentProfile = _currentProfile!.copyWith(nationalIdUrl: url);
+        } else if (documentType == 'degree') {
+          _currentProfile = _currentProfile!.copyWith(degreeUrl: url);
+        } else if (documentType == 'license') {
+          _currentProfile = _currentProfile!.copyWith(licenseUrl: url);
+        }
+      }
+      
       emit(DocumentUploaded(documentType, url));
 
-      // Update profile with document URL
-      final fieldName = _getDocumentFieldName(documentType);
-      await updateProfile({fieldName: url});
+      if (_currentProfile != null) {
+        emit(NurseProfileLoaded(
+          profile: _currentProfile!,
+          completionPercentage: _calculateCompletionPercentage(_currentProfile!),
+        ));
+      }
     } on AppException catch (e) {
       print('❌ Error uploading document: ${e.message}');
       emit(NurseProfileError(e.message));
@@ -154,6 +191,11 @@ class NurseProfileCubit extends Cubit<NurseProfileState> {
     emit(NurseProfileUpdating());
     try {
       print('🔄 Consolidated Submit: Updating profile data first...');
+      if (_currentProfile != null) {
+        if (_currentProfile!.nationalIdUrl != null) data['nationalIdUrl'] = _currentProfile!.nationalIdUrl;
+        if (_currentProfile!.degreeUrl != null) data['degreeUrl'] = _currentProfile!.degreeUrl;
+        if (_currentProfile!.licenseUrl != null) data['licenseUrl'] = _currentProfile!.licenseUrl;
+      }
       await repository.updateProfile(data);
 
       print('🔄 Consolidated Submit: Triggering submission for review...');

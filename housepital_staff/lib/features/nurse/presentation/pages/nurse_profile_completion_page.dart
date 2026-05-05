@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/utils/token_manager.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,6 +18,8 @@ class NurseProfileCompletionPage extends StatefulWidget {
 
 class _NurseProfileCompletionPageState
     extends State<NurseProfileCompletionPage> {
+  bool _hasPopulated = false;
+
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
@@ -97,6 +100,33 @@ class _NurseProfileCompletionPageState
     super.dispose();
   }
 
+  Future<void> _onProfileSubmitted() async {
+    await TokenManager.saveHasProfile(true);
+    await TokenManager.saveVerificationStatus('pending');
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('✅ Profile updated successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    // If they were already approved, just pop back to their profile view.
+    // If they were incomplete, send them to pending approval.
+    // Assuming if they are here from settings, they probably have a profile, we can pop.
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.nursePendingApproval,
+        (route) => false,
+      );
+    }
+  }
+
   Future<void> _pickDocument(String type) async {
     try {
       final result = await FilePicker.platform.pickFiles(
@@ -141,38 +171,65 @@ class _NurseProfileCompletionPageState
     }
   }
 
+  void _submitProfileForm() {
+    if (_selectedSkills.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one approved service'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (_formKey.currentState?.validate() ?? false) {
+      final data = {
+        'licenseNumber': _licenseNumController.text,
+        'specialization': _selectedSpec,
+        'yearsOfExperience': int.tryParse(_yearsController.text),
+        'bio': _bioController.text,
+        'gender': _gender,
+        'skills': _selectedSkills,
+        'bankAccount': {
+          'bankName': _bankNameController.text,
+          'accountNumber': _accountNumController.text,
+          'accountHolderName': _accountHolderController.text,
+        },
+      };
+      context.read<NurseProfileCubit>().submitProfile(data);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill out all required fields.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE), // Soft blue-grey
+      backgroundColor: const Color(0xFFF8F9FE),
       appBar: AppBar(
         title: const Text(
-          'Complete Profile',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          'Edit Profile Data',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.redAccent),
-            tooltip: 'Logout',
-            onPressed: () {
-              context.read<AuthCubit>().logout();
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                AppRoutes.login,
-                (route) => false,
-              );
-            },
-          ),
-        ],
       ),
       body: BlocConsumer<NurseProfileCubit, NurseProfileState>(
         listener: (context, state) {
-          if (state is NurseProfileLoaded) {
+          if (state is NurseProfileLoaded && !_hasPopulated) {
             _populateFields(state.profile);
+            _hasPopulated = true;
           } else if (state is DocumentUploaded) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -180,15 +237,8 @@ class _NurseProfileCompletionPageState
                 backgroundColor: Colors.green,
               ),
             );
-            context.read<NurseProfileCubit>().loadProfile();
           } else if (state is NurseProfileSubmitted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('✅ Submitted!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-            Navigator.pop(context);
+            _onProfileSubmitted();
           } else if (state is NurseProfileError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -199,386 +249,297 @@ class _NurseProfileCompletionPageState
           }
         },
         builder: (context, state) {
-          bool isLoading =
-              state is NurseProfileLoading ||
+          bool isLoading = state is NurseProfileLoading ||
               state is NurseProfileUpdating ||
               state is DocumentUploading ||
               state is NurseProfileSubmitted;
+          
           NurseProfile? profile;
           if (state is NurseProfileLoaded) profile = state.profile;
           if (state is NurseProfileUpdated) profile = state.profile;
-          profile =
-              profile ??
+          profile = profile ??
               context.read<NurseProfileCubit>().currentProfile ??
               NurseProfile();
 
-          if (profile.id == null && isLoading) {
+          if (state is NurseProfileLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  // Banner Intention
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.only(bottom: 24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.primary500, AppColors.primary400],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary500.withValues(alpha: 0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
+          return Stack(
+            children: [
+              Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 100),
+                  children: [
+                    _buildSectionCard(
+                      'Personal Info',
+                      Icons.person_outline,
+                      _buildPersonalInfoForm(),
                     ),
-                    child: const Row(
-                      children: [
-                        Icon(
-                          Icons.verified_user_outlined,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                        SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Almost There!',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              Text(
-                                'Complete these details to verify your account.',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 16),
+                    _buildSectionCard(
+                      'Professional Details',
+                      Icons.medical_services_outlined,
+                      _buildProfessionalDetailsForm(),
                     ),
-                  ),
-
-                  // Section 1: Professional
-                  _buildSectionCard(
-                    title: 'Professional Details',
-                    children: [
-                      DropdownButtonFormField<String>(
-                        value: _selectedSpec,
-                        decoration: _inputDecoration(
-                          'Primary Specialization',
-                          Icons.medical_services_outlined,
-                        ),
-                        items:
-                            _specializations
-                                .map(
-                                  (s) => DropdownMenuItem(
-                                    value: s,
-                                    child: Text(s),
-                                  ),
-                                )
-                                .toList(),
-                        onChanged: (val) => setState(() => _selectedSpec = val),
-                        validator: (v) => v == null ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _licenseNumController,
-                        decoration: _inputDecoration(
-                          'Nursing License ID',
-                          Icons.badge_outlined,
-                        ),
-                        validator: (v) => v!.isEmpty ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _yearsController,
-                        keyboardType: TextInputType.number,
-                        decoration: _inputDecoration(
-                          'Years of Experience',
-                          Icons.history,
-                        ),
-                        validator: (v) => v!.isEmpty ? 'Required' : null,
-                      ),
-                    ],
-                  ),
-
-                  // Section 2: Skills
-                  _buildSectionCard(
-                    title: 'Approved Services',
-                    children: [
-                      const Text(
-                        'Select services you are certified to perform:',
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children:
-                            _availableSkills.map((skill) {
-                              bool isSelected = _selectedSkills.contains(skill);
-                              return FilterChip(
-                                label: Text(
-                                  skill.replaceAll('_', ' ').toUpperCase(),
-                                ),
-                                selected: isSelected,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    if (selected) {
-                                      _selectedSkills.add(skill);
-                                    } else {
-                                      _selectedSkills.remove(skill);
-                                    }
-                                  });
-                                },
-                                backgroundColor: Colors.grey[100],
-                                selectedColor: AppColors.primary100,
-                                labelStyle: TextStyle(
-                                  color:
-                                      isSelected
-                                          ? AppColors.primary700
-                                          : Colors.grey[600],
-                                  fontWeight:
-                                      isSelected
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                  fontSize: 11,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  side: BorderSide(
-                                    color:
-                                        isSelected
-                                            ? AppColors.primary500
-                                            : Colors.transparent,
-                                  ),
-                                ),
-                                checkmarkColor: AppColors.primary700,
-                              );
-                            }).toList(),
-                      ),
-                      if (_selectedSkills.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            'Please select at least one skill.',
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          ),
-                        ),
-                    ],
-                  ),
-
-                  // Section 3: Personal
-                  _buildSectionCard(
-                    title: 'Personal Info',
-                    children: [
-                      DropdownButtonFormField<String>(
-                        value: _gender,
-                        decoration: _inputDecoration(
-                          'Gender',
-                          Icons.person_outline,
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'male', child: Text('Male')),
-                          DropdownMenuItem(
-                            value: 'female',
-                            child: Text('Female'),
-                          ),
-                        ],
-                        onChanged: (val) => setState(() => _gender = val),
-                        validator: (v) => v == null ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _bioController,
-                        maxLines: 3,
-                        decoration: _inputDecoration(
-                          'Short Bio',
-                          Icons.format_quote,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Section 4: Documents
-                  _buildSectionCard(
-                    title: 'Documents',
-                    children: [
-                      _buildDocTile(
-                        'National ID',
-                        profile.nationalIdUrl,
-                        () => _pickDocument('national_id'),
-                        state is DocumentUploading &&
-                            state.documentType == 'national_id',
-                      ),
-                      _buildDocTile(
-                        'Degree Certificate',
-                        profile.degreeUrl,
-                        () => _pickDocument('degree'),
-                        state is DocumentUploading &&
-                            state.documentType == 'degree',
-                      ),
-                      _buildDocTile(
-                        'Nursing License',
-                        profile.licenseUrl,
-                        () => _pickDocument('license'),
-                        state is DocumentUploading &&
-                            state.documentType == 'license',
-                      ),
-                    ],
-                  ),
-
-                  // Section 5: Payout
-                  _buildSectionCard(
-                    title: 'Payout Information',
-                    children: [
-                      TextFormField(
-                        controller: _bankNameController,
-                        decoration: _inputDecoration(
-                          'Bank Name',
-                          Icons.account_balance,
-                        ),
-                        validator: (v) => v!.isEmpty ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _accountNumController,
-                        keyboardType: TextInputType.number,
-                        decoration: _inputDecoration(
-                          'Account Number / IBAN',
-                          Icons.numbers,
-                        ),
-                        validator: (v) => v!.isEmpty ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _accountHolderController,
-                        decoration: _inputDecoration(
-                          'Account Holder Name',
-                          Icons.person,
-                        ),
-                        validator: (v) => v!.isEmpty ? 'Required' : null,
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Submit Area
-                  ElevatedButton(
-                    onPressed: isLoading ? null : _submitProfile,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary500,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(56),
-                      elevation: 5,
-                      shadowColor: AppColors.primary200,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    const SizedBox(height: 16),
+                    _buildSectionCard(
+                      'Approved Services',
+                      Icons.verified_outlined,
+                      _buildSkillsForm(),
                     ),
-                    child: Text(
-                      isLoading ? 'Processing...' : 'Submit Profile for Review',
+                    const SizedBox(height: 16),
+                    _buildSectionCard(
+                      'Credentials & Documents',
+                      Icons.file_copy_outlined,
+                      _buildDocumentsForm(profile, state),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: TextButton(
-                      onPressed: isLoading ? null : _saveProgress,
-                      child: const Text(
-                        'Save Draft for Later',
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                    const SizedBox(height: 16),
+                    _buildSectionCard(
+                      'Payout Information',
+                      Icons.account_balance_wallet_outlined,
+                      _buildPayoutForm(),
                     ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
+                  ],
+                ),
               ),
-            ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: _buildBottomNavigation(isLoading),
+              ),
+            ],
           );
         },
       ),
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required List<Widget> children,
-  }) {
+  Widget _buildSectionCard(String title, IconData icon, Widget child) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.06),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary50.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: AppColors.primary500, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          ...children,
+          const SizedBox(height: 20),
+          child,
         ],
       ),
     );
   }
 
-  InputDecoration _inputDecoration(String label, IconData icon) {
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon, color: AppColors.primary500),
-      labelStyle: TextStyle(color: Colors.grey[600]),
-      floatingLabelStyle: const TextStyle(color: AppColors.primary500),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary500, width: 1.5),
-      ),
-      filled: true,
-      fillColor: Colors.grey[50],
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+  Widget _buildProfessionalDetailsForm() {
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          value: _selectedSpec,
+          decoration: _inputDecoration(
+            'Primary Specialization',
+            Icons.medical_services_outlined,
+          ),
+          items: _specializations
+              .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+              .toList(),
+          onChanged: (val) => setState(() => _selectedSpec = val),
+          validator: (v) => v == null ? 'Required' : null,
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _licenseNumController,
+          decoration: _inputDecoration(
+            'Nursing License ID',
+            Icons.badge_outlined,
+          ),
+          validator: (v) => v!.isEmpty ? 'Required' : null,
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _yearsController,
+          keyboardType: TextInputType.number,
+          decoration: _inputDecoration(
+            'Years of Experience',
+            Icons.history,
+          ),
+          validator: (v) => v!.isEmpty ? 'Required' : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSkillsForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Select the services you are certified to provide:',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _availableSkills.map((skill) {
+            bool isSelected = _selectedSkills.contains(skill);
+            return FilterChip(
+              label: Text(
+                skill.replaceAll('_', ' ').toUpperCase(),
+              ),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  if (selected) {
+                    _selectedSkills.add(skill);
+                  } else {
+                    _selectedSkills.remove(skill);
+                  }
+                });
+              },
+              backgroundColor: Colors.grey[100],
+              selectedColor: AppColors.primary100,
+              labelStyle: TextStyle(
+                color: isSelected ? AppColors.primary700 : Colors.grey[600],
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 12,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: isSelected ? AppColors.primary500 : Colors.transparent,
+                ),
+              ),
+              checkmarkColor: AppColors.primary700,
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPersonalInfoForm() {
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          value: _gender,
+          decoration: _inputDecoration(
+            'Gender',
+            Icons.person_outline,
+          ),
+          items: const [
+            DropdownMenuItem(value: 'male', child: Text('Male')),
+            DropdownMenuItem(value: 'female', child: Text('Female')),
+          ],
+          onChanged: (val) => setState(() => _gender = val),
+          validator: (v) => v == null ? 'Required' : null,
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _bioController,
+          maxLines: 3,
+          decoration: _inputDecoration(
+            'Short Bio (Optional)',
+            Icons.format_quote,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDocumentsForm(NurseProfile profile, NurseProfileState state) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Tap to upload clear photos or scans of your documents.',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+        ),
+        const SizedBox(height: 16),
+        _buildDocTile(
+          'National ID',
+          profile.nationalIdUrl,
+          () => _pickDocument('national_id'),
+          state is DocumentUploading && state.documentType == 'national_id',
+        ),
+        _buildDocTile(
+          'Degree Certificate',
+          profile.degreeUrl,
+          () => _pickDocument('degree'),
+          state is DocumentUploading && state.documentType == 'degree',
+        ),
+        _buildDocTile(
+          'Nursing License',
+          profile.licenseUrl,
+          () => _pickDocument('license'),
+          state is DocumentUploading && state.documentType == 'license',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPayoutForm() {
+    return Column(
+      children: [
+        TextFormField(
+          controller: _bankNameController,
+          decoration: _inputDecoration(
+            'Bank Name',
+            Icons.account_balance,
+          ),
+          validator: (v) => v!.isEmpty ? 'Required' : null,
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _accountNumController,
+          keyboardType: TextInputType.number,
+          decoration: _inputDecoration(
+            'Account Number / IBAN',
+            Icons.numbers,
+          ),
+          validator: (v) => v!.isEmpty ? 'Required' : null,
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _accountHolderController,
+          decoration: _inputDecoration(
+            'Account Holder Name',
+            Icons.person,
+          ),
+          validator: (v) => v!.isEmpty ? 'Required' : null,
+        ),
+      ],
     );
   }
 
@@ -596,7 +557,7 @@ class _NurseProfileCompletionPageState
           color: hasFile ? AppColors.success200 : Colors.grey.shade200,
         ),
         borderRadius: BorderRadius.circular(12),
-        color: hasFile ? AppColors.success50.withValues(alpha: 0.5) : Colors.white,
+        color: hasFile ? AppColors.success50.withOpacity(0.5) : Colors.white,
       ),
       child: ListTile(
         onTap: onTap,
@@ -623,62 +584,93 @@ class _NurseProfileCompletionPageState
             fontSize: 12,
           ),
         ),
-        trailing:
-            uploading
-                ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-                : const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 16,
-                  color: Colors.grey,
-                ),
+        trailing: uploading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: Colors.grey,
+              ),
       ),
     );
   }
 
-  Future<void> _saveProgress() async {
-    final data = {
-      'licenseNumber': _licenseNumController.text,
-      'specialization': _selectedSpec,
-      'yearsOfExperience': int.tryParse(_yearsController.text),
-      'bio': _bioController.text,
-      'gender': _gender,
-      'skills': _selectedSkills,
-      'bankAccount': {
-        'bankName': _bankNameController.text,
-        'accountNumber': _accountNumController.text,
-        'accountHolderName': _accountHolderController.text,
-      },
-    };
-    await context.read<NurseProfileCubit>().updateProfile(data);
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: AppColors.primary500),
+      labelStyle: TextStyle(color: Colors.grey[600]),
+      floatingLabelStyle: const TextStyle(color: AppColors.primary500),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey[200]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.primary500, width: 2),
+      ),
+      filled: true,
+      fillColor: Colors.grey[50],
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    );
   }
 
-  Future<void> _submitProfile() async {
-    if (_formKey.currentState!.validate() && _selectedSkills.isNotEmpty) {
-      final data = {
-        'licenseNumber': _licenseNumController.text,
-        'specialization': _selectedSpec,
-        'yearsOfExperience': int.tryParse(_yearsController.text),
-        'bio': _bioController.text,
-        'gender': _gender,
-        'skills': _selectedSkills,
-        'bankAccount': {
-          'bankName': _bankNameController.text,
-          'accountNumber': _accountNumController.text,
-          'accountHolderName': _accountHolderController.text,
-        },
-      };
-      context.read<NurseProfileCubit>().submitProfile(data);
-    } else if (_selectedSkills.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select at least one service'),
-          backgroundColor: Colors.red,
+  Widget _buildBottomNavigation(bool isLoading) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: isLoading ? null : _submitProfileForm,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary500,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text(
+                    'Save Changes',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+          ),
         ),
-      );
-    }
+      ),
+    );
   }
 }

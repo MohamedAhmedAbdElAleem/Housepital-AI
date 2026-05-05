@@ -1,6 +1,9 @@
 class NurseProfile {
   final String? id;
   final String? userId;
+  final String? userName;
+  final String? userEmail;
+  final String? userMobile;
   final String? licenseNumber;
   final String? specialization;
   final int? yearsOfExperience;
@@ -19,9 +22,19 @@ class NurseProfile {
   final bool isOnline;
   final WorkZone? workZone;
 
+  // Performance Metrics
+  final double rating;
+  final int totalRatings;
+  final int completedVisits;
+  final int cancelledVisits;
+  final double completionRate;
+
   NurseProfile({
     this.id,
     this.userId,
+    this.userName,
+    this.userEmail,
+    this.userMobile,
     this.licenseNumber,
     this.specialization,
     this.yearsOfExperience,
@@ -38,12 +51,20 @@ class NurseProfile {
     this.eWallet,
     this.isOnline = false,
     this.workZone,
+    this.rating = 0,
+    this.totalRatings = 0,
+    this.completedVisits = 0,
+    this.cancelledVisits = 0,
+    this.completionRate = 100,
   });
 
   factory NurseProfile.fromJson(Map<String, dynamic> json) {
     return NurseProfile(
       id: json['_id'] ?? json['id'],
       userId: json['user'] is Map ? json['user']['_id'] : json['user'],
+      userName: json['user'] is Map ? json['user']['name'] : null,
+      userEmail: json['user'] is Map ? json['user']['email'] : null,
+      userMobile: json['user'] is Map ? json['user']['mobile'] : null,
       licenseNumber: json['licenseNumber'],
       specialization: json['specialization'],
       yearsOfExperience: json['yearsOfExperience'],
@@ -65,6 +86,11 @@ class NurseProfile {
       isOnline: json['isOnline'] ?? false,
       workZone:
           json['workZone'] != null ? WorkZone.fromJson(json['workZone']) : null,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0,
+      totalRatings: json['totalRatings'] ?? 0,
+      completedVisits: json['completedVisits'] ?? 0,
+      cancelledVisits: json['cancelledVisits'] ?? 0,
+      completionRate: (json['completionRate'] as num?)?.toDouble() ?? 100,
     );
   }
 
@@ -89,6 +115,9 @@ class NurseProfile {
   NurseProfile copyWith({
     String? id,
     String? userId,
+    String? userName,
+    String? userEmail,
+    String? userMobile,
     String? licenseNumber,
     String? specialization,
     int? yearsOfExperience,
@@ -105,10 +134,18 @@ class NurseProfile {
     EWallet? eWallet,
     bool? isOnline,
     WorkZone? workZone,
+    double? rating,
+    int? totalRatings,
+    int? completedVisits,
+    int? cancelledVisits,
+    double? completionRate,
   }) {
     return NurseProfile(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
+      userEmail: userEmail ?? this.userEmail,
+      userMobile: userMobile ?? this.userMobile,
       licenseNumber: licenseNumber ?? this.licenseNumber,
       specialization: specialization ?? this.specialization,
       yearsOfExperience: yearsOfExperience ?? this.yearsOfExperience,
@@ -125,6 +162,11 @@ class NurseProfile {
       eWallet: eWallet ?? this.eWallet,
       isOnline: isOnline ?? this.isOnline,
       workZone: workZone ?? this.workZone,
+      rating: rating ?? this.rating,
+      totalRatings: totalRatings ?? this.totalRatings,
+      completedVisits: completedVisits ?? this.completedVisits,
+      cancelledVisits: cancelledVisits ?? this.cancelledVisits,
+      completionRate: completionRate ?? this.completionRate,
     );
   }
 }
