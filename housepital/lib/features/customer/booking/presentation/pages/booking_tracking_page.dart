@@ -309,7 +309,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   // --- Data Extraction Helpers ---
-  String get _status => _booking['status'] ?? 'confirmed';
+  String get _status {
+    final s = _booking['status'] ?? 'confirmed';
+    return s == 'in_progress' ? 'in-progress' : s;
+  }
   String get _nurseName => _booking['nurseName'] ?? 'Nurse';
   double get _nurseRating => (_booking['nurseRating'] ?? 0.0).toDouble();
   String? get _nursePhone => _booking['nursePhone'];
@@ -861,6 +864,11 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
 
                     // Nurse Info Section
                     _buildNurseInfoSection(),
+
+                    const SizedBox(height: 20),
+
+                    // SOS & Report Buttons
+                    _buildActionButtonsRow(),
                   ],
                 ),
               ),
@@ -1011,32 +1019,26 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.success50, AppColors.success100], // Emerald 50 to 100
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.success500,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.success500.withOpacity(0.4),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.primary500.withOpacity(0.3),
-        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary500.withOpacity(0.2),
-                  blurRadius: 8,
-                )
-              ],
             ),
             child: const Icon(Icons.favorite_rounded,
-                color: AppColors.primary500, size: 24),
+                color: AppColors.success500, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -1048,15 +1050,15 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.success800, // Emerald 800
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'The nurse is providing $_serviceName. The visit will be marked complete soon.',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.success700, // Emerald 700
+                    color: Colors.white.withOpacity(0.9),
                     height: 1.4,
                   ),
                 ),
@@ -1184,11 +1186,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             color: AppColors.light100, // Slate 50
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
-              onTap: () async {
-                final uri = Uri(scheme: 'tel', path: _nursePhone);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri);
-                }
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Calling $_nursePhone...')),
+                );
               },
               borderRadius: BorderRadius.circular(16),
               child: Container(
@@ -1207,6 +1208,60 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             ),
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildActionButtonsRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Calling Emergency Services...')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error500,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 0,
+            ),
+            icon: const Icon(Icons.emergency, size: 20),
+            label: const Text(
+              'SOS',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Filing a report...')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.light300,
+              foregroundColor: AppColors.dark700,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 0,
+            ),
+            icon: const Icon(Icons.flag, size: 20, color: AppColors.warning500),
+            label: const Text(
+              'Report',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
       ],
     );
   }

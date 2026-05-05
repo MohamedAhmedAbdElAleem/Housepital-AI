@@ -29,7 +29,7 @@ class ChatbotInputArea extends StatelessWidget {
         bottom: MediaQuery.of(context).padding.bottom + 16,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF0F0F0F) : const Color(0xFFF9F9F9),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(10),
@@ -51,14 +51,16 @@ class ChatbotInputArea extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: isAnalyzing
-                        ? Colors.grey[200]
-                        : const Color(0xFF667EEA).withAlpha(30),
+                    color:
+                        isAnalyzing
+                            ? Colors.grey[200]
+                            : const Color(0xFF667EEA).withAlpha(30),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isAnalyzing
-                          ? Colors.grey[300]!
-                          : const Color(0xFF667EEA).withAlpha(50),
+                      color:
+                          isAnalyzing
+                              ? Colors.grey[300]!
+                              : const Color(0xFF667EEA).withAlpha(50),
                       width: 1.5,
                     ),
                   ),
@@ -78,10 +80,14 @@ class ChatbotInputArea extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6),
+                color:
+                    isDark ? const Color(0xFF191919) : const Color(0xFFFDFDFD),
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
-                  color: Colors.black.withAlpha(5),
+                  color:
+                      isDark
+                          ? Colors.white.withAlpha(10)
+                          : Colors.black.withAlpha(5),
                 ),
               ),
               child: TextField(
@@ -89,15 +95,21 @@ class ChatbotInputArea extends StatelessWidget {
                 focusNode: focusNode,
                 textDirection: TextDirection.rtl,
                 textAlign: TextAlign.right,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 16,
-                  color: Color(0xFF1F2937),
+                  color:
+                      isDark
+                          ? const Color(0xFFFDFDFD)
+                          : const Color(0xFF232323),
                 ),
                 decoration: InputDecoration(
                   hintText: 'Ask me anything...',
                   hintStyle: TextStyle(
-                    color: const Color(0xFF9CA3AF),
+                    color:
+                        isDark
+                            ? const Color(0xFFA7A7A7)
+                            : const Color(0xFF9CA3AF),
                     fontFamily: 'Inter',
                   ),
                   hintTextDirection: TextDirection.rtl,

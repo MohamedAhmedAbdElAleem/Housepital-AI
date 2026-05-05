@@ -32,6 +32,7 @@ import '../../features/admin/presentation/pages/admin_home_page.dart';
 import '../../features/admin/presentation/pages/admin_users_page.dart';
 import '../../features/admin/presentation/pages/add_staff_page.dart';
 import '../../features/admin/presentation/pages/admin_bookings_page.dart';
+import '../../features/admin/presentation/pages/admin_receipts_page.dart';
 
 class AppRouter {
   static Route<dynamic> _buildDefaultRoute(
@@ -203,6 +204,12 @@ class AppRouter {
       case AppRoutes.adminBookings:
         return _buildDefaultRoute(
           const AdminBookingsPage(),
+          settings: settings,
+        );
+
+      case AppRoutes.adminReceipts:
+        return _buildDefaultRoute(
+          const AdminReceiptsPage(),
           settings: settings,
         );
 

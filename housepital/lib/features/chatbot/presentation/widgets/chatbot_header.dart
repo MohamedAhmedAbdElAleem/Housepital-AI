@@ -6,9 +6,9 @@ class ChatbotHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
-      height: 220,
+      height: 85 + MediaQuery.of(context).padding.top,
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 8,
         left: 20,
@@ -20,73 +20,46 @@ class ChatbotHeader extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
         ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(40),
-          bottomRight: Radius.circular(40),
-        ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF764BA2).withAlpha(80),
-            blurRadius: 25,
-            offset: const Offset(0, 10),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Stack(
         children: [
-          // Massive Watermark Icon
-          Positioned(
-            right: -40,
-            bottom: -30,
-            child: Icon(
-              Icons.auto_awesome_rounded,
-              size: 200,
-              color: Colors.white.withAlpha(20),
-            ),
-          ),
-          
-          // Background "Spirit" Rings
-          Positioned(
-            top: -20,
-            left: -30,
-            child: Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withAlpha(15),
-              ),
-            ),
-          ),
-          
           Row(
             children: [
-              // Back Button
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(40),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white.withAlpha(50)),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    color: Colors.white,
-                    size: 18,
+              // Back Button (Hide if we can't pop)
+              if (ModalRoute.of(context)?.canPop ?? false) ...[
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(40),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.white.withAlpha(50)),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
+                const SizedBox(width: 16),
+              ],
 
               // Avatar
               Container(
-                width: 54,
-                height: 54,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
+                  shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withAlpha(20),
@@ -98,7 +71,7 @@ class ChatbotHeader extends StatelessWidget {
                 child: const Icon(
                   Icons.psychology_rounded,
                   color: Color(0xFF667EEA),
-                  size: 32,
+                  size: 28,
                 ),
               ),
               const SizedBox(width: 14),
@@ -107,6 +80,9 @@ class ChatbotHeader extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize:
+                      MainAxisSize
+                          .min, // Fix: Sizes tightly to children to center vertically
                   children: [
                     const Text(
                       'AI Health Assistant',
@@ -146,16 +122,66 @@ class ChatbotHeader extends StatelessWidget {
               ),
 
               // Menu Button
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(30),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.more_vert_rounded,
-                  color: Colors.white,
-                  size: 20,
+              Material(
+                color: Colors.transparent,
+                child: PopupMenuButton<String>(
+                  icon: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(30),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.more_vert_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  offset: const Offset(0, 50),
+                  color: theme.colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  onSelected: (value) {
+                    if (value == 'clear') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Chat history cleared (Demo)'),
+                        ),
+                      );
+                    } else if (value == 'settings') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Settings (Demo)')),
+                      );
+                    }
+                  },
+                  itemBuilder:
+                      (context) => [
+                        const PopupMenuItem(
+                          value: 'clear',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.delete_outline_rounded,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                              SizedBox(width: 12),
+                              Text('Clear Chat'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'settings',
+                          child: Row(
+                            children: [
+                              Icon(Icons.settings_outlined, size: 20),
+                              SizedBox(width: 12),
+                              Text('Settings'),
+                            ],
+                          ),
+                        ),
+                      ],
                 ),
               ),
             ],

@@ -21,6 +21,7 @@ class _WalletPageState extends State<WalletPage>
   String? _walletBlockReason;
   double _threshold = -150;
   List<dynamic> _transactions = [];
+  List<dynamic> _receipts = [];
   String? _errorMessage;
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
@@ -72,6 +73,10 @@ class _WalletPageState extends State<WalletPage>
           ),
           headers: headers,
         ),
+        http.get(
+          Uri.parse('${ApiConstants.baseUrl}${ApiConstants.walletMyReceipts}'),
+          headers: headers,
+        ),
       ]);
       if (results[0].statusCode == 200) {
         final data = jsonDecode(results[0].body)['data'];
@@ -83,6 +88,10 @@ class _WalletPageState extends State<WalletPage>
       if (results[1].statusCode == 200) {
         final data = jsonDecode(results[1].body)['data'];
         _transactions = data['transactions'] ?? [];
+      }
+      if (results[2].statusCode == 200) {
+        final data = jsonDecode(results[2].body)['data'];
+        _receipts = data['receipts'] ?? [];
       }
       setState(() => _isLoading = false);
       _animController.forward();
@@ -211,6 +220,10 @@ class _WalletPageState extends State<WalletPage>
             const SizedBox(height: 16),
             _buildRechargeButton(),
             const SizedBox(height: 24),
+            if (_receipts.isNotEmpty) ...[
+              _buildReceiptsSection(),
+              const SizedBox(height: 24),
+            ],
             _buildTransactionsSection(),
           ],
         ),
@@ -423,6 +436,164 @@ class _WalletPageState extends State<WalletPage>
           ),
           elevation: 2,
         ),
+      ),
+    );
+  }
+
+  Widget _buildReceiptsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'My Receipts',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Track the status of your recharge requests',
+          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 16),
+        ..._receipts.map((r) => _buildReceiptTile(r)),
+      ],
+    );
+  }
+
+  Widget _buildReceiptTile(dynamic r) {
+    final status = (r['status'] ?? 'pending').toString();
+    final amount = (r['amount'] ?? 0).toDouble();
+    final method = (r['paymentMethod'] ?? '').toString();
+    final createdAt = (r['createdAt'] ?? '').toString();
+    final rejectionReason = r['rejectionReason'];
+
+    Color statusColor;
+    IconData statusIcon;
+    String statusLabel;
+    switch (status) {
+      case 'approved':
+        statusColor = AppColors.success;
+        statusIcon = Icons.check_circle_rounded;
+        statusLabel = 'APPROVED';
+        break;
+      case 'rejected':
+        statusColor = AppColors.error;
+        statusIcon = Icons.cancel_rounded;
+        statusLabel = 'REJECTED';
+        break;
+      default:
+        statusColor = AppColors.warning;
+        statusIcon = Icons.schedule_rounded;
+        statusLabel = 'PENDING';
+    }
+
+    String dateStr = '';
+    if (createdAt.isNotEmpty) {
+      try {
+        final dt = DateTime.parse(createdAt);
+        dateStr =
+            '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      } catch (_) {}
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(statusIcon, color: statusColor, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${amount.toStringAsFixed(0)} EGP via ${method == 'instapay' ? 'Instapay' : 'Mobile Wallet'}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      dateStr,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textHint,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  statusLabel,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (status == 'rejected' && rejectionReason != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    size: 16,
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Reason: $rejectionReason',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.error700,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

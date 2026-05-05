@@ -62,18 +62,24 @@ class _NurseHomePageState extends State<NurseHomePage>
       // Get initial position
       debugPrint('📍 LOCATION DEBUG: Awaiting initial position...');
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high, // Changed to high for better emulator response
+        desiredAccuracy:
+            LocationAccuracy
+                .high, // Changed to high for better emulator response
       );
-      debugPrint('📍 LOCATION DEBUG: Initial Position received: ${position.latitude}, ${position.longitude}');
+      debugPrint(
+        '📍 LOCATION DEBUG: Initial Position received: ${position.latitude}, ${position.longitude}',
+      );
       if (mounted) {
         setState(() {
           _currentLocation = LatLng(position.latitude, position.longitude);
         });
-        
+
         try {
           _mapController.move(_currentLocation!, 15.0);
         } catch (e) {
-          debugPrint('📍 LOCATION DEBUG: Map not ready yet for initial move, ignoring.');
+          debugPrint(
+            '📍 LOCATION DEBUG: Map not ready yet for initial move, ignoring.',
+          );
         }
 
         _syncSocketPresence();
@@ -88,19 +94,23 @@ class _NurseHomePageState extends State<NurseHomePage>
           distanceFilter: 0, // Force every update
         ),
       ).listen((Position pos) {
-        debugPrint('📍 LOCATION DEBUG: Stream fired! New location: ${pos.latitude}, ${pos.longitude}');
+        debugPrint(
+          '📍 LOCATION DEBUG: Stream fired! New location: ${pos.latitude}, ${pos.longitude}',
+        );
         if (mounted) {
           final newLoc = LatLng(pos.latitude, pos.longitude);
           debugPrint('📍 LOCATION DEBUG: Updating state and MapCenter...');
           setState(() {
             _currentLocation = newLoc;
           });
-          
+
           try {
             // Also move the map center
             _mapController.move(newLoc, _mapController.camera.zoom);
           } catch (e) {
-            debugPrint('📍 LOCATION DEBUG: Map not ready for stream move, ignoring.');
+            debugPrint(
+              '📍 LOCATION DEBUG: Map not ready for stream move, ignoring.',
+            );
           }
 
           _syncSocketPresence(); // Push new location to server
@@ -299,7 +309,9 @@ class _NurseHomePageState extends State<NurseHomePage>
                     : 'Unable to connect to the server';
             return _buildErrorView(errorMsg);
           }
-          final bool isApproved = profile.profileStatus == 'approved' || profile.verificationStatus == 'approved';
+          final bool isApproved =
+              profile.profileStatus == 'approved' ||
+              profile.verificationStatus == 'approved';
           final bool isOnline = profile.isOnline;
 
           // Debug: Print profile status
@@ -331,9 +343,8 @@ class _NurseHomePageState extends State<NurseHomePage>
                     context,
                     MaterialPageRoute(
                       builder:
-                          (context) => NurseTrackingPage(
-                            booking: bookingState.booking,
-                          ),
+                          (context) =>
+                              NurseTrackingPage(booking: bookingState.booking),
                     ),
                   ).then((_) {
                     if (mounted) setState(() => _isNavigatingToPin = false);
@@ -346,9 +357,10 @@ class _NurseHomePageState extends State<NurseHomePage>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => VisitInProgressPage(
-                        booking: bookingState.booking,
-                      ),
+                      builder:
+                          (context) => VisitInProgressPage(
+                            booking: bookingState.booking,
+                          ),
                     ),
                   ).then((_) {
                     if (!mounted) return;
@@ -636,10 +648,7 @@ class _NurseHomePageState extends State<NurseHomePage>
 
   // ── Active booking banner shown when nurse presses back ─────────────────
 
-  Widget _buildActiveBookingBanner(
-    BuildContext context,
-    NurseBooking booking,
-  ) {
+  Widget _buildActiveBookingBanner(BuildContext context, NurseBooking booking) {
     final bool isOnTheWay = booking.status == 'on-the-way';
     return GestureDetector(
       onTap: () {
@@ -799,7 +808,9 @@ class _NurseHomePageState extends State<NurseHomePage>
         boxShadow: [
           BoxShadow(
             color:
-                isOnline ? AppColors.primary200 : Colors.grey.withValues(alpha: 0.1),
+                isOnline
+                    ? AppColors.primary200
+                    : Colors.grey.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -947,7 +958,9 @@ class _NurseHomePageState extends State<NurseHomePage>
                             color: AppColors.primary50.withValues(alpha: 0.9),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary500.withValues(alpha: 0.3),
+                                color: AppColors.primary500.withValues(
+                                  alpha: 0.3,
+                                ),
                                 blurRadius: 15,
                                 spreadRadius: 5,
                               ),
@@ -1121,14 +1134,14 @@ class _NurseHomePageState extends State<NurseHomePage>
                               );
                             },
                             style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        backgroundColor: AppColors.primary500,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-        ),
-    ),
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              backgroundColor: AppColors.primary500,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
                             child: const Text('Accept'),
                           ),
                         ),
@@ -1161,7 +1174,9 @@ class _NurseHomePageState extends State<NurseHomePage>
                 height: 60,
                 child: CircularProgressIndicator(
                   strokeWidth: 4,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary500),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primary500,
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
@@ -1203,7 +1218,11 @@ class _NurseHomePageState extends State<NurseHomePage>
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.person, color: AppColors.primary500, size: 20),
+                        const Icon(
+                          Icons.person,
+                          color: AppColors.primary500,
+                          size: 20,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -1217,7 +1236,11 @@ class _NurseHomePageState extends State<NurseHomePage>
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.medical_services, color: AppColors.primary500, size: 20),
+                        const Icon(
+                          Icons.medical_services,
+                          color: AppColors.primary500,
+                          size: 20,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -1489,12 +1512,11 @@ class _NurseHomePageState extends State<NurseHomePage>
             Icons.history_rounded,
             'History',
             false,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const NurseHistoryPage(),
-              ),
-            ),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NurseHistoryPage()),
+                ),
           ),
           _dockItem(
             Icons.account_balance_wallet_outlined,
@@ -1506,10 +1528,7 @@ class _NurseHomePageState extends State<NurseHomePage>
             Icons.person_rounded,
             'Profile',
             false,
-            onTap: () => Navigator.pushNamed(
-              context,
-              AppRoutes.nurseProfile,
-            ),
+            onTap: () => Navigator.pushNamed(context, AppRoutes.nurseProfile),
           ),
         ],
       ),

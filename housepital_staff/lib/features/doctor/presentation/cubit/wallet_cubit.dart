@@ -18,6 +18,7 @@ class DoctorWalletLoaded extends DoctorWalletState {
   final double commissionRate;
   final List<dynamic> transactions;
   final int totalTransactions;
+  final List<dynamic> receipts;
 
   DoctorWalletLoaded({
     required this.balance,
@@ -27,6 +28,7 @@ class DoctorWalletLoaded extends DoctorWalletState {
     required this.commissionRate,
     required this.transactions,
     required this.totalTransactions,
+    required this.receipts,
   });
 }
 
@@ -67,10 +69,12 @@ class DoctorWalletCubit extends Cubit<DoctorWalletState> {
       final results = await Future.wait([
         apiClient.get(ApiConstants.walletBalance),
         apiClient.get('${ApiConstants.walletTransactions}?limit=50'),
+        apiClient.get(ApiConstants.walletMyReceipts),
       ]);
 
       final balanceData = results[0]['data'];
       final txData = results[1]['data'];
+      final receiptsData = results[2]['data'];
 
       emit(DoctorWalletLoaded(
         balance: (balanceData['balance'] ?? 0).toDouble(),
@@ -80,6 +84,7 @@ class DoctorWalletCubit extends Cubit<DoctorWalletState> {
         commissionRate: (balanceData['commissionRate'] ?? 0.10).toDouble(),
         transactions: txData['transactions'] ?? [],
         totalTransactions: txData['total'] ?? 0,
+        receipts: receiptsData['receipts'] ?? [],
       ));
     } catch (e) {
       emit(DoctorWalletError(e.toString()));

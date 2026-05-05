@@ -15,7 +15,8 @@ class ChatbotPage extends StatefulWidget {
   State<ChatbotPage> createState() => _ChatbotPageState();
 }
 
-class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin {
+class _ChatbotPageState extends State<ChatbotPage>
+    with TickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
@@ -44,7 +45,8 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
   void _addWelcomeMessage() {
     _messages.add(
       ChatMessage(
-        text: 'Hello! 👋\n\nI am Housepital\'s AI Health Assistant.\n\nHow are you feeling today? You can describe your symptoms or upload a photo for analysis. 📸',
+        text:
+            'Hello! 👋\n\nI am Housepital\'s AI Health Assistant.\n\nHow are you feeling today? You can describe your symptoms or upload a photo for analysis. 📸',
         isBot: true,
         time: DateTime.now(),
       ),
@@ -65,7 +67,9 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
     HapticFeedback.lightImpact();
 
     setState(() {
-      _messages.add(ChatMessage(text: text, isBot: false, time: DateTime.now()));
+      _messages.add(
+        ChatMessage(text: text, isBot: false, time: DateTime.now()),
+      );
       _isTyping = true;
     });
 
@@ -167,7 +171,8 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
           _isTyping = false;
           _messages.add(
             ChatMessage(
-              text: '⚠️ I couldn\'t analyze the image. Can you describe the issue in text?',
+              text:
+                  '⚠️ I couldn\'t analyze the image. Can you describe the issue in text?',
               isBot: true,
               time: DateTime.now(),
             ),
@@ -179,11 +184,21 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
   }
 
   Widget _buildImagePickerSheet() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF191919) : const Color(0xFFFDFDFD),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(isDark ? 60 : 10),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -192,14 +207,18 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: isDark ? Colors.grey[700] : Colors.grey[300],
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Add Photo for Analysis',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark ? const Color(0xFFFDFDFD) : const Color(0xFF232323),
+            ),
           ),
           const SizedBox(height: 24),
           Row(
@@ -227,21 +246,41 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildPickerOption({required IconData icon, required String label, required VoidCallback onTap}) {
+  Widget _buildPickerOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFF667EEA).withAlpha(20),
+          color: const Color(0xFF667EEA).withAlpha(isDark ? 40 : 20),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF667EEA).withAlpha(40)),
+          border: Border.all(
+            color: const Color(0xFF667EEA).withAlpha(isDark ? 80 : 40),
+          ),
         ),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: const Color(0xFF667EEA)),
+            Icon(
+              icon,
+              size: 32,
+              color: isDark ? const Color(0xFF764BA2) : const Color(0xFF667EEA),
+            ),
             const SizedBox(height: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color:
+                    isDark ? const Color(0xFFFDFDFD) : const Color(0xFF232323),
+              ),
+            ),
           ],
         ),
       ),
@@ -262,8 +301,11 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
           // 1. Main Chat Area (Scrolls under header)
@@ -272,29 +314,37 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
               children: [
                 Expanded(
                   child: Container(
-                    margin: const EdgeInsets.only(top: 180), // Start below header
-                    child: Transform.translate(
-                      offset: const Offset(0, -30), // Pull up for 3D overlap
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
-                        child: Container(
-                          color: const Color(0xFFF0F4F8),
-                          child: ListView.builder(
-                            controller: _scrollController,
-                            padding: const EdgeInsets.fromLTRB(16, 30, 16, 40),
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: _messages.length + (_isTyping ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              if (index == _messages.length && _isTyping) {
-                                return _buildTypingIndicator();
-                              }
-                              return ChatbotMessageBubble(
-                                message: _messages[index],
-                                onServiceTap: _navigateToService,
-                                onSosTap: _showEmergencyDialog,
-                              );
-                            },
+                    margin: EdgeInsets.only(
+                      top: 85 + MediaQuery.of(context).padding.top,
+                    ),
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        await Future.delayed(const Duration(seconds: 1));
+                      },
+                      child: Container(
+                        color: theme.scaffoldBackgroundColor,
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.fromLTRB(
+                            16,
+                            20,
+                            16,
+                            40,
+                          ), // Adjusted padding
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
                           ),
+                          itemCount: _messages.length + (_isTyping ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index == _messages.length && _isTyping) {
+                              return _buildTypingIndicator();
+                            }
+                            return ChatbotMessageBubble(
+                              message: _messages[index],
+                              onServiceTap: _navigateToService,
+                              onSosTap: _showEmergencyDialog,
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -305,12 +355,7 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
           ),
 
           // 2. The Canopy Header (Always on top for back button)
-          const Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: ChatbotHeader(),
-          ),
+          const Positioned(top: 0, left: 0, right: 0, child: ChatbotHeader()),
         ],
       ),
       bottomNavigationBar: Column(
@@ -345,14 +390,20 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
               color: const Color(0xFF667EEA).withAlpha(30),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.smart_toy_rounded, color: Color(0xFF667EEA), size: 18),
+            child: const Icon(
+              Icons.smart_toy_rounded,
+              color: Color(0xFF667EEA),
+              size: 18,
+            ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 8)],
+              boxShadow: [
+                BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 8),
+              ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -386,16 +437,18 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ServiceDetailsPage(
-          title: service.title,
-          serviceRoute: service.route,
-          price: service.price,
-          duration: service.duration,
-          icon: _getIcon(service.icon),
-          iconColor: Color(int.parse(service.color)),
-          description: service.description ?? 'Professional healthcare service.',
-          includes: const ['Assessment', 'Professional Care', 'Follow-up'],
-        ),
+        builder:
+            (context) => ServiceDetailsPage(
+              title: service.title,
+              serviceRoute: service.route,
+              price: service.price,
+              duration: service.duration,
+              icon: _getIcon(service.icon),
+              iconColor: Color(int.parse(service.color)),
+              description:
+                  service.description ?? 'Professional healthcare service.',
+              includes: const ['Assessment', 'Professional Care', 'Follow-up'],
+            ),
       ),
     );
   }
@@ -404,25 +457,38 @@ class _ChatbotPageState extends State<ChatbotPage> with TickerProviderStateMixin
     HapticFeedback.heavyImpact();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Emergency'),
-        content: const Text('Please call emergency services immediately!\n\n📞 Emergency: 123'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-        ],
-      ),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Emergency'),
+            content: const Text(
+              'Please call emergency services immediately!\n\n📞 Emergency: 123',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
     );
   }
 
   IconData _getIcon(String name) {
     switch (name) {
-      case 'healing': return Icons.healing_rounded;
-      case 'medication_liquid': return Icons.medication_liquid_rounded;
-      case 'elderly': return Icons.elderly_rounded;
-      case 'monitor_heart': return Icons.monitor_heart_rounded;
-      case 'child_care': return Icons.child_care_rounded;
-      case 'water_drop': return Icons.water_drop_rounded;
-      default: return Icons.medical_services_rounded;
+      case 'healing':
+        return Icons.healing_rounded;
+      case 'medication_liquid':
+        return Icons.medication_liquid_rounded;
+      case 'elderly':
+        return Icons.elderly_rounded;
+      case 'monitor_heart':
+        return Icons.monitor_heart_rounded;
+      case 'child_care':
+        return Icons.child_care_rounded;
+      case 'water_drop':
+        return Icons.water_drop_rounded;
+      default:
+        return Icons.medical_services_rounded;
     }
   }
 }

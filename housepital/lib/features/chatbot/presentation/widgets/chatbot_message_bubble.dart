@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/triage_service.dart';
 import '../pages/chatbot_page.dart';
 
@@ -19,6 +20,7 @@ class ChatbotMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isBot = message.isBot;
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
@@ -69,28 +71,46 @@ class ChatbotMessageBubble extends StatelessWidget {
                     maxWidth: MediaQuery.of(context).size.width * 0.78,
                   ),
                   decoration: BoxDecoration(
-                    gradient: !isBot
-                        ? const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-                          )
-                        : null,
-                    color: isBot
-                        ? (message.showSos ? const Color(0xFFFED7D7) : Colors.white)
-                        : null,
+                    gradient:
+                        !isBot
+                            ? const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                            )
+                            : null,
+                    color:
+                        isBot
+                            ? (message.showSos
+                                ? const Color(0xFFFED7D7)
+                                : (isDark
+                                    ? AppColors.dark700
+                                    : AppColors.light50))
+                            : null,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(24),
                       topRight: const Radius.circular(24),
                       bottomLeft: Radius.circular(isBot ? 8 : 24),
                       bottomRight: Radius.circular(isBot ? 24 : 8),
                     ),
-                    border: message.showSos
-                        ? Border.all(color: const Color(0xFFE53E3E), width: 1.5)
-                        : (isBot ? Border.all(color: Colors.black.withAlpha(5)) : null),
+                    border:
+                        message.showSos
+                            ? Border.all(
+                              color: const Color(0xFFE53E3E),
+                              width: 1.5,
+                            )
+                            : (isBot
+                                ? Border.all(
+                                  color:
+                                      isDark
+                                          ? Colors.white.withAlpha(20)
+                                          : Colors.black.withAlpha(5),
+                                )
+                                : null),
                     boxShadow: [
                       BoxShadow(
-                        color: (isBot ? Colors.black : const Color(0xFF764BA2)).withAlpha(isBot ? 10 : 50),
+                        color: (isBot ? Colors.black : const Color(0xFF764BA2))
+                            .withAlpha(isBot ? (isDark ? 20 : 10) : 50),
                         blurRadius: 15,
                         offset: const Offset(0, 6),
                       ),
@@ -127,7 +147,7 @@ class ChatbotMessageBubble extends StatelessWidget {
                               color: Colors.white.withAlpha(15),
                             ),
                           ),
-                        
+
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20,
@@ -141,7 +161,12 @@ class ChatbotMessageBubble extends StatelessWidget {
                               fontSize: 15,
                               height: 1.6,
                               fontWeight: FontWeight.w500,
-                              color: isBot ? const Color(0xFF1A202C) : Colors.white,
+                              color:
+                                  isBot
+                                      ? (isDark
+                                          ? AppColors.light50
+                                          : AppColors.dark500)
+                                      : Colors.white,
                             ),
                           ),
                         ),
@@ -159,12 +184,14 @@ class ChatbotMessageBubble extends StatelessWidget {
                 // Service Buttons
                 if (message.serviceRoutes.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  ...message.serviceRoutes.map((s) => _buildServiceCard(s, onServiceTap)),
+                  ...message.serviceRoutes.map(
+                    (s) => _buildServiceCard(s, onServiceTap),
+                  ),
                 ],
               ],
             ),
           ),
-          
+
           if (!isBot) const SizedBox(width: 8),
         ],
       ),
@@ -186,10 +213,7 @@ class ChatbotMessageBubble extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: Image.file(
-          File(path),
-          fit: BoxFit.cover,
-        ),
+        child: Image.file(File(path), fit: BoxFit.cover),
       ),
     );
   }
@@ -201,22 +225,22 @@ class ChatbotMessageBubble extends StatelessWidget {
 
     switch (urgency) {
       case 'Emergency':
-        color = const Color(0xFFE53E3E);
+        color = AppColors.error500;
         text = '🚨 Emergency';
         icon = Icons.warning_rounded;
         break;
       case 'High':
-        color = const Color(0xFFED8936);
+        color = AppColors.error500;
         text = '⚠️ High Priority';
         icon = Icons.priority_high_rounded;
         break;
       case 'Medium':
-        color = Colors.amber[700]!;
+        color = AppColors.warning500;
         text = 'Medium';
         icon = Icons.info_outline_rounded;
         break;
       case 'Low':
-        color = const Color(0xFF38A169);
+        color = AppColors.success500;
         text = '✓ Low Risk';
         icon = Icons.check_circle_outline_rounded;
         break;
@@ -288,7 +312,10 @@ class ChatbotMessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceCard(TriageServiceRoute service, Function(TriageServiceRoute) onTap) {
+  Widget _buildServiceCard(
+    TriageServiceRoute service,
+    Function(TriageServiceRoute) onTap,
+  ) {
     final iconColor = Color(int.parse(service.color));
 
     return GestureDetector(
@@ -344,7 +371,11 @@ class ChatbotMessageBubble extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: Colors.grey,
+            ),
           ],
         ),
       ),
@@ -353,13 +384,20 @@ class ChatbotMessageBubble extends StatelessWidget {
 
   IconData _getIcon(String name) {
     switch (name) {
-      case 'healing': return Icons.healing_rounded;
-      case 'medication_liquid': return Icons.medication_liquid_rounded;
-      case 'elderly': return Icons.elderly_rounded;
-      case 'monitor_heart': return Icons.monitor_heart_rounded;
-      case 'child_care': return Icons.child_care_rounded;
-      case 'water_drop': return Icons.water_drop_rounded;
-      default: return Icons.medical_services_rounded;
+      case 'healing':
+        return Icons.healing_rounded;
+      case 'medication_liquid':
+        return Icons.medication_liquid_rounded;
+      case 'elderly':
+        return Icons.elderly_rounded;
+      case 'monitor_heart':
+        return Icons.monitor_heart_rounded;
+      case 'child_care':
+        return Icons.child_care_rounded;
+      case 'water_drop':
+        return Icons.water_drop_rounded;
+      default:
+        return Icons.medical_services_rounded;
     }
   }
 }
