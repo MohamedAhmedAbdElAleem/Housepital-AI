@@ -13,7 +13,7 @@ class ApiConstants {
 
   // User Endpoints
   static const String profile = '/user/profile';
-  static const String updateProfile = '/user/update';
+  static const String updateProfile = '/user/update-profile';
   static const String medicalHistory = '/user/medical-history';
 
   // Services Endpoints

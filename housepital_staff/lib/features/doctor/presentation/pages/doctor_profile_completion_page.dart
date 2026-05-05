@@ -4,11 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/utils/token_manager.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../data/models/doctor_model.dart';
 import '../cubit/doctor_cubit.dart';
+import '../theme/doctor_theme.dart';
+import '../widgets/background_blobs.dart';
+import '../widgets/glass_header.dart';
 
 class DoctorProfileCompletionPage extends StatefulWidget {
   const DoctorProfileCompletionPage({super.key});
@@ -20,8 +24,7 @@ class DoctorProfileCompletionPage extends StatefulWidget {
 
 class _DoctorProfileCompletionPageState
     extends State<DoctorProfileCompletionPage> {
-  static const _primary = Color(0xFF2664EC);
-  static const _primaryDark = Color(0xFF1136A8);
+  // Uses DoctorTheme for colors
 
   final _formKey = GlobalKey<FormState>();
   final _pageController = PageController();
@@ -177,7 +180,7 @@ class _DoctorProfileCompletionPageState
                 ),
                 const SizedBox(height: 16),
                 ListTile(
-                  leading: const Icon(Icons.camera_alt_outlined, color: _primary),
+                  leading: const Icon(Icons.camera_alt_outlined, color: DoctorTheme.primary),
                   title: const Text('Camera'),
                   onTap: () {
                     Navigator.pop(context);
@@ -185,7 +188,7 @@ class _DoctorProfileCompletionPageState
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.photo_library_outlined, color: _primary),
+                  leading: const Icon(Icons.photo_library_outlined, color: DoctorTheme.primary),
                   title: const Text('Gallery'),
                   onTap: () {
                     Navigator.pop(context);
@@ -193,7 +196,7 @@ class _DoctorProfileCompletionPageState
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.picture_as_pdf_outlined, color: _primary),
+                  leading: const Icon(Icons.picture_as_pdf_outlined, color: DoctorTheme.primary),
                   title: const Text('Document (PDF)'),
                   onTap: () {
                     Navigator.pop(context);
@@ -208,12 +211,21 @@ class _DoctorProfileCompletionPageState
     );
   }
 
+  Future<File> _saveFileToSafeLocation(String originalPath) async {
+    final originalFile = File(originalPath);
+    final ext = originalPath.contains('.') ? originalPath.split('.').last : 'tmp';
+    final appDir = await getApplicationDocumentsDirectory();
+    final newPath = '${appDir.path}/doctor_doc_${DateTime.now().millisecondsSinceEpoch}.$ext';
+    return await originalFile.copy(newPath);
+  }
+
   Future<void> _pickFromSource(String type, ImageSource source) async {
     try {
       final image = await _picker.pickImage(source: source);
       if (image == null || !mounted) return;
+      final safeFile = await _saveFileToSafeLocation(image.path);
       setState(() {
-        _setFileByType(type, File(image.path));
+        _setFileByType(type, safeFile);
       });
     } catch (_) {}
   }
@@ -225,8 +237,9 @@ class _DoctorProfileCompletionPageState
         allowedExtensions: ['pdf'],
       );
       if (result == null || result.files.single.path == null || !mounted) return;
+      final safeFile = await _saveFileToSafeLocation(result.files.single.path!);
       setState(() {
-        _setFileByType(type, File(result.files.single.path!));
+        _setFileByType(type, safeFile);
       });
     } catch (_) {}
   }
@@ -384,31 +397,24 @@ class _DoctorProfileCompletionPageState
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        WillPopScope(
-          onWillPop: () async {
-            _prevStep();
-            return false;
+        PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) _prevStep();
           },
           child: Scaffold(
-            backgroundColor: const Color(0xFFF4F8FF),
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: BackButton(onPressed: _prevStep, color: _primaryDark),
-            title: Text(
-              _existingProfile != null
-                  ? 'Update Your Profile'
-                  : 'Complete Your Profile',
-              style: TextStyle(
-                color: _primaryDark,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-            centerTitle: true,
-          ),
-          body: Column(
-            children: [
+            backgroundColor: DoctorTheme.background,
+            body: BackgroundBlobs(
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    GlassHeader(
+                      title: _existingProfile != null
+                          ? 'Update Profile'
+                          : 'Complete Profile',
+                      subtitle: 'Provide your professional details',
+                      onBack: _prevStep,
+                    ),
               _buildStepIndicator(),
               Expanded(
                 child: Form(
@@ -424,10 +430,12 @@ class _DoctorProfileCompletionPageState
                   ),
                 ),
               ),
-              _buildBottomBar(),
-            ],
+                    _buildBottomBar(),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
         ),
         if (_isSubmitting) _buildOverlay(),
       ],
@@ -463,10 +471,10 @@ class _DoctorProfileCompletionPageState
             color: isDone
                 ? Colors.green
                 : isActive
-                    ? _primary
+                    ? DoctorTheme.primary
                     : Colors.grey[300],
             boxShadow: isActive
-                ? [BoxShadow(color: _primary.withValues(alpha: 0.3), blurRadius: 8)]
+                ? [BoxShadow(color: DoctorTheme.primary.withValues(alpha: 0.3), blurRadius: 8)]
                 : [],
           ),
           child: Center(
@@ -487,7 +495,7 @@ class _DoctorProfileCompletionPageState
           label,
           style: TextStyle(
             fontSize: 11,
-            color: isActive ? _primary : Colors.grey[500],
+            color: isActive ? DoctorTheme.primary : Colors.grey[500],
             fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -520,7 +528,11 @@ class _DoctorProfileCompletionPageState
             _licenseController,
             'Medical License Number',
             Icons.badge_outlined,
-            validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) return 'Required';
+              if (v.trim().length < 5) return 'Minimum 5 characters required';
+              return null;
+            },
           ),
           const SizedBox(height: 16),
           _buildDropdown(),
@@ -632,11 +644,11 @@ class _DoctorProfileCompletionPageState
             decoration: BoxDecoration(
               color: const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _primary.withValues(alpha: 0.2)),
+              border: Border.all(color: DoctorTheme.primary.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: _primary, size: 20),
+                Icon(Icons.info_outline, color: DoctorTheme.primary, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -661,7 +673,7 @@ class _DoctorProfileCompletionPageState
       style: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
-        color: _primaryDark,
+        color: DoctorTheme.primaryDark,
       ),
     );
   }
@@ -681,7 +693,7 @@ class _DoctorProfileCompletionPageState
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: _primary),
+        prefixIcon: Icon(icon, color: DoctorTheme.primary),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -695,7 +707,7 @@ class _DoctorProfileCompletionPageState
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _primary, width: 2),
+          borderSide: const BorderSide(color: DoctorTheme.primary, width: 2),
         ),
       ),
       validator: validator ??
@@ -710,7 +722,7 @@ class _DoctorProfileCompletionPageState
       value: _selectedSpecialization,
       decoration: InputDecoration(
         labelText: 'Specialization',
-        prefixIcon: const Icon(Icons.local_hospital_outlined, color: _primary),
+        prefixIcon: const Icon(Icons.local_hospital_outlined, color: DoctorTheme.primary),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
@@ -755,22 +767,22 @@ class _DoctorProfileCompletionPageState
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: selected ? _primary.withValues(alpha: 0.1) : Colors.white,
+          color: selected ? DoctorTheme.primary.withValues(alpha: 0.1) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? _primary : Colors.grey[300]!,
+            color: selected ? DoctorTheme.primary : Colors.grey[300]!,
             width: selected ? 2 : 1,
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: selected ? _primary : Colors.grey[500], size: 22),
+            Icon(icon, color: selected ? DoctorTheme.primary : Colors.grey[500], size: 22),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: selected ? _primary : Colors.grey[700],
+                color: selected ? DoctorTheme.primary : Colors.grey[700],
                 fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -815,12 +827,12 @@ class _DoctorProfileCompletionPageState
               decoration: BoxDecoration(
                 color: hasFile
                     ? Colors.green[50]
-                    : _primary.withValues(alpha: 0.1),
+                    : DoctorTheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 hasFile ? Icons.check_circle_rounded : icon,
-                color: hasFile ? Colors.green : _primary,
+                color: hasFile ? Colors.green : DoctorTheme.primary,
                 size: 24,
               ),
             ),
@@ -939,7 +951,7 @@ class _DoctorProfileCompletionPageState
             child: ElevatedButton(
               onPressed: _nextStep,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _currentStep == 2 ? Colors.green : _primary,
+                backgroundColor: _currentStep == 2 ? Colors.green : DoctorTheme.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -994,7 +1006,7 @@ class _DoctorProfileCompletionPageState
                       backgroundColor: Colors.grey[200],
                       color: _uploadProgressValue >= 1.0
                           ? Colors.green
-                          : _primary,
+                          : DoctorTheme.primary,
                     ),
                   ),
                   const SizedBox(height: 24),

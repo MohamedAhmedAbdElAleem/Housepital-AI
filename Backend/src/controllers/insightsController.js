@@ -57,11 +57,8 @@ const getDashboardInsights = async (req, res) => {
 
             // 2. Pending Verifications
             Promise.all([
-                User.countDocuments({ verificationStatus: "pending" }),
                 Nurse.countDocuments({ verificationStatus: "pending" }),
-                Doctor.countDocuments({ verificationStatus: "pending" }),
-                Dependent.countDocuments({ verificationStatus: "pending" }),
-                Clinic.countDocuments({ verificationStatus: "pending" })
+                Doctor.countDocuments({ verificationStatus: "pending" })
             ]),
 
             // 3. Booking Statistics
@@ -186,11 +183,8 @@ const getDashboardInsights = async (req, res) => {
             // Pending Verifications (Action Required)
             pendingVerifications: {
                 total: pendingVerifications.reduce((a, b) => a + b, 0),
-                users: pendingVerifications[0],
-                nurses: pendingVerifications[1],
-                doctors: pendingVerifications[2],
-                dependents: pendingVerifications[3],
-                clinics: pendingVerifications[4]
+                nurses: pendingVerifications[0],
+                doctors: pendingVerifications[1]
             },
 
             // Booking Statistics

@@ -132,4 +132,10 @@ class AuthCubit extends Cubit<AuthState> {
     await TokenManager.deleteVerificationData();
     emit(AuthInitial());
   }
+
+  void updateUserInfo(AuthUser updatedUser) {
+    if (state is AuthAuthenticated) {
+      emit(AuthAuthenticated(updatedUser));
+    }
+  }
 }

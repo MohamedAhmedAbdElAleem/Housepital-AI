@@ -25,6 +25,11 @@ class _NursePendingApprovalPageState extends State<NursePendingApprovalPage>
         vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
+
+    // Automatically check status when page loads to avoid being stuck on pending
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkStatus();
+    });
   }
 
   @override

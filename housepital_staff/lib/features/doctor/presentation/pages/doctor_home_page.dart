@@ -7,6 +7,8 @@ import '../../presentation/cubit/appointment_cubit.dart';
 import '../../presentation/cubit/doctor_cubit.dart';
 import '../../presentation/cubit/clinic_cubit.dart';
 import '../../presentation/cubit/notification_cubit.dart';
+import '../theme/doctor_theme.dart';
+import '../widgets/background_blobs.dart';
 
 class DoctorHomePage extends StatefulWidget {
   const DoctorHomePage({super.key});
@@ -17,16 +19,7 @@ class DoctorHomePage extends StatefulWidget {
 
 class _DoctorHomePageState extends State<DoctorHomePage>
     with TickerProviderStateMixin {
-  static const Color _bg = Color(0xFFF4F8FF);
-  static const Color _surface = Color(0xFFFFFFFF);
-  static const Color _textPrimary = Color(0xFF0F172A);
-  static const Color _textSecondary = Color(0xFF475569);
-
-  static const List<Color> _heroGradient = [
-    Color(0xFF1136A8),
-    Color(0xFF2664EC),
-    Color(0xFF3498BB),
-  ];
+  // Colors now handled by DoctorTheme
 
   late final AnimationController _entryController;
   late final Animation<double> _fadeAnimation;
@@ -183,26 +176,9 @@ class _DoctorHomePageState extends State<DoctorHomePage>
         }
       },
       child: Scaffold(
-        backgroundColor: _bg,
-        body: Stack(
-          children: [
-          Positioned(
-            top: -120,
-            right: -60,
-            child: _buildBackgroundBlob(
-              size: 260,
-              gradient: const [Color(0x332664EC), Color(0x003498BB)],
-            ),
-          ),
-          Positioned(
-            top: 170,
-            left: -110,
-            child: _buildBackgroundBlob(
-              size: 240,
-              gradient: const [Color(0x25113AA8), Color(0x002664EC)],
-            ),
-          ),
-          SafeArea(
+        backgroundColor: DoctorTheme.background,
+        body: BackgroundBlobs(
+          child: SafeArea(
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: SlideTransition(
@@ -275,26 +251,10 @@ class _DoctorHomePageState extends State<DoctorHomePage>
               ),
             ),
           ),
-        ],
-      ),
-      ),
-    );
-  }
-
-  Widget _buildBackgroundBlob({
-    required double size,
-    required List<Color> gradient,
-  }) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(colors: gradient),
+        ),
       ),
     );
   }
-
 
   Widget _buildTopBar(
     BuildContext context,
@@ -309,20 +269,14 @@ class _DoctorHomePageState extends State<DoctorHomePage>
             children: [
               Text(
                 'Welcome back',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: _textSecondary,
-                  letterSpacing: 0.2,
-                ),
+                style: DoctorTheme.bodyMedium,
               ),
               const SizedBox(height: 3),
               Text(
                 doctorName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: _textPrimary,
-                  fontWeight: FontWeight.w800,
-                ),
+                style: DoctorTheme.headingLarge,
               ),
             ],
           ),
@@ -385,19 +339,9 @@ class _DoctorHomePageState extends State<DoctorHomePage>
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: _heroGradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1746C0).withValues(alpha: 0.28),
-            blurRadius: 28,
-            offset: const Offset(0, 14),
-          ),
-        ],
+        gradient: DoctorTheme.headerGradient,
+        borderRadius: BorderRadius.circular(DoctorTheme.radiusXL),
+        boxShadow: DoctorTheme.headerShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -538,21 +482,12 @@ class _DoctorHomePageState extends State<DoctorHomePage>
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: _textPrimary,
-            letterSpacing: 0.2,
-          ),
+          style: DoctorTheme.headingMedium,
         ),
         const SizedBox(height: 2),
         Text(
           subtitle,
-          style: const TextStyle(
-            fontSize: 13.5,
-            fontWeight: FontWeight.w500,
-            color: _textSecondary,
-          ),
+          style: DoctorTheme.bodyMedium,
         ),
       ],
     );
@@ -581,19 +516,13 @@ class _DoctorHomePageState extends State<DoctorHomePage>
           borderRadius: BorderRadius.circular(24),
           child: Ink(
             decoration: BoxDecoration(
-              color: _surface,
+              color: DoctorTheme.surface,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: action.color.withValues(alpha: 0.16),
                 width: 1.2,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF0F172A).withValues(alpha: 0.06),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+              boxShadow: DoctorTheme.softShadow,
             ),
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -621,23 +550,14 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                     action.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: _textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: DoctorTheme.titleMedium,
                   ),
                   const SizedBox(height: 3),
                   Text(
                     action.subtitle,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: _textSecondary,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                      height: 1.2,
-                    ),
+                    style: DoctorTheme.bodySmall,
                   ),
                 ],
               ),
@@ -672,9 +592,9 @@ class _DoctorHomePageState extends State<DoctorHomePage>
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _surface,
+        color: DoctorTheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFDBEAFE)),
+        border: Border.all(color: DoctorTheme.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -695,21 +615,12 @@ class _DoctorHomePageState extends State<DoctorHomePage>
               children: [
                 Text(
                   item.title,
-                  style: const TextStyle(
-                    color: _textPrimary,
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: DoctorTheme.titleMedium.copyWith(fontSize: 14.5),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   item.subtitle,
-                  style: const TextStyle(
-                    color: _textSecondary,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w500,
-                    height: 1.2,
-                  ),
+                  style: DoctorTheme.bodySmall,
                 ),
               ],
             ),

@@ -5,6 +5,9 @@ import '../../../../core/utils/token_manager.dart';
 import '../../data/models/service_model.dart';
 import '../cubit/clinic_cubit.dart';
 import '../cubit/service_cubit.dart';
+import '../theme/doctor_theme.dart';
+import '../widgets/background_blobs.dart';
+import '../widgets/glass_header.dart';
 
 class ServiceFormPage extends StatefulWidget {
   final ServiceModel? serviceToEdit;
@@ -16,13 +19,7 @@ class ServiceFormPage extends StatefulWidget {
 }
 
 class _ServiceFormPageState extends State<ServiceFormPage> {
-  static const Color _bg = Color(0xFFF4F8FF);
-  static const Color _surface = Color(0xFFFFFFFF);
-  static const Color _primary = Color(0xFF2664EC);
-  static const Color _primaryDark = Color(0xFF1136A8);
-  static const Color _secondary = Color(0xFF3498BB);
-  static const Color _textPrimary = Color(0xFF0F172A);
-  static const Color _textSecondary = Color(0xFF475569);
+  // Colors now from DoctorTheme
 
   final _formKey = GlobalKey<FormState>();
 
@@ -132,31 +129,21 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: DoctorTheme.background,
       body: Stack(
         children: [
-          Positioned(
-            top: -120,
-            right: -80,
-            child: _buildBackgroundBlob(
-              size: 280,
-              colors: const [Color(0x2A2664EC), Color(0x003498BB)],
-            ),
-          ),
-          Positioned(
-            top: 220,
-            left: -100,
-            child: _buildBackgroundBlob(
-              size: 240,
-              colors: const [Color(0x1A1136A8), Color(0x002664EC)],
-            ),
-          ),
-          SafeArea(
+
+          BackgroundBlobs(
+          child: SafeArea(
             child: Form(
               key: _formKey,
               child: Column(
                 children: [
-                  _buildHeader(),
+                  GlassHeader(
+                    title: _isEditing ? 'Edit Service' : 'Add Service',
+                    subtitle: _isEditing ? 'Fine-tune your existing offering' : 'Set pricing and assign clinics',
+                    onBack: () => Navigator.maybePop(context),
+                  ),
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -218,7 +205,7 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
                             child: ElevatedButton.icon(
                               onPressed: _isLoading ? null : _submit,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: _primary,
+                                backgroundColor: DoctorTheme.primary,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
@@ -255,90 +242,15 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
               ),
             ),
           ),
+         ),
         ],
       ),
     );
   }
 
-  Widget _buildBackgroundBlob(
-      {required double size, required List<Color> colors}) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: colors,
-        ),
-      ),
-    );
-  }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [_primaryDark, _primary, _secondary],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: _primaryDark.withValues(alpha: 0.24),
-              blurRadius: 22,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            IconButton(
-              onPressed: () => Navigator.maybePop(context),
-              icon: const Icon(Icons.arrow_back_ios_new_rounded),
-              color: Colors.white,
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.18),
-                fixedSize: const Size(40, 40),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _isEditing ? 'Edit Service' : 'Add Service',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _isEditing
-                        ? 'Fine-tune your existing offering'
-                        : 'Set pricing and assign clinics',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
+
 
   Widget _buildSectionCard({
     required String title,
@@ -347,31 +259,13 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFD8E5FF)),
-      ),
+      decoration: DoctorTheme.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: _textPrimary,
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+          Text(title, style: DoctorTheme.titleMedium),
           const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              color: _textSecondary,
-              fontSize: 12.8,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          Text(subtitle, style: DoctorTheme.bodySmall),
           const SizedBox(height: 14),
           ...children,
         ],
@@ -382,31 +276,13 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
   Widget _buildClinicsSection() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFD8E5FF)),
-      ),
+      decoration: DoctorTheme.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Assign to Clinics',
-            style: TextStyle(
-              color: _textPrimary,
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+          const Text('Assign to Clinics', style: DoctorTheme.titleMedium),
           const SizedBox(height: 4),
-          const Text(
-            'Select where this service will be available',
-            style: TextStyle(
-              color: _textSecondary,
-              fontSize: 12.8,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          const Text('Select where this service will be available', style: DoctorTheme.bodySmall),
           const SizedBox(height: 12),
           BlocBuilder<ClinicCubit, ClinicState>(
             builder: (context, state) {
@@ -414,7 +290,7 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
                 return const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: Center(
-                    child: CircularProgressIndicator(color: _primary),
+                    child: CircularProgressIndicator(color: DoctorTheme.primary),
                   ),
                 );
               }
@@ -424,7 +300,7 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
                   padding: EdgeInsets.symmetric(vertical: 12),
                   child: Text(
                     'No clinics found. Please add a clinic first.',
-                    style: TextStyle(color: _textSecondary),
+                    style: TextStyle(color: DoctorTheme.textSecondary),
                   ),
                 );
               }
@@ -450,19 +326,16 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
                     ),
                     child: CheckboxListTile(
                       value: isSelected,
-                      activeColor: _primary,
+                      activeColor: DoctorTheme.primary,
                       contentPadding:
                           const EdgeInsets.symmetric(horizontal: 10),
                       title: Text(
                         clinic.name,
-                        style: const TextStyle(
-                          color: _textPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: DoctorTheme.titleMedium,
                       ),
                       subtitle: Text(
                         clinic.address.area ?? '',
-                        style: const TextStyle(color: _textSecondary),
+                        style: DoctorTheme.bodySmall,
                       ),
                       secondary: Container(
                         width: 40,
@@ -532,20 +405,20 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: Icon(icon, color: _primaryDark),
+        prefixIcon: Icon(icon, color: DoctorTheme.primaryDark),
         filled: true,
-        fillColor: const Color(0xFFF8FBFF),
+        fillColor: DoctorTheme.surfaceDim,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFD8E5FF)),
+          borderSide: const BorderSide(color: DoctorTheme.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFD8E5FF)),
+          borderSide: const BorderSide(color: DoctorTheme.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: _primary, width: 1.4),
+          borderSide: const BorderSide(color: DoctorTheme.primary, width: 1.4),
         ),
       ),
     );

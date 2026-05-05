@@ -140,8 +140,7 @@ class _AdminHomePageState extends State<AdminHomePage>
               if (state is AdminAllUsersLoaded) {
                 onlineStaff =
                     state.users
-                        .where((u) => u is Map<String, dynamic>)
-                        .map((u) => u as Map<String, dynamic>)
+                        .whereType<Map<String, dynamic>>()
                         .where(
                           (u) =>
                               (u['role'] == 'nurse' || u['role'] == 'doctor') &&
@@ -2453,7 +2452,7 @@ class _AdminHomePageState extends State<AdminHomePage>
   }
 
   Widget _buildPerformanceOverview() {
-    final topNurses = _dashboardData['topNurses'] as List? ?? [];
+    final topNurses = (_dashboardData['topNurses'] as List? ?? []).take(3).toList();
     final financial = _dashboardData['financial'] ?? {};
 
     return Padding(
@@ -2758,7 +2757,7 @@ class _AdminHomePageState extends State<AdminHomePage>
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
+          (dialogContext) => AlertDialog(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -2772,7 +2771,7 @@ class _AdminHomePageState extends State<AdminHomePage>
             content: const Text('Are you sure you want to logout?'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(dialogContext),
                 child: Text(
                   'Cancel',
                   style: TextStyle(color: Colors.grey[600]),
@@ -2780,7 +2779,7 @@ class _AdminHomePageState extends State<AdminHomePage>
               ),
               ElevatedButton(
                 onPressed: () async {
-                  Navigator.pop(context);
+                  Navigator.pop(dialogContext);
                   await TokenManager.deleteToken();
                   await TokenManager.deleteUserId();
                   await TokenManager.deleteUserRole();

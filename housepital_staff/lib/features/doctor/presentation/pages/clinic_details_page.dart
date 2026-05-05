@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../data/models/clinic_model.dart';
 import '../cubit/clinic_cubit.dart';
+import '../theme/doctor_theme.dart';
 
 class ClinicDetailsPage extends StatefulWidget {
   const ClinicDetailsPage({super.key});
@@ -13,12 +14,7 @@ class ClinicDetailsPage extends StatefulWidget {
 }
 
 class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
-  static const Color _bg = Color(0xFFF4F8FF);
-  static const Color _surface = Color(0xFFFFFFFF);
-  static const Color _primary = Color(0xFF2664EC);
-  static const Color _primaryDark = Color(0xFF1136A8);
-  static const Color _textPrimary = Color(0xFF0F172A);
-  static const Color _textSecondary = Color(0xFF475569);
+  // Colors from DoctorTheme
 
   int _currentImageIndex = 0;
 
@@ -27,7 +23,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
     final clinic = ModalRoute.of(context)!.settings.arguments as ClinicModel;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: DoctorTheme.background,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.pushNamed(
@@ -36,7 +32,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
             arguments: clinic,
           );
         },
-        backgroundColor: _primary,
+        backgroundColor: DoctorTheme.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.edit_rounded),
         label: const Text(
@@ -113,7 +109,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
     return SliverAppBar(
       expandedHeight: 300,
       pinned: true,
-      backgroundColor: _primaryDark,
+      backgroundColor: DoctorTheme.primaryDark,
       foregroundColor: Colors.white,
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: EdgeInsets.zero,
@@ -205,11 +201,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFD8E5FF)),
-      ),
+      decoration: DoctorTheme.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -218,7 +210,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
           Text(
             clinic.description ?? 'No description provided.',
             style: const TextStyle(
-              color: _textSecondary,
+              color: DoctorTheme.textSecondary,
               height: 1.4,
               fontSize: 14,
             ),
@@ -276,22 +268,14 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
   Widget _sectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
-        color: _textPrimary,
-        fontSize: 18,
-        fontWeight: FontWeight.w800,
-      ),
+      style: DoctorTheme.headingSmall,
     );
   }
 
   Widget _buildInfoCard({required List<Widget> children}) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFD8E5FF)),
-      ),
+      decoration: DoctorTheme.cardDecoration(),
       child: Column(children: children),
     );
   }
@@ -299,11 +283,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
   Widget _buildWorkingHoursCard(ClinicModel clinic) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFD8E5FF)),
-      ),
+      decoration: DoctorTheme.cardDecoration(),
       child: Column(
         children: clinic.workingHours.map((wh) {
           return Padding(
@@ -315,7 +295,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
                   height: 9,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _primary,
+                    color: DoctorTheme.primary,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -323,7 +303,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
                   child: Text(
                     wh.day.replaceFirst(wh.day[0], wh.day[0].toUpperCase()),
                     style: const TextStyle(
-                      color: _textPrimary,
+                      color: DoctorTheme.textPrimary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -331,7 +311,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
                 Text(
                   '${wh.openTime} - ${wh.closeTime}',
                   style: const TextStyle(
-                    color: _primaryDark,
+                    color: DoctorTheme.primaryDark,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -349,20 +329,16 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _primary.withValues(alpha: 0.1),
+            color: DoctorTheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: _primaryDark, size: 18),
+          child: Icon(icon, color: DoctorTheme.primaryDark, size: 18),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
-              color: _textSecondary,
-              fontSize: 14.5,
-              fontWeight: FontWeight.w500,
-            ),
+            style: DoctorTheme.bodyMedium,
           ),
         ),
       ],

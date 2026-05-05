@@ -62,6 +62,7 @@ class AuthUser {
   final String role;
   final String name;
   final String email;
+  final String? mobile;
   // Doctor-specific fields
   final String? verificationStatus;
   final String? rejectionReason;
@@ -73,6 +74,7 @@ class AuthUser {
     required this.role,
     required this.name,
     required this.email,
+    this.mobile,
     this.verificationStatus,
     this.rejectionReason,
     this.isActive,
@@ -85,6 +87,7 @@ class AuthUser {
       role: json['role'] ?? 'customer',
       name: json['name'] ?? '',
       email: json['email'] ?? '',
+      mobile: json['mobile'],
       verificationStatus: json['verificationStatus'],
       rejectionReason: json['rejectionReason'],
       isActive: json['isActive'] ?? json['doctorIsActive'],

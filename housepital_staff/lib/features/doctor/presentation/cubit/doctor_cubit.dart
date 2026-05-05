@@ -57,7 +57,7 @@ class DoctorCubit extends Cubit<DoctorState> {
   // Toggle active status (wallet-gated on backend)
   Future<void> toggleActive(bool isActive) async {
     try {
-      final newActive = await repository.toggleActive(isActive);
+      await repository.toggleActive(isActive);
       // Re-fetch profile to get updated state
       final profile = await repository.getProfile();
       emit(DoctorProfileLoaded(profile));

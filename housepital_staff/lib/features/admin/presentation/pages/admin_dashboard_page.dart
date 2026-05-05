@@ -625,7 +625,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
             Padding(
               padding: const EdgeInsets.all(20),
               child: Text(
-                'Pinch to zoom • Drag to pan' + (isPdf ? '\nTap browser icon above to open full PDF' : ''),
+                'Pinch to zoom • Drag to pan${isPdf ? '\nTap browser icon above to open full PDF' : ''}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
