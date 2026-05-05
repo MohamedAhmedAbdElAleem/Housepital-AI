@@ -1,0 +1,113 @@
+{
+  "@@locale": "en",
+  "navHome": "Home",
+  "@navHome": {
+    "description": "Label for the Home navigation item"
+  },
+  "navBookings": "Bookings",
+  "@navBookings": {
+    "description": "Label for the Bookings navigation item"
+  },
+  "navAI": "AI Assistant",
+  "@navAI": {
+    "description": "Label for the AI Assistant navigation item"
+  },
+  "navAlerts": "Alerts",
+  "@navAlerts": {
+    "description": "Label for the Alerts navigation item"
+  },
+  "navProfile": "Profile",
+  "@navProfile": {
+    "description": "Label for the Profile navigation item"
+  },
+  "visitCompletedTitle": "Visit Completed",
+  "@visitCompletedTitle": {
+    "description": "Title shown when a visit is completed"
+  },
+  "visitCompletedSubtitle": "Care by {nurseName}",
+  "@visitCompletedSubtitle": {
+    "description": "Subtitle with the nurse name",
+    "placeholders": {
+      "nurseName": {}
+    }
+  },
+  "orderSummaryTitle": "Order Summary",
+  "@orderSummaryTitle": {
+    "description": "Title for the invoice summary card"
+  },
+  "serviceLabel": "Service",
+  "@serviceLabel": {
+    "description": "Fallback label for the service name"
+  },
+  "destinationFeeLabel": "Destination Fee",
+  "@destinationFeeLabel": {
+    "description": "Label for destination fee line item"
+  },
+  "platformFeeLabel": "Platform Fee",
+  "@platformFeeLabel": {
+    "description": "Label for platform fee line item"
+  },
+  "totalLabel": "Total",
+  "@totalLabel": {
+    "description": "Label for total amount"
+  },
+  "visitReportTitle": "Visit Report",
+  "@visitReportTitle": {
+    "description": "Title for the visit report section"
+  },
+  "rateNurseTitle": "Rate {nurseName}",
+  "@rateNurseTitle": {
+    "description": "Title for rating section with nurse name",
+    "placeholders": {
+      "nurseName": {}
+    }
+  },
+  "ratingSubmittedTitle": "Rating Submitted",
+  "@ratingSubmittedTitle": {
+    "description": "Title shown when rating is already submitted"
+  },
+  "ratingPrompt": "How was the service provided?",
+  "@ratingPrompt": {
+    "description": "Prompt asking for rating feedback"
+  },
+  "ratingThanks": "Thank you for your feedback!",
+  "@ratingThanks": {
+    "description": "Message shown after rating is submitted"
+  },
+  "ratingSelectError": "Please select a rating",
+  "@ratingSelectError": {
+    "description": "Error shown when rating is not selected"
+  },
+  "reviewHint": "Write a review (optional)...",
+  "@reviewHint": {
+    "description": "Hint text for review input"
+  },
+  "submitRating": "Submit Rating",
+  "@submitRating": {
+    "description": "Button label to submit rating"
+  },
+  "submitting": "Submitting...",
+  "@submitting": {
+    "description": "Loading label while submitting rating"
+  },
+  "ratingThanksSnack": "Thank you for rating!",
+  "@ratingThanksSnack": {
+    "description": "Snack bar message after rating submission"
+  },
+  "ratingSaved": "Rating saved successfully!",
+  "@ratingSaved": {
+    "description": "Message shown after rating is saved"
+  },
+  "backToHome": "Back to Home",
+  "@backToHome": {
+    "description": "CTA button text to return home"
+  },
+  "currencyEgp": "EGP",
+  "@currencyEgp": {
+    "description": "Currency label for Egyptian Pound"
+  },
+  "defaultNurseName": "Nurse",
+  "@defaultNurseName": {
+    "description": "Fallback nurse name if missing"
+  }
+}

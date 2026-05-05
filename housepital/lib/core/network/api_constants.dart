@@ -1,9 +1,7 @@
 class ApiConstants {
   // Base URL for the API
-  // For Android Emulator: Use 10.0.2.2 (maps to localhost on your computer)
   // For Physical Device: Use your computer's actual IP address
-  // For Physical Device: Use your computer's actual IP address
-  static const String baseUrl = 'http://192.168.1.208:3500';
+  static const String baseUrl = 'http://192.168.1.6:3500';
 
   // API Endpoints
   static const String register = '/api/auth/register';
@@ -49,6 +47,9 @@ class ApiConstants {
       '/api/notifications/unread-count';
   static const String notificationsReadAll = '/api/notifications/read-all';
   static const String notificationsClearAll = '/api/notifications/clear-all';
+
+  // Booking & Medical Records Endpoints
+  static const String visitReports = '/api/bookings/patients'; // Append /:patientId/visit-reports
 
   // Headers
   static Map<String, String> get headers => {

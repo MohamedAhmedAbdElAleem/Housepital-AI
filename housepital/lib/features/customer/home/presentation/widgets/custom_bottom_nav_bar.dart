@@ -1,5 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:housepital/generated/l10n/app_localizations.dart';
+import 'package:housepital/core/constants/app_colors.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -11,179 +14,179 @@ class CustomBottomNavBar extends StatelessWidget {
     required this.onTap,
   });
 
-  static const _primary = Color(0xFF00C853);
-  static const _inactive = Color(0xFF94A3B8);
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(28),
-          topRight: Radius.circular(28),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _primary.withAlpha(12),
-            blurRadius: 20,
-            offset: const Offset(0, -8),
+      height: 75,
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 25),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          // Glass Background
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(25),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark 
+                        ? AppColors.dark700.withOpacity(0.85) 
+                        : Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(
+                      color: isDark 
+                          ? Colors.white.withOpacity(0.1) 
+                          : AppColors.primary500.withOpacity(0.1),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-          BoxShadow(
-            color: Colors.black.withAlpha(6),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+          
+          // Navigation Items
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(child: _buildNavItem(context, 0, Icons.home_rounded, l10n.navHome)),
+                Expanded(child: _buildNavItem(context, 1, Icons.calendar_today_rounded, l10n.navBookings)),
+                const SizedBox(width: 70), // Space for center button
+                Expanded(child: _buildNavItem(context, 3, Icons.notifications_rounded, l10n.navAlerts, badge: 2)),
+                Expanded(child: _buildNavItem(context, 4, Icons.person_rounded, l10n.navProfile)),
+              ],
+            ),
+          ),
+
+          // Center Button (Floating)
+          Positioned(
+            top: -20,
+            child: _buildCenterButton(context),
           ),
         ],
       ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(0, Icons.home_rounded, 'Home'),
-              _buildNavItem(1, Icons.calendar_today_rounded, 'Bookings'),
-              _buildCenterButton(),
-              _buildNavItem(3, Icons.notifications_rounded, 'Alerts', badge: 2),
-              _buildNavItem(4, Icons.person_rounded, 'Profile'),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, {int? badge}) {
+  Widget _buildNavItem(BuildContext context, int index, IconData icon, String label, {int? badge}) {
     final isSelected = currentIndex == index;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = AppColors.primary500;
+    final inactiveColor = isDark ? AppColors.light700 : AppColors.dark200;
 
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onTap(index);
-        },
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap(index);
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
             children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.all(8),
+              Icon(
+                icon,
+                color: isSelected ? primaryColor : inactiveColor,
+                size: 26,
+              ),
+              if (badge != null && badge > 0)
+                Positioned(
+                  right: -5,
+                  top: -2,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    constraints: const BoxConstraints(
+                      minWidth: 14,
+                      minHeight: 14,
+                    ),
                     decoration: BoxDecoration(
-                      color:
-                          isSelected
-                              ? _primary.withAlpha(20)
-                              : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: isSelected ? _primary : _inactive,
-                      size: 24,
-                    ),
-                  ),
-                  if (badge != null && badge > 0)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFF5252), Color(0xFFFF1744)],
-                          ),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
-                        ),
-                        child: Text(
-                          badge > 9 ? '9+' : badge.toString(),
-                          style: const TextStyle(
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            height: 1,
-                          ),
-                        ),
+                      color: AppColors.error500,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark ? AppColors.dark700 : Colors.white,
+                        width: 1.5,
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected ? _primary : _inactive,
+                    child: Text(
+                      badge > 9 ? '9+' : badge.toString(),
+                      style: const TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        height: 1,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
             ],
           ),
-        ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected ? primaryColor : inactiveColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildCenterButton() {
+  Widget _buildCenterButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
         HapticFeedback.mediumImpact();
         onTap(2);
       },
       child: Container(
-        width: 56,
-        height: 56,
-        margin: const EdgeInsets.symmetric(horizontal: 8),
+        width: 65,
+        height: 65,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF00C853), Color(0xFF69F0AE)],
+            colors: [AppColors.primary500, AppColors.primary600],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: _primary.withAlpha(60),
-              blurRadius: 16,
+              color: AppColors.primary500.withOpacity(0.3),
+              blurRadius: 12,
               offset: const Offset(0, 6),
             ),
           ],
+          border: Border.all(
+            color: Colors.white.withOpacity(0.2),
+            width: 2,
+          ),
         ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            const Icon(Icons.psychology_rounded, color: Colors.white, size: 28),
-            Positioned(
-              top: 6,
-              right: 6,
-              child: Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
-                  ),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
-                ),
-                child: const Icon(
-                  Icons.auto_awesome,
-                  color: Colors.white,
-                  size: 8,
-                ),
-              ),
-            ),
-          ],
+        child: const Icon(
+          Icons.psychology_rounded, 
+          color: Colors.white, 
+          size: 32,
         ),
       ),
     );

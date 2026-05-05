@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:housepital/generated/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'config/theme/app_theme.dart';
 import 'config/routes/app_router.dart';
@@ -30,6 +32,16 @@ class HousepitalApp extends StatelessWidget {
             themeMode: themeProvider.themeMode,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('ar'),
+            ],
             initialRoute: AppRoutes.splash,
             onGenerateRoute: AppRouter.generateRoute,
           );
