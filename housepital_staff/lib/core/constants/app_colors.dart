@@ -123,8 +123,8 @@ class AppColors {
   static const Color textOnSecondary = light50;
 
   // Role Colors (using branding colors)
-  static const Color customerColor = secondary500;
+  static const Color customerColor = Color(0xFFFB8A00);
   static const Color nurseColor = primary500;
-  static const Color doctorColor = primary700;
+  static const Color doctorColor = secondary500;
   static const Color adminColor = warning600;
 }

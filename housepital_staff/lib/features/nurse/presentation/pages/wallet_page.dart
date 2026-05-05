@@ -101,32 +101,114 @@ class _NurseWalletPageState extends State<NurseWalletPage> with SingleTickerProv
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: state.walletBlocked
-              ? [const Color(0xFF8B1A1A), const Color(0xFFB71C1C), const Color(0xFFC62828)]
-              : [const Color(0xFF0D47A1), const Color(0xFF1565C0), const Color(0xFF1E88E5)]),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors:
+              state.walletBlocked
+                  ? [
+                    const Color(0xFF8B1A1A),
+                    const Color(0xFFB71C1C),
+                    const Color(0xFFC62828),
+                  ]
+                  : [
+                    AppColors.primary700,
+                    AppColors.primary500,
+                    AppColors.primary400,
+                  ],
+        ),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: (state.walletBlocked ? AppColors.error : AppColors.primary).withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 8))],
+        boxShadow: [
+          BoxShadow(
+            color:
+                (state.walletBlocked ? AppColors.error : AppColors.primary500)
+                    .withAlpha(90),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
-            child: Icon(state.walletBlocked ? Icons.lock_rounded : Icons.account_balance_wallet_rounded, color: Colors.white, size: 24)),
-          const SizedBox(width: 12),
-          const Text('Nurse Wallet', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w500)),
-          const Spacer(),
-          if (state.walletBlocked) Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
-            child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.lock_rounded, color: Colors.white, size: 14), SizedBox(width: 4),
-              Text('BLOCKED', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700))])),
-        ]),
-        const SizedBox(height: 20),
-        Text('${state.balance >= 0 ? "" : "-"}${state.balance.abs().toStringAsFixed(2)} EGP',
-          style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w800, letterSpacing: -1)),
-        const SizedBox(height: 8),
-        Text('Min: ${state.threshold.toStringAsFixed(0)} EGP • Commission: ${(state.commissionRate * 100).toStringAsFixed(0)}%',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13)),
-      ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(50),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  state.walletBlocked
+                      ? Icons.lock_rounded
+                      : Icons.account_balance_wallet_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Nurse Wallet',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'Inter',
+                ),
+              ),
+              const Spacer(),
+              if (state.walletBlocked)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(50),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.lock_rounded, color: Colors.white, size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        'BLOCKED',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Text(
+            '${state.balance >= 0 ? "" : "-"}${state.balance.abs().toStringAsFixed(2)} EGP',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 36,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1,
+              fontFamily: 'Poppins',
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Min: ${state.threshold.toStringAsFixed(0)} EGP • Commission: ${(state.commissionRate * 100).toStringAsFixed(0)}%',
+            style: TextStyle(
+              color: Colors.white.withAlpha(150),
+              fontSize: 13,
+              fontFamily: 'Inter',
+            ),
+          ),
+        ],
+      ),
     );
   }
 

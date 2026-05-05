@@ -24,20 +24,19 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
           'My Profile',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
-            fontSize: 20,
+            fontFamily: 'Poppins',
           ),
         ),
-        centerTitle: true,
+        backgroundColor: AppColors.primary500,
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: BlocBuilder<NurseProfileCubit, NurseProfileState>(
         builder: (context, state) {

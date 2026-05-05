@@ -43,6 +43,10 @@ class NursePersonalInfoPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Profile Header
+                _buildProfileHeader(profile),
+                const SizedBox(height: 24),
+                
                 _buildSectionTitle('Personal Details'),
                 _buildInfoCard([
                   _buildInfoRow('Full Name', profile.userName ?? 'Not set', Icons.person_outline),
@@ -65,6 +69,90 @@ class NursePersonalInfoPage extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader(NurseProfile profile) {
+    final userName = profile.userName ?? 'Nurse';
+    final userInitial = userName.isNotEmpty ? userName[0].toUpperCase() : 'N';
+    final specialization = profile.specialization ?? 'Registered Nurse';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary500,
+            AppColors.primary400,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary500.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Avatar
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                userInitial,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary500,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Name and Specialization
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  userName,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  specialization,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

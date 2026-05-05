@@ -25,6 +25,7 @@ import '../../features/nurse/presentation/pages/nurse_reviews_page.dart';
 import '../../features/nurse/presentation/pages/nurse_settings_page.dart';
 import '../../features/nurse/presentation/pages/nurse_pending_approval_page.dart';
 import '../../features/nurse/presentation/pages/nurse_rejected_page.dart';
+import '../../features/nurse/presentation/pages/nurse_history_page.dart';
 import '../../features/nurse/presentation/pages/wallet_page.dart';
 import '../../features/doctor/presentation/pages/wallet_page.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
@@ -137,6 +138,11 @@ class AppRouter {
         return _buildDefaultRoute(
           const NurseRejectedPage(),
           settings: settings,
+        );
+        
+      case AppRoutes.nurseHistory:
+        return MaterialPageRoute(
+          builder: (_) => const NurseHistoryPage(),
         );
 
       case AppRoutes.doctorHome:

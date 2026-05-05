@@ -18,6 +18,7 @@ class AppRoutes {
   static const String nurseReviews = '/nurse/reviews';
   static const String nurseSettings = '/nurse/settings';
   static const String nurseWallet = '/nurse/wallet';
+  static const String nurseHistory = '/nurse/history';
   static const String nursePendingApproval = '/nurse/pending-approval';
   static const String nurseRejected = '/nurse/rejected';
 

@@ -4,6 +4,7 @@ import 'dart:async';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
+import '../../../auth/data/repositories/auth_repository.dart';
 import '../cubit/nurse_profile_cubit.dart';
 import '../cubit/nurse_booking_cubit.dart';
 import '../../data/models/nurse_profile_model.dart';
@@ -62,9 +63,7 @@ class _NurseHomePageState extends State<NurseHomePage>
       // Get initial position
       debugPrint('📍 LOCATION DEBUG: Awaiting initial position...');
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy:
-            LocationAccuracy
-                .high, // Changed to high for better emulator response
+        desiredAccuracy: LocationAccuracy.high,
       );
       debugPrint(
         '📍 LOCATION DEBUG: Initial Position received: ${position.latitude}, ${position.longitude}',
@@ -90,8 +89,8 @@ class _NurseHomePageState extends State<NurseHomePage>
       _locationStream?.cancel();
       _locationStream = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.best, // Changed to best for debugging
-          distanceFilter: 0, // Force every update
+          accuracy: LocationAccuracy.best,
+          distanceFilter: 0,
         ),
       ).listen((Position pos) {
         debugPrint(
@@ -105,7 +104,6 @@ class _NurseHomePageState extends State<NurseHomePage>
           });
 
           try {
-            // Also move the map center
             _mapController.move(newLoc, _mapController.camera.zoom);
           } catch (e) {
             debugPrint(
@@ -218,8 +216,6 @@ class _NurseHomePageState extends State<NurseHomePage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     context.read<NurseProfileCubit>().loadProfile();
-
-    // Fetch bookings
     context.read<NurseBookingCubit>().fetchBookings();
 
     _pulseController = AnimationController(
@@ -232,7 +228,6 @@ class _NurseHomePageState extends State<NurseHomePage>
       duration: const Duration(seconds: 3),
     )..repeat();
 
-    // Start polling for new bookings every 10 seconds when online
     _initSocket();
     _startFallbackPolling();
     _startPresenceSyncTimer();
@@ -241,7 +236,6 @@ class _NurseHomePageState extends State<NurseHomePage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Reload profile when app resumes (e.g., returning from profile completion page)
     if (state == AppLifecycleState.resumed) {
       if (mounted) {
         context.read<NurseProfileCubit>().loadProfile();
@@ -272,7 +266,7 @@ class _NurseHomePageState extends State<NurseHomePage>
     });
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.background,
       body: BlocConsumer<NurseProfileCubit, NurseProfileState>(
         listener: (context, state) {
           if (state is NurseProfileError) {
@@ -309,20 +303,15 @@ class _NurseHomePageState extends State<NurseHomePage>
                     : 'Unable to connect to the server';
             return _buildErrorView(errorMsg);
           }
+
           final bool isApproved =
               profile.profileStatus == 'approved' ||
               profile.verificationStatus == 'approved';
           final bool isOnline = profile.isOnline;
 
-          // Debug: Print profile status
-          debugPrint(
-            '🔍 Profile Status: ${profile.profileStatus}, isApproved: $isApproved',
-          );
-
           return BlocConsumer<NurseBookingCubit, NurseBookingState>(
             listener: (context, bookingState) {
               if (bookingState is NurseBookingError) {
-                // Do not show an error snackbar if the profile is not found
                 if (!bookingState.message.toLowerCase().contains('not found')) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -332,13 +321,8 @@ class _NurseHomePageState extends State<NurseHomePage>
                   );
                 }
               } else if (bookingState is NurseBookingActive) {
-                // Prevents multiple pages from opening sequentially
                 if (!_isNavigatingToPin) {
                   _isNavigatingToPin = true;
-                  // Always go to the tracking page — the tracking page shows
-                  // the PIN entry button when status == 'arrived'.
-                  // We do NOT push PinVerificationPage from here to avoid
-                  // double-navigation (tracking page would also push it).
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -351,7 +335,6 @@ class _NurseHomePageState extends State<NurseHomePage>
                   });
                 }
               } else if (bookingState is NurseBookingInProgress) {
-                // Visit is in progress (e.g. app restarted during visit)
                 if (!_isNavigatingToPin) {
                   _isNavigatingToPin = true;
                   Navigator.push(
@@ -365,7 +348,6 @@ class _NurseHomePageState extends State<NurseHomePage>
                   ).then((_) {
                     if (!mounted) return;
                     setState(() => _isNavigatingToPin = false);
-                    // Refresh bookings after returning from visit
                     context.read<NurseBookingCubit>().fetchBookings();
                   });
                 }
@@ -381,7 +363,6 @@ class _NurseHomePageState extends State<NurseHomePage>
             builder: (context, bookingState) {
               final bool hasActiveVisit =
                   bookingState is NurseBookingInProgress;
-              // Active = assigned/on-the-way booking nurse can resume
               final NurseBooking? activeBooking =
                   bookingState is NurseBookingActive
                       ? bookingState.booking
@@ -389,109 +370,193 @@ class _NurseHomePageState extends State<NurseHomePage>
 
               return Stack(
                 children: [
-                  // Background
-                  Positioned(
-                    top: -100,
-                    right: -100,
-                    child: Container(
-                      width: 300,
-                      height: 300,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primary100.withValues(alpha: 0.3),
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 100,
-                            color: AppColors.primary100.withValues(alpha: 0.2),
-                          ),
-                        ],
+                  const NurseHomeBackground(),
+                  RefreshIndicator(
+                    onRefresh: () async {
+                      context.read<NurseProfileCubit>().loadProfile();
+                      context.read<NurseBookingCubit>().fetchBookings();
+                    },
+                    color: AppColors.primary500,
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
                       ),
-                    ),
-                  ),
-
-                  SafeArea(
-                    child: Column(
-                      children: [
-                        // Header
-                        _buildHeader(context, user?.name ?? 'Nurse'),
-
-                        // ── Active booking banner (nurse pressed back from map) ──
-                        if (activeBooking != null)
-                          _buildActiveBookingBanner(context, activeBooking),
-
-                        // Availability (Hide during active visit)
-                        if (!hasActiveVisit)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Column(
-                              children: [
-                                if (!isApproved)
-                                  ProfileStatusBanner(
-                                    profile: profile!,
-                                    onTap:
-                                        () => Navigator.pushNamed(
-                                          context,
-                                          AppRoutes.nurseProfileCompletion,
-                                        ),
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: Stack(
+                            children: [
+                              // Canopy
+                              Container(
+                                height: 280,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      AppColors.primary500,
+                                      AppColors.secondary500,
+                                    ],
                                   ),
-                                const SizedBox(height: 10),
-                                _buildAvailabilityCard(isOnline, isApproved),
-                              ],
-                            ),
-                          ),
-
-                        if (!hasActiveVisit) const SizedBox(height: 10),
-
-                        if (!hasActiveVisit)
-                          WorkZoneSnapshot(
-                            workZone: profile!.workZone ?? WorkZone(),
-                            onEdit: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Map Editing Coming Soon'),
+                                  borderRadius: const BorderRadius.only(
+                                    bottomLeft: Radius.circular(40),
+                                    bottomRight: Radius.circular(40),
+                                  ),
                                 ),
-                              );
-                            },
-                          ),
-
-                        // Dynamic Workspace
-                        Expanded(
-                          child: Container(
-                            margin: const EdgeInsets.only(top: 20),
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(30),
-                                topRight: Radius.circular(30),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withValues(alpha: 0.05),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, -5),
+                                child: Stack(
+                                  children: [
+                                    Positioned(
+                                      top: -50,
+                                      right: -30,
+                                      child: Container(
+                                        width: 180,
+                                        height: 180,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.white.withAlpha(20),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: -60,
+                                      left: -40,
+                                      child: Container(
+                                        width: 240,
+                                        height: 240,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.white.withAlpha(15),
+                                        ),
+                                      ),
+                                    ),
+                                    NurseHomeHeader(
+                                      user: user,
+                                      onProfileTap:
+                                          () => Navigator.pushNamed(
+                                            context,
+                                            AppRoutes.nurseProfile,
+                                          ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(30),
-                                topRight: Radius.circular(30),
                               ),
-                              child: _buildDynamicContent(
-                                isOnline,
-                                isApproved,
-                                bookingState,
+
+                              // Content
+                              Padding(
+                                padding: const EdgeInsets.only(top: 140),
+                                child: Transform.translate(
+                                  offset: const Offset(0, -20),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        if (activeBooking != null)
+                                          _buildActiveBookingBanner(
+                                            context,
+                                            activeBooking,
+                                          ),
+
+                                        if (!hasActiveVisit) ...[
+                                          ProfileStatusBanner(
+                                            profile: profile!,
+                                            onTap:
+                                                () => Navigator.pushNamed(
+                                                  context,
+                                                  AppRoutes
+                                                      .nurseProfileCompletion,
+                                                ),
+                                          ),
+                                          _buildAvailabilityCard(
+                                            isOnline,
+                                            isApproved,
+                                          ),
+                                          WorkZoneSnapshot(
+                                            workZone: profile.workZone,
+                                            onEdit: () {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        'Map Editing Coming Soon',
+                                                      ),
+                                                    ),
+                                                  );
+                                            },
+                                          ),
+                                          const SizedBox(height: 16),
+                                        ],
+
+                                        Container(
+                                          height: 500,
+                                          width: double.infinity,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(30),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withAlpha(
+                                                  5,
+                                                ),
+                                                blurRadius: 20,
+                                                offset: const Offset(0, 10),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(30),
+                                            child: _buildDynamicContent(
+                                              isOnline,
+                                              isApproved,
+                                              bookingState,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 100),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
-
-                        // Bottom Dock (Hide if Active Visit)
-                        if (!hasActiveVisit) _buildBottomDock(context),
                       ],
                     ),
                   ),
+
+                  if (!hasActiveVisit)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: QuickAccessDock(
+                        onProfileTap:
+                            () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.nurseProfile,
+                            ),
+                        onWalletTap:
+                            () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.nurseWallet,
+                            ),
+                        onHistoryTap:
+                            () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.nurseHistory,
+                            ),
+                        onSettingsTap:
+                            () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.nurseSettings,
+                            ),
+                      ),
+                    ),
                 ],
               );
             },
@@ -594,7 +659,6 @@ class _NurseHomePageState extends State<NurseHomePage>
       if (bookingState.pendingBookings.isEmpty) {
         return _buildRadarView();
       } else {
-        // Show incoming request
         return _buildIncomingRequestView(bookingState.pendingBookings.first);
       }
     }
@@ -610,7 +674,7 @@ class _NurseHomePageState extends State<NurseHomePage>
           children: [
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.success50,
                 shape: BoxShape.circle,
               ),
@@ -646,8 +710,6 @@ class _NurseHomePageState extends State<NurseHomePage>
     return _buildRadarView();
   }
 
-  // ── Active booking banner shown when nurse presses back ─────────────────
-
   Widget _buildActiveBookingBanner(BuildContext context, NurseBooking booking) {
     final bool isOnTheWay = booking.status == 'on-the-way';
     return GestureDetector(
@@ -665,40 +727,40 @@ class _NurseHomePageState extends State<NurseHomePage>
         }
       },
       child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF2664EC), Color(0xFF113AA8)],
+            colors: [AppColors.secondary500, AppColors.secondary700],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF2664EC).withValues(alpha: 0.35),
+              color: AppColors.secondary500.withAlpha(80),
               blurRadius: 16,
-              offset: const Offset(0, 6),
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
+                color: Colors.white.withAlpha(40),
+                borderRadius: BorderRadius.circular(15),
               ),
               child: Icon(
                 isOnTheWay
                     ? Icons.navigation_rounded
                     : Icons.medical_services_rounded,
                 color: Colors.white,
-                size: 22,
+                size: 24,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -707,36 +769,26 @@ class _NurseHomePageState extends State<NurseHomePage>
                     isOnTheWay ? 'On the Way' : 'Active Booking',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                      letterSpacing: 0.3,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      fontFamily: 'Poppins',
                     ),
                   ),
-                  const SizedBox(height: 2),
                   Text(
                     booking.patientName,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.85),
+                      color: Colors.white.withAlpha(200),
                       fontSize: 12,
+                      fontFamily: 'Inter',
                     ),
                   ),
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Text(
-                'Resume →',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                ),
-              ),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white,
+              size: 16,
             ),
           ],
         ),
@@ -744,78 +796,31 @@ class _NurseHomePageState extends State<NurseHomePage>
     );
   }
 
-  // --- WIDGETS ---
-
-  Widget _buildHeader(BuildContext context, String name) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 10, 24, 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Hello, ${name.split(' ')[0]} 👋',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const Text(
-                'Let\'s help some patients today.',
-                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-              ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildAvailabilityCard(bool isOnline, bool isApproved) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors:
               isOnline
-                  ? [AppColors.primary500, AppColors.primary400]
-                  : [Colors.white, Colors.white],
+                  ? [AppColors.primary500, AppColors.primary700]
+                  : [Colors.white, AppColors.light100],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
+        border: isOnline ? null : Border.all(color: AppColors.light400),
         boxShadow: [
           BoxShadow(
             color:
                 isOnline
-                    ? AppColors.primary200
-                    : Colors.grey.withValues(alpha: 0.1),
+                    ? AppColors.primary500.withAlpha(60)
+                    : Colors.black.withAlpha(5),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
         ],
-        border: !isOnline ? Border.all(color: Colors.grey.shade200) : null,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -824,50 +829,43 @@ class _NurseHomePageState extends State<NurseHomePage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isOnline ? 'YOU ARE ONLINE' : 'YOU ARE OFFLINE',
+                isOnline ? 'AVAILABLE' : 'OFFLINE',
                 style: TextStyle(
                   color: isOnline ? Colors.white : AppColors.textPrimary,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 16,
-                  letterSpacing: 1.0,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  fontFamily: 'Poppins',
+                  letterSpacing: 0.5,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                isOnline ? 'Receiving requests...' : 'Go online to start',
+                isOnline ? 'You are visible to patients' : 'Go online to start',
                 style: TextStyle(
                   color:
                       isOnline
-                          ? Colors.white.withValues(alpha: 0.9)
+                          ? Colors.white.withAlpha(200)
                           : AppColors.textSecondary,
                   fontSize: 13,
+                  fontFamily: 'Inter',
                 ),
               ),
             ],
           ),
-          Transform.scale(
-            scale: 1.2,
-            child: Switch(
-              value: isOnline,
-              onChanged:
-                  isApproved
-                      ? (val) {
-                        context.read<NurseProfileCubit>().toggleOnlineStatus(
-                          val,
-                        );
-                        _syncSocketPresence(isOnlineOverride: val);
-                        debugPrint(
-                          '🔄 Toggle switch clicked: $val, isApproved: $isApproved',
-                        );
-                        if (val) {
-                          context.read<NurseBookingCubit>().fetchBookings();
-                        }
+          Switch(
+            value: isOnline,
+            onChanged:
+                isApproved
+                    ? (val) {
+                      context.read<NurseProfileCubit>().toggleOnlineStatus(val);
+                      _syncSocketPresence(isOnlineOverride: val);
+                      if (val) {
+                        context.read<NurseBookingCubit>().fetchBookings();
                       }
-                      : null,
-              activeColor: Colors.white,
-              inactiveThumbColor: Colors.grey,
-              inactiveTrackColor: Colors.grey.shade200,
-            ),
+                    }
+                    : null,
+            activeColor: Colors.white,
+            activeTrackColor: Colors.white.withAlpha(60),
           ),
         ],
       ),
@@ -892,7 +890,6 @@ class _NurseHomePageState extends State<NurseHomePage>
 
     return Stack(
       children: [
-        // Map Background
         FlutterMap(
           mapController: _mapController,
           options: MapOptions(
@@ -904,7 +901,6 @@ class _NurseHomePageState extends State<NurseHomePage>
           ),
           children: [
             TileLayer(
-              // Minimal light map without 3D buildings
               urlTemplate:
                   'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.housepital.staff',
@@ -918,7 +914,6 @@ class _NurseHomePageState extends State<NurseHomePage>
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Pulsing Rings
                       ...List.generate(3, (index) {
                         return AnimatedBuilder(
                           animation: _rippleController,
@@ -934,20 +929,19 @@ class _NurseHomePageState extends State<NurseHomePage>
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: AppColors.primary500.withValues(
-                                    alpha: opacity * 0.5,
+                                  color: AppColors.primary500.withAlpha(
+                                    (opacity * 0.5 * 255).toInt(),
                                   ),
                                   width: 2,
                                 ),
-                                color: AppColors.primary500.withValues(
-                                  alpha: opacity * 0.1,
+                                color: AppColors.primary500.withAlpha(
+                                  (opacity * 0.1 * 255).toInt(),
                                 ),
                               ),
                             );
                           },
                         );
                       }),
-                      // Center Pin
                       FadeTransition(
                         opacity: _pulseController,
                         child: Container(
@@ -955,20 +949,17 @@ class _NurseHomePageState extends State<NurseHomePage>
                           height: 80,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.primary50.withValues(alpha: 0.9),
+                            color: AppColors.primary50.withAlpha(230),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary500.withValues(
-                                  alpha: 0.3,
-                                ),
+                                color: AppColors.primary500.withAlpha(75),
                                 blurRadius: 15,
                                 spreadRadius: 5,
                               ),
                             ],
                           ),
                           child: const Icon(
-                            Icons
-                                .local_hospital, // Updated shape for map marker
+                            Icons.local_hospital,
                             size: 40,
                             color: AppColors.primary500,
                           ),
@@ -981,7 +972,6 @@ class _NurseHomePageState extends State<NurseHomePage>
             ),
           ],
         ),
-        // Overlay scanning text
         Positioned(
           bottom: 40,
           left: 0,
@@ -995,11 +985,11 @@ class _NurseHomePageState extends State<NurseHomePage>
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.95),
+                  color: Colors.white.withAlpha(240),
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
+                      color: Colors.black.withAlpha(25),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -1195,7 +1185,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black12,
                       blurRadius: 20,
@@ -1311,8 +1301,6 @@ class _NurseHomePageState extends State<NurseHomePage>
             ),
           ),
           const SizedBox(height: 24),
-
-          // Patient Info
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -1358,9 +1346,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                           Icons.phone,
                           color: AppColors.primary500,
                         ),
-                        onPressed: () {
-                          // TODO: Call patient
-                        },
+                        onPressed: () {},
                       ),
                   ],
                 ),
@@ -1386,10 +1372,7 @@ class _NurseHomePageState extends State<NurseHomePage>
               ],
             ),
           ),
-
           const Spacer(),
-
-          // Complete Visit Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -1496,74 +1479,6 @@ class _NurseHomePageState extends State<NurseHomePage>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBottomDock(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _dockItem(Icons.grid_view_rounded, 'Home', true),
-          _dockItem(
-            Icons.history_rounded,
-            'History',
-            false,
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const NurseHistoryPage()),
-                ),
-          ),
-          _dockItem(
-            Icons.account_balance_wallet_outlined,
-            'Earnings',
-            false,
-            onTap: () => Navigator.pushNamed(context, AppRoutes.nurseWallet),
-          ),
-          _dockItem(
-            Icons.person_rounded,
-            'Profile',
-            false,
-            onTap: () => Navigator.pushNamed(context, AppRoutes.nurseProfile),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _dockItem(
-    IconData icon,
-    String label,
-    bool isActive, {
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isActive ? AppColors.primary500 : Colors.grey[400],
-              size: 26,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                color: isActive ? AppColors.primary500 : Colors.grey[500],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
