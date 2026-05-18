@@ -48,6 +48,8 @@ const notificationSchema = new mongoose.Schema({
 			"profile_rejected",
 			"appointment_reminder",
 			"critical_alert",
+			"critical_vitals",
+			"sos_alert",
 			"system",
 			"promotion",
 		],
@@ -60,7 +62,7 @@ const notificationSchema = new mongoose.Schema({
 	},
 	referenceType: {
 		type: String,
-		enum: ["booking", "chat", "user", "payment", "triage", "system"],
+		enum: ["booking", "Booking", "chat", "user", "payment", "triage", "system"],
 	},
 
 	// Status

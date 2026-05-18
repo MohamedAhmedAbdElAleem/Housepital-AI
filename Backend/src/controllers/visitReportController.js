@@ -1,6 +1,8 @@
 const Booking = require("../models/Booking");
 const VisitReport = require("../models/VisitReport");
 const Nurse = require("../models/Nurse");
+const Device = require("../models/Device");
+const DeviceVitalsLog = require("../models/DeviceVitalsLog");
 const { sendNotification } = require("../services/notificationService");
 
 // ─── Helper: check if follow-up is emergency ─────────────────────────────────
@@ -111,14 +113,36 @@ exports.completeWithReport = async (req, res) => {
       });
     }
 
-    // Build visit report
+    // Build visit report — auto-fill vitals from device if not manually provided
+    let finalVitals = vitals || {};
+    let deviceAutoFilled = false;
+
+    // If nurse didn't manually enter vitals, try to pull from the ESP32 device
+    const hasManualVitals =
+      finalVitals?.heartRate?.value ||
+      finalVitals?.temperature?.value ||
+      finalVitals?.oxygenSaturation?.value;
+
+    if (!hasManualVitals) {
+      try {
+        const deviceSummary = await _getDeviceVitalsForReport(booking._id);
+        if (deviceSummary) {
+          finalVitals = deviceSummary;
+          deviceAutoFilled = true;
+          console.log(`📊 Auto-filled vitals from device for booking ${id}`);
+        }
+      } catch (autoFillErr) {
+        console.error("⚠️ Auto-fill vitals failed (continuing without):", autoFillErr.message);
+      }
+    }
+
     const visitReport = new VisitReport({
       bookingId: booking._id,
       patientId: booking.patientId,
       dependentId: booking.dependentId,
       nurseId: nurseProfile._id,
       patientStatus: patientStatus || {},
-      vitals: vitals || {},
+      vitals: finalVitals,
       careProvided: careProvided || {},
       notes: notes || {},
       followUp: followUp || {},
@@ -197,13 +221,25 @@ exports.completeWithReport = async (req, res) => {
       console.error("⚠️ Notification error (visit still completed):", notifErr.message);
     }
 
-    console.log(`✅ Visit completed with report for booking ${id}`);
+    console.log(`✅ Visit completed with report for booking ${id}${deviceAutoFilled ? ' (vitals auto-filled from device)' : ''}`);
+
+    // Release device if one was assigned
+    try {
+      const device = await Device.findOne({ assignedBooking: booking._id });
+      if (device) {
+        await device.release();
+        console.log(`📎 Device ${device.deviceId} auto-released after visit completion`);
+      }
+    } catch (releaseErr) {
+      console.error("⚠️ Auto-release device failed:", releaseErr.message);
+    }
 
     res.status(200).json({
       success: true,
       message: "Visit completed successfully",
       booking: populatedBooking,
       visitReport: visitReport,
+      deviceAutoFilled,
     });
   } catch (error) {
     // Handle duplicate report (unique constraint on bookingId)
@@ -363,3 +399,82 @@ function _buildReportSummary(visitReport) {
     : "No follow-up required";
   return `Condition: ${cond} | Pain: ${pain}/10 | Services: ${services}${obs ? " | " + obs.substring(0, 100) : ""} | ${followUp}`;
 }
+
+/**
+ * Auto-fill vitals from the ESP32 device session data.
+ * Uses the most recent valid reading (fingerDetected=true, sensorFault=false)
+ * and supplements with session averages.
+ */
+async function _getDeviceVitalsForReport(bookingId) {
+  // Get the most recent valid reading
+  const latestReading = await DeviceVitalsLog.findOne({
+    bookingId,
+    fingerDetected: true,
+    sensorFault: false,
+  })
+    .sort({ receivedAt: -1 })
+    .lean();
+
+  if (!latestReading) return null;
+
+  // Also get session averages for more reliable values
+  const summaryArr = await DeviceVitalsLog.getSessionSummary(bookingId);
+  const summary = summaryArr?.[0];
+
+  return {
+    heartRate: {
+      value: latestReading.heartRate || (summary ? Math.round(summary.avgHR) : null),
+    },
+    temperature: {
+      value: latestReading.temperature || (summary ? parseFloat(summary.avgTemp?.toFixed(1)) : null),
+    },
+    oxygenSaturation: {
+      value: latestReading.oxygenSaturation || (summary ? Math.round(summary.avgSpO2) : null),
+    },
+    measuredAt: latestReading.receivedAt || new Date(),
+  };
+}
+
+/**
+ * GET /api/bookings/:id/device-vitals-prefill
+ * Returns pre-fill vitals data from the device session for a booking.
+ * Called by the Flutter app when opening the visit report form.
+ */
+exports.getDeviceVitalsPrefill = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const booking = await Booking.findById(id);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    const vitals = await _getDeviceVitalsForReport(id);
+    if (!vitals) {
+      return res.status(404).json({
+        success: false,
+        message: "No device vitals available for this booking",
+      });
+    }
+
+    // Also get full session summary for context
+    const summaryArr = await DeviceVitalsLog.getSessionSummary(id);
+    const summary = summaryArr?.[0] || null;
+
+    res.json({
+      success: true,
+      data: {
+        vitals,
+        sessionSummary: summary,
+        source: 'device_auto_fill',
+      },
+    });
+  } catch (error) {
+    console.error("❌ Error getting device vitals prefill:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error getting device vitals prefill",
+      error: error.message,
+    });
+  }
+};

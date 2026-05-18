@@ -21,6 +21,7 @@ class AppRoutes {
   static const String nurseHistory = '/nurse/history';
   static const String nursePendingApproval = '/nurse/pending-approval';
   static const String nurseRejected = '/nurse/rejected';
+  static const String nurseDeviceManagement = '/nurse/device-management';
 
   // Doctor
   static const String doctorHome = '/doctor/home';
@@ -43,6 +44,7 @@ class AppRoutes {
   static const String adminAddStaff = '/admin/add-staff';
   static const String adminBookings = '/admin/bookings';
   static const String adminReceipts = '/admin/receipts';
+  static const String adminDeviceManagement = '/admin/devices';
 
   // Common
   static const String settings = '/settings';

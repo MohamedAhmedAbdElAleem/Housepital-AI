@@ -10,6 +10,7 @@ import '../../../../../core/services/socket_notification_service.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/constants/app_colors.dart';
 import 'booking_invoice_page.dart';
+import '../../../vitals_monitor/live_vitals_monitor_screen.dart';
 
 /// Patient-side tracking page.
 ///
@@ -1016,56 +1017,139 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildInProgressNotice() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.success500,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.success500.withOpacity(0.4),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.success500,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.success500.withOpacity(0.4),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+            borderRadius: BorderRadius.circular(20),
           ),
-        ],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.favorite_rounded,
+                    color: AppColors.success500, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Service in Progress',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'The nurse is providing $_serviceName. The visit will be marked complete soon.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.9),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Live Vitals Monitor Button
+        _buildLiveVitalsButton(),
+      ],
+    );
+  }
+
+  Widget _buildLiveVitalsButton() {
+    final bookingId = _booking['_id'] ?? _booking['id'] ?? '';
+    final patientName = _booking['patientName'] ?? 'Patient';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => LiveVitalsMonitorScreen(
+                bookingId: bookingId,
+                patientName: patientName,
+              ),
             ),
-            child: const Icon(Icons.favorite_rounded,
-                color: AppColors.success500, size: 24),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF667EEA).withOpacity(0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Service in Progress',
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.monitor_heart_rounded,
+                  color: Colors.white, size: 22),
+              const SizedBox(width: 10),
+              const Text(
+                'Live Vitals Monitor',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'LIVE',
                   style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
                     color: Colors.white,
+                    letterSpacing: 1.0,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'The nurse is providing $_serviceName. The visit will be marked complete soon.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.white.withOpacity(0.9),
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1213,54 +1297,63 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildActionButtonsRow() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Calling Emergency Services...')),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error500,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+        // Live Vitals button for arrived/in-progress (when not shown in notice)
+        if (_status == 'arrived') ...[
+          _buildLiveVitalsButton(),
+          const SizedBox(height: 12),
+        ],
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Calling Emergency Services...')),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error500,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.emergency, size: 20),
+                label: const Text(
+                  'SOS',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
               ),
-              elevation: 0,
             ),
-            icon: const Icon(Icons.emergency, size: 20),
-            label: const Text(
-              'SOS',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Filing a report...')),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.light300,
-              foregroundColor: AppColors.dark700,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Filing a report...')),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.light300,
+                  foregroundColor: AppColors.dark700,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.flag, size: 20, color: AppColors.warning500),
+                label: const Text(
+                  'Report',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
               ),
-              elevation: 0,
             ),
-            icon: const Icon(Icons.flag, size: 20, color: AppColors.warning500),
-            label: const Text(
-              'Report',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            ),
-          ),
+          ],
         ),
       ],
     );

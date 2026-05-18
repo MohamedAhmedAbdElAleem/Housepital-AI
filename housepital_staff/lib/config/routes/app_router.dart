@@ -23,6 +23,7 @@ import '../../features/nurse/presentation/pages/nurse_service_areas_page.dart';
 import '../../features/nurse/presentation/pages/nurse_schedule_page.dart';
 import '../../features/nurse/presentation/pages/nurse_reviews_page.dart';
 import '../../features/nurse/presentation/pages/nurse_settings_page.dart';
+import '../../features/nurse/presentation/pages/nurse_device_management_screen.dart';
 import '../../features/nurse/presentation/pages/nurse_pending_approval_page.dart';
 import '../../features/nurse/presentation/pages/nurse_rejected_page.dart';
 import '../../features/nurse/presentation/pages/nurse_history_page.dart';
@@ -34,6 +35,7 @@ import '../../features/admin/presentation/pages/admin_users_page.dart';
 import '../../features/admin/presentation/pages/add_staff_page.dart';
 import '../../features/admin/presentation/pages/admin_bookings_page.dart';
 import '../../features/admin/presentation/pages/admin_receipts_page.dart';
+import '../../features/admin/presentation/pages/admin_device_management_page.dart';
 
 class AppRouter {
   static Route<dynamic> _buildDefaultRoute(
@@ -145,6 +147,17 @@ class AppRouter {
           builder: (_) => const NurseHistoryPage(),
         );
 
+      case AppRoutes.nurseDeviceManagement:
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        return _buildDefaultRoute(
+          NurseDeviceManagementScreen(
+            bookingId: args['bookingId'] ?? '',
+            patientId: args['patientId'] ?? '',
+            patientName: args['patientName'] ?? 'Unknown',
+          ),
+          settings: settings,
+        );
+
       case AppRoutes.doctorHome:
         return _buildDoctorRoute(const DoctorHomePage(), settings: settings);
 
@@ -216,6 +229,12 @@ class AppRouter {
       case AppRoutes.adminReceipts:
         return _buildDefaultRoute(
           const AdminReceiptsPage(),
+          settings: settings,
+        );
+
+      case AppRoutes.adminDeviceManagement:
+        return _buildDefaultRoute(
+          const AdminDeviceManagementPage(),
           settings: settings,
         );
 

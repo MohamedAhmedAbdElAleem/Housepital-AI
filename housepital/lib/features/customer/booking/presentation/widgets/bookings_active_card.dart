@@ -5,6 +5,7 @@ import '../pages/booking_tracking_page.dart';
 import '../pages/booking_matching_screen.dart';
 import '../widgets/booking_cancellation_modal.dart';
 import '../../../../../core/network/api_service.dart';
+import '../../../vitals_monitor/live_vitals_monitor_screen.dart';
 
 class BookingsActiveCard extends StatelessWidget {
   final Map<String, dynamic> booking;
@@ -533,6 +534,29 @@ class BookingsActiveCard extends StatelessWidget {
                           (BookingUtils.isTrackableStatus(status) ||
                               canResumeMatching))
                         const SizedBox(width: 10),
+                      // Live Vitals button for in-progress
+                      if (status == 'in-progress' && !isClinic) ...[
+                        Expanded(
+                          child: _buildCardAction(
+                            context: context,
+                            label: 'Vitals',
+                            icon: Icons.monitor_heart_rounded,
+                            isFilled: true,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => LiveVitalsMonitorScreen(
+                                    bookingId: booking['_id'] ?? booking['id'] ?? '',
+                                    patientName: patientName,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
                       Expanded(
                         child: _buildCardAction(
                           context: context,

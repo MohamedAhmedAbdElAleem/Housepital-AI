@@ -192,6 +192,18 @@ class SocketNotificationService {
           );
         }
         break;
+      // ─── Device/Vitals Critical Alerts ───────────────────────────
+      case 'critical_alert':
+      case 'sos_alert':
+      case 'vitals_alert':
+      case 'device_fault':
+        localService.showUrgentNotification(
+          title: notification.title,
+          body: notification.body,
+          payload:
+              '${notification.referenceType}:${notification.referenceId}',
+        );
+        break;
       default:
         localService.showNotification(
           id: notification.id.hashCode,

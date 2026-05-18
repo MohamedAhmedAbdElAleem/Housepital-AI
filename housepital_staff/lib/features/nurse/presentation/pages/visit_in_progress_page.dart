@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/utils/token_manager.dart';
 import '../../data/models/booking_model.dart';
 import '../../data/models/visit_report_data.dart';
@@ -687,6 +688,10 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
                 _buildServiceDetailsCard(),
                 const SizedBox(height: 20),
 
+                // Device Management
+                _buildDeviceManagementCard(),
+                const SizedBox(height: 20),
+
                 // ── Required Fields Reminder ──
                 if (!_reportData.isReadyToSubmit) _buildRequiredFieldsReminder(),
                 if (!_reportData.isReadyToSubmit) const SizedBox(height: 12),
@@ -1145,6 +1150,87 @@ class _VisitInProgressPageState extends State<VisitInProgressPage>
             widget.booking.isAsap ? 'ASAP (Immediate)' : 'Scheduled',
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDeviceManagementCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              AppRoutes.nurseDeviceManagement,
+              arguments: {
+                'bookingId': widget.booking.id,
+                'patientId': widget.booking.patientId,
+                'patientName': widget.booking.patientName,
+              },
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.monitor_heart_outlined,
+                    color: AppColors.primary500,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Device & Vitals',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Monitor live patient vitals via device.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
