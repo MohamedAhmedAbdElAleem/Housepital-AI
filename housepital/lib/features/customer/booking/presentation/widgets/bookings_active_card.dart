@@ -164,40 +164,44 @@ class BookingsActiveCard extends StatelessWidget {
           child: Opacity(opacity: value, child: child),
         );
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: tileGradient,
-          ),
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: shadowColor.withAlpha(80),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            // ── Massive translucent watermark icon ──
-            Positioned(
-              bottom: -10,
-              right: -10,
-              child: Icon(
-                watermarkIcon,
-                size: 120,
-                color: Colors.white.withAlpha(25),
+      child: Builder(
+        builder: (context) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: tileGradient,
               ),
+              borderRadius: BorderRadius.circular(22),
+              border: isDark ? Border.all(color: shadowColor.withAlpha(40), width: 1.5) : null,
+              boxShadow: [
+                BoxShadow(
+                  color: shadowColor.withAlpha(isDark ? 50 : 80),
+                  blurRadius: isDark ? 30 : 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
+            child: Stack(
+              children: [
+                // ── Massive translucent watermark icon ──
+                Positioned(
+                  bottom: -10,
+                  right: -10,
+                  child: Icon(
+                    watermarkIcon,
+                    size: 120,
+                    color: Colors.white.withAlpha(isDark ? 10 : 25),
+                  ),
+                ),
 
-            // ── Card Content ──
-            Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
+                // ── Card Content ──
+                Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Status Row
@@ -209,10 +213,10 @@ class BookingsActiveCard extends StatelessWidget {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(35),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.white.withAlpha(30),
+                            color: Colors.white.withAlpha(isDark ? 25 : 35),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withAlpha(isDark ? 20 : 30),
                             width: 1,
                           ),
                         ),
@@ -241,7 +245,7 @@ class BookingsActiveCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(25),
+                            color: Colors.white.withAlpha(isDark ? 15 : 25),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Row(
@@ -290,7 +294,7 @@ class BookingsActiveCard extends StatelessWidget {
                                 Icon(
                                   Icons.person_outline,
                                   size: 14,
-                                  color: Colors.white.withAlpha(180),
+                                  color: Colors.white.withAlpha(isDark ? 200 : 180),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -573,9 +577,11 @@ class BookingsActiveCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
+      );
+    },
+  ),
+);
+}
 
   Widget _buildCardAction({
     required BuildContext context,

@@ -63,16 +63,20 @@ class _HomeUpcomingBookingState extends State<HomeUpcomingBooking> with SingleTi
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF3498BB), Color(0xFF1E5B70)], // Trust Blue gradient
-            ),
+            color: isDark ? const Color(0xFF1E1C24) : null,
+            gradient: isDark 
+              ? null
+              : const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF3498BB), Color(0xFF1E5B70)], // Trust Blue gradient
+                ),
             borderRadius: BorderRadius.circular(24),
+            border: isDark ? Border.all(color: const Color(0xFF3498BB).withAlpha(40), width: 1.5) : null,
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF3498BB).withAlpha(isDark ? 60 : 80),
-                blurRadius: 20,
+                color: const Color(0xFF3498BB).withAlpha(isDark ? 40 : 80),
+                blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
             ],

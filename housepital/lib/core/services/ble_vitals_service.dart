@@ -111,7 +111,10 @@ class BleVitalsService {
     });
 
     try {
-      await device.connect(autoConnect: false);
+      await device.connect(
+        license: License.free,
+        autoConnect: false,
+      );
     } catch (e) {
       debugPrint('[BLE] Connection error: $e');
     }

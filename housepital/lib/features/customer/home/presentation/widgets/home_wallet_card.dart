@@ -28,16 +28,23 @@ class HomeWalletCard extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF2B32B2), Color(0xFF1488CC)], // Rich indigo to bright blue
-            ),
+            gradient: isDark 
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1E1C24), Color(0xFF16151A)], // Elevated dark card
+                )
+              : const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF2B32B2), Color(0xFF1488CC)], // Rich indigo to bright blue
+                ),
             borderRadius: BorderRadius.circular(24),
+            border: isDark ? Border.all(color: Colors.white.withAlpha(15), width: 1) : null,
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1488CC).withAlpha(isDark ? 80 : 100),
-                blurRadius: 24,
+                color: isDark ? const Color(0xFF764BA2).withAlpha(40) : const Color(0xFF1488CC).withAlpha(100),
+                blurRadius: isDark ? 40 : 24,
                 offset: const Offset(0, 12),
               ),
             ],

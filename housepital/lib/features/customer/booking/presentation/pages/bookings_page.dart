@@ -4,6 +4,7 @@ import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
 
 import '../../utils/booking_utils.dart';
+import '../../../home/presentation/widgets/home_background_widget.dart';
 import '../widgets/bookings_canopy_header.dart';
 import '../widgets/bookings_glass_tab_bar.dart';
 import '../widgets/bookings_type_filter.dart';
@@ -282,17 +283,23 @@ class _BookingsPageState extends State<BookingsPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
+      SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.light,
       ),
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: isDark ? const Color(0xFF0D0C11) : const Color(0xFFF9F9F9),
       body: Stack(
         children: [
+          // ── 0. Background Globs ──
+          if (isDark) const HomeBackgroundWidget(),
+
           // ── 1. The Canopy (Background Header) ──
           BookingsCanopyHeader(
             activeCount: _activeBookings.length,
