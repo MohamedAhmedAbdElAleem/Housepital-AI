@@ -105,35 +105,44 @@ class BookingsHistoryCard extends StatelessWidget {
           child: Opacity(opacity: value, child: child),
         );
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: statusGradient[0].withAlpha(30),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: statusGradient[0].withAlpha(25),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            // ── Subtle watermark icon ──
-            Positioned(
-              bottom: -5,
-              right: -5,
-              child: Icon(
-                watermarkIcon,
-                size: 80,
-                color: statusGradient[0].withAlpha(15),
+      child: Builder(
+        builder: (context) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return GestureDetector(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                gradient: isDark ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: statusGradient,
+                ) : null,
+                color: isDark ? null : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? statusGradient[0].withAlpha(40) : statusGradient[0].withAlpha(30),
+                  width: isDark ? 1.5 : 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: statusGradient[0].withAlpha(isDark ? 50 : 25),
+                    blurRadius: isDark ? 30 : 20,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-            ),
+              child: Stack(
+                children: [
+                  // ── Subtle watermark icon ──
+                  Positioned(
+                    bottom: -5,
+                    right: -5,
+                    child: Icon(
+                      watermarkIcon,
+                      size: 80,
+                      color: isDark ? Colors.white.withAlpha(10) : statusGradient[0].withAlpha(15),
+                    ),
+                  ),
 
             Padding(
               padding: const EdgeInsets.all(16),
@@ -171,11 +180,11 @@ class BookingsHistoryCard extends StatelessWidget {
                       children: [
                         Text(
                           serviceName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
+                            color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -261,11 +270,11 @@ class BookingsHistoryCard extends StatelessWidget {
                     children: [
                       Text(
                         '${price.toStringAsFixed(0)} EGP',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
+                          color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -342,5 +351,8 @@ class BookingsHistoryCard extends StatelessWidget {
         ),
       ),
     );
-  }
+  },
+),
+);
+}
 }

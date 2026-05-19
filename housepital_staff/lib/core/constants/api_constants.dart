@@ -83,4 +83,10 @@ class ApiConstants {
   static const String walletPendingReceipts = '/wallet/receipts/pending';
   static const String walletAllReceipts = '/wallet/receipts/all';
   static String walletReviewReceipt(String id) => '/wallet/receipts/$id/review';
+
+  // Device Management Endpoints
+  static const String deviceList = '/device/list';
+  static String deviceRelease(String id) => '/device/$id/release';
+  static String deviceAssign(String id) => '/device/$id/assign';
+  static String deviceLiveVitals(String bookingId) => '/device/$bookingId/live';
 }

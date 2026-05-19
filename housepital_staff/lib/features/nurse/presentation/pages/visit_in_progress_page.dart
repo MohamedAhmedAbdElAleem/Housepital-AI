@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/utils/token_manager.dart';
 import '../../data/models/booking_model.dart';
 import '../../data/models/visit_report_data.dart';
@@ -230,12 +231,14 @@ class _VisitInProgressPageState extends State<VisitInProgressPage> with SingleTi
         _buildTimerCard(), const SizedBox(height: 20),
         _buildPatientCard(), const SizedBox(height: 20),
         _buildServiceDetailsCard(), const SizedBox(height: 20),
+        _buildDeviceManagementCard(), const SizedBox(height: 20),
         if (!_reportData.isReadyToSubmit) _buildRequiredFieldsReminder(),
         if (!_reportData.isReadyToSubmit) const SizedBox(height: 12),
         _buildReportSection(),
       ]))),
       _buildBottomCompleteButton(),
     ]);
+  }
   }
 
   Widget _buildHeader() {
@@ -355,6 +358,119 @@ class _VisitInProgressPageState extends State<VisitInProgressPage> with SingleTi
       ),
     );
   }
+
+  Widget _buildDeviceManagementCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              AppRoutes.nurseDeviceManagement,
+              arguments: {
+                'bookingId': widget.booking.id,
+                'patientId': widget.booking.patientId,
+                'patientName': widget.booking.patientName,
+              },
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.monitor_heart_outlined,
+                    color: AppColors.primary500,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Device & Vitals',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Monitor live patient vitals via device.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: Colors.grey[500]),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 70,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[500],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
 
   Widget _buildReportSection() {
     final theme = Theme.of(context);

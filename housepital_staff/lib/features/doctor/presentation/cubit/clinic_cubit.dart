@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/clinic_model.dart';
 import '../../domain/repositories/doctor_repository.dart';

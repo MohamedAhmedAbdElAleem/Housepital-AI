@@ -1,7 +1,7 @@
 class ApiConstants {
   // Base URL for the API
   // For Physical Device: Use your computer's actual IP address
-  static const String baseUrl = 'http://192.168.1.6:3500';
+  static const String baseUrl = 'http://10.0.2.2:3500';
 
   // API Endpoints
   static const String register = '/api/auth/register';
@@ -67,4 +67,24 @@ class ApiConstants {
   static const String walletPaymentInfo = '/api/wallet/payment-info';
   static const String walletSubmitReceipt = '/api/wallet/receipts/submit';
   static const String walletMyReceipts = '/api/wallet/receipts/my';
+
+  // Device / IoT Monitoring Endpoints
+  static const String deviceVitals = '/api/device/vitals';
+  static const String deviceSOS = '/api/device/sos';
+  static const String deviceRegister = '/api/device/register';
+  static const String deviceList = '/api/device/list';
+  // Dynamic: /api/device/:bookingId/live
+  static String deviceLiveVitals(String bookingId) => '/api/device/$bookingId/live';
+  // Dynamic: /api/device/:bookingId/history
+  static String deviceVitalsHistory(String bookingId) => '/api/device/$bookingId/history';
+  // Dynamic: /api/device/:bookingId/summary
+  static String deviceVitalsSummary(String bookingId) => '/api/device/$bookingId/summary';
+  // Dynamic: /api/device/:deviceId/assign
+  static String deviceAssign(String deviceId) => '/api/device/$deviceId/assign';
+  // Dynamic: /api/device/:deviceId/release
+  static String deviceRelease(String deviceId) => '/api/device/$deviceId/release';
+  // Dynamic: /api/device/:deviceId/info
+  static String deviceInfo(String deviceId) => '/api/device/$deviceId/info';
+  // Dynamic: /api/bookings/:bookingId/device-vitals-prefill
+  static String deviceVitalsPrefill(String bookingId) => '/api/bookings/$bookingId/device-vitals-prefill';
 }

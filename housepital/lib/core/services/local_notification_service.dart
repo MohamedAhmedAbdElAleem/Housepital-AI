@@ -144,6 +144,18 @@ class LocalNotificationService {
         enableVibration: true,
       ),
     );
+
+    // Vitals/Device alerts channel
+    await androidPlugin.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'housepital_vitals',
+        'Vitals Alerts',
+        description: 'Critical patient vitals and device alerts',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      ),
+    );
   }
 
   /// Handle notification tap
@@ -226,6 +238,24 @@ class LocalNotificationService {
       channelName: 'Chat Messages',
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,
+    );
+  }
+
+  /// Show a vitals/device critical alert notification
+  Future<void> showVitalsAlert({
+    required String title,
+    required String body,
+    String? bookingId,
+  }) async {
+    await showNotification(
+      id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+      title: '🚨 $title',
+      body: body,
+      payload: 'vitals:$bookingId',
+      channelId: 'housepital_vitals',
+      channelName: 'Vitals Alerts',
+      importance: Importance.max,
+      priority: Priority.max,
     );
   }
 

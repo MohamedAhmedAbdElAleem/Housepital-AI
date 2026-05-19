@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -71,14 +72,14 @@ class _AppointmentsPageState extends State<AppointmentsPage>
         }
       },
       child: Scaffold(
-        backgroundColor: DoctorTheme.background,
+        backgroundColor: DoctorTheme.background(context),
         body: BackgroundBlobs(
           child: SafeArea(
             child: Column(
               children: [
                 GlassHeader(
-                  title: 'Appointments',
-                  subtitle: 'Manage your patient visits',
+                  title: 'appointments'.tr(),
+                  subtitle: 'manage_your_patient_visits'.tr(),
                   onBack: () => Navigator.maybePop(context),
                   actionIcon: Icons.refresh_rounded,
                   actionTooltip: 'Refresh',
@@ -90,7 +91,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                   child: BlocBuilder<AppointmentCubit, AppointmentState>(
                     builder: (context, state) {
                       if (state is AppointmentLoading) {
-                        return const Center(
+                        return Center(
                           child: CircularProgressIndicator(
                             color: DoctorTheme.primary,
                           ),
@@ -100,7 +101,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                         return _buildErrorState(state.message);
                       }
                       if (state is! AppointmentLoaded) {
-                        return const Center(
+                        return Center(
                           child: CircularProgressIndicator(
                             color: DoctorTheme.primary,
                           ),
@@ -135,19 +136,19 @@ class _AppointmentsPageState extends State<AppointmentsPage>
 
   Widget _buildSegmentedTabs() {
     final tabs = [
-      (icon: Icons.pending_actions_rounded, label: 'Requests'),
-      (icon: Icons.upcoming_rounded, label: 'Upcoming'),
-      (icon: Icons.history_rounded, label: 'Past'),
+      (icon: Icons.pending_actions_rounded, label: 'requests'.tr()),
+      (icon: Icons.upcoming_rounded, label: 'upcoming'.tr()),
+      (icon: Icons.history_rounded, label: 'past'.tr()),
     ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Container(
-        padding: const EdgeInsets.all(4),
+        padding: EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: DoctorTheme.surface,
+          color: DoctorTheme.surface(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: DoctorTheme.border),
+          border: Border.all(color: DoctorTheme.border(context)),
         ),
         child: Row(
           children: List.generate(tabs.length, (index) {
@@ -158,11 +159,11 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeOutCubic,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  padding: EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
                     gradient: isSelected
-                        ? const LinearGradient(
-                            colors: DoctorTheme.heroGradient,
+                        ? LinearGradient(
+                            colors: DoctorTheme.heroGradient(context),
                           )
                         : null,
                     borderRadius: BorderRadius.circular(12),
@@ -184,9 +185,9 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                         size: 16,
                         color: isSelected
                             ? Colors.white
-                            : DoctorTheme.textSecondary,
+                            : DoctorTheme.textSecondary(context),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       Text(
                         tabs[index].label,
                         style: TextStyle(
@@ -195,7 +196,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                               isSelected ? FontWeight.w700 : FontWeight.w500,
                           color: isSelected
                               ? Colors.white
-                              : DoctorTheme.textSecondary,
+                              : DoctorTheme.textSecondary(context),
                         ),
                       ),
                     ],
@@ -217,13 +218,13 @@ class _AppointmentsPageState extends State<AppointmentsPage>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.error_outline, size: 64, color: DoctorTheme.danger.withValues(alpha: 0.6)),
-          const SizedBox(height: 16),
-          Text(message, textAlign: TextAlign.center, style: DoctorTheme.bodyMedium),
-          const SizedBox(height: 20),
+          SizedBox(height: 16),
+          Text(message, textAlign: TextAlign.center, style: DoctorTheme.bodyMedium(context)),
+          SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: () => context.read<AppointmentCubit>().fetchAppointments(),
-            icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Retry'),
+            icon: Icon(Icons.refresh_rounded),
+            label: Text('retry'.tr()),
             style: ElevatedButton.styleFrom(
               backgroundColor: DoctorTheme.primary,
               foregroundColor: Colors.white,
@@ -239,15 +240,15 @@ class _AppointmentsPageState extends State<AppointmentsPage>
 
   Widget _buildPendingTab(List<dynamic> list) {
     if (list.isEmpty) {
-      return const EmptyStateWidget(
+      return EmptyStateWidget(
         icon: Icons.check_circle_outline_rounded,
-        title: 'No pending requests',
-        subtitle: 'Appointment requests awaiting your approval appear here.',
+        title: 'no_pending_requests'.tr(),
+        subtitle: 'appointment_requests_awaiting_your_approval_appear_here'.tr(),
       );
     }
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 18),
       itemCount: list.length,
       itemBuilder: (_, i) => _buildPendingCard(list[i]),
     );
@@ -258,9 +259,9 @@ class _AppointmentsPageState extends State<AppointmentsPage>
     final cubit = context.read<AppointmentCubit>();
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: DoctorTheme.surface,
+        color: DoctorTheme.surface(context),
         borderRadius: BorderRadius.circular(DoctorTheme.radiusMD),
         border: Border.all(color: DoctorTheme.warningLight),
         boxShadow: [
@@ -275,7 +276,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
         children: [
           // Status header strip
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
@@ -284,17 +285,17 @@ class _AppointmentsPageState extends State<AppointmentsPage>
             ),
             child: Row(
               children: [
-                const Icon(Icons.hourglass_top_rounded, color: Colors.white, size: 16),
-                const SizedBox(width: 8),
-                const Text(
-                  'Awaiting Confirmation',
+                Icon(Icons.hourglass_top_rounded, color: Colors.white, size: 16),
+                SizedBox(width: 8),
+                Text(
+                  'awaiting_confirmation'.tr(),
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
                 ),
                 const Spacer(),
                 Flexible(
                   child: Text(
                     _formatDate(b['scheduledDate'] as String?),
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -302,28 +303,28 @@ class _AppointmentsPageState extends State<AppointmentsPage>
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: DoctorTheme.warningLight,
                         borderRadius: BorderRadius.circular(DoctorTheme.radiusXS),
                       ),
-                      child: const Icon(Icons.medical_services_rounded, color: Color(0xFFF59E0B), size: 22),
+                      child: Icon(Icons.medical_services_rounded, color: Color(0xFFF59E0B), size: 22),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(b['serviceName'] ?? 'Service', style: DoctorTheme.titleMedium),
-                          const SizedBox(height: 2),
-                          Text('${b['patientName'] ?? 'Patient'}', style: DoctorTheme.bodySmall),
+                          Text(b['serviceName'] ?? 'Service', style: DoctorTheme.titleMedium(context)),
+                          SizedBox(height: 2),
+                          Text('${b['patientName'] ?? 'Patient'}', style: DoctorTheme.bodySmall(context)),
                         ],
                       ),
                     ),
@@ -331,43 +332,43 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(_priceText(b['servicePrice']),
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF59E0B))),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF59E0B))),
                         if (b['scheduledTime'] != null)
-                          Text(b['scheduledTime'], style: DoctorTheme.caption),
+                          Text(b['scheduledTime'], style: DoctorTheme.caption(context)),
                       ],
                     ),
                   ],
                 ),
                 if (b['notes'] != null && (b['notes'] as String).isNotEmpty) ...[
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: DoctorTheme.surfaceDim,
+                      color: DoctorTheme.surfaceDim(context),
                       borderRadius: BorderRadius.circular(DoctorTheme.radiusChip),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.notes_rounded, size: 14, color: DoctorTheme.textHint),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(b['notes'], style: DoctorTheme.caption)),
+                        Icon(Icons.notes_rounded, size: 14, color: DoctorTheme.textHint(context)),
+                        SizedBox(width: 8),
+                        Expanded(child: Text(b['notes'], style: DoctorTheme.caption(context))),
                       ],
                     ),
                   ),
                 ],
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 Row(
                   children: [
                     Expanded(
                       child: _actionButton(
-                        label: 'Accept', icon: Icons.check_rounded,
+                        label: 'accept'.tr(), icon: Icons.check_rounded,
                         color: DoctorTheme.success, onTap: () => cubit.confirmAppointment(id),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     Expanded(
                       child: _actionButton(
-                        label: 'Reject', icon: Icons.close_rounded,
+                        label: 'reject'.tr(), icon: Icons.close_rounded,
                         color: DoctorTheme.danger, outlined: true,
                         onTap: () => cubit.rejectAppointment(id),
                       ),
@@ -386,15 +387,15 @@ class _AppointmentsPageState extends State<AppointmentsPage>
 
   Widget _buildUpcomingTab(List<dynamic> list) {
     if (list.isEmpty) {
-      return const EmptyStateWidget(
+      return EmptyStateWidget(
         icon: Icons.calendar_today_outlined,
-        title: 'No upcoming appointments',
-        subtitle: 'Confirmed visits will appear here.',
+        title: 'no_upcoming_appointments'.tr(),
+        subtitle: 'confirmed_visits_will_appear_here'.tr(),
       );
     }
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 18),
       itemCount: list.length,
       itemBuilder: (_, i) => _buildUpcomingCard(list[i]),
     );
@@ -408,13 +409,13 @@ class _AppointmentsPageState extends State<AppointmentsPage>
     final isQueue = b['timeOption'] == 'queue';
 
     final accentColor = isInProgress ? DoctorTheme.warning : DoctorTheme.primary;
-    final statusLabel = isInProgress ? 'In Progress' : 'Confirmed';
+    final statusLabel = isInProgress ? 'in_progress'.tr() : 'Confirmed';
     final statusIcon = isInProgress ? Icons.play_circle_rounded : Icons.check_circle_rounded;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: DoctorTheme.surface,
+        color: DoctorTheme.surface(context),
         borderRadius: BorderRadius.circular(DoctorTheme.radiusSM),
         border: Border.all(color: accentColor.withValues(alpha: 0.15)),
         boxShadow: [
@@ -422,13 +423,13 @@ class _AppointmentsPageState extends State<AppointmentsPage>
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(14),
         child: Column(
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: accentColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(DoctorTheme.radiusXS),
@@ -438,25 +439,25 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                     color: accentColor, size: 22,
                   ),
                 ),
-                const SizedBox(width: 14),
+                SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(b['serviceName'] ?? 'Service', style: DoctorTheme.titleMedium),
-                      const SizedBox(height: 3),
-                      Text(b['patientName'] ?? 'Patient', style: DoctorTheme.bodySmall),
-                      const SizedBox(height: 3),
+                      Text(b['serviceName'] ?? 'Service', style: DoctorTheme.titleMedium(context)),
+                      SizedBox(height: 3),
+                      Text(b['patientName'] ?? 'Patient', style: DoctorTheme.bodySmall(context)),
+                      SizedBox(height: 3),
                       Row(
                         children: [
                           Icon(Icons.calendar_today_rounded, size: 12, color: accentColor),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               isQueue
                                   ? _formatDate(b['scheduledDate'] as String?)
                                   : '${_formatDate(b['scheduledDate'] as String?)}${b['scheduledTime'] != null ? '  ·  ${b['scheduledTime']}' : ''}',
-                              style: DoctorTheme.caption,
+                              style: DoctorTheme.caption(context),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -469,7 +470,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: accentColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(DoctorTheme.radiusChip),
@@ -478,23 +479,23 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(statusIcon, color: accentColor, size: 13),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text(statusLabel, style: TextStyle(fontSize: 11, color: accentColor, fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6),
                     Text('${b['servicePrice'] ?? 0} EGP',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: DoctorTheme.textSecondary)),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: DoctorTheme.textSecondary(context))),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             if (isInProgress)
-              _actionButton(label: 'Complete visit', icon: Icons.task_alt_rounded, color: DoctorTheme.success, onTap: () => cubit.completeVisit(id))
+              _actionButton(label: 'complete_visit'.tr(), icon: Icons.task_alt_rounded, color: DoctorTheme.success, onTap: () => cubit.completeVisit(id))
             else
-              _actionButton(label: 'Start visit', icon: Icons.play_arrow_rounded, color: DoctorTheme.primary, onTap: () => cubit.startVisit(id)),
+              _actionButton(label: 'start_visit'.tr(), icon: Icons.play_arrow_rounded, color: DoctorTheme.primary, onTap: () => cubit.startVisit(id)),
           ],
         ),
       ),
@@ -505,15 +506,15 @@ class _AppointmentsPageState extends State<AppointmentsPage>
 
   Widget _buildPastTab(List<dynamic> list) {
     if (list.isEmpty) {
-      return const EmptyStateWidget(
+      return EmptyStateWidget(
         icon: Icons.history_rounded,
-        title: 'No past appointments',
-        subtitle: 'Completed and cancelled visits will appear here.',
+        title: 'no_past_appointments'.tr(),
+        subtitle: 'completed_and_cancelled_visits_will_appear_here'.tr(),
       );
     }
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 18),
       itemCount: list.length,
       itemBuilder: (_, i) {
         final b = list[i];
@@ -537,44 +538,44 @@ class _AppointmentsPageState extends State<AppointmentsPage>
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: DoctorTheme.surface,
+        color: DoctorTheme.surface(context),
         borderRadius: BorderRadius.circular(DoctorTheme.radiusSM),
         border: Border.all(color: accentColor.withValues(alpha: 0.14)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3))],
+        boxShadow: [BoxShadow(color: DoctorTheme.textPrimary(context).withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3))],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(14),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: accentColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(DoctorTheme.radiusXS),
               ),
               child: Icon(isQueue ? Icons.people_rounded : Icons.local_hospital_rounded, color: accentColor, size: 22),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(b['serviceName'] ?? 'Service', style: DoctorTheme.titleMedium),
-                  const SizedBox(height: 3),
-                  Text(b['patientName'] ?? 'Patient', style: DoctorTheme.bodySmall),
-                  const SizedBox(height: 3),
+                  Text(b['serviceName'] ?? 'Service', style: DoctorTheme.titleMedium(context)),
+                  SizedBox(height: 3),
+                  Text(b['patientName'] ?? 'Patient', style: DoctorTheme.bodySmall(context)),
+                  SizedBox(height: 3),
                   Row(
                     children: [
                       Icon(Icons.calendar_today_rounded, size: 12, color: accentColor),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           isQueue
                               ? _formatDate(b['scheduledDate'] as String?)
                               : '${_formatDate(b['scheduledDate'] as String?)}${b['scheduledTime'] != null ? '  ·  ${b['scheduledTime']}' : ''}',
-                          style: DoctorTheme.caption,
+                          style: DoctorTheme.caption(context),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -587,7 +588,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: accentColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(DoctorTheme.radiusChip),
@@ -595,14 +596,14 @@ class _AppointmentsPageState extends State<AppointmentsPage>
                   child: Row(
                     children: [
                       Icon(statusIcon, color: accentColor, size: 13),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4),
                       Text(statusLabel, style: TextStyle(fontSize: 11, color: accentColor, fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Text('${b['servicePrice'] ?? 0} EGP',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: DoctorTheme.textSecondary)),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: DoctorTheme.textSecondary(context))),
               ],
             ),
           ],
@@ -624,9 +625,9 @@ class _AppointmentsPageState extends State<AppointmentsPage>
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: outlined ? DoctorTheme.surface : color,
+          color: outlined ? DoctorTheme.surface(context) : color,
           borderRadius: BorderRadius.circular(DoctorTheme.radiusXS),
           border: outlined ? Border.all(color: color) : null,
           boxShadow: outlined
@@ -637,7 +638,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: outlined ? color : Colors.white, size: 16),
-            const SizedBox(width: 6),
+            SizedBox(width: 6),
             Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: outlined ? color : Colors.white)),
           ],
         ),

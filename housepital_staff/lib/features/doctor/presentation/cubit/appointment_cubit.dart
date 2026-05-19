@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/network/api_client.dart';
 
@@ -62,7 +63,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
         '/bookings/$bookingId/status',
         body: {'status': 'confirmed'},
       );
-      emit(AppointmentActionSuccess('Appointment confirmed successfully'));
+      emit(AppointmentActionSuccess('appointment_confirmed_successfully'.tr()));
       await fetchAppointments();
     } catch (e) {
       emit(AppointmentError(e.toString()));
@@ -75,7 +76,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
         '/bookings/$bookingId/status',
         body: {'status': 'cancelled'},
       );
-      emit(AppointmentActionSuccess('Appointment rejected'));
+      emit(AppointmentActionSuccess('appointment_rejected'.tr()));
       await fetchAppointments();
     } catch (e) {
       emit(AppointmentError(e.toString()));
@@ -88,7 +89,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
         '/bookings/$bookingId/status',
         body: {'status': 'in-progress'},
       );
-      emit(AppointmentActionSuccess('Visit started'));
+      emit(AppointmentActionSuccess('visit_started'.tr()));
       await fetchAppointments();
     } catch (e) {
       emit(AppointmentError(e.toString()));
@@ -101,7 +102,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
         '/bookings/$bookingId/status',
         body: {'status': 'completed'},
       );
-      emit(AppointmentActionSuccess('Visit completed'));
+      emit(AppointmentActionSuccess('visit_completed'.tr()));
       await fetchAppointments();
     } catch (e) {
       emit(AppointmentError(e.toString()));

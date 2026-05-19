@@ -13,12 +13,16 @@ const { logger, logEvents } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const connectDB = require("./config/dbConn");
 const cloudinaryRoutes = require("./routes/cloudinaryRoutes");
+const { initDeviceWebSocket } = require("./services/deviceWebSocketService");
 
 const app = express();
 const PORT = process.env.PORT || 3500;
 
-// Create HTTP server for Socket.io
+// Create HTTP server for Socket.io and raw WebSockets
 const server = http.createServer(app);
+
+// Initialize Device WebSocket Server
+initDeviceWebSocket(server);
 
 // Initialize Socket.io
 const io = new Server(server, {
@@ -57,7 +61,7 @@ io.use((socket, next) => {
 // Socket.io Connection Handler
 io.on("connection", (socket) => {
 	const { userId, userRole } = socket;
-	console.log(`🔌 Socket connected: ${userId} (${userRole})`);
+	console.log(`🔌 Socket.io connected: ${userId} (${userRole})`);
 
 	// Join role-based rooms for targeted notifications
 	if (userRole === "nurse") {
@@ -120,8 +124,23 @@ io.on("connection", (socket) => {
 		}
 	});
 
+	// ── Vitals Monitoring: subscribe to a booking's live vitals ──────────
+	socket.on("vitals:subscribe", (bookingId) => {
+		if (bookingId) {
+			socket.join(`booking_${bookingId}`);
+			console.log(`📊 ${userId} subscribed to vitals for booking ${bookingId}`);
+		}
+	});
+
+	socket.on("vitals:unsubscribe", (bookingId) => {
+		if (bookingId) {
+			socket.leave(`booking_${bookingId}`);
+			console.log(`📊 ${userId} unsubscribed from vitals for booking ${bookingId}`);
+		}
+	});
+
 	socket.on("disconnect", async () => {
-		console.log(`🔌 Socket disconnected: ${userId}`);
+		console.log(`🔌 Socket.io disconnected: ${userId}`);
 		// Mark nurse as offline after a grace period (60s)
 		// so brief network drops don't remove them from matching
 		if (userRole === "nurse") {
@@ -170,6 +189,8 @@ app.use("/api/services", require("./routes/serviceRoutes"));
 app.use("/api/nurse", require("./routes/nurseRoutes"));
 app.use("/api/wallet", require("./routes/walletRoutes"));
 app.use("/api/settings", require("./routes/settingsRoutes"));
+app.use("/api/device", require("./routes/deviceRoutes"));
+app.use("/api/push", require("./routes/pushRoutes"));
 
 // Serve static files (for ID document images)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
@@ -188,6 +209,7 @@ const startServer = () => {
 		console.log(`🚀 Server running on port ${PORT}`);
 		console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
 		console.log(`📝 Docs available at: http://localhost:${PORT}/api-docs`);
+		console.log(`🔌 WebSocket Server ready at ws://localhost:${PORT}/api/device/stream`);
 		console.log(`Socket.IO ready for real-time notifications`);
 	});
 };

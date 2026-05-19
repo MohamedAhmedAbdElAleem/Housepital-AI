@@ -53,11 +53,11 @@ class AppColors {
   static const Color dark200 = Color(0xFF9A9A9A);
   static const Color dark300 = Color(0xFF6C6C6C);
   static const Color dark400 = Color(0xFF4F4F4F);
-  static const Color dark500 = Color(0xFF232323);
-  static const Color dark600 = Color(0xFF202020);
-  static const Color dark700 = Color(0xFF191919);
+  static const Color dark500 = Color(0xFF2A2831); // Divider / Stroke
+  static const Color dark600 = Color(0xFF1E1C24); // Elevated (Level 2)
+  static const Color dark700 = Color(0xFF16151A); // Surface (Level 1)
   static const Color dark800 = Color(0xFF131313);
-  static const Color dark900 = Color(0xFF0F0F0F);
+  static const Color dark900 = Color(0xFF0D0C11); // Background (Level 0)
 
   // ❌ Error Palette (Alert Red)
   static const Color error50 = Color(0xFFFEECEB);
