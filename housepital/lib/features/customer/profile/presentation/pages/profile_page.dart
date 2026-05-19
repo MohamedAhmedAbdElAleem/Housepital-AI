@@ -203,14 +203,30 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _signOut() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign Out', style: TextStyle(color: Colors.red))),
-        ],
-      ),
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF16151A) : null,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Sign Out',
+            style: TextStyle(
+              color: isDark ? const Color(0xFFF2F2F5) : null,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to sign out?',
+            style: TextStyle(
+              color: isDark ? const Color(0xFFA19EAB) : null,
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign Out', style: TextStyle(color: Colors.red))),
+          ],
+        );
+      },
     );
 
     if (confirmed == true && mounted) {
@@ -405,8 +421,9 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : Colors.black.withValues(alpha: 0.03),
+          color: isDark ? const Color(0xFF1E1C24) : Colors.black.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(16),
+          border: isDark ? Border.all(color: Colors.white.withAlpha(10)) : null,
         ),
         child: Row(
           children: [

@@ -22,24 +22,34 @@ class BookingsCanopyHeader extends StatelessWidget {
     return Container(
       height: 300,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF16151A) : null,
-        gradient: isDark ? null : const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary500,    // Healing Green
-            AppColors.primary700,    // Deeper green
-            AppColors.secondary500,  // Trust Blue
-          ],
-          stops: [0.0, 0.5, 1.0],
-        ),
+        gradient: isDark
+            ? const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF0D1F12),
+                  Color(0xFF0D1A22),
+                  Color(0xFF0D0C11),
+                ],
+                stops: [0.0, 0.5, 1.0],
+              )
+            : const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.primary500,
+                  AppColors.primary700,
+                  AppColors.secondary500,
+                ],
+                stops: [0.0, 0.5, 1.0],
+              ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(40),
           bottomRight: Radius.circular(40),
         ),
         boxShadow: isDark ? [
           BoxShadow(
-            color: AppColors.primary500.withAlpha(20),
+            color: AppColors.primary500.withAlpha(30),
             blurRadius: 60,
             spreadRadius: 20,
             offset: const Offset(0, -20),

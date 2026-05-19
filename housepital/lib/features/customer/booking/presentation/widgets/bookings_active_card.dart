@@ -49,6 +49,7 @@ class BookingsActiveCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final status = BookingUtils.normalizeStatus(booking['status']);
     final isMatchingRequest = booking['isMatchingRequest'] == true;
     final canResumeMatching = isMatchingRequest &&
@@ -181,7 +182,7 @@ class BookingsActiveCard extends StatelessWidget {
                 BoxShadow(
                   color: shadowColor.withAlpha(isDark ? 50 : 80),
                   blurRadius: isDark ? 30 : 20,
-                  offset: const Offset(0, 8),
+                  offset: Offset(0, 8),
                 ),
               ],
             ),
@@ -227,7 +228,7 @@ class BookingsActiveCard extends StatelessWidget {
                             const SizedBox(width: 6),
                             Text(
                               statusLabel,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -248,7 +249,7 @@ class BookingsActiveCard extends StatelessWidget {
                             color: Colors.white.withAlpha(isDark ? 15 : 25),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.access_time,
@@ -280,7 +281,7 @@ class BookingsActiveCard extends StatelessWidget {
                           children: [
                             Text(
                               serviceName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 19,
                                 fontWeight: FontWeight.bold,
@@ -367,7 +368,7 @@ class BookingsActiveCard extends StatelessWidget {
                         ),
                         child: Text(
                           '${price.toStringAsFixed(0)} EGP',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -403,7 +404,7 @@ class BookingsActiveCard extends StatelessWidget {
                             child: Center(
                               child: Text(
                                 providerName[0],
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -419,7 +420,7 @@ class BookingsActiveCard extends StatelessWidget {
                               children: [
                                 Text(
                                   providerName,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -590,6 +591,7 @@ class BookingsActiveCard extends StatelessWidget {
     required bool isFilled,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -658,6 +660,7 @@ class BookingsActiveCard extends StatelessWidget {
     BuildContext context,
     String bookingId,
   ) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     try {
       final apiService = ApiService();
       await apiService.put('/api/bookings/$bookingId/cancel', body: {});
@@ -665,7 +668,7 @@ class BookingsActiveCard extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 12),
@@ -689,6 +692,7 @@ class BookingsActiveCard extends StatelessWidget {
     BuildContext context,
     String requestId,
   ) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (requestId.isEmpty) return;
 
     try {
@@ -702,7 +706,7 @@ class BookingsActiveCard extends StatelessWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
               Icon(Icons.check_circle, color: Colors.white),
               SizedBox(width: 12),
@@ -724,3 +728,4 @@ class BookingsActiveCard extends StatelessWidget {
     }
   }
 }
+

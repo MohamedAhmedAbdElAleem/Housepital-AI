@@ -24,7 +24,19 @@ class BookingTicketModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBg = isDark ? const Color(0xFF16151A) : Colors.white;
+    final qrBoxBg = isDark ? const Color(0xFF1E1C24) : Colors.grey[200]!;
+    final qrBoxBorder = isDark ? const Color(0xFF2A2831) : Colors.grey[300]!;
+    final qrIconColor = isDark ? const Color(0xFF5F5C68) : Colors.grey[600]!;
+    final qrTextColor = isDark ? const Color(0xFFA19EAB) : Colors.grey[600]!;
+    final instructionBg = isDark ? const Color(0xFF1A2E1A) : const Color(0xFFF0FDF4);
+    final instructionBorder = isDark ? const Color(0xFF2A4A2A) : const Color(0xFFBBF7D0);
+    final instructionIconColor = const Color(0xFF16A34A);
+    final instructionTextColor = isDark ? const Color(0xFF86EFAC) : const Color(0xFF166534);
+
     return Dialog(
+      backgroundColor: dialogBg,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.all(20),
       child: SingleChildScrollView(
@@ -65,7 +77,7 @@ class BookingTicketModal extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF16151A) : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -75,9 +87,9 @@ class BookingTicketModal extends StatelessWidget {
                             width: 160,
                             height: 160,
                             decoration: BoxDecoration(
-                              color: Colors.grey[200],
+                              color: qrBoxBg,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey[300]!),
+                              border: Border.all(color: qrBoxBorder),
                             ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -85,14 +97,14 @@ class BookingTicketModal extends StatelessWidget {
                                 Icon(
                                   Icons.qr_code_2,
                                   size: 80,
-                                  color: Colors.grey[600],
+                                  color: qrIconColor,
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'Scan at reception',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey[600],
+                                    color: qrTextColor,
                                   ),
                                 ),
                               ],
@@ -103,16 +115,16 @@ class BookingTicketModal extends StatelessWidget {
                             'Check-in PIN',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[600],
+                              color: qrTextColor,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             checkInPin,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                               letterSpacing: 8,
                             ),
                           ),
@@ -128,19 +140,19 @@ class BookingTicketModal extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    _buildDetailRow('Service', serviceName),
+                    _buildDetailRow('Service', serviceName, isDark),
                     const SizedBox(height: 12),
-                    _buildDetailRow('Patient', patientName),
+                    _buildDetailRow('Patient', patientName, isDark),
                     const SizedBox(height: 12),
-                    _buildDetailRow('Clinic', clinicName),
+                    _buildDetailRow('Clinic', clinicName, isDark),
                     if (clinicAddress.isNotEmpty) ...[
                       const SizedBox(height: 12),
-                      _buildDetailRow('Address', clinicAddress),
+                      _buildDetailRow('Address', clinicAddress, isDark),
                     ],
                     const SizedBox(height: 12),
-                    _buildDetailRow('Doctor', doctorName),
+                    _buildDetailRow('Doctor', doctorName, isDark),
                     const SizedBox(height: 12),
-                    _buildDetailRow('Time', scheduledTime),
+                    _buildDetailRow('Time', scheduledTime, isDark),
 
                     const SizedBox(height: 20),
 
@@ -148,24 +160,24 @@ class BookingTicketModal extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0FDF4),
+                        color: instructionBg,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFBBF7D0)),
+                        border: Border.all(color: instructionBorder),
                       ),
                       child: Row(
-                        children: const [
+                        children: [
                           Icon(
                             Icons.info_outline,
                             size: 18,
-                            color: Color(0xFF16A34A),
+                            color: instructionIconColor,
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               'Show this QR code or PIN at the clinic reception to check in.',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Color(0xFF166534),
+                                color: instructionTextColor,
                               ),
                             ),
                           ),
@@ -203,7 +215,7 @@ class BookingTicketModal extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, bool isDark) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -211,16 +223,19 @@ class BookingTicketModal extends StatelessWidget {
           width: 80,
           child: Text(
             label,
-            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? const Color(0xFFA19EAB) : Colors.grey[600],
+            ),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1E293B),
+              color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
             ),
           ),
         ),

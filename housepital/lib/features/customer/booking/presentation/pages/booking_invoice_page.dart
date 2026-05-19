@@ -604,12 +604,12 @@ class _BookingInvoicePageState extends State<BookingInvoicePage> {
                     child: ElevatedButton.icon(
                       onPressed: _isSubmittingRating ? null : _submitRating,
                       icon: _isSubmittingRating
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 18,
                               height: 18,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: isDark ? const Color(0xFF16151A) : Colors.white,
                               ),
                             )
                           : const Icon(Icons.star_rounded, size: 20),

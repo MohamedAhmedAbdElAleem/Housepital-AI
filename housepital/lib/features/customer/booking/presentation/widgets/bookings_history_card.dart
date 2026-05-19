@@ -112,12 +112,7 @@ class BookingsHistoryCard extends StatelessWidget {
             child: Container(
               margin: const EdgeInsets.only(bottom: 14),
               decoration: BoxDecoration(
-                gradient: isDark ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: statusGradient,
-                ) : null,
-                color: isDark ? null : Colors.white,
+                color: isDark ? const Color(0xFF16151A) : Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isDark ? statusGradient[0].withAlpha(40) : statusGradient[0].withAlpha(30),

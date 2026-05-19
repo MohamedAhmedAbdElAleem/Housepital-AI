@@ -61,16 +61,17 @@ class _BookingCardNurseWaitingState extends State<BookingCardNurseWaiting> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFFB923C), width: 2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -79,7 +80,7 @@ class _BookingCardNurseWaitingState extends State<BookingCardNurseWaiting> {
           // Orange Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Color(0xFFFFF7ED),
               borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
               border: Border(bottom: BorderSide(color: Color(0xFFFED7AA))),
@@ -93,7 +94,7 @@ class _BookingCardNurseWaitingState extends State<BookingCardNurseWaiting> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF16151A) : Colors.white,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -113,7 +114,7 @@ class _BookingCardNurseWaitingState extends State<BookingCardNurseWaiting> {
                 ),
                 Text(
                   _formattedTime,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFFEA580C),
@@ -130,10 +131,10 @@ class _BookingCardNurseWaitingState extends State<BookingCardNurseWaiting> {
               children: [
                 Text(
                   '${widget.nurseName} Arrived',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -177,8 +178,8 @@ class _BookingCardNurseWaitingState extends State<BookingCardNurseWaiting> {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: widget.onCall,
-                        icon: const Icon(Icons.phone, size: 16),
-                        label: const Text('Call'),
+                        icon: Icon(Icons.phone, size: 16),
+                        label: Text('Call'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF17C47F),
                           side: const BorderSide(color: Color(0xFF17C47F)),
@@ -202,7 +203,7 @@ class _BookingCardNurseWaitingState extends State<BookingCardNurseWaiting> {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Check In',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),

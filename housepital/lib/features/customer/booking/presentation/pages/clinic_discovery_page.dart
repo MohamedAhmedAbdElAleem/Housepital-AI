@@ -12,11 +12,12 @@ class ClinicDiscoveryPage extends StatefulWidget {
 }
 
 class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
   static const _primary = Color(0xFF3B82F6);
   static const _primaryDark = Color(0xFF1D4ED8);
-  static const _surface = Color(0xFFF0F4F8);
-  static const _textPrimary = Color(0xFF1A202C);
-  static const _textMuted = Color(0xFFA0AEC0);
+  Color get _surface => isDark ? const Color(0xFF0D0C11) : const Color(0xFFF0F4F8);
+  Color get _textPrimary => isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1A202C);
+  Color get _textMuted => isDark ? const Color(0xFFA19EAB) : const Color(0xFFA0AEC0);
 
   List<dynamic> _clinics = [];
   List<dynamic> _filtered = [];
@@ -100,6 +101,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -126,9 +128,9 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.white.withAlpha(80)),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF16151A) : Colors.white,
                   size: 18,
                 ),
               ),
@@ -137,7 +139,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
             flexibleSpace: FlexibleSpaceBar(
               collapseMode: CollapseMode.parallax,
               background: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -162,13 +164,13 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            const Text(
+                            Text(
                               'احجز موعد',
                               style: TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: isDark ? const Color(0xFF16151A) : Colors.white,
                                 height: 1.1,
                                 letterSpacing: -0.5,
                               ),
@@ -192,15 +194,15 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                                 ),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: isDark ? const Color(0xFF1E1C24) : Colors.white,
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: Colors.black.withAlpha(10),
+                                      color: isDark ? Colors.white.withAlpha(15) : Colors.black.withAlpha(10),
                                     ),
                                   ),
                                   child: TextField(
                                     controller: _searchController,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: _textPrimary,
                                       fontFamily: 'Inter',
                                       fontSize: 15,
@@ -208,11 +210,11 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                                     decoration: InputDecoration(
                                       hintText:
                                           'ابحث بالاسم، الطبيب، أو المنطقة...',
-                                      hintStyle: const TextStyle(
+                                      hintStyle: TextStyle(
                                         color: _textMuted,
                                         fontSize: 15,
                                       ),
-                                      prefixIcon: const Icon(
+                                      prefixIcon: Icon(
                                         Icons.search_rounded,
                                         color: _primary,
                                         size: 22,
@@ -229,7 +231,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                                                         .withAlpha(10),
                                                     shape: BoxShape.circle,
                                                   ),
-                                                  child: const Icon(
+                                                  child: Icon(
                                                     Icons.close_rounded,
                                                     color: _textMuted,
                                                     size: 14,
@@ -334,10 +336,10 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                     Icon(
                       Icons.search_off_rounded,
                       size: 64,
-                      color: Colors.grey.withAlpha(100),
+                      color: isDark ? Colors.white.withAlpha(60) : Colors.grey.withAlpha(100),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'لا توجد عيادات',
                       style: TextStyle(
                         fontFamily: 'Poppins',
@@ -351,10 +353,10 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                       _searchQuery.isNotEmpty
                           ? 'لا نتائج لـ "$_searchQuery"'
                           : 'لا توجد عيادات متاحة حالياً.',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 14,
-                        color: Color(0xFF718096),
+                        color: isDark ? const Color(0xFFA19EAB) : const Color(0xFF718096),
                       ),
                     ),
                   ],
@@ -421,7 +423,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
             transitionsBuilder: (_, animation, __, child) {
               return SlideTransition(
                 position: Tween<Offset>(
-                  begin: const Offset(1.0, 0.0),
+                  begin: Offset(1.0, 0.0),
                   end: Offset.zero,
                 ).animate(
                   CurvedAnimation(
@@ -438,12 +440,17 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF16151A) : Colors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: _primary.withAlpha(20), width: 1.5),
+          border: Border.all(
+            color: isDark ? _primary.withAlpha(40) : _primary.withAlpha(20),
+            width: isDark ? 1.0 : 1.5,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(5),
+              color: isDark
+                  ? _primary.withAlpha(20)
+                  : Colors.black.withAlpha(5),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -478,7 +485,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                       Expanded(
                         child: Text(
                           name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -529,7 +536,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.person_rounded,
                         size: 16,
                         color: _textMuted,
@@ -537,10 +544,10 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                       const SizedBox(width: 6),
                       Text(
                         '$doctorName${doctorSpec.isNotEmpty ? ' · $doctorSpec' : ''}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 14,
-                          color: Color(0xFF475569),
+                          color: isDark ? const Color(0xFFA19EAB) : const Color(0xFF475569),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -550,7 +557,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on_rounded,
                           size: 16,
                           color: _textMuted,
@@ -558,7 +565,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                         const SizedBox(width: 6),
                         Text(
                           locationText,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 13,
                             color: _textMuted,
@@ -580,7 +587,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
     return Container(
       height: 140,
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(colors: [_primary, _primaryDark]),
       ),
       child: Center(

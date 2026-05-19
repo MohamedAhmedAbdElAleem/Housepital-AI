@@ -18,17 +18,27 @@ class BookingCardSearching extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF16151A) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF3B82F6).withAlpha(70) : const Color(0xFF3B82F6).withOpacity(0.5);
+    final headerBg = isDark ? const Color(0xFF0F1829) : const Color(0xFFEFF6FF);
+    final headerBorderColor = isDark ? const Color(0xFF1E3A5F).withOpacity(0.5) : const Color(0xFFBFDBFE).withOpacity(0.5);
+    final primaryText = isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B);
+    final mutedText = isDark ? const Color(0xFFA19EAB) : Colors.grey[600]!;
+    final mutedIcon = isDark ? const Color(0xFF5F5C68) : Colors.grey[600]!;
+    final dividerColor = isDark ? const Color(0xFF2A2831) : const Color(0xFFE2E8F0);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF3B82F6).withOpacity(0.5),
+          color: cardBorder,
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(isDark ? 0.25 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -40,21 +50,21 @@ class BookingCardSearching extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
+              color: headerBg,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(14),
               ),
               border: Border(
                 bottom: BorderSide(
-                  color: const Color(0xFFBFDBFE).withOpacity(0.5),
+                  color: headerBorderColor,
                 ),
               ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: const [
+                const Row(
+                  children: [
                     SizedBox(
                       width: 16,
                       height: 16,
@@ -82,7 +92,7 @@ class BookingCardSearching extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF59E0B).withOpacity(0.1),
+                    color: const Color(0xFFF59E0B).withOpacity(0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text(
@@ -109,7 +119,7 @@ class BookingCardSearching extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withOpacity(0.1),
+                        color: const Color(0xFF3B82F6).withOpacity(isDark ? 0.15 : 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
@@ -125,10 +135,10 @@ class BookingCardSearching extends StatelessWidget {
                         children: [
                           Text(
                             serviceName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: primaryText,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -137,14 +147,14 @@ class BookingCardSearching extends StatelessWidget {
                               Icon(
                                 Icons.person_outline,
                                 size: 14,
-                                color: Colors.grey[600],
+                                color: mutedIcon,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 patientName,
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: Colors.grey[600],
+                                  color: mutedText,
                                 ),
                               ),
                             ],
@@ -155,7 +165,7 @@ class BookingCardSearching extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                Divider(height: 1, color: dividerColor),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -165,7 +175,7 @@ class BookingCardSearching extends StatelessWidget {
                           Icon(
                             Icons.schedule,
                             size: 16,
-                            color: Colors.grey[600],
+                            color: mutedIcon,
                           ),
                           const SizedBox(width: 6),
                           Expanded(
@@ -176,16 +186,16 @@ class BookingCardSearching extends StatelessWidget {
                                   'Scheduled',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Colors.grey[500],
+                                    color: mutedText,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   scheduledTime,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
+                                    color: primaryText,
                                   ),
                                 ),
                               ],
@@ -200,7 +210,7 @@ class BookingCardSearching extends StatelessWidget {
                           Icon(
                             Icons.payments,
                             size: 16,
-                            color: Colors.grey[600],
+                            color: mutedIcon,
                           ),
                           const SizedBox(width: 6),
                           Expanded(
@@ -211,16 +221,16 @@ class BookingCardSearching extends StatelessWidget {
                                   'Price',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Colors.grey[500],
+                                    color: mutedText,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '${price.toStringAsFixed(0)} EGP',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
+                                    color: primaryText,
                                   ),
                                 ),
                               ],

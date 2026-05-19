@@ -26,6 +26,7 @@ class BookingStep1SelectPatient extends StatefulWidget {
 
 class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
     with TickerProviderStateMixin {
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
   // Page controller for swipe navigation
   late PageController _pageController;
   int _currentStep = 0;
@@ -577,7 +578,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.error_outline, color: Colors.white),
+            Icon(Icons.error_outline, color: isDark ? const Color(0xFF16151A) : Colors.white),
             const SizedBox(width: 12),
             Text(message),
           ],
@@ -599,7 +600,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0D0C11) : const Color(0xFFF8FAFC),
       body: Column(
         children: [
           _buildHeader(),
@@ -624,6 +625,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.fromLTRB(
         20,
@@ -631,7 +633,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
         20,
         20,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -648,9 +650,9 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                 color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back,
-                color: Colors.white,
+                color: isDark ? const Color(0xFF16151A) : Colors.white,
                 size: 22,
               ),
             ),
@@ -662,10 +664,10 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               children: [
                 Text(
                   widget.serviceName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF16151A) : Colors.white,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -685,9 +687,9 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.medical_services_rounded,
-              color: Colors.white,
+              color: isDark ? const Color(0xFF16151A) : Colors.white,
               size: 24,
             ),
           ),
@@ -697,6 +699,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildStepIndicator() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final steps = [
       {'icon': Icons.person_rounded, 'label': 'Patient'},
       {'icon': Icons.location_on_rounded, 'label': 'Location'},
@@ -706,7 +709,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-      color: Colors.white,
+      color: isDark ? const Color(0xFF16151A) : Colors.white,
       child: Row(
         children: List.generate(steps.length, (index) {
           final step = steps[index];
@@ -726,7 +729,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                     decoration: BoxDecoration(
                       gradient:
                           isActive || isCompleted
-                              ? const LinearGradient(
+                              ? LinearGradient(
                                 colors: [Color(0xFF00D47F), Color(0xFF00B870)],
                               )
                               : null,
@@ -743,7 +746,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                                     0xFF00B870,
                                   ).withOpacity(0.3),
                                   blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                                  offset: Offset(0, 4),
                                 ),
                               ]
                               : null,
@@ -785,6 +788,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   // STEP 1: PATIENT SELECTION
   // ====================================================================
   Widget _buildPatientStep() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(20),
@@ -826,19 +830,19 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                     color: const Color(0xFF8B5CF6).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.group_rounded,
                     color: Color(0xFF8B5CF6),
                     size: 18,
                   ),
                 ),
                 const SizedBox(width: 10),
-                const Text(
+                Text(
                   'Family Members',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                   ),
                 ),
               ],
@@ -899,6 +903,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
     bool isSelf = false,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -906,11 +911,14 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFECFDF5) : Colors.white,
+          color: isSelected
+              ? (isDark ? const Color(0xFF00B870).withOpacity(0.12) : const Color(0xFFECFDF5))
+              : (isDark ? const Color(0xFF16151A) : Colors.white),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color:
-                isSelected ? const Color(0xFF00B870) : const Color(0xFFE2E8F0),
+            color: isSelected
+                ? const Color(0xFF00B870)
+                : (isDark ? Colors.white.withAlpha(20) : const Color(0xFFE2E8F0)),
             width: isSelected ? 2 : 1,
           ),
           boxShadow:
@@ -919,14 +927,14 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                     BoxShadow(
                       color: const Color(0xFF00B870).withOpacity(0.15),
                       blurRadius: 15,
-                      offset: const Offset(0, 5),
+                      offset: Offset(0, 5),
                     ),
                   ]
                   : [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.03),
                       blurRadius: 10,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ],
         ),
@@ -942,10 +950,10 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               child: Center(
                 child: Text(
                   avatar,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF16151A) : Colors.white,
                   ),
                 ),
               ),
@@ -979,12 +987,12 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                             color: const Color(0xFF00B870),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text(
+                          child: Text(
                             'You',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: isDark ? const Color(0xFF16151A) : Colors.white,
                             ),
                           ),
                         ),
@@ -1006,7 +1014,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               decoration: BoxDecoration(
                 gradient:
                     isSelected
-                        ? const LinearGradient(
+                        ? LinearGradient(
                           colors: [Color(0xFF00D47F), Color(0xFF00B870)],
                         )
                         : null,
@@ -1029,6 +1037,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   // STEP 2: LOCATION SELECTION
   // ====================================================================
   Widget _buildLocationStep() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(20),
@@ -1076,6 +1085,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildEmptyAddressState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -1087,17 +1097,17 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF16151A) : Colors.white,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.location_off_rounded,
               color: Color(0xFFEF4444),
               size: 40,
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'No saved addresses',
             style: TextStyle(
               fontSize: 18,
@@ -1116,6 +1126,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildAddressCard(Map<String, dynamic> address, int index) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final addressId = address['_id'] ?? address['id'];
     final isSelected = _selectedAddressId == addressId;
     final type = address['type'] ?? 'Other';
@@ -1165,7 +1176,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                     BoxShadow(
                       color: (data['color'] as Color).withOpacity(0.15),
                       blurRadius: 15,
-                      offset: const Offset(0, 5),
+                      offset: Offset(0, 5),
                     ),
                   ]
                   : null,
@@ -1220,7 +1231,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   color: data['color'] as Color,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, color: Colors.white, size: 14),
+                child: Icon(Icons.check, color: isDark ? const Color(0xFF16151A) : Colors.white, size: 14),
               ),
           ],
         ),
@@ -1232,6 +1243,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   // STEP 3: TIME SELECTION
   // ====================================================================
   Widget _buildTimeStep() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(20),
@@ -1272,12 +1284,12 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
             const SizedBox(height: 28),
 
             // Date picker
-            const Text(
+            Text(
               'Select Date',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
               ),
             ),
             const SizedBox(height: 14),
@@ -1286,12 +1298,12 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
             const SizedBox(height: 24),
 
             // Time picker
-            const Text(
+            Text(
               'Select Time',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
               ),
             ),
             const SizedBox(height: 14),
@@ -1310,6 +1322,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
     required Color color,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -1330,7 +1343,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                     BoxShadow(
                       color: color.withOpacity(0.4),
                       blurRadius: 15,
-                      offset: const Offset(0, 6),
+                      offset: Offset(0, 6),
                     ),
                   ]
                   : null,
@@ -1362,6 +1375,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildDatePicker() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final today = DateTime.now();
     final dates = List.generate(7, (i) => today.add(Duration(days: i)));
 
@@ -1386,7 +1400,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               decoration: BoxDecoration(
                 gradient:
                     isSelected
-                        ? const LinearGradient(
+                        ? LinearGradient(
                           colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
                         )
                         : null,
@@ -1454,6 +1468,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildTimePicker() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Wrap(
       spacing: 10,
       runSpacing: 10,
@@ -1476,7 +1491,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                 decoration: BoxDecoration(
                   gradient:
                       isSelected
-                          ? const LinearGradient(
+                          ? LinearGradient(
                             colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
                           )
                           : null,
@@ -1505,6 +1520,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   // STEP 4: CONFIRMATION
   // ====================================================================
   Widget _buildConfirmStep() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(20),
@@ -1533,16 +1549,17 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildSummaryCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 15,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -1557,19 +1574,19 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   color: const Color(0xFF00B870).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.summarize_rounded,
                   color: Color(0xFF00B870),
                   size: 22,
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Booking Summary',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                 ),
               ),
             ],
@@ -1601,17 +1618,17 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Total Amount',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                 ),
               ),
               Text(
                 '${_totalPrice.toStringAsFixed(0)} EGP',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF00B870),
@@ -1625,6 +1642,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildSummaryRow(IconData icon, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
@@ -1635,10 +1653,10 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           const Spacer(),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1E293B),
+              color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
             ),
           ),
         ],
@@ -1647,16 +1665,17 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildPreferencesCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 15,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -1671,19 +1690,19 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   color: const Color(0xFF8B5CF6).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.tune_rounded,
                   color: Color(0xFF8B5CF6),
                   size: 22,
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Preferences',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                 ),
               ),
             ],
@@ -1694,12 +1713,12 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: isDark ? const Color(0xFF242329) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.medical_services_rounded,
                   color: Color(0xFF00B870),
                   size: 22,
@@ -1709,7 +1728,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Nurse brings supplies',
                         style: TextStyle(
                           fontSize: 14,
@@ -1726,7 +1745,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                 Switch(
                   value: _nurseHasSupplies,
                   onChanged: (v) => setState(() => _nurseHasSupplies = v),
-                  activeColor: const Color(0xFF00B870),
+                  activeThumbColor: const Color(0xFF00B870),
                 ),
               ],
             ),
@@ -1734,7 +1753,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           const SizedBox(height: 16),
 
           // Gender preference
-          const Text(
+          Text(
             'Nurse Preference',
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
@@ -1754,6 +1773,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildGenderChip(String? value, String label, IconData icon) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _nurseGenderPreference == value;
 
     return Expanded(
@@ -1766,7 +1786,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
             color:
                 isSelected
                     ? const Color(0xFF8B5CF6).withOpacity(0.1)
-                    : const Color(0xFFF8FAFC),
+                    : isDark ? const Color(0xFF242329) : const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color:
@@ -1806,16 +1826,17 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildNotesCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 15,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -1830,19 +1851,19 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   color: const Color(0xFFF59E0B).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.edit_note_rounded,
                   color: Color(0xFFF59E0B),
                   size: 22,
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Additional Notes',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                 ),
               ),
               const Spacer(),
@@ -1855,7 +1876,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: isDark ? const Color(0xFF242329) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(14),
             ),
             child: TextField(
@@ -1878,15 +1899,16 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   // HELPER WIDGETS
   // ====================================================================
   Widget _buildStepTitle(String title, String subtitle) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
+            color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
           ),
         ),
         const SizedBox(height: 6),
@@ -1901,6 +1923,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
     required Color color,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1929,17 +1952,18 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildBottomBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLastStep = _currentStep == _totalSteps - 1;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 20,
-            offset: const Offset(0, -4),
+            offset: Offset(0, -4),
           ),
         ],
       ),
@@ -1958,7 +1982,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   ),
                   Text(
                     '${_totalPrice.toStringAsFixed(0)} EGP',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF00B870),
@@ -1987,7 +2011,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   decoration: BoxDecoration(
                     gradient:
                         _canProceed()
-                            ? const LinearGradient(
+                            ? LinearGradient(
                               colors: [Color(0xFF00D47F), Color(0xFF00B870)],
                             )
                             : null,
@@ -1999,19 +2023,19 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                               BoxShadow(
                                 color: const Color(0xFF00B870).withOpacity(0.4),
                                 blurRadius: 15,
-                                offset: const Offset(0, 6),
+                                offset: Offset(0, 6),
                               ),
                             ]
                             : null,
                   ),
                   child:
                       _isSubmitting
-                          ? const Center(
+                          ? Center(
                             child: SizedBox(
                               height: 22,
                               width: 22,
                               child: CircularProgressIndicator(
-                                color: Colors.white,
+                                color: isDark ? const Color(0xFF16151A) : Colors.white,
                                 strokeWidth: 2.5,
                               ),
                             ),
@@ -2052,3 +2076,5 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
     );
   }
 }
+
+

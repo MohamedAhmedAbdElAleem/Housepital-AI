@@ -5,7 +5,6 @@ import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/services/socket_notification_service.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/constants/app_colors.dart';
@@ -19,8 +18,7 @@ import '../../../vitals_monitor/live_vitals_monitor_screen.dart';
 class BookingTrackingPage extends StatefulWidget {
   final Map<String, dynamic> booking;
 
-  const BookingTrackingPage({Key? key, required this.booking})
-      : super(key: key);
+  const BookingTrackingPage({super.key, required this.booking});
 
   @override
   State<BookingTrackingPage> createState() => _BookingTrackingPageState();
@@ -28,6 +26,7 @@ class BookingTrackingPage extends StatefulWidget {
 
 class _BookingTrackingPageState extends State<BookingTrackingPage>
     with TickerProviderStateMixin {
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
   late AnimationController _pulseController;
   late AnimationController _bottomSheetController;
   late MapController _mapController;
@@ -392,7 +391,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.light200, // Slate 50
+      backgroundColor: isDark ? const Color(0xFF0D0C11) : AppColors.light200, // Slate 50
       body: Stack(
         children: [
           // 1. Map Layer
@@ -464,6 +463,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildMap() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final center = _nurseLocation ?? _patientLocation ?? const LatLng(30.0444, 31.2357);
 
     return Stack(
@@ -528,6 +528,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildTripStats() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
@@ -542,7 +543,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               BoxShadow(
                 color: Colors.black.withOpacity(0.08),
                 blurRadius: 16,
-                offset: const Offset(0, 4),
+                offset: Offset(0, 4),
               ),
             ],
           ),
@@ -564,7 +565,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                       color: _statusColor,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Est. arrival',
                     style: TextStyle(
                       fontSize: 11,
@@ -598,7 +599,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                       color: _statusColor,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Distance',
                     style: TextStyle(
                       fontSize: 11,
@@ -616,6 +617,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildPatientMarker() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -629,14 +631,14 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                 color: AppColors.primary500.withOpacity(0.4),
                 blurRadius: 12,
                 spreadRadius: 2,
-                offset: const Offset(0, 4),
+                offset: Offset(0, 4),
               ),
             ],
-            border: Border.all(color: Colors.white, width: 2),
+            border: Border.all(color: isDark ? const Color(0xFF16151A) : Colors.white, width: 2),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.home_rounded,
-            color: Colors.white,
+            color: isDark ? const Color(0xFF16151A) : Colors.white,
             size: 20,
           ),
         ),
@@ -644,17 +646,17 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF16151A) : Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
                 blurRadius: 4,
-                offset: const Offset(0, 2),
+                offset: Offset(0, 2),
               ),
             ],
           ),
-          child: const Text(
+          child: Text(
             'You',
             style: TextStyle(
               fontSize: 10,
@@ -668,6 +670,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildNurseMarker() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnimatedBuilder(
       animation: _pulseController,
       builder: (context, child) {
@@ -696,19 +699,19 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               decoration: BoxDecoration(
                 color: _statusColor,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 3),
+                border: Border.all(color: isDark ? const Color(0xFF16151A) : Colors.white, width: 3),
                 boxShadow: [
                   BoxShadow(
                     color: _statusColor.withOpacity(0.4),
                     blurRadius: 10,
                     spreadRadius: 2,
-                    offset: const Offset(0, 4),
+                    offset: Offset(0, 4),
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.local_hospital_rounded,
-                color: Colors.white,
+                color: isDark ? const Color(0xFF16151A) : Colors.white,
                 size: 18,
               ),
             ),
@@ -719,6 +722,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildGlassButton({required IconData icon, required VoidCallback onTap}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
@@ -729,7 +733,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             onTap: onTap,
             child: Container(
               padding: const EdgeInsets.all(12),
-              child: Icon(icon, color: AppColors.dark700, size: 22),
+              child: Icon(icon, color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700, size: 22),
             ),
           ),
         ),
@@ -738,6 +742,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildGlassStatusChip() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
@@ -785,13 +790,14 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildRecenterButton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return FloatingActionButton(
       heroTag: 'recenter_btn',
       backgroundColor: Colors.white,
       mini: true,
       elevation: 4,
       onPressed: _recenterMap,
-      child: const Icon(
+      child: Icon(
         Icons.my_location_rounded,
         color: AppColors.dark300, // Slate 600
         size: 22,
@@ -800,9 +806,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildAnimatedBottomSheet() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SlideTransition(
       position: Tween<Offset>(
-        begin: const Offset(0, 1),
+        begin: Offset(0, 1),
         end: Offset.zero,
       ).animate(CurvedAnimation(
         parent: _bottomSheetController,
@@ -811,14 +818,14 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
       child: Container(
         margin: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF16151A) : Colors.white,
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
               blurRadius: 24,
               spreadRadius: 0,
-              offset: const Offset(0, 8),
+              offset: Offset(0, 8),
             ),
           ],
         ),
@@ -881,6 +888,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildStatusHeaderCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -895,13 +903,13 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF16151A) : Colors.white,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: _statusColor.withOpacity(0.15),
                   blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
@@ -923,9 +931,9 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                 const SizedBox(height: 4),
                 Text(
                   _statusSubtext,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.dark200, // Slate 500
+                    color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200, // Slate 500
                     height: 1.4,
                   ),
                 ),
@@ -938,6 +946,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildPinCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
@@ -955,26 +964,26 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             children: [
               Row(
                 children: [
-                  const Icon(Icons.security_rounded,
-                      size: 16, color: AppColors.dark700),
+                  Icon(Icons.security_rounded,
+                      size: 16, color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700),
                   const SizedBox(width: 6),
                   Text(
                     'VISIT START CODE',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.dark700, // Slate 900
+                      color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700, // Slate 900
                       letterSpacing: 0.5,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Provide this to the nurse\nto begin the session.',
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.dark200,
+                  color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200,
                   height: 1.3,
                 ),
               ),
@@ -986,7 +995,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               vertical: 12,
             ),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 colors: [AppColors.dark700, AppColors.dark600],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -994,18 +1003,18 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.dark700.withOpacity(0.2),
+                  color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700.withOpacity(0.2),
                   blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
             child: Text(
               _visitPin,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: isDark ? const Color(0xFF16151A) : Colors.white,
                 fontFamily: 'monospace',
                 letterSpacing: 6,
               ),
@@ -1017,6 +1026,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildInProgressNotice() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         Container(
@@ -1027,7 +1037,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               BoxShadow(
                 color: AppColors.success500.withOpacity(0.4),
                 blurRadius: 16,
-                offset: const Offset(0, 4),
+                offset: Offset(0, 4),
               ),
             ],
             borderRadius: BorderRadius.circular(20),
@@ -1036,11 +1046,11 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF16151A) : Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.favorite_rounded,
+                child: Icon(Icons.favorite_rounded,
                     color: AppColors.success500, size: 24),
               ),
               const SizedBox(width: 16),
@@ -1048,12 +1058,12 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Service in Progress',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF16151A) : Colors.white,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1079,6 +1089,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildLiveVitalsButton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bookingId = _booking['_id'] ?? _booking['id'] ?? '';
     final patientName = _booking['patientName'] ?? 'Patient';
 
@@ -1101,7 +1112,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
@@ -1111,22 +1122,22 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               BoxShadow(
                 color: const Color(0xFF667EEA).withOpacity(0.35),
                 blurRadius: 14,
-                offset: const Offset(0, 6),
+                offset: Offset(0, 6),
               ),
             ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.monitor_heart_rounded,
-                  color: Colors.white, size: 22),
+              Icon(Icons.monitor_heart_rounded,
+                  color: isDark ? const Color(0xFF16151A) : Colors.white, size: 22),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'Live Vitals Monitor',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF16151A) : Colors.white,
                   letterSpacing: 0.3,
                 ),
               ),
@@ -1137,12 +1148,12 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
+                child: Text(
                   'LIVE',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF16151A) : Colors.white,
                     letterSpacing: 1.0,
                   ),
                 ),
@@ -1155,6 +1166,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildNurseInfoSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         // Nurse Avatar
@@ -1175,17 +1187,17 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               BoxShadow(
                 color: _statusColor.withOpacity(0.3),
                 blurRadius: 10,
-                offset: const Offset(0, 4),
+                offset: Offset(0, 4),
               ),
             ],
           ),
           child: Center(
             child: Text(
               _nurseName.isNotEmpty ? _nurseName[0].toUpperCase() : 'N',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: isDark ? const Color(0xFF16151A) : Colors.white,
               ),
             ),
           ),
@@ -1198,10 +1210,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             children: [
               Text(
                 _nurseName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.dark700, // Slate 900
+                  color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700, // Slate 900
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -1210,7 +1222,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               Row(
                 children: [
                   if (_nurseRating > 0) ...[
-                    const Icon(
+                    Icon(
                       Icons.star_rounded,
                       size: 18,
                       color: AppColors.warning500, // Amber 500
@@ -1218,7 +1230,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                     const SizedBox(width: 4),
                     Text(
                       _nurseRating.toStringAsFixed(1),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: AppColors.dark300, // Slate 600
@@ -1232,7 +1244,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                         color: AppColors.light400,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
+                      child: Text(
                         'New',
                         style: TextStyle(
                           fontSize: 12,
@@ -1245,17 +1257,17 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   Container(
                     width: 4,
                     height: 4,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.light600,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'Registered Nurse',
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.dark200,
+                      color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200,
                     ),
                   ),
                 ],
@@ -1283,9 +1295,9 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   border: Border.all(color: AppColors.light400),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.phone_rounded,
-                  color: AppColors.dark700,
+                  color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700,
                   size: 22,
                 ),
               ),
@@ -1297,6 +1309,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   Widget _buildActionButtonsRow() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         // Live Vitals button for arrived/in-progress (when not shown in notice)
@@ -1322,8 +1335,8 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   ),
                   elevation: 0,
                 ),
-                icon: const Icon(Icons.emergency, size: 20),
-                label: const Text(
+                icon: Icon(Icons.emergency, size: 20),
+                label: Text(
                   'SOS',
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
@@ -1346,8 +1359,8 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   ),
                   elevation: 0,
                 ),
-                icon: const Icon(Icons.flag, size: 20, color: AppColors.warning500),
-                label: const Text(
+                icon: Icon(Icons.flag, size: 20, color: AppColors.warning500),
+                label: Text(
                   'Report',
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),

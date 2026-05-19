@@ -20,16 +20,17 @@ class BookingCardConfirmedNursing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF17C47F), width: 2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -38,7 +39,7 @@ class BookingCardConfirmedNursing extends StatelessWidget {
           // Green Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Color(0xFFECFDF5),
               borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
               border: Border(bottom: BorderSide(color: Color(0xFFA7F3D0))),
@@ -54,14 +55,14 @@ class BookingCardConfirmedNursing extends StatelessWidget {
                         color: const Color(0xFF17C47F),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.check,
                         size: 12,
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF16151A) : Colors.white,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Text(
+                    Text(
                       'Confirmed',
                       style: TextStyle(
                         fontSize: 13,
@@ -73,7 +74,7 @@ class BookingCardConfirmedNursing extends StatelessWidget {
                 ),
                 Text(
                   scheduledTime,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF059669),
@@ -97,7 +98,7 @@ class BookingCardConfirmedNursing extends StatelessWidget {
                         color: const Color(0xFF17C47F).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.medical_services,
                         color: Color(0xFF17C47F),
                         size: 24,
@@ -110,10 +111,10 @@ class BookingCardConfirmedNursing extends StatelessWidget {
                         children: [
                           Text(
                             serviceName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -156,7 +157,7 @@ class BookingCardConfirmedNursing extends StatelessWidget {
                           color: const Color(0xFF17C47F).withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.person,
                           size: 18,
                           color: Color(0xFF17C47F),
@@ -167,20 +168,20 @@ class BookingCardConfirmedNursing extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Assigned Nurse',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Color(0xFF64748B),
+                                color: isDark ? const Color(0xFFA19EAB) : const Color(0xFF64748B),
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               nurseName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF1E293B),
+                                color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                               ),
                             ),
                           ],
@@ -203,7 +204,7 @@ class BookingCardConfirmedNursing extends StatelessWidget {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text('Cancel'),
+                        child: Text('Cancel'),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -211,8 +212,8 @@ class BookingCardConfirmedNursing extends StatelessWidget {
                       flex: 2,
                       child: ElevatedButton.icon(
                         onPressed: onTrackNurse,
-                        icon: const Icon(Icons.location_on, size: 18),
-                        label: const Text('Track Nurse'),
+                        icon: Icon(Icons.location_on, size: 18),
+                        label: Text('Track Nurse'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF17C47F),
                           foregroundColor: Colors.white,

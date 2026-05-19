@@ -22,16 +22,17 @@ class BookingCardConfirmedClinic extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF3B82F6), width: 2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -40,7 +41,7 @@ class BookingCardConfirmedClinic extends StatelessWidget {
           // Blue Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Color(0xFFEFF6FF),
               borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
               border: Border(bottom: BorderSide(color: Color(0xFFBFDBFE))),
@@ -56,14 +57,14 @@ class BookingCardConfirmedClinic extends StatelessWidget {
                         color: const Color(0xFF3B82F6),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.local_hospital,
                         size: 12,
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF16151A) : Colors.white,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Text(
+                    Text(
                       'Clinic Visit',
                       style: TextStyle(
                         fontSize: 13,
@@ -75,7 +76,7 @@ class BookingCardConfirmedClinic extends StatelessWidget {
                 ),
                 Text(
                   scheduledTime,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF1D4ED8),
@@ -99,7 +100,7 @@ class BookingCardConfirmedClinic extends StatelessWidget {
                         color: const Color(0xFF3B82F6).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.local_hospital,
                         color: Color(0xFF3B82F6),
                         size: 24,
@@ -112,10 +113,10 @@ class BookingCardConfirmedClinic extends StatelessWidget {
                         children: [
                           Text(
                             serviceName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -162,10 +163,10 @@ class BookingCardConfirmedClinic extends StatelessWidget {
                           Expanded(
                             child: Text(
                               clinicName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
-                                color: Color(0xFF1E293B),
+                                color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                               ),
                             ),
                           ),
@@ -179,9 +180,9 @@ class BookingCardConfirmedClinic extends StatelessWidget {
                           Expanded(
                             child: Text(
                               doctorName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: Color(0xFF64748B),
+                                color: isDark ? const Color(0xFFA19EAB) : const Color(0xFF64748B),
                               ),
                             ),
                           ),
@@ -204,7 +205,7 @@ class BookingCardConfirmedClinic extends StatelessWidget {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text('Cancel'),
+                        child: Text('Cancel'),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -212,8 +213,8 @@ class BookingCardConfirmedClinic extends StatelessWidget {
                       flex: 2,
                       child: ElevatedButton.icon(
                         onPressed: onViewTicket,
-                        icon: const Icon(Icons.qr_code, size: 18),
-                        label: const Text('View Ticket'),
+                        icon: Icon(Icons.qr_code, size: 18),
+                        label: Text('View Ticket'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF3B82F6),
                           foregroundColor: Colors.white,

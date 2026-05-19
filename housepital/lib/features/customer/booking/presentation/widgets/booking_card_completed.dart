@@ -22,14 +22,27 @@ class BookingCardCompleted extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF16151A) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF2A2831) : const Color(0xFFE2E8F0);
+    final headerBg = isDark ? const Color(0xFF1E1C24) : const Color(0xFFF8FAFC);
+    final headerBorder = isDark ? const Color(0xFF2A2831) : const Color(0xFFE2E8F0);
+    final primaryText = isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B);
+    final mutedText = isDark ? const Color(0xFFA19EAB) : Colors.grey[600]!;
+    final mutedIcon = isDark ? const Color(0xFF5F5C68) : Colors.grey[500]!;
+    final iconBg = isDark ? const Color(0xFF1E1C24) : Colors.grey[100]!;
+    final iconColor = isDark ? const Color(0xFF5F5C68) : Colors.grey[400]!;
+    final infoBoxBg = isDark ? const Color(0xFF1E1C24) : const Color(0xFFF8FAFC);
+    final rateBg = isDark ? const Color(0xFF2C2000) : const Color(0xFFFFF8E1);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: cardBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(isDark ? 0.25 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -37,13 +50,13 @@ class BookingCardCompleted extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Gray Header
+          // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
-              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            decoration: BoxDecoration(
+              color: headerBg,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+              border: Border(bottom: BorderSide(color: headerBorder)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -75,7 +88,7 @@ class BookingCardCompleted extends StatelessWidget {
                 ),
                 Text(
                   completedDate,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  style: TextStyle(fontSize: 12, color: mutedText),
                 ),
               ],
             ),
@@ -92,12 +105,12 @@ class BookingCardCompleted extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: iconBg,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         Icons.medical_services,
-                        color: Colors.grey[400],
+                        color: iconColor,
                         size: 24,
                       ),
                     ),
@@ -108,10 +121,10 @@ class BookingCardCompleted extends StatelessWidget {
                         children: [
                           Text(
                             serviceName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: primaryText,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -120,14 +133,14 @@ class BookingCardCompleted extends StatelessWidget {
                               Icon(
                                 Icons.person_outline,
                                 size: 14,
-                                color: Colors.grey[600],
+                                color: mutedIcon,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 patientName,
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: Colors.grey[600],
+                                  color: mutedText,
                                 ),
                               ),
                             ],
@@ -137,10 +150,10 @@ class BookingCardCompleted extends StatelessWidget {
                     ),
                     Text(
                       '${price.toStringAsFixed(0)} EGP',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: primaryText,
                       ),
                     ),
                   ],
@@ -149,16 +162,17 @@ class BookingCardCompleted extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
+                    color: infoBoxBg,
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: cardBorder),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.person, size: 16, color: Colors.grey[500]),
+                      Icon(Icons.person, size: 16, color: mutedIcon),
                       const SizedBox(width: 8),
                       Text(
                         'Served by: $providerName',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 12, color: mutedText),
                       ),
                     ],
                   ),
@@ -187,7 +201,7 @@ class BookingCardCompleted extends StatelessWidget {
                         icon: const Icon(Icons.star, size: 16),
                         label: const Text('Rate'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFFF8E1),
+                          backgroundColor: rateBg,
                           foregroundColor: const Color(0xFFF59E0B),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
