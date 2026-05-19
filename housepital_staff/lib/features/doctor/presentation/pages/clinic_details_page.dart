@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,7 +24,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
     final clinic = ModalRoute.of(context)!.settings.arguments as ClinicModel;
 
     return Scaffold(
-      backgroundColor: DoctorTheme.background,
+      backgroundColor: DoctorTheme.background(context),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.pushNamed(
@@ -34,9 +35,9 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
         },
         backgroundColor: DoctorTheme.primary,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.edit_rounded),
-        label: const Text(
-          'Edit Clinic',
+        icon: Icon(Icons.edit_rounded),
+        label: Text(
+          'edit_clinic'.tr(),
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
@@ -45,14 +46,14 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
           _buildSliverAppBar(clinic),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 90),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeaderCard(clinic),
-                  const SizedBox(height: 16),
-                  _sectionTitle('Location & Contact'),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 16),
+                  _sectionTitle('location_contact'.tr()),
+                  SizedBox(height: 10),
                   _buildInfoCard(
                     children: [
                       _iconRow(
@@ -61,16 +62,16 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
                       ),
                       const Divider(height: 24),
                       _iconRow(
-                          Icons.phone_outlined, clinic.phone ?? 'No phone'),
+                          Icons.phone_outlined, clinic.phone ?? 'no_phone'.tr()),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _sectionTitle('Schedule'),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   _buildWorkingHoursCard(clinic),
-                  const SizedBox(height: 16),
-                  _sectionTitle('Clinic Settings'),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 16),
+                  _sectionTitle('clinic_settings'.tr()),
+                  SizedBox(height: 10),
                   _buildInfoCard(
                     children: [
                       _iconRow(
@@ -84,15 +85,15 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Center(
                     child: OutlinedButton.icon(
                       onPressed: () => _confirmDelete(context, clinic),
-                      icon: const Icon(Icons.delete_outline_rounded),
-                      label: const Text('Delete Clinic'),
+                      icon: Icon(Icons.delete_outline_rounded),
+                      label: Text('delete_clinic'.tr()),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFFDC2626),
-                        side: const BorderSide(color: Color(0xFFFCA5A5)),
+                        side: BorderSide(color: Color(0xFFFCA5A5)),
                       ),
                     ),
                   ),
@@ -116,7 +117,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
         title: Container(
           width: double.infinity,
           padding:
-              const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 40),
+              EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 40),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.bottomCenter,
@@ -131,8 +132,8 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
             clinic.name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: DoctorTheme.surface(context),
               fontWeight: FontWeight.w800,
               fontSize: 18,
             ),
@@ -162,7 +163,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
                     end: Alignment.bottomRight,
                   ),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.apartment_rounded,
                     size: 84,
@@ -176,15 +177,15 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
                 right: 16,
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                      EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.48),
+                    color: DoctorTheme.textPrimary(context).withValues(alpha: 0.48),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     '${_currentImageIndex + 1} / ${clinic.images.length}',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: DoctorTheme.surface(context),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -200,17 +201,17 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
   Widget _buildHeaderCard(ClinicModel clinic) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: DoctorTheme.cardDecoration(),
+      padding: EdgeInsets.all(16),
+      decoration: DoctorTheme.cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildStatusBadge(clinic.verificationStatus),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Text(
-            clinic.description ?? 'No description provided.',
-            style: const TextStyle(
-              color: DoctorTheme.textSecondary,
+            clinic.description ?? 'no_description_provided'.tr(),
+            style: TextStyle(
+              color: DoctorTheme.textSecondary(context),
               height: 1.4,
               fontSize: 14,
             ),
@@ -241,7 +242,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
@@ -251,7 +252,7 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
+          SizedBox(width: 6),
           Text(
             status.toUpperCase(),
             style: TextStyle(
@@ -268,26 +269,26 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
   Widget _sectionTitle(String title) {
     return Text(
       title,
-      style: DoctorTheme.headingSmall,
+      style: DoctorTheme.headingSmall(context),
     );
   }
 
   Widget _buildInfoCard({required List<Widget> children}) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: DoctorTheme.cardDecoration(),
+      padding: EdgeInsets.all(16),
+      decoration: DoctorTheme.cardDecoration(context),
       child: Column(children: children),
     );
   }
 
   Widget _buildWorkingHoursCard(ClinicModel clinic) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: DoctorTheme.cardDecoration(),
+      padding: EdgeInsets.all(16),
+      decoration: DoctorTheme.cardDecoration(context),
       child: Column(
         children: clinic.workingHours.map((wh) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: EdgeInsets.only(bottom: 10),
             child: Row(
               children: [
                 Container(
@@ -298,19 +299,19 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
                     color: DoctorTheme.primary,
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     wh.day.replaceFirst(wh.day[0], wh.day[0].toUpperCase()),
-                    style: const TextStyle(
-                      color: DoctorTheme.textPrimary,
+                    style: TextStyle(
+                      color: DoctorTheme.textPrimary(context),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
                 Text(
                   '${wh.openTime} - ${wh.closeTime}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: DoctorTheme.primaryDark,
                     fontWeight: FontWeight.w600,
                   ),
@@ -327,18 +328,18 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: DoctorTheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: DoctorTheme.primaryDark, size: 18),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
-            style: DoctorTheme.bodyMedium,
+            style: DoctorTheme.bodyMedium(context),
           ),
         ),
       ],
@@ -350,14 +351,14 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Delete Clinic?'),
+          title: Text('delete_clinic'.tr()),
           content: Text(
             'Are you sure you want to delete ${clinic.name}? This action cannot be undone.',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+              child: Text('cancel'.tr()),
             ),
             TextButton(
               onPressed: () {
@@ -371,8 +372,8 @@ class _ClinicDetailsPageState extends State<ClinicDetailsPage> {
                 context.read<ClinicCubit>().deleteClinic(clinicId);
                 Navigator.pop(context);
               },
-              child: const Text(
-                'Delete',
+              child: Text(
+                'delete'.tr(),
                 style: TextStyle(color: Color(0xFFDC2626)),
               ),
             ),

@@ -1,7 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/doctor_theme.dart';
 
-/// Reusable gradient "Canopy Header" used across all doctor sub-pages.
+/// Reusable gradient 'canopy_header'.tr() used across all doctor sub-pages.
 ///
 /// Renders as a gradient card with back button, title, subtitle,
 /// and an optional trailing action icon.
@@ -30,9 +31,9 @@ class GlassHeader extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
         decoration: BoxDecoration(
-          gradient: DoctorTheme.headerGradient,
+          gradient: DoctorTheme.headerGradient(context),
           borderRadius: BorderRadius.circular(DoctorTheme.radiusLG),
-          boxShadow: DoctorTheme.headerShadow,
+          boxShadow: DoctorTheme.headerShadow(context),
         ),
         child: Row(
           children: [
@@ -41,7 +42,7 @@ class GlassHeader extends StatelessWidget {
               _GlassIconButton(
                 icon: Icons.arrow_back_ios_new_rounded,
                 onTap: onBack!,
-                tooltip: 'Back',
+                tooltip: 'back'.tr(),
               ),
             if (onBack != null) const SizedBox(width: 12),
 

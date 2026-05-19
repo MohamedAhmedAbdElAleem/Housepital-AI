@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -26,15 +27,15 @@ class _MyServicesPageState extends State<MyServicesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DoctorTheme.background,
+      backgroundColor: DoctorTheme.background(context),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddService,
         backgroundColor: DoctorTheme.primary,
         foregroundColor: Colors.white,
         elevation: 4,
-        icon: const Icon(Icons.add),
-        label: const Text(
-          'Add Service',
+        icon: Icon(Icons.add),
+        label: Text(
+          'add_service'.tr(),
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
@@ -43,8 +44,8 @@ class _MyServicesPageState extends State<MyServicesPage> {
           child: Column(
             children: [
               GlassHeader(
-                title: 'My Services',
-                subtitle: 'Manage pricing and consultation options',
+                title: 'my_services'.tr(),
+                subtitle: 'manage_pricing_and_consultation_options'.tr(),
                 onBack: () => Navigator.maybePop(context),
                 actionIcon: Icons.refresh_rounded,
                 actionTooltip: 'Refresh',
@@ -66,7 +67,7 @@ class _MyServicesPageState extends State<MyServicesPage> {
                   },
                   builder: (context, state) {
                     if (state is ServiceLoading) {
-                      return const Center(
+                      return Center(
                         child: CircularProgressIndicator(
                           color: DoctorTheme.primary,
                         ),
@@ -75,11 +76,11 @@ class _MyServicesPageState extends State<MyServicesPage> {
 
                     if (state is ServiceLoaded) {
                       if (state.services.isEmpty) {
-                        return const EmptyStateWidget(
+                        return EmptyStateWidget(
                           icon: Icons.medical_services_outlined,
-                          title: 'No services added yet',
+                          title: 'no_services_added_yet'.tr(),
                           subtitle:
-                              'Start by adding your first service with clear duration and pricing.',
+                              'start_by_adding_your_first_service_with_clear_duration_and_pricing'.tr(),
                         );
                       }
 
@@ -90,10 +91,10 @@ class _MyServicesPageState extends State<MyServicesPage> {
                         color: DoctorTheme.primary,
                         child: ListView.separated(
                           physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+                          padding: EdgeInsets.fromLTRB(16, 8, 16, 90),
                           itemCount: state.services.length,
                           separatorBuilder: (_, __) =>
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             return _buildServiceCard(state.services[index]);
                           },
@@ -103,8 +104,8 @@ class _MyServicesPageState extends State<MyServicesPage> {
 
                     return Center(
                       child: Text(
-                        'Something went wrong',
-                        style: DoctorTheme.bodyMedium,
+                        'something_went_wrong'.tr(),
+                        style: DoctorTheme.bodyMedium(context),
                       ),
                     );
                   },
@@ -191,10 +192,10 @@ class _MyServicesPageState extends State<MyServicesPage> {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: DoctorTheme.surface,
+        color: DoctorTheme.surface(context),
         borderRadius: BorderRadius.circular(DoctorTheme.radiusMD),
-        border: Border.all(color: DoctorTheme.border),
-        boxShadow: DoctorTheme.cardShadow,
+        border: Border.all(color: DoctorTheme.border(context)),
+        boxShadow: DoctorTheme.cardShadow(context),
       ),
       child: Material(
         color: Colors.transparent,
@@ -210,7 +211,7 @@ class _MyServicesPageState extends State<MyServicesPage> {
                 // Content
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(14),
+                    padding: EdgeInsets.all(14),
                     child: Row(
                       children: [
                         Container(
@@ -226,13 +227,13 @@ class _MyServicesPageState extends State<MyServicesPage> {
                               ],
                             ),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.medical_services_rounded,
                             color: DoctorTheme.primaryDark,
                             size: 28,
                           ),
                         ),
-                        const SizedBox(width: 14),
+                        SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,24 +243,24 @@ class _MyServicesPageState extends State<MyServicesPage> {
                                 service.name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: DoctorTheme.titleMedium,
+                                style: DoctorTheme.titleMedium(context),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4),
                               Text(
                                 '${service.durationMinutes} mins  •  ${service.clinics.length} Clinics',
-                                style: DoctorTheme.bodySmall,
+                                style: DoctorTheme.bodySmall(context),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             // Price chip
                             Container(
-                              padding: const EdgeInsets.symmetric(
+                              padding: EdgeInsets.symmetric(
                                 horizontal: 10,
                                 vertical: 4,
                               ),
@@ -276,17 +277,17 @@ class _MyServicesPageState extends State<MyServicesPage> {
                               ),
                               child: Text(
                                 '${service.price.toInt()} ${service.currency}',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: DoctorTheme.surface(context),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             // Status badge
                             Container(
-                              padding: const EdgeInsets.symmetric(
+                              padding: EdgeInsets.symmetric(
                                 horizontal: 8,
                                 vertical: 3,
                               ),

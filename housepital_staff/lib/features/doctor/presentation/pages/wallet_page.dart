@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -34,7 +35,7 @@ class _DoctorWalletPageState extends State<DoctorWalletPage> with SingleTickerPr
     final paymentInfo = await cubit.fetchPaymentInfo();
     if (!mounted) return;
     if (paymentInfo == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to load payment info'), backgroundColor: DoctorTheme.danger));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('failed_to_load_payment_info'.tr()), backgroundColor: DoctorTheme.danger));
       return;
     }
     final methods = paymentInfo['methods'] as List<dynamic>? ?? [];
@@ -48,18 +49,18 @@ class _DoctorWalletPageState extends State<DoctorWalletPage> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DoctorTheme.background,
+      backgroundColor: DoctorTheme.background(context),
       body: BackgroundBlobs(
         child: SafeArea(
           child: Column(
             children: [
               GlassHeader(
-                title: 'My Wallet',
-                subtitle: 'Manage your balances and receipts',
+                title: 'my_wallet'.tr(),
+                subtitle: 'manage_your_balances_and_receipts'.tr(),
                 onBack: () => Navigator.pop(context),
                 actionIcon: Icons.refresh_rounded,
                 onAction: () => context.read<DoctorWalletCubit>().loadWallet(),
-                actionTooltip: 'Refresh Wallet',
+                actionTooltip: 'refresh_wallet'.tr(),
               ),
               Expanded(
                 child: BlocConsumer<DoctorWalletCubit, DoctorWalletState>(
@@ -75,10 +76,10 @@ class _DoctorWalletPageState extends State<DoctorWalletPage> with SingleTickerPr
                   },
                   builder: (context, state) {
                     if (state is DoctorWalletLoading || state is DoctorWalletInitial || state is DoctorWalletReceiptSubmitting) {
-                      return const Center(child: CircularProgressIndicator(color: DoctorTheme.primary));
+                      return Center(child: CircularProgressIndicator(color: DoctorTheme.primary));
                     }
                     if (state is DoctorWalletLoaded) return _buildContent(state);
-                    return const Center(child: Text('Something went wrong'));
+                    return Center(child: Text('something_went_wrong'.tr()));
                   },
                 ),
               ),
@@ -92,81 +93,81 @@ class _DoctorWalletPageState extends State<DoctorWalletPage> with SingleTickerPr
   Widget _buildContent(DoctorWalletLoaded state) {
     return FadeTransition(opacity: _fadeAnim, child: RefreshIndicator(
       onRefresh: () => context.read<DoctorWalletCubit>().loadWallet(),
-      child: ListView(padding: const EdgeInsets.all(20), children: [
+      child: ListView(padding: EdgeInsets.all(20), children: [
         _buildBalanceCard(state),
-        if (state.walletBlocked) ...[const SizedBox(height: 16), _buildBlockedBanner(state)],
-        const SizedBox(height: 16), _buildRechargeButton(state),
-        const SizedBox(height: 16), _buildCommissionInfoCard(state),
-        const SizedBox(height: 24),
+        if (state.walletBlocked) ...[SizedBox(height: 16), _buildBlockedBanner(state)],
+        SizedBox(height: 16), _buildRechargeButton(state),
+        SizedBox(height: 16), _buildCommissionInfoCard(state),
+        SizedBox(height: 24),
         if (state.receipts.isNotEmpty) ...[
           _buildReceiptsSection(state),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
         ],
         _buildTransactionsSection(state),
       ])));
   }
 
   Widget _buildBalanceCard(DoctorWalletLoaded state) {
-    return Container(padding: const EdgeInsets.all(28),
+    return Container(padding: EdgeInsets.all(28),
       decoration: BoxDecoration(
-        gradient: state.walletBlocked ? const LinearGradient(colors: DoctorTheme.blockedGradient) : const LinearGradient(colors: DoctorTheme.walletGradient),
+        gradient: state.walletBlocked ? LinearGradient(colors: DoctorTheme.blockedGradient(context)) : LinearGradient(colors: DoctorTheme.walletGradient(context)),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [BoxShadow(color: (state.walletBlocked ? DoctorTheme.danger : DoctorTheme.primary).withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 8))]),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+          Container(padding: EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
             child: Icon(state.walletBlocked ? Icons.lock_rounded : Icons.account_balance_wallet_rounded, color: Colors.white, size: 24)),
-          const SizedBox(width: 12),
-          const Text('Doctor Wallet', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w500)),
+          SizedBox(width: 12),
+          Text('doctor_wallet'.tr(), style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w500)),
           const Spacer(),
-          if (state.walletBlocked) Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          if (state.walletBlocked) Container(padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
-            child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.lock_rounded, color: Colors.white, size: 14), SizedBox(width: 4),
-              Text('BLOCKED', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700))])),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.lock_rounded, color: Colors.white, size: 14), SizedBox(width: 4),
+              Text('blocked'.tr(), style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700))])),
         ]),
-        const SizedBox(height: 20),
-        Text('${state.balance >= 0 ? "" : "-"}${state.balance.abs().toStringAsFixed(2)} EGP', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w800, letterSpacing: -1)),
-        const SizedBox(height: 8),
+        SizedBox(height: 20),
+        Text('${state.balance >= 0 ? "" : "-"}${state.balance.abs().toStringAsFixed(2)} EGP', style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w800, letterSpacing: -1)),
+        SizedBox(height: 8),
         Text('Min: ${state.threshold.toStringAsFixed(0)} EGP • Commission: ${(state.commissionRate * 100).toStringAsFixed(0)}%', style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13)),
       ]));
   }
 
   Widget _buildBlockedBanner(DoctorWalletLoaded state) {
-    return Container(padding: const EdgeInsets.all(16),
+    return Container(padding: EdgeInsets.all(16),
       decoration: BoxDecoration(color: DoctorTheme.dangerLight, borderRadius: BorderRadius.circular(16), border: Border.all(color: DoctorTheme.danger.withValues(alpha: 0.5))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Row(children: [Icon(Icons.warning_amber_rounded, color: DoctorTheme.danger, size: 22), SizedBox(width: 8),
-          Text('Account Restricted', style: TextStyle(color: DoctorTheme.danger, fontWeight: FontWeight.w700, fontSize: 15))]),
-        const SizedBox(height: 8),
-        Text(state.walletBlockReason ?? 'Your wallet balance has exceeded the minimum threshold.', style: const TextStyle(color: DoctorTheme.danger, fontSize: 13, height: 1.4)),
-        const SizedBox(height: 8),
-        const Text('Recharge your wallet to unblock your account.', style: TextStyle(color: DoctorTheme.danger, fontSize: 13, fontWeight: FontWeight.w600)),
+        Row(children: [Icon(Icons.warning_amber_rounded, color: DoctorTheme.danger, size: 22), SizedBox(width: 8),
+          Text('account_restricted'.tr(), style: TextStyle(color: DoctorTheme.danger, fontWeight: FontWeight.w700, fontSize: 15))]),
+        SizedBox(height: 8),
+        Text(state.walletBlockReason ?? 'your_wallet_balance_has_exceeded_the_minimum_threshold'.tr(), style: TextStyle(color: DoctorTheme.danger, fontSize: 13, height: 1.4)),
+        SizedBox(height: 8),
+        Text('recharge_your_wallet_to_unblock_your_account'.tr(), style: TextStyle(color: DoctorTheme.danger, fontSize: 13, fontWeight: FontWeight.w600)),
       ]));
   }
 
   Widget _buildRechargeButton(DoctorWalletLoaded state) {
     return SizedBox(width: double.infinity, child: ElevatedButton.icon(
       onPressed: _showRechargeSheet,
-      icon: const Icon(Icons.add_circle_outline_rounded, size: 22),
-      label: Text(state.walletBlocked ? 'Recharge to Unblock Account' : 'Recharge Wallet', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+      icon: Icon(Icons.add_circle_outline_rounded, size: 22),
+      label: Text(state.walletBlocked ? 'recharge_to_unblock_account'.tr() : 'recharge_wallet'.tr(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
       style: ElevatedButton.styleFrom(backgroundColor: state.walletBlocked ? DoctorTheme.danger : DoctorTheme.primary, foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 2)));
+        padding: EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 2)));
   }
 
   Widget _buildCommissionInfoCard(DoctorWalletLoaded state) {
-    return Container(padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: DoctorTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16), border: Border.all(color: DoctorTheme.border)),
-      child: Row(children: [const Icon(Icons.info_outline_rounded, color: DoctorTheme.primaryDark, size: 22), const SizedBox(width: 12),
+    return Container(padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(color: DoctorTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16), border: Border.all(color: DoctorTheme.border(context))),
+      child: Row(children: [Icon(Icons.info_outline_rounded, color: DoctorTheme.primaryDark, size: 22), SizedBox(width: 12),
         Expanded(child: Text('A ${(state.commissionRate * 100).toStringAsFixed(0)}% platform commission is deducted for each completed appointment.',
-          style: const TextStyle(color: DoctorTheme.primaryDark, fontSize: 13, height: 1.4)))]));
+          style: TextStyle(color: DoctorTheme.primaryDark, fontSize: 13, height: 1.4)))]));
   }
 
   Widget _buildReceiptsSection(DoctorWalletLoaded state) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('My Receipts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: DoctorTheme.textPrimary)),
-      const SizedBox(height: 4),
-      const Text('Track the status of your recharge requests', style: TextStyle(fontSize: 13, color: DoctorTheme.textSecondary)),
-      const SizedBox(height: 16),
+      Text('my_receipts'.tr(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: DoctorTheme.textPrimary(context))),
+      SizedBox(height: 4),
+      Text('track_the_status_of_your_recharge_requests'.tr(), style: TextStyle(fontSize: 13, color: DoctorTheme.textSecondary(context))),
+      SizedBox(height: 16),
       ...state.receipts.map((r) => _buildReceiptTile(r)),
     ]);
   }
@@ -193,30 +194,30 @@ class _DoctorWalletPageState extends State<DoctorWalletPage> with SingleTickerPr
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: DoctorTheme.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: statusColor.withValues(alpha: 0.3))),
+      margin: EdgeInsets.only(bottom: 10), padding: EdgeInsets.all(14),
+      decoration: BoxDecoration(color: DoctorTheme.surface(context), borderRadius: BorderRadius.circular(14), border: Border.all(color: statusColor.withValues(alpha: 0.3))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+          Container(padding: EdgeInsets.all(10), decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
             child: Icon(statusIcon, color: statusColor, size: 22)),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${amount.toStringAsFixed(0)} EGP via ${method == 'instapay' ? 'Instapay' : 'Mobile Wallet'}',
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: DoctorTheme.textPrimary)),
-            const SizedBox(height: 3),
-            Text(dateStr, style: const TextStyle(fontSize: 12, color: DoctorTheme.textHint)),
+            Text('${amount.toStringAsFixed(0)} EGP via ${method == 'instapay' ? 'instapay'.tr() : 'mobile_wallet'.tr()}',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: DoctorTheme.textPrimary(context))),
+            SizedBox(height: 3),
+            Text(dateStr, style: TextStyle(fontSize: 12, color: DoctorTheme.textHint(context))),
           ])),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          Container(padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
             child: Text(statusLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: statusColor))),
         ]),
         if (status == 'rejected' && rejectionReason != null) ...[
-          const SizedBox(height: 8),
-          Container(padding: const EdgeInsets.all(10),
+          SizedBox(height: 8),
+          Container(padding: EdgeInsets.all(10),
             decoration: BoxDecoration(color: DoctorTheme.danger.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(8)),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Icon(Icons.info_outline_rounded, size: 16, color: DoctorTheme.danger), const SizedBox(width: 6),
-              Expanded(child: Text('Reason: $rejectionReason', style: const TextStyle(fontSize: 12, color: DoctorTheme.danger, height: 1.3))),
+              Icon(Icons.info_outline_rounded, size: 16, color: DoctorTheme.danger), SizedBox(width: 6),
+              Expanded(child: Text('Reason: $rejectionReason', style: TextStyle(fontSize: 12, color: DoctorTheme.danger, height: 1.3))),
             ])),
         ],
       ]),
@@ -225,13 +226,13 @@ class _DoctorWalletPageState extends State<DoctorWalletPage> with SingleTickerPr
 
   Widget _buildTransactionsSection(DoctorWalletLoaded state) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Transaction History (${state.totalTransactions})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: DoctorTheme.textPrimary)),
-      const SizedBox(height: 16),
+      Text('Transaction History (${state.totalTransactions})', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: DoctorTheme.textPrimary(context))),
+      SizedBox(height: 16),
       if (state.transactions.isEmpty)
-        Container(padding: const EdgeInsets.symmetric(vertical: 40), width: double.infinity,
-          decoration: BoxDecoration(color: DoctorTheme.surface, borderRadius: BorderRadius.circular(16)),
-          child: const Column(children: [Icon(Icons.receipt_long_rounded, size: 48, color: DoctorTheme.textHint), SizedBox(height: 12),
-            Text('No transactions yet', style: TextStyle(color: DoctorTheme.textSecondary, fontSize: 14))]))
+        Container(padding: EdgeInsets.symmetric(vertical: 40), width: double.infinity,
+          decoration: BoxDecoration(color: DoctorTheme.surface(context), borderRadius: BorderRadius.circular(16)),
+          child: Column(children: [Icon(Icons.receipt_long_rounded, size: 48, color: DoctorTheme.textHint(context)), SizedBox(height: 12),
+            Text('no_transactions_yet'.tr(), style: TextStyle(color: DoctorTheme.textSecondary(context), fontSize: 14))]))
       else ...state.transactions.map((tx) => _buildTransactionTile(tx)),
     ]);
   }
@@ -246,18 +247,18 @@ class _DoctorWalletPageState extends State<DoctorWalletPage> with SingleTickerPr
     IconData icon;
     switch (type) { case 'commission_deduction': icon = Icons.percent_rounded; break; case 'wallet_recharge': case 'receipt_recharge': icon = Icons.add_circle_rounded; break;
       case 'doctor_earning': icon = Icons.local_hospital_rounded; break; case 'refund': icon = Icons.replay_rounded; break; default: icon = Icons.swap_horiz_rounded; }
-    return Container(margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: DoctorTheme.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: DoctorTheme.border)),
+    return Container(margin: EdgeInsets.only(bottom: 10), padding: EdgeInsets.all(14),
+      decoration: BoxDecoration(color: DoctorTheme.surface(context), borderRadius: BorderRadius.circular(14), border: Border.all(color: DoctorTheme.border(context))),
       child: Row(children: [
-        Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: color, size: 22)),
-        const SizedBox(width: 12),
+        Container(padding: EdgeInsets.all(10), decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: color, size: 22)),
+        SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(description, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: DoctorTheme.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 3),
-          Row(children: [Text(dateStr, style: const TextStyle(fontSize: 12, color: DoctorTheme.textHint)),
-            if (status != 'completed') ...[const SizedBox(width: 8), Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          Text(description, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: DoctorTheme.textPrimary(context)), maxLines: 1, overflow: TextOverflow.ellipsis),
+          SizedBox(height: 3),
+          Row(children: [Text(dateStr, style: TextStyle(fontSize: 12, color: DoctorTheme.textHint(context))),
+            if (status != 'completed') ...[SizedBox(width: 8), Container(padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(color: DoctorTheme.warningLight, borderRadius: BorderRadius.circular(6)),
-              child: Text(status.toString().toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: DoctorTheme.warning)))]])])),
+              child: Text(status.toString().toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: DoctorTheme.warning)))]])])),
         Text('${direction == 'credit' ? '+' : '-'}${amount.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: color)),
       ]));
   }
@@ -287,8 +288,8 @@ class _RechargeSheetState extends State<_RechargeSheet> {
     final picker = ImagePicker();
     final source = await showModalBottomSheet<ImageSource>(context: context, builder: (ctx) => SafeArea(
       child: Wrap(children: [
-        ListTile(leading: const Icon(Icons.camera_alt_rounded), title: const Text('Camera'), onTap: () => Navigator.pop(ctx, ImageSource.camera)),
-        ListTile(leading: const Icon(Icons.photo_library_rounded), title: const Text('Gallery'), onTap: () => Navigator.pop(ctx, ImageSource.gallery)),
+        ListTile(leading: Icon(Icons.camera_alt_rounded), title: Text('camera'.tr()), onTap: () => Navigator.pop(ctx, ImageSource.camera)),
+        ListTile(leading: Icon(Icons.photo_library_rounded), title: Text('gallery'.tr()), onTap: () => Navigator.pop(ctx, ImageSource.gallery)),
       ])));
     if (source == null) return;
     final picked = await picker.pickImage(source: source, maxWidth: 1200, imageQuality: 80);
@@ -298,11 +299,11 @@ class _RechargeSheetState extends State<_RechargeSheet> {
   Future<void> _submit() async {
     final amount = double.tryParse(_amountController.text);
     if (amount == null || amount < 10 || amount > 50000) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid amount (10 - 50,000 EGP)'), backgroundColor: DoctorTheme.warning));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('enter_a_valid_amount_10_50_000_egp'.tr()), backgroundColor: DoctorTheme.warning));
       return;
     }
     if (_receiptFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please upload your transfer receipt'), backgroundColor: DoctorTheme.warning));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('please_upload_your_transfer_receipt'.tr()), backgroundColor: DoctorTheme.warning));
       return;
     }
     setState(() => _isSubmitting = true);
@@ -326,28 +327,28 @@ class _RechargeSheetState extends State<_RechargeSheet> {
 
     return Container(
       padding: EdgeInsets.only(left: 24, right: 24, top: 24, bottom: MediaQuery.of(context).viewInsets.bottom + 24),
-      decoration: const BoxDecoration(color: DoctorTheme.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      decoration: BoxDecoration(color: DoctorTheme.surface(context), borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: DoctorTheme.border, borderRadius: BorderRadius.circular(2)))),
-        const SizedBox(height: 20),
-        const Text('Recharge Wallet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: DoctorTheme.textPrimary)),
-        const SizedBox(height: 6),
-        const Text('Transfer the amount then upload your receipt.', style: TextStyle(color: DoctorTheme.textSecondary, fontSize: 14)),
-        const SizedBox(height: 20),
+        Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: DoctorTheme.border(context), borderRadius: BorderRadius.circular(2)))),
+        SizedBox(height: 20),
+        Text('recharge_wallet'.tr(), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: DoctorTheme.textPrimary(context))),
+        SizedBox(height: 6),
+        Text('transfer_the_amount_then_upload_your_receipt'.tr(), style: TextStyle(color: DoctorTheme.textSecondary(context), fontSize: 14)),
+        SizedBox(height: 20),
 
-        const Text('Payment Method', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 10),
+        Text('payment_method'.tr(), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        SizedBox(height: 10),
         Row(children: [
-          Expanded(child: _MethodCard(icon: Icons.account_balance_rounded, label: 'Instapay', isSelected: _selectedMethod == 'instapay', onTap: () => setState(() => _selectedMethod = 'instapay'))),
-          const SizedBox(width: 12),
-          Expanded(child: _MethodCard(icon: Icons.phone_android_rounded, label: 'Mobile Wallet', isSelected: _selectedMethod == 'mobile_wallet', onTap: () => setState(() => _selectedMethod = 'mobile_wallet'))),
+          Expanded(child: _MethodCard(icon: Icons.account_balance_rounded, label: 'instapay'.tr(), isSelected: _selectedMethod == 'instapay', onTap: () => setState(() => _selectedMethod = 'instapay'))),
+          SizedBox(width: 12),
+          Expanded(child: _MethodCard(icon: Icons.phone_android_rounded, label: 'mobile_wallet'.tr(), isSelected: _selectedMethod == 'mobile_wallet', onTap: () => setState(() => _selectedMethod = 'mobile_wallet'))),
         ]),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
 
-        Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: DoctorTheme.primary.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(14), border: Border.all(color: DoctorTheme.primaryDark)),
+        Container(padding: EdgeInsets.all(14), decoration: BoxDecoration(color: DoctorTheme.primary.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(14), border: Border.all(color: DoctorTheme.primaryDark)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(_selectedMethod == 'instapay' ? '📱 Instapay Details' : '📱 Mobile Wallet Details', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-            const SizedBox(height: 8),
+            Text(_selectedMethod == 'instapay' ? 'instapay_details'.tr() : 'mobile_wallet_details'.tr(), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+            SizedBox(height: 8),
             if (_selectedMethod == 'instapay' && instapay != null) ...[
               _infoRow('Phone', instapay['phoneNumber'] ?? ''), _infoRow('Name', instapay['receiverName'] ?? ''),
               if (instapay['link'] != null) _infoRow('Link', instapay['link']),
@@ -355,48 +356,48 @@ class _RechargeSheetState extends State<_RechargeSheet> {
               _infoRow('Phone', mobileWallet['phoneNumber'] ?? ''), _infoRow('Name', mobileWallet['receiverName'] ?? ''),
             ],
           ])),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
 
-        Row(children: [50, 100, 200, 500].map((a) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4),
+        Row(children: [50, 100, 200, 500].map((a) => Expanded(child: Padding(padding: EdgeInsets.symmetric(horizontal: 4),
           child: OutlinedButton(onPressed: () => setState(() => _amountController.text = a.toString()),
-            style: OutlinedButton.styleFrom(foregroundColor: DoctorTheme.primary, side: const BorderSide(color: DoctorTheme.primaryDark),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), padding: const EdgeInsets.symmetric(vertical: 10)),
-            child: Text('$a', style: const TextStyle(fontWeight: FontWeight.w600)))))).toList()),
-        const SizedBox(height: 12),
+            style: OutlinedButton.styleFrom(foregroundColor: DoctorTheme.primary, side: BorderSide(color: DoctorTheme.primaryDark),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), padding: EdgeInsets.symmetric(vertical: 10)),
+            child: Text('$a', style: TextStyle(fontWeight: FontWeight.w600)))))).toList()),
+        SizedBox(height: 12),
 
         TextField(controller: _amountController, keyboardType: TextInputType.number,
-          decoration: InputDecoration(labelText: 'Amount (EGP)', hintText: 'Min 10', prefixIcon: const Icon(Icons.payments_rounded),
+          decoration: InputDecoration(labelText: 'amount_egp'.tr(), hintText: 'min_10'.tr(), prefixIcon: Icon(Icons.payments_rounded),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: DoctorTheme.border)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: DoctorTheme.primary, width: 2)))),
-        const SizedBox(height: 16),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: DoctorTheme.border(context))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: DoctorTheme.primary, width: 2)))),
+        SizedBox(height: 16),
 
-        GestureDetector(onTap: _pickReceipt, child: Container(width: double.infinity, padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: _receiptFile != null ? DoctorTheme.success : DoctorTheme.border, width: _receiptFile != null ? 2 : 1),
+        GestureDetector(onTap: _pickReceipt, child: Container(width: double.infinity, padding: EdgeInsets.all(20),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: _receiptFile != null ? DoctorTheme.success : DoctorTheme.border(context), width: _receiptFile != null ? 2 : 1),
             color: _receiptFile != null ? DoctorTheme.success.withValues(alpha: 0.05) : null),
           child: Column(children: [
-            Icon(_receiptFile != null ? Icons.check_circle_rounded : Icons.cloud_upload_rounded, size: 40, color: _receiptFile != null ? DoctorTheme.success : DoctorTheme.textSecondary),
-            const SizedBox(height: 8),
-            Text(_receiptFile != null ? 'Receipt uploaded ✓' : 'Tap to upload receipt photo', style: TextStyle(color: _receiptFile != null ? DoctorTheme.success : DoctorTheme.textSecondary, fontWeight: FontWeight.w600)),
-            if (_receiptFile != null) TextButton(onPressed: _pickReceipt, child: const Text('Change photo')),
+            Icon(_receiptFile != null ? Icons.check_circle_rounded : Icons.cloud_upload_rounded, size: 40, color: _receiptFile != null ? DoctorTheme.success : DoctorTheme.textSecondary(context)),
+            SizedBox(height: 8),
+            Text(_receiptFile != null ? 'receipt_uploaded'.tr() : 'tap_to_upload_receipt_photo'.tr(), style: TextStyle(color: _receiptFile != null ? DoctorTheme.success : DoctorTheme.textSecondary(context), fontWeight: FontWeight.w600)),
+            if (_receiptFile != null) TextButton(onPressed: _pickReceipt, child: Text('change_photo'.tr())),
           ]))),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
 
         SizedBox(width: double.infinity, child: ElevatedButton.icon(
           onPressed: _isSubmitting ? null : _submit,
-          icon: _isSubmitting ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.send_rounded),
-          label: Text(_isSubmitting ? 'Submitting...' : 'Submit Receipt', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          icon: _isSubmitting ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: DoctorTheme.surface(context))) : Icon(Icons.send_rounded),
+          label: Text(_isSubmitting ? 'Submitting...' : 'submit_receipt'.tr(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           style: ElevatedButton.styleFrom(backgroundColor: DoctorTheme.primary, foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+            padding: EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
         )),
       ])),
     );
   }
 
   Widget _infoRow(String label, String value) {
-    return Padding(padding: const EdgeInsets.only(bottom: 4), child: Row(children: [
-      Text('$label: ', style: const TextStyle(color: DoctorTheme.textSecondary, fontSize: 13)),
-      Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13), overflow: TextOverflow.ellipsis)),
+    return Padding(padding: EdgeInsets.only(bottom: 4), child: Row(children: [
+      Text('$label: ', style: TextStyle(color: DoctorTheme.textSecondary(context), fontSize: 13)),
+      Expanded(child: Text(value, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13), overflow: TextOverflow.ellipsis)),
     ]));
   }
 }
@@ -407,12 +408,12 @@ class _MethodCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(onTap: onTap, child: AnimatedContainer(duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      decoration: BoxDecoration(color: isSelected ? DoctorTheme.primary.withValues(alpha: 0.08) : DoctorTheme.surfaceDim,
-        borderRadius: BorderRadius.circular(14), border: Border.all(color: isSelected ? DoctorTheme.primary : DoctorTheme.border, width: isSelected ? 2 : 1)),
+      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(color: isSelected ? DoctorTheme.primary.withValues(alpha: 0.08) : DoctorTheme.surfaceDim(context),
+        borderRadius: BorderRadius.circular(14), border: Border.all(color: isSelected ? DoctorTheme.primary : DoctorTheme.border(context), width: isSelected ? 2 : 1)),
       child: Column(children: [
-        Icon(icon, size: 28, color: isSelected ? DoctorTheme.primary : DoctorTheme.textSecondary), const SizedBox(height: 8),
-        Text(label, style: TextStyle(fontSize: 13, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, color: isSelected ? DoctorTheme.primary : DoctorTheme.textSecondary), textAlign: TextAlign.center),
+        Icon(icon, size: 28, color: isSelected ? DoctorTheme.primary : DoctorTheme.textSecondary(context)), SizedBox(height: 8),
+        Text(label, style: TextStyle(fontSize: 13, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, color: isSelected ? DoctorTheme.primary : DoctorTheme.textSecondary(context)), textAlign: TextAlign.center),
       ])));
   }
 }

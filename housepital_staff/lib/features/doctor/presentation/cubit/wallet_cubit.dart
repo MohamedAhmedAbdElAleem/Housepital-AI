@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
@@ -123,13 +124,13 @@ class DoctorWalletCubit extends Cubit<DoctorWalletState> {
 
       if (response['success'] == true) {
         emit(DoctorWalletReceiptSubmitted(
-          message: response['message'] ?? 'Receipt submitted successfully!',
+          message: response['message'] ?? 'receipt_submitted_successfully'.tr(),
           receiptId: response['data']?['receiptId'] ?? '',
         ));
         // Reload wallet data after submission
         await loadWallet();
       } else {
-        emit(DoctorWalletError(response['message'] ?? 'Failed to submit receipt'));
+        emit(DoctorWalletError(response['message'] ?? 'failed_to_submit_receipt'.tr()));
       }
     } catch (e) {
       emit(DoctorWalletError(e.toString()));
