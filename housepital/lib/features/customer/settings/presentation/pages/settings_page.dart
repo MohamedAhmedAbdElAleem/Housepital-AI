@@ -20,12 +20,13 @@ class _SettingsDesign {
   // Colors
   static const Color primaryGreen = Color(0xFF2ECC71);
   static const Color secondaryGreen = Color(0xFF27AE60);
-  static const Color surface = Color(0xFFF8FAFC);
-  static const Color cardBg = Colors.white;
-  static const Color textPrimary = Color(0xFF1E293B);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color textMuted = Color(0xFF94A3B8);
-  static const Color divider = Color(0xFFE2E8F0);
+  
+  static Color surface(bool isDark) => isDark ? const Color(0xFF0D0C11) : const Color(0xFFF8FAFC);
+  static Color cardBg(bool isDark) => isDark ? const Color(0xFF16151A) : Colors.white;
+  static Color textPrimary(bool isDark) => isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B);
+  static Color textSecondary(bool isDark) => isDark ? const Color(0xFFA19EAB) : const Color(0xFF64748B);
+  static Color textMuted(bool isDark) => isDark ? const Color(0xFF5F5C68) : const Color(0xFF94A3B8);
+  static Color divider(bool isDark) => isDark ? const Color(0xFF2A2831) : const Color(0xFFE2E8F0);
   static const Color danger = Color(0xFFEF4444);
 
   // Gradients
@@ -44,9 +45,9 @@ class _SettingsDesign {
   static const Color dataColor = Color(0xFF10B981);
 
   // Shadows
-  static List<BoxShadow> cardShadow = [
+  static List<BoxShadow> cardShadow(bool isDark) => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.04),
+      color: Colors.black.withOpacity(isDark ? 0.3 : 0.04),
       blurRadius: 12,
       offset: const Offset(0, 4),
     ),
@@ -70,6 +71,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage>
     with TickerProviderStateMixin {
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   // User Data
   UserModel? _user;
   bool _isLoading = true;
@@ -217,7 +219,7 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _SettingsDesign.surface,
+      backgroundColor: _SettingsDesign.surface(_isDark),
       body: _isLoading ? _buildLoadingState() : _buildContent(),
     );
   }
@@ -239,10 +241,10 @@ class _SettingsPageState extends State<SettingsPage>
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Loading settings...',
             style: TextStyle(
-              color: _SettingsDesign.textSecondary,
+              color: _SettingsDesign.textSecondary(_isDark),
               fontSize: 15,
             ),
           ),
@@ -416,24 +418,24 @@ class _SettingsPageState extends State<SettingsPage>
                           ),
                         ]),
                         const SizedBox(height: 24),
-                        _buildSectionTitle('About', Icons.info_outline_rounded, _SettingsDesign.textSecondary),
+                        _buildSectionTitle('About', Icons.info_outline_rounded, _SettingsDesign.textSecondary(_isDark)),
                         const SizedBox(height: 12),
                         _buildSettingsCard([
                           _buildSettingsTile(
                             icon: Icons.description_outlined,
-                            iconColor: _SettingsDesign.textSecondary,
+                            iconColor: _SettingsDesign.textSecondary(_isDark),
                             title: 'Terms of Service',
                             onTap: () {},
                           ),
                           _buildSettingsTile(
                             icon: Icons.privacy_tip_outlined,
-                            iconColor: _SettingsDesign.textSecondary,
+                            iconColor: _SettingsDesign.textSecondary(_isDark),
                             title: 'Privacy Policy',
                             onTap: () {},
                           ),
                           _buildSettingsTile(
                             icon: Icons.help_outline_rounded,
-                            iconColor: _SettingsDesign.textSecondary,
+                            iconColor: _SettingsDesign.textSecondary(_isDark),
                             title: 'Help & Support',
                             onTap: () {},
                             showDivider: false,
@@ -455,7 +457,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   Widget _buildHeader() {
     return Container(
-      decoration: const BoxDecoration(gradient: _SettingsDesign.headerGradient),
+      decoration: BoxDecoration(gradient: _SettingsDesign.headerGradient),
       child: SafeArea(
         bottom: false,
         child: Column(
@@ -500,9 +502,9 @@ class _SettingsPageState extends State<SettingsPage>
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: _SettingsDesign.cardBg,
+        color: _SettingsDesign.cardBg(_isDark),
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _SettingsDesign.cardShadow,
+        boxShadow: _SettingsDesign.cardShadow(_isDark),
       ),
       child: Row(
         children: [
@@ -544,7 +546,7 @@ class _SettingsPageState extends State<SettingsPage>
                     Flexible(
                       child: Text(
                         _user?.name ?? 'User',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _SettingsDesign.textPrimary),
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _SettingsDesign.textPrimary(_isDark)),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -552,7 +554,7 @@ class _SettingsPageState extends State<SettingsPage>
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(color: _SettingsDesign.primaryGreen, shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: _SettingsDesign.primaryGreen, shape: BoxShape.circle),
                         child: const Icon(Icons.check, size: 12, color: Colors.white),
                       ),
                     ],
@@ -561,7 +563,7 @@ class _SettingsPageState extends State<SettingsPage>
                 const SizedBox(height: 4),
                 Text(
                   _user?.email ?? 'email@example.com',
-                  style: const TextStyle(fontSize: 14, color: _SettingsDesign.textSecondary),
+                  style: TextStyle(fontSize: 14, color: _SettingsDesign.textSecondary(_isDark)),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
@@ -573,7 +575,7 @@ class _SettingsPageState extends State<SettingsPage>
                   ),
                   child: Text(
                     _user?.role.toUpperCase() ?? 'CUSTOMER',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _SettingsDesign.primaryGreen, letterSpacing: 0.5),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _SettingsDesign.primaryGreen, letterSpacing: 0.5),
                   ),
                 ),
               ],
@@ -586,7 +588,7 @@ class _SettingsPageState extends State<SettingsPage>
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
-              icon: const Icon(Icons.edit_outlined, color: _SettingsDesign.primaryGreen, size: 22),
+              icon: Icon(Icons.edit_outlined, color: _SettingsDesign.primaryGreen, size: 22),
               onPressed: () => _navigateToAccount(),
               constraints: const BoxConstraints(),
               padding: EdgeInsets.zero,
@@ -622,7 +624,7 @@ class _SettingsPageState extends State<SettingsPage>
           const SizedBox(width: 10),
           Text(
             title,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _SettingsDesign.textSecondary, letterSpacing: 0.3),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _SettingsDesign.textSecondary(_isDark), letterSpacing: 0.3),
           ),
         ],
       ),
@@ -632,9 +634,9 @@ class _SettingsPageState extends State<SettingsPage>
   Widget _buildSettingsCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: _SettingsDesign.cardBg,
+        color: _SettingsDesign.cardBg(_isDark),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: _SettingsDesign.cardShadow,
+        boxShadow: _SettingsDesign.cardShadow(_isDark),
       ),
       child: Column(children: children),
     );
@@ -678,17 +680,17 @@ class _SettingsPageState extends State<SettingsPage>
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _SettingsDesign.textPrimary),
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _SettingsDesign.textPrimary(_isDark)),
                         ),
                         if (subtitle != null) ...[
                           const SizedBox(height: 2),
-                          Text(subtitle, style: const TextStyle(fontSize: 13, color: _SettingsDesign.textSecondary)),
+                          Text(subtitle, style: TextStyle(fontSize: 13, color: _SettingsDesign.textSecondary(_isDark))),
                         ],
                       ],
                     ),
                   ),
                   if (trailing != null) ...[trailing, const SizedBox(width: 8)],
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: _SettingsDesign.textMuted),
+                  Icon(Icons.arrow_forward_ios_rounded, size: 16, color: _SettingsDesign.textMuted(_isDark)),
                 ],
               ),
             ),
@@ -697,7 +699,7 @@ class _SettingsPageState extends State<SettingsPage>
         if (showDivider)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Divider(height: 1, color: _SettingsDesign.divider.withOpacity(0.5)),
+            child: Divider(height: 1, color: _SettingsDesign.divider(_isDark).withOpacity(0.5)),
           ),
       ],
     );
@@ -733,11 +735,11 @@ class _SettingsPageState extends State<SettingsPage>
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _SettingsDesign.textPrimary),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _SettingsDesign.textPrimary(_isDark)),
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
-                      Text(subtitle, style: const TextStyle(fontSize: 13, color: _SettingsDesign.textSecondary)),
+                      Text(subtitle, style: TextStyle(fontSize: 13, color: _SettingsDesign.textSecondary(_isDark))),
                     ],
                   ],
                 ),
@@ -757,7 +759,7 @@ class _SettingsPageState extends State<SettingsPage>
         if (showDivider)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Divider(height: 1, color: _SettingsDesign.divider.withOpacity(0.5)),
+            child: Divider(height: 1, color: _SettingsDesign.divider(_isDark).withOpacity(0.5)),
           ),
       ],
     );
@@ -772,7 +774,7 @@ class _SettingsPageState extends State<SettingsPage>
       ),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _SettingsDesign.primaryGreen),
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _SettingsDesign.primaryGreen),
       ),
     );
   }
@@ -802,11 +804,11 @@ class _SettingsPageState extends State<SettingsPage>
   Widget _buildAppVersion() {
     return Column(
       children: [
-        const Text('Housepital', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _SettingsDesign.textSecondary)),
+        Text('Housepital', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _SettingsDesign.textSecondary(_isDark))),
         const SizedBox(height: 4),
-        const Text('Version 1.0.0', style: TextStyle(fontSize: 13, color: _SettingsDesign.textMuted)),
+        Text('Version 1.0.0', style: TextStyle(fontSize: 13, color: _SettingsDesign.textMuted(_isDark))),
         const SizedBox(height: 8),
-        Text('© ${DateTime.now().year} Housepital. All rights reserved.', style: const TextStyle(fontSize: 12, color: _SettingsDesign.textMuted)),
+        Text('© ${DateTime.now().year} Housepital. All rights reserved.', style: TextStyle(fontSize: 12, color: _SettingsDesign.textMuted(_isDark))),
       ],
     );
   }
@@ -874,16 +876,16 @@ class _SettingsPageState extends State<SettingsPage>
         padding: const EdgeInsets.all(16),
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: isSelected ? _SettingsDesign.primaryGreen.withOpacity(0.1) : _SettingsDesign.surface,
+          color: isSelected ? _SettingsDesign.primaryGreen.withOpacity(0.1) : _SettingsDesign.surface(_isDark),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.divider),
+          border: Border.all(color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.divider(_isDark)),
         ),
         child: Row(
           children: [
             Expanded(
-              child: Text(title, style: TextStyle(fontSize: 16, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.textPrimary)),
+              child: Text(title, style: TextStyle(fontSize: 16, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.textPrimary(_isDark))),
             ),
-            if (isSelected) const Icon(Icons.check_circle, color: _SettingsDesign.primaryGreen, size: 22),
+            if (isSelected) Icon(Icons.check_circle, color: _SettingsDesign.primaryGreen, size: 22),
           ],
         ),
       ),
@@ -904,7 +906,7 @@ class _SettingsPageState extends State<SettingsPage>
               children: [
                 Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
                 const SizedBox(height: 20),
-                const Text('Select Language', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: _SettingsDesign.textPrimary)),
+                Text('Select Language', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: _SettingsDesign.textPrimary(_isDark))),
                 const SizedBox(height: 20),
                 ...languages.map((lang) => _buildLanguageOption(lang)),
                 const SizedBox(height: 16),
@@ -926,16 +928,16 @@ class _SettingsPageState extends State<SettingsPage>
         padding: const EdgeInsets.all(16),
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: isSelected ? _SettingsDesign.primaryGreen.withOpacity(0.1) : _SettingsDesign.surface,
+          color: isSelected ? _SettingsDesign.primaryGreen.withOpacity(0.1) : _SettingsDesign.surface(_isDark),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.divider),
+          border: Border.all(color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.divider(_isDark)),
         ),
         child: Row(
           children: [
             Expanded(
-              child: Text(language, style: TextStyle(fontSize: 16, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.textPrimary)),
+              child: Text(language, style: TextStyle(fontSize: 16, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.textPrimary(_isDark))),
             ),
-            if (isSelected) const Icon(Icons.check_circle, color: _SettingsDesign.primaryGreen, size: 22),
+            if (isSelected) Icon(Icons.check_circle, color: _SettingsDesign.primaryGreen, size: 22),
           ],
         ),
       ),
@@ -951,14 +953,14 @@ class _SettingsPageState extends State<SettingsPage>
             title: const Text('Clear Cache', style: TextStyle(fontWeight: FontWeight.bold)),
             content: const Text('This will clear all cached images and data. The app might load slower temporarily.'),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: _SettingsDesign.textSecondary))),
+              TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel', style: TextStyle(color: _SettingsDesign.textSecondary(_isDark)))),
               TextButton(
                 onPressed: () {
                   HapticFeedback.heavyImpact();
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('Cache cleared'), backgroundColor: _SettingsDesign.primaryGreen, behavior: SnackBarBehavior.floating));
                 },
-                child: const Text('Clear', style: TextStyle(color: _SettingsDesign.danger, fontWeight: FontWeight.w600)),
+                child: Text('Clear', style: TextStyle(color: _SettingsDesign.danger, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -974,14 +976,14 @@ class _SettingsPageState extends State<SettingsPage>
             title: const Text('Clear AI History', style: TextStyle(fontWeight: FontWeight.bold)),
             content: const Text('This will permanently delete all your AI chat history. This action cannot be undone.'),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: _SettingsDesign.textSecondary))),
+              TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel', style: TextStyle(color: _SettingsDesign.textSecondary(_isDark)))),
               TextButton(
                 onPressed: () {
                   HapticFeedback.heavyImpact();
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('AI history cleared'), backgroundColor: _SettingsDesign.primaryGreen, behavior: SnackBarBehavior.floating));
                 },
-                child: const Text('Clear', style: TextStyle(color: _SettingsDesign.danger, fontWeight: FontWeight.w600)),
+                child: Text('Clear', style: TextStyle(color: _SettingsDesign.danger, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -1002,20 +1004,20 @@ class _SettingsPageState extends State<SettingsPage>
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(color: _SettingsDesign.danger.withOpacity(0.1), shape: BoxShape.circle),
-                    child: const Icon(Icons.logout_rounded, color: _SettingsDesign.danger, size: 32),
+                    child: Icon(Icons.logout_rounded, color: _SettingsDesign.danger, size: 32),
                   ),
                   const SizedBox(height: 20),
-                  const Text('Sign Out?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: _SettingsDesign.textPrimary)),
+                  Text('Sign Out?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: _SettingsDesign.textPrimary(_isDark))),
                   const SizedBox(height: 8),
-                  const Text('Are you sure you want to sign out of your account?', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: _SettingsDesign.textSecondary)),
+                  Text('Are you sure you want to sign out of your account?', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: _SettingsDesign.textSecondary(_isDark))),
                   const SizedBox(height: 24),
                   Row(
                     children: [
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), side: const BorderSide(color: _SettingsDesign.divider), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                          child: const Text('Cancel', style: TextStyle(color: _SettingsDesign.textSecondary, fontWeight: FontWeight.w600)),
+                          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), side: BorderSide(color: _SettingsDesign.divider(_isDark)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                          child: Text('Cancel', style: TextStyle(color: _SettingsDesign.textSecondary(_isDark), fontWeight: FontWeight.w600)),
                         ),
                       ),
                       const SizedBox(width: 12),

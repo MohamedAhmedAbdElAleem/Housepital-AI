@@ -191,6 +191,12 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF1A202C);
+    final textMuted = isDark ? const Color(0xFFA19EAB) : const Color(0xFF718096);
+    final surfaceColor = isDark ? const Color(0xFF0D0C11) : const Color(0xFFF0F4F8);
+    final cardBg = isDark ? const Color(0xFF16151A) : Colors.white;
+    final searchBorder = isDark ? Colors.white.withAlpha(20) : Colors.black.withAlpha(10);
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -200,7 +206,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
 
     final services = _filteredServices;
     const primary = Color(0xFF2ECC71);
-    const surfaceColor = Color(0xFFF0F4F8);
+    
 
     return Scaffold(
       backgroundColor: surfaceColor,
@@ -239,7 +245,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                 ),
                 onPressed: () {
                   HapticFeedback.lightImpact();
-                  _showFilterBottomSheet();
+                  _showFilterBottomSheet(isDark);
                 },
               ),
               const SizedBox(width: 8),
@@ -304,17 +310,17 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: cardBg,
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: Colors.black.withAlpha(10)),
+                                    border: Border.all(color: searchBorder),
                                   ),
                                   child: TextField(
                                     controller: _searchController,
                                     onChanged: (val) => setState(() => _searchQuery = val),
-                                    style: const TextStyle(color: Color(0xFF1A202C), fontFamily: 'Inter', fontSize: 15),
+                                    style: TextStyle(color: textPrimary, fontFamily: 'Inter', fontSize: 15),
                                     decoration: InputDecoration(
                                       hintText: 'Search treatments...',
-                                      hintStyle: const TextStyle(color: Color(0xFF718096), fontSize: 15),
+                                      hintStyle: TextStyle(color: textMuted, fontSize: 15),
                                       prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF2ECC71), size: 22),
                                       suffixIcon: _searchQuery.isNotEmpty
                                           ? IconButton(
@@ -324,7 +330,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                                                   color: Colors.black.withAlpha(10),
                                                   shape: BoxShape.circle,
                                                 ),
-                                                child: const Icon(Icons.close_rounded, color: Color(0xFF718096), size: 14),
+                                                child: Icon(Icons.close_rounded, color: textMuted, size: 14),
                                               ),
                                               onPressed: () {
                                                 _searchController.clear();
@@ -353,6 +359,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
           SliverPersistentHeader(
             pinned: true,
             delegate: _StickyCategoryDelegate(
+              isDark: isDark,
               categories: _categories,
               selectedCategory: _selectedCategory,
               onSelect: (val) {
@@ -371,14 +378,14 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                   children: [
                     Icon(Icons.search_off_rounded, size: 64, color: Colors.grey.withAlpha(100)),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'No services found',
-                      style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A202C)),
+                      style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Try a different search or category',
-                      style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF718096)),
+                      style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: textMuted),
                     ),
                   ],
                 ),
@@ -446,7 +453,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
     );
   }
 
-  void _showFilterBottomSheet() {
+  void _showFilterBottomSheet(bool isDark) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -455,9 +462,9 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
         builder: (context, setModalState) {
           return Container(
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF16151A) : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -468,7 +475,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: isDark ? const Color(0xFF2A2831) : Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -477,9 +484,9 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Filter Services',
-                      style: TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black),
                     ),
                     TextButton(
                       onPressed: () {
@@ -500,22 +507,22 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                const Text('Sort By', style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w600)),
+                Text('Sort By', style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black)),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
                   children: [
-                    _buildFilterChip('Recommended', _selectedSort == 'Recommended', () {
+                    _buildFilterChip('Recommended', _selectedSort == 'Recommended', isDark, () {
                       setModalState(() => _selectedSort = 'Recommended');
                     }),
-                    _buildFilterChip('Price: Low to High', _selectedSort == 'Price: Low to High', () {
+                    _buildFilterChip('Price: Low to High', _selectedSort == 'Price: Low to High', isDark, () {
                       setModalState(() => _selectedSort = 'Price: Low to High');
                     }),
-                    _buildFilterChip('Price: High to Low', _selectedSort == 'Price: High to Low', () {
+                    _buildFilterChip('Price: High to Low', _selectedSort == 'Price: High to Low', isDark, () {
                       setModalState(() => _selectedSort = 'Price: High to Low');
                     }),
-                    _buildFilterChip('Highest Rated', _selectedSort == 'Highest Rated', () {
+                    _buildFilterChip('Highest Rated', _selectedSort == 'Highest Rated', isDark, () {
                       setModalState(() => _selectedSort = 'Highest Rated');
                     }),
                   ],
@@ -548,16 +555,16 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
     );
   }
 
-  Widget _buildFilterChip(String label, bool isSelected, VoidCallback onTap) {
+  Widget _buildFilterChip(String label, bool isSelected, bool isDark, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF2ECC71).withAlpha(20) : Colors.white,
+          color: isSelected ? const Color(0xFF2ECC71).withAlpha(20) : (isDark ? const Color(0xFF1E1C24) : Colors.white),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? const Color(0xFF2ECC71) : Colors.grey.shade300,
+            color: isSelected ? const Color(0xFF2ECC71) : (isDark ? const Color(0xFF2A2831) : Colors.grey.shade300),
           ),
         ),
         child: Text(
@@ -566,7 +573,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
             fontFamily: 'Inter',
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? const Color(0xFF2ECC71) : Colors.black87,
+            color: isSelected ? const Color(0xFF2ECC71) : (isDark ? Colors.white : Colors.black87),
           ),
         ),
       ),
@@ -575,11 +582,13 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
 }
 
 class _StickyCategoryDelegate extends SliverPersistentHeaderDelegate {
+  final bool isDark;
   final List<String> categories;
   final String selectedCategory;
   final Function(String) onSelect;
 
   _StickyCategoryDelegate({
+    required this.isDark,
     required this.categories,
     required this.selectedCategory,
     required this.onSelect,
@@ -596,7 +605,7 @@ class _StickyCategoryDelegate extends SliverPersistentHeaderDelegate {
     
     return Container(
       decoration: BoxDecoration(
-        color: isScrolled ? const Color(0xFFF0F4F8).withAlpha(240) : const Color(0xFFF0F4F8),
+        color: isScrolled ? (isDark ? const Color(0xFF0D0C11).withAlpha(240) : const Color(0xFFF0F4F8).withAlpha(240)) : (isDark ? const Color(0xFF0D0C11) : const Color(0xFFF0F4F8)),
         boxShadow: isScrolled
             ? [BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 10, offset: const Offset(0, 4))]
             : [],
@@ -622,7 +631,7 @@ class _StickyCategoryDelegate extends SliverPersistentHeaderDelegate {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF1A202C) : Colors.white,
+                    color: isSelected ? (isDark ? Colors.white : const Color(0xFF1A202C)) : (isDark ? const Color(0xFF1E1C24) : Colors.white),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: isSelected ? Colors.transparent : Colors.black.withAlpha(10)),
                     boxShadow: isSelected
@@ -635,7 +644,7 @@ class _StickyCategoryDelegate extends SliverPersistentHeaderDelegate {
                       fontFamily: 'Inter',
                       fontSize: 14,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: isSelected ? Colors.white : const Color(0xFF718096),
+                      color: isSelected ? (isDark ? Colors.black : Colors.white) : (isDark ? const Color(0xFFA19EAB) : const Color(0xFF718096)),
                     ),
                   ),
                 ),

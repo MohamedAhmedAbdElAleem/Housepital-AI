@@ -27,8 +27,10 @@ class NursingServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const textPrimary = Color(0xFF1A202C);
-    const textMuted = Color(0xFFA0AEC0);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF1A202C);
+    final textMuted = isDark ? const Color(0xFFA19EAB) : const Color(0xFFA0AEC0);
+    final cardBg = isDark ? const Color(0xFF16151A) : Colors.white;
 
     return GestureDetector(
       onTap: () {
@@ -39,7 +41,7 @@ class NursingServiceCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         height: 140, // Fixed height for a sleek horizontal look
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardBg,
           borderRadius: BorderRadius.circular(28),
           border: Border.all(color: iconColor.withAlpha(20), width: 1.5),
           boxShadow: [
@@ -116,7 +118,7 @@ class NursingServiceCard extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   title,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -158,11 +160,11 @@ class NursingServiceCard extends StatelessWidget {
                                   children: [
                                     Row(
                                       children: [
-                                        const Icon(Icons.schedule_rounded, size: 14, color: textMuted),
+                                        Icon(Icons.schedule_rounded, size: 14, color: textMuted),
                                         const SizedBox(width: 4),
                                         Text(
                                           duration,
-                                          style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: textMuted, fontWeight: FontWeight.w500),
+                                          style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: textMuted, fontWeight: FontWeight.w500),
                                         ),
                                       ],
                                     ),
@@ -173,11 +175,11 @@ class NursingServiceCard extends StatelessWidget {
                                         const SizedBox(width: 4),
                                         Text(
                                           rating.toString(),
-                                          style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.bold, color: textPrimary),
+                                          style: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.bold, color: textPrimary),
                                         ),
                                         Text(
                                           ' ($reviewCount)',
-                                          style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: textMuted),
+                                          style: TextStyle(fontFamily: 'Inter', fontSize: 11, color: textMuted),
                                         ),
                                       ],
                                     ),
@@ -189,7 +191,7 @@ class NursingServiceCard extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: textPrimary,
+                                  color: isDark ? Colors.white : textPrimary,
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Row(
@@ -198,11 +200,11 @@ class NursingServiceCard extends StatelessWidget {
                                   children: [
                                     Text(
                                       price.toString(),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontFamily: 'Poppins',
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                        color: isDark ? const Color(0xFF1A202C) : Colors.white,
                                         height: 1.0,
                                       ),
                                     ),
@@ -213,7 +215,7 @@ class NursingServiceCard extends StatelessWidget {
                                         fontFamily: 'Inter',
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white.withAlpha(200),
+                                        color: (isDark ? const Color(0xFF1A202C) : Colors.white).withAlpha(200),
                                         height: 1.2,
                                       ),
                                     ),
