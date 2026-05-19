@@ -219,10 +219,6 @@ void initState() {
       if (mounted) {
         setState(() => _isLoading = false);
         if (response.success) {
-          // Debug: print raw response and token info
-          debugPrint('🧪 LoginPage: login response -> ' + response.toString());
-          debugPrint('🧪 LoginPage: token length -> ${response.token?.length ?? 0}');
-
           if (response.token != null) {
             await TokenManager.saveToken(response.token!);
             // If biometrics were enabled before, update the stored token

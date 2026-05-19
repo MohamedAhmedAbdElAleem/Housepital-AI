@@ -72,7 +72,6 @@ dependencies:
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
   webview_flutter: ^4.10.0
-  easy_localization: ^3.0.8
 
 dev_dependencies:
   flutter_test:
@@ -88,4 +87,3 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/animations/
-    - assets/translations/

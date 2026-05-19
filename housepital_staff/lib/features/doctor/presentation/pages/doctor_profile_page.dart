@@ -1,8 +1,6 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/utils/token_manager.dart';
 import '../../data/models/doctor_model.dart';
 import '../cubit/doctor_cubit.dart';
@@ -29,10 +27,10 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
 
   DoctorModel? _currentProfile;
 
-  List<String> get _specializations => [
-    'general_practice'.tr(),
+  final List<String> _specializations = [
+    'General Practice',
     'Pediatrics',
-    'internal_medicine'.tr(),
+    'Internal Medicine',
     'Cardiology',
     'Dermatology',
     'Orthopedics',
@@ -43,7 +41,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
     'Psychiatry',
     'Neurology',
     'Physiotherapy',
-    'home_nursing'.tr(),
+    'Home Nursing',
   ];
 
   @override
@@ -114,7 +112,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
     if (!mounted) return;
     messenger.showSnackBar(
       SnackBar(
-        content: Text('profile_saved_successfully'.tr()),
+        content: const Text('Profile saved successfully'),
         backgroundColor: DoctorTheme.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -125,7 +123,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DoctorTheme.background(context),
+      backgroundColor: DoctorTheme.background,
       body: BackgroundBlobs(
         child: SafeArea(
           child: BlocConsumer<DoctorCubit, DoctorState>(
@@ -145,8 +143,8 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
               return Column(
                 children: [
                   GlassHeader(
-                    title: 'professional_profile'.tr(),
-                    subtitle: 'set_your_identity_for_patient_trust'.tr(),
+                    title: 'Professional Profile',
+                    subtitle: 'Set your identity for patient trust',
                     onBack: () => Navigator.maybePop(context),
                     actionIcon: Icons.refresh_rounded,
                     actionTooltip: 'Refresh',
@@ -154,18 +152,16 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                   ),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.fromLTRB(16, 6, 16, 20),
+                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 20),
                       child: Form(
                         key: _formKey,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _buildIdentityCard(),
-                            SizedBox(height: 14),
+                            const SizedBox(height: 14),
                             _buildFormCard(),
-                            SizedBox(height: 14),
-                            _buildSettingsCard(context),
-                            SizedBox(height: 20),
+                            const SizedBox(height: 20),
                             _buildSaveButton(isLoading),
                           ],
                         ),
@@ -188,8 +184,8 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
         _currentProfile?.verificationStatus ?? 'pending';
 
     return Container(
-      padding: EdgeInsets.all(16),
-      decoration: DoctorTheme.cardDecoration(context),
+      padding: const EdgeInsets.all(16),
+      decoration: DoctorTheme.cardDecoration(),
       child: Row(
         children: [
           // Avatar with gradient ring
@@ -209,28 +205,28 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                 width: 2,
               ),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.person_rounded,
               color: DoctorTheme.primaryDark,
               size: 36,
             ),
           ),
-          SizedBox(width: 14),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Text('doctor_account'.tr(), style: DoctorTheme.headingSmall(context)),
-                    SizedBox(width: 8),
+                    const Text('Doctor Account', style: DoctorTheme.headingSmall),
+                    const SizedBox(width: 8),
                     _buildVerificationBadge(verificationStatus),
                   ],
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'complete_your_details_to_improve_visibility_and_booking_confidence'.tr(),
-                  style: DoctorTheme.bodySmall(context),
+                const SizedBox(height: 4),
+                const Text(
+                  'Complete your details to improve visibility and booking confidence.',
+                  style: DoctorTheme.bodySmall,
                 ),
               ],
             ),
@@ -264,7 +260,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(DoctorTheme.radiusChip),
@@ -274,7 +270,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 12, color: color),
-          SizedBox(width: 4),
+          const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
@@ -292,17 +288,17 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
 
   Widget _buildFormCard() {
     return Container(
-      padding: EdgeInsets.all(16),
-      decoration: DoctorTheme.cardDecoration(context),
+      padding: const EdgeInsets.all(16),
+      decoration: DoctorTheme.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _sectionLabel('medical_details'.tr()),
-          SizedBox(height: 12),
+          _sectionLabel('Medical Details'),
+          const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _selectedSpecialization,
-            decoration: DoctorTheme.inputDecoration(context, 
-              label: 'specialization'.tr(),
+            decoration: DoctorTheme.inputDecoration(
+              label: 'Specialization',
               icon: Icons.medical_services_outlined,
             ),
             items: _specializations
@@ -314,122 +310,73 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
             onChanged: (value) =>
                 setState(() => _selectedSpecialization = value),
             validator: (value) =>
-                value == null ? 'please_select_a_specialization'.tr() : null,
+                value == null ? 'Please select a specialization' : null,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _licenseController,
-            decoration: DoctorTheme.inputDecoration(context, 
-              label: 'medical_license_number'.tr(),
+            decoration: DoctorTheme.inputDecoration(
+              label: 'Medical License Number',
               icon: Icons.badge_outlined,
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'license_number_is_required'.tr();
+                return 'License number is required';
               }
               if (value.trim().length < 5) {
-                return 'must_be_at_least_5_characters'.tr();
+                return 'Must be at least 5 characters';
               }
               return null;
             },
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _experienceController,
             keyboardType: TextInputType.number,
-            decoration: DoctorTheme.inputDecoration(context, 
-              label: 'years_of_experience'.tr(),
+            decoration: DoctorTheme.inputDecoration(
+              label: 'Years of Experience',
               icon: Icons.timeline_rounded,
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'years_of_experience_is_required'.tr();
+                return 'Years of experience is required';
               }
               if (int.tryParse(value) == null) {
-                return 'must_be_a_valid_number'.tr();
+                return 'Must be a valid number';
               }
               return null;
             },
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _selectedGender,
-            decoration: DoctorTheme.inputDecoration(context, 
-              label: 'gender'.tr(),
+            decoration: DoctorTheme.inputDecoration(
+              label: 'Gender',
               icon: Icons.person_outline_rounded,
             ),
-            items: [
-              DropdownMenuItem(value: 'male', child: Text('male'.tr())),
-              DropdownMenuItem(value: 'female', child: Text('female'.tr())),
+            items: const [
+              DropdownMenuItem(value: 'male', child: Text('Male')),
+              DropdownMenuItem(value: 'female', child: Text('Female')),
             ],
             onChanged: (value) => setState(() => _selectedGender = value),
             validator: (value) =>
-                value == null ? 'please_select_gender'.tr() : null,
+                value == null ? 'Please select gender' : null,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _bioController,
             maxLines: 4,
-            decoration: DoctorTheme.inputDecoration(context, 
-              label: 'professional_bio'.tr(),
+            decoration: DoctorTheme.inputDecoration(
+              label: 'Professional Bio',
               icon: Icons.edit_note_rounded,
-              hint: 'tell_patients_about_your_expertise'.tr(),
+              hint: 'Tell patients about your expertise...',
             ),
             validator: (value) {
               if (value != null && value.length > 500) {
-                return 'bio_is_too_long'.tr();
+                return 'Bio is too long';
               }
               return null;
             },
-          ),
-        ],
-      ),
-    );
-  }
-  // ── Settings Card ──────────────────────────────────────────────
-
-  Widget _buildSettingsCard(BuildContext context) {
-    final themeCubit = context.watch<ThemeCubit>();
-    final isDark = themeCubit.state == ThemeMode.dark;
-    final locale = context.locale.languageCode;
-
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: DoctorTheme.cardDecoration(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _sectionLabel('app_settings'.tr()),
-          SizedBox(height: 12),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text('dark_mode'.tr(), style: DoctorTheme.bodyMedium(context)),
-            secondary: Icon(
-              isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-              color: DoctorTheme.primary,
-            ),
-            value: isDark,
-            activeColor: DoctorTheme.primary,
-            onChanged: (val) => themeCubit.toggleTheme(val),
-          ),
-          const Divider(),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text('language'.tr(), style: DoctorTheme.bodyMedium(context)),
-            leading: Icon(Icons.language_rounded, color: DoctorTheme.primary),
-            trailing: DropdownButton<String>(
-              value: locale,
-              underline: SizedBox(),
-              items: [
-                DropdownMenuItem(value: 'en', child: Text('english'.tr())),
-                DropdownMenuItem(value: 'ar', child: Text('العربية')),
-              ],
-              onChanged: (val) {
-                if (val != null) {
-                  context.setLocale(Locale(val));
-                }
-              },
-            ),
           ),
         ],
       ),
@@ -443,7 +390,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
       height: 52,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: isLoading ? null : DoctorTheme.headerGradient(context),
+          gradient: isLoading ? null : DoctorTheme.headerGradient,
           borderRadius: BorderRadius.circular(14),
           boxShadow: isLoading
               ? null
@@ -466,18 +413,18 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
             ),
           ),
           icon: isLoading
-              ? SizedBox(
+              ? const SizedBox(
                   width: 18,
                   height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: DoctorTheme.surface(context),
+                    color: Colors.white,
                   ),
                 )
-              : Icon(Icons.save_rounded),
+              : const Icon(Icons.save_rounded),
           label: Text(
-            isLoading ? 'Saving...' : 'save_profile'.tr(),
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            isLoading ? 'Saving...' : 'Save Profile',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
         ),
       ),
@@ -493,12 +440,12 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
           width: 4,
           height: 18,
           decoration: BoxDecoration(
-            gradient: DoctorTheme.headerGradient(context),
+            gradient: DoctorTheme.headerGradient,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
-        SizedBox(width: 8),
-        Text(text, style: DoctorTheme.titleMedium(context)),
+        const SizedBox(width: 8),
+        Text(text, style: DoctorTheme.titleMedium),
       ],
     );
   }
