@@ -7,6 +7,7 @@ import '../../../../core/network/api_service.dart';
 import '../../../../core/network/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/widgets/custom_popup.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class NewPasswordPage extends StatefulWidget {
   final String email;
@@ -126,6 +127,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
   }
 
   void _checkPasswordStrength() {
+    final l10n = AppLocalizations.of(context)!;
     final password = _passwordController.text;
     double strength = 0;
     String text = '';
@@ -137,7 +139,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
       color = Colors.grey;
     } else if (password.length < 6) {
       strength = 0.2;
-      text = 'Too Short';
+      text = l10n.passwordTooShort;
       color = Colors.red;
     } else {
       strength = 0.3;
@@ -147,16 +149,16 @@ class _NewPasswordPageState extends State<NewPasswordPage>
       if (password.length >= 10) strength += 0.1;
 
       if (strength < 0.5) {
-        text = 'Weak';
+        text = l10n.passwordWeak;
         color = Colors.orange;
       } else if (strength < 0.7) {
-        text = 'Medium';
+        text = l10n.passwordMedium;
         color = Colors.amber;
       } else if (strength < 0.9) {
-        text = 'Strong';
+        text = l10n.passwordStrong;
         color = AppColors.primary500;
       } else {
-        text = 'Very Strong';
+        text = l10n.passwordVeryStrong;
         color = AppColors.success500;
       }
     }
@@ -196,24 +198,25 @@ class _NewPasswordPageState extends State<NewPasswordPage>
       _confirmPasswordController.text.isNotEmpty;
 
   Future<void> _handleResetPassword() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_passwordController.text.isEmpty) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please enter a new password');
+      CustomPopup.warning(context, l10n.warningEmptyNewPassword);
       return;
     }
     if (_passwordController.text.length < 6) {
       _triggerShake();
-      CustomPopup.warning(context, 'Password must be at least 6 characters');
+      CustomPopup.warning(context, l10n.min6Chars);
       return;
     }
     if (_confirmPasswordController.text.isEmpty) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please confirm your password');
+      CustomPopup.warning(context, l10n.warningEmptyConfirmPassword);
       return;
     }
     if (_passwordController.text != _confirmPasswordController.text) {
       _triggerShake();
-      CustomPopup.warning(context, 'Passwords do not match');
+      CustomPopup.warning(context, l10n.warningPasswordMismatch);
       return;
     }
 
@@ -244,7 +247,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
           _triggerShake();
           CustomPopup.error(
             context,
-            response['message'] ?? 'Failed to reset password',
+            response['message'] ?? l10n.resetFailed,
           );
         }
       }
@@ -252,7 +255,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
       if (mounted) {
         setState(() => _isLoading = false);
         _triggerShake();
-        CustomPopup.error(context, 'No internet connection');
+        CustomPopup.error(context, l10n.noInternet);
       }
     } on ServerException catch (e) {
       if (mounted) {
@@ -264,7 +267,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
       if (mounted) {
         setState(() => _isLoading = false);
         _triggerShake();
-        CustomPopup.error(context, 'Something went wrong');
+        CustomPopup.error(context, l10n.somethingWentWrong);
       }
     }
   }
@@ -272,6 +275,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Stack(
@@ -294,11 +298,11 @@ class _NewPasswordPageState extends State<NewPasswordPage>
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
-                      _buildHeader(),
+                      _buildHeader(l10n),
                       const SizedBox(height: 32),
-                      _buildCard(),
+                      _buildCard(l10n),
                       const SizedBox(height: 24),
-                      _buildSecurityTips(),
+                      _buildSecurityTips(l10n),
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -408,7 +412,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Column(
       children: [
         Row(children: [_buildBackButton(), const Spacer()]),
@@ -446,9 +450,9 @@ class _NewPasswordPageState extends State<NewPasswordPage>
           },
         ),
         const SizedBox(height: 28),
-        const Text(
-          'Create New Password',
-          style: TextStyle(
+        Text(
+          l10n.createNewPasswordTitle,
+          style: const TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -470,7 +474,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            '🔒 Make it strong and unique',
+            l10n.newPasswordSubtitle,
             style: TextStyle(
               fontSize: 15,
               color: Colors.white.withValues(alpha: 0.95),
@@ -501,7 +505,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
     );
   }
 
-  Widget _buildCard() {
+  Widget _buildCard(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _shakeController,
       builder: (context, child) {
@@ -525,8 +529,8 @@ class _NewPasswordPageState extends State<NewPasswordPage>
           children: [
             // New Password Field
             _buildPasswordField(
-              label: 'New Password',
-              hint: 'Create a strong password',
+              label: l10n.newPasswordLabel,
+              hint: l10n.passwordHintRegister,
               controller: _passwordController,
               focusNode: _passwordFocusNode,
               isFocused: _isPasswordFocused,
@@ -539,8 +543,8 @@ class _NewPasswordPageState extends State<NewPasswordPage>
 
             // Confirm Password Field
             _buildPasswordField(
-              label: 'Confirm Password',
-              hint: 'Re-enter your password',
+              label: l10n.confirmPasswordLabel,
+              hint: l10n.confirmPasswordHint,
               controller: _confirmPasswordController,
               focusNode: _confirmPasswordFocusNode,
               isFocused: _isConfirmPasswordFocused,
@@ -554,11 +558,11 @@ class _NewPasswordPageState extends State<NewPasswordPage>
             const SizedBox(height: 24),
 
             // Password Requirements
-            _buildRequirementsCard(),
+            _buildRequirementsCard(l10n),
             const SizedBox(height: 28),
 
             // Reset Button
-            _buildResetButton(),
+            _buildResetButton(l10n),
           ],
         ),
       ),
@@ -715,7 +719,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
     );
   }
 
-  Widget _buildRequirementsCard() {
+  Widget _buildRequirementsCard(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -740,7 +744,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
               ),
               const SizedBox(width: 10),
               Text(
-                'Password Requirements',
+                l10n.passwordRequirements,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -750,9 +754,9 @@ class _NewPasswordPageState extends State<NewPasswordPage>
             ],
           ),
           const SizedBox(height: 16),
-          _buildRequirement('At least 6 characters', _hasMinLength),
+          _buildRequirement(l10n.min6Chars, _hasMinLength),
           const SizedBox(height: 10),
-          _buildRequirement('Passwords match', _passwordsMatch),
+          _buildRequirement(l10n.passwordsMatch, _passwordsMatch),
         ],
       ),
     );
@@ -802,7 +806,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
     );
   }
 
-  Widget _buildResetButton() {
+  Widget _buildResetButton(AppLocalizations l10n) {
     final allRequirementsMet = _hasMinLength && _passwordsMatch;
 
     return SizedBox(
@@ -844,9 +848,9 @@ class _NewPasswordPageState extends State<NewPasswordPage>
                         size: 22,
                       ),
                       const SizedBox(width: 10),
-                      const Text(
-                        'Reset Password',
-                        style: TextStyle(
+                      Text(
+                        l10n.resetPasswordButton,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.3,
@@ -859,7 +863,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
     );
   }
 
-  Widget _buildSecurityTips() {
+  Widget _buildSecurityTips(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -874,7 +878,7 @@ class _NewPasswordPageState extends State<NewPasswordPage>
               Icon(Icons.lightbulb_rounded, color: Colors.amber[300], size: 22),
               const SizedBox(width: 10),
               Text(
-                'Password Tips',
+                l10n.passwordTips,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -884,11 +888,11 @@ class _NewPasswordPageState extends State<NewPasswordPage>
             ],
           ),
           const SizedBox(height: 14),
-          _buildTip('Use a mix of letters, numbers & symbols'),
+          _buildTip(l10n.tipMixChars),
           const SizedBox(height: 8),
-          _buildTip('Avoid using personal information'),
+          _buildTip(l10n.tipAvoidPersonalInfo),
           const SizedBox(height: 8),
-          _buildTip('Don\'t reuse passwords from other sites'),
+          _buildTip(l10n.tipDontReuse),
         ],
       ),
     );

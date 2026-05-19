@@ -11,6 +11,8 @@ import '../../data/datasources/otp_remote_datasource.dart';
 import '../../data/repositories/otp_repository_impl.dart';
 import '../../data/models/otp_models.dart';
 
+import '../../../../generated/l10n/app_localizations.dart';
+
 class OTPPage extends StatefulWidget {
   final String email;
 
@@ -176,6 +178,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
   }
 
   Future<void> _sendOTP() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isLoading = true);
 
     try {
@@ -188,25 +191,26 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
       final response = await _otpRepository.requestOTP(request);
 
       if (mounted && response.success) {
-        CustomPopup.success(context, 'Verification code sent to your email');
+        CustomPopup.success(context, l10n.otpSentSuccess);
       }
     } on NetworkException {
-      if (mounted) CustomPopup.error(context, 'No internet connection');
+      if (mounted) CustomPopup.error(context, l10n.noInternet);
     } on ServerException {
-      if (mounted) CustomPopup.error(context, 'Failed to send code');
+      if (mounted) CustomPopup.error(context, l10n.otpSendFailed);
     } catch (e) {
-      if (mounted) CustomPopup.error(context, 'Something went wrong');
+      if (mounted) CustomPopup.error(context, l10n.somethingWentWrong);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _verifyOTP() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLocked) {
       _triggerShake();
       CustomPopup.error(
         context,
-        'Too many failed attempts. Request a new code.',
+        l10n.tooManyAttempts,
       );
       return;
     }
@@ -215,7 +219,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
 
     if (otpCode.length != 6) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please enter the complete 6-digit code');
+      CustomPopup.warning(context, l10n.warningCompleteOtp);
       return;
     }
 
@@ -232,7 +236,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
             _isSuccess = true;
           });
           _successController.forward();
-          CustomPopup.success(context, 'Email verified successfully!');
+          CustomPopup.success(context, l10n.otpVerifySuccess);
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted) {
               Navigator.of(
@@ -247,7 +251,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
     } on ValidationException {
       _handleFailedAttempt();
     } on NetworkException {
-      if (mounted) CustomPopup.error(context, 'No internet connection');
+      if (mounted) CustomPopup.error(context, l10n.noInternet);
     } on ServerException catch (e) {
       if (e.toString().contains('429')) {
         setState(() {
@@ -255,19 +259,20 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
           _currentAttempts = _maxAttempts;
         });
         if (mounted) {
-          CustomPopup.error(context, 'Too many failed attempts.');
+          CustomPopup.error(context, l10n.tooManyAttempts);
         }
       } else {
-        if (mounted) CustomPopup.error(context, 'Server error');
+        if (mounted) CustomPopup.error(context, l10n.serverError);
       }
     } catch (e) {
-      if (mounted) CustomPopup.error(context, 'Something went wrong');
+      if (mounted) CustomPopup.error(context, l10n.somethingWentWrong);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _handleFailedAttempt() {
+    final l10n = AppLocalizations.of(context)!;
     _triggerShake();
     setState(() {
       _currentAttempts++;
@@ -276,18 +281,19 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
 
     int remaining = _maxAttempts - _currentAttempts;
     if (_isLocked) {
-      CustomPopup.error(context, 'Account locked! Request a new code.');
+      CustomPopup.error(context, l10n.accountLocked);
     } else {
       CustomPopup.error(
         context,
-        'Invalid code. $remaining attempts remaining.',
+        l10n.invalidOtpRemaining(remaining),
       );
     }
   }
 
   Future<void> _resendOTP() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_canResend) {
-      CustomPopup.warning(context, 'Please wait before requesting new code');
+      CustomPopup.warning(context, l10n.waitBeforeResend);
       return;
     }
 
@@ -308,14 +314,14 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
     try {
       final response = await _otpRepository.resendOTP(widget.email);
       if (mounted && response.success) {
-        CustomPopup.success(context, 'New verification code sent!');
+        CustomPopup.success(context, l10n.newOtpSent);
       }
     } on NetworkException {
-      if (mounted) CustomPopup.error(context, 'No internet connection');
+      if (mounted) CustomPopup.error(context, l10n.noInternet);
     } on ServerException {
-      if (mounted) CustomPopup.error(context, 'Failed to resend code');
+      if (mounted) CustomPopup.error(context, l10n.resendFailed);
     } catch (e) {
-      if (mounted) CustomPopup.error(context, 'Something went wrong');
+      if (mounted) CustomPopup.error(context, l10n.somethingWentWrong);
     }
   }
 
@@ -339,6 +345,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Stack(
@@ -361,11 +368,11 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
-                      _buildHeader(),
+                      _buildHeader(l10n),
                       const SizedBox(height: 30),
-                      _buildOTPCard(),
+                      _buildOTPCard(l10n),
                       const SizedBox(height: 24),
-                      _buildSecurityNote(),
+                      _buildSecurityNote(l10n),
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -470,7 +477,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Column(
       children: [
         Row(
@@ -483,9 +490,9 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
           ],
         ),
         const SizedBox(height: 24),
-        const Text(
-          'Verify Your Email',
-          style: TextStyle(
+        Text(
+          l10n.verifyEmailTitle,
+          style: const TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -593,7 +600,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildOTPCard() {
+  Widget _buildOTPCard(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _shakeController,
       builder: (context, child) {
@@ -616,30 +623,30 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
         child: Column(
           children: [
             // Timer display
-            _buildTimerSection(),
+            _buildTimerSection(l10n),
             const SizedBox(height: 28),
 
             // OTP Fields
-            _buildOTPFields(),
+            _buildOTPFields(l10n),
             const SizedBox(height: 24),
 
             // Attempts indicator
-            if (_currentAttempts > 0) _buildAttemptsIndicator(),
+            if (_currentAttempts > 0) _buildAttemptsIndicator(l10n),
             if (_currentAttempts > 0) const SizedBox(height: 20),
 
             // Resend section
-            _buildResendSection(),
+            _buildResendSection(l10n),
             const SizedBox(height: 28),
 
             // Verify button
-            _buildVerifyButton(),
+            _buildVerifyButton(l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTimerSection() {
+  Widget _buildTimerSection(AppLocalizations l10n) {
     final isExpiring = _secondsRemaining < 60;
 
     return Container(
@@ -672,7 +679,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Code expires in',
+                l10n.codeExpiresIn,
                 style: TextStyle(
                   fontSize: 12,
                   color:
@@ -696,12 +703,12 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildOTPFields() {
+  Widget _buildOTPFields(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Enter verification code',
+          l10n.enterVerificationCode,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -787,7 +794,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAttemptsIndicator() {
+  Widget _buildAttemptsIndicator(AppLocalizations l10n) {
     final progress = _currentAttempts / _maxAttempts;
     final isWarning = _currentAttempts >= 3;
 
@@ -824,8 +831,8 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
               Expanded(
                 child: Text(
                   _isLocked
-                      ? 'Account locked! Please request a new code'
-                      : 'Attempt $_currentAttempts of $_maxAttempts',
+                      ? l10n.accountLocked
+                      : l10n.attemptIndicator(_currentAttempts, _maxAttempts),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -861,12 +868,12 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildResendSection() {
+  Widget _buildResendSection(AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "Didn't receive the code?",
+          l10n.didntReceiveCode,
           style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
         TextButton(
@@ -886,7 +893,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
               ),
               const SizedBox(width: 4),
               Text(
-                'Resend',
+                l10n.resend,
                 style: TextStyle(
                   fontSize: 14,
                   color: _canResend ? AppColors.primary500 : Colors.grey,
@@ -900,7 +907,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildVerifyButton() {
+  Widget _buildVerifyButton(AppLocalizations l10n) {
     return SizedBox(
       width: double.infinity,
       height: 58,
@@ -939,7 +946,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        _isLocked ? 'Locked' : 'Verify Email',
+                        _isLocked ? l10n.locked : l10n.verifyEmailButton,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -953,7 +960,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSecurityNote() {
+  Widget _buildSecurityNote(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -981,7 +988,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Security Notice',
+                  l10n.securityNotice,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -990,7 +997,7 @@ class _OTPPageState extends State<OTPPage> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Never share this code with anyone. Our team will never ask for it.',
+                  l10n.securityNoticeDesc,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.white.withValues(alpha: 0.8),

@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/providers/theme_provider.dart';
+import '../../../../../core/providers/locale_provider.dart';
 import '../../../../../core/providers/notification_provider.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 import '../../../../../core/services/biometric_service.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../../../../auth/data/repositories/auth_repository_impl.dart';
@@ -87,8 +89,7 @@ class _SettingsPageState extends State<SettingsPage>
   bool _pushNotifications = true;
   bool _emailNotifications = true;
   bool _smsUpdates = false;
-  bool _darkMode = false;
-  String _selectedLanguage = 'English';
+  final bool _darkMode = false;
 
   // Expanded Sections
   final Set<String> _expandedSections = {};
@@ -164,7 +165,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   Future<void> _toggleBiometrics(bool enable) async {
     HapticFeedback.mediumImpact();
-    
+
     if (enable) {
       // 1. Authenticate user to confirm identity before enabling
       final authenticated = await _biometricService.authenticate(
@@ -195,13 +196,21 @@ class _SettingsPageState extends State<SettingsPage>
 
   void _showErrorSnackBar(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
   void _showSuccessSnackBar(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: _SettingsDesign.primaryGreen, behavior: SnackBarBehavior.floating),
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: _SettingsDesign.primaryGreen,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
@@ -269,7 +278,11 @@ class _SettingsPageState extends State<SettingsPage>
                       delegate: SliverChildListDelegate([
                         _buildProfileCard(),
                         const SizedBox(height: 24),
-                        _buildSectionTitle('Account', Icons.person_outline_rounded, _SettingsDesign.accountColor),
+                        _buildSectionTitle(
+                          'Account',
+                          Icons.person_outline_rounded,
+                          _SettingsDesign.accountColor,
+                        ),
                         const SizedBox(height: 12),
                         _buildSettingsCard([
                           _buildSettingsTile(
@@ -297,16 +310,26 @@ class _SettingsPageState extends State<SettingsPage>
                           ),
                         ]),
                         const SizedBox(height: 24),
-                        _buildSectionTitle('Security & Privacy', Icons.shield_outlined, _SettingsDesign.securityColor),
+                        _buildSectionTitle(
+                          'Security & Privacy',
+                          Icons.shield_outlined,
+                          _SettingsDesign.securityColor,
+                        ),
                         const SizedBox(height: 12),
                         _buildSettingsCard([
                           _buildToggleTile(
                             icon: Icons.fingerprint_rounded,
                             iconColor: _SettingsDesign.securityColor,
                             title: 'Biometric Login',
-                            subtitle: _isBiometricHardwareAvailable ? 'Use fingerprint or face' : 'Not supported on this device',
+                            subtitle:
+                                _isBiometricHardwareAvailable
+                                    ? 'Use fingerprint or face'
+                                    : 'Not supported on this device',
                             value: _biometricEnabled,
-                            onChanged: _isBiometricHardwareAvailable ? _toggleBiometrics : null,
+                            onChanged:
+                                _isBiometricHardwareAvailable
+                                    ? _toggleBiometrics
+                                    : null,
                           ),
                           _buildToggleTile(
                             icon: Icons.security_rounded,
@@ -329,7 +352,11 @@ class _SettingsPageState extends State<SettingsPage>
                           ),
                         ]),
                         const SizedBox(height: 24),
-                        _buildSectionTitle('Notifications', Icons.notifications_outlined, _SettingsDesign.notificationColor),
+                        _buildSectionTitle(
+                          'Notifications',
+                          Icons.notifications_outlined,
+                          _SettingsDesign.notificationColor,
+                        ),
                         const SizedBox(height: 12),
                         _buildSettingsCard([
                           _buildToggleTile(
@@ -341,7 +368,9 @@ class _SettingsPageState extends State<SettingsPage>
                             onChanged: (v) {
                               HapticFeedback.mediumImpact();
                               setState(() => _pushNotifications = v);
-                              context.read<NotificationProvider>().togglePushNotifications(v);
+                              context
+                                  .read<NotificationProvider>()
+                                  .togglePushNotifications(v);
                             },
                           ),
                           _buildToggleTile(
@@ -369,13 +398,17 @@ class _SettingsPageState extends State<SettingsPage>
                           ),
                         ]),
                         const SizedBox(height: 24),
-                        _buildSectionTitle('Appearance & Language', Icons.palette_outlined, _SettingsDesign.appearanceColor),
+                        _buildSectionTitle(
+                          AppLocalizations.of(context)!.appearanceLanguage,
+                          Icons.palette_outlined,
+                          _SettingsDesign.appearanceColor,
+                        ),
                         const SizedBox(height: 12),
                         _buildSettingsCard([
                           _buildSettingsTile(
                             icon: Icons.dark_mode_outlined,
                             iconColor: const Color(0xFF6366F1),
-                            title: 'Theme',
+                            title: AppLocalizations.of(context)!.theme,
                             subtitle: _getThemeName(context),
                             onTap: () => _showThemeSheet(),
                           ),
@@ -383,13 +416,23 @@ class _SettingsPageState extends State<SettingsPage>
                             icon: Icons.language_rounded,
                             iconColor: _SettingsDesign.appearanceColor,
                             title: 'Language',
-                            subtitle: _selectedLanguage,
-                            onTap: () => _showLanguageSheet(),
+                            subtitle:
+                                Provider.of<LocaleProvider>(
+                                          context,
+                                        ).locale.languageCode ==
+                                        'ar'
+                                    ? 'العربية'
+                                    : 'English',
+                            onTap: () => _showLanguageSheet(context),
                             showDivider: false,
                           ),
                         ]),
                         const SizedBox(height: 24),
-                        _buildSectionTitle('Data & Storage', Icons.storage_outlined, _SettingsDesign.dataColor),
+                        _buildSectionTitle(
+                          'Data & Storage',
+                          Icons.storage_outlined,
+                          _SettingsDesign.dataColor,
+                        ),
                         const SizedBox(height: 12),
                         _buildSettingsCard([
                           _buildSettingsTile(
@@ -416,7 +459,11 @@ class _SettingsPageState extends State<SettingsPage>
                           ),
                         ]),
                         const SizedBox(height: 24),
-                        _buildSectionTitle('About', Icons.info_outline_rounded, _SettingsDesign.textSecondary),
+                        _buildSectionTitle(
+                          'About',
+                          Icons.info_outline_rounded,
+                          _SettingsDesign.textSecondary,
+                        ),
                         const SizedBox(height: 12),
                         _buildSettingsCard([
                           _buildSettingsTile(
@@ -471,18 +518,26 @@ class _SettingsPageState extends State<SettingsPage>
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.white),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
+                        size: 20,
+                        color: Colors.white,
+                      ),
                       onPressed: () {
                         HapticFeedback.lightImpact();
                         Navigator.pop(context);
                       },
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Settings',
+                      AppLocalizations.of(context)!.settings,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 48),
@@ -522,13 +577,15 @@ class _SettingsPageState extends State<SettingsPage>
                   ),
                 ],
               ),
-              child: _user?.profileImage != null && _user!.profileImage!.isNotEmpty
+              child:
+                  _user?.profileImage != null && _user!.profileImage!.isNotEmpty
                       ? ClipOval(
                         child: CachedNetworkImage(
                           imageUrl: _user!.profileImage!,
                           fit: BoxFit.cover,
                           placeholder: (_, __) => _buildAvatarPlaceholder(),
-                          errorWidget: (_, __, ___) => _buildAvatarPlaceholder(),
+                          errorWidget:
+                              (_, __, ___) => _buildAvatarPlaceholder(),
                         ),
                       )
                       : _buildAvatarPlaceholder(),
@@ -544,7 +601,11 @@ class _SettingsPageState extends State<SettingsPage>
                     Flexible(
                       child: Text(
                         _user?.name ?? 'User',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _SettingsDesign.textPrimary),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: _SettingsDesign.textPrimary,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -552,8 +613,15 @@ class _SettingsPageState extends State<SettingsPage>
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(color: _SettingsDesign.primaryGreen, shape: BoxShape.circle),
-                        child: const Icon(Icons.check, size: 12, color: Colors.white),
+                        decoration: const BoxDecoration(
+                          color: _SettingsDesign.primaryGreen,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          size: 12,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ],
@@ -561,19 +629,30 @@ class _SettingsPageState extends State<SettingsPage>
                 const SizedBox(height: 4),
                 Text(
                   _user?.email ?? 'email@example.com',
-                  style: const TextStyle(fontSize: 14, color: _SettingsDesign.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: _SettingsDesign.textSecondary,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: _SettingsDesign.primaryGreen.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     _user?.role.toUpperCase() ?? 'CUSTOMER',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _SettingsDesign.primaryGreen, letterSpacing: 0.5),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: _SettingsDesign.primaryGreen,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
               ],
@@ -586,7 +665,11 @@ class _SettingsPageState extends State<SettingsPage>
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
-              icon: const Icon(Icons.edit_outlined, color: _SettingsDesign.primaryGreen, size: 22),
+              icon: const Icon(
+                Icons.edit_outlined,
+                color: _SettingsDesign.primaryGreen,
+                size: 22,
+              ),
               onPressed: () => _navigateToAccount(),
               constraints: const BoxConstraints(),
               padding: EdgeInsets.zero,
@@ -601,7 +684,11 @@ class _SettingsPageState extends State<SettingsPage>
     return Center(
       child: Text(
         _getInitials(_user?.name),
-        style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 26,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -622,7 +709,12 @@ class _SettingsPageState extends State<SettingsPage>
           const SizedBox(width: 10),
           Text(
             title,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _SettingsDesign.textSecondary, letterSpacing: 0.3),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: _SettingsDesign.textSecondary,
+              letterSpacing: 0.3,
+            ),
           ),
         ],
       ),
@@ -678,17 +770,31 @@ class _SettingsPageState extends State<SettingsPage>
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _SettingsDesign.textPrimary),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: _SettingsDesign.textPrimary,
+                          ),
                         ),
                         if (subtitle != null) ...[
                           const SizedBox(height: 2),
-                          Text(subtitle, style: const TextStyle(fontSize: 13, color: _SettingsDesign.textSecondary)),
+                          Text(
+                            subtitle,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: _SettingsDesign.textSecondary,
+                            ),
+                          ),
                         ],
                       ],
                     ),
                   ),
                   if (trailing != null) ...[trailing, const SizedBox(width: 8)],
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: _SettingsDesign.textMuted),
+                  const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 16,
+                    color: _SettingsDesign.textMuted,
+                  ),
                 ],
               ),
             ),
@@ -697,7 +803,10 @@ class _SettingsPageState extends State<SettingsPage>
         if (showDivider)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Divider(height: 1, color: _SettingsDesign.divider.withOpacity(0.5)),
+            child: Divider(
+              height: 1,
+              color: _SettingsDesign.divider.withOpacity(0.5),
+            ),
           ),
       ],
     );
@@ -733,11 +842,21 @@ class _SettingsPageState extends State<SettingsPage>
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _SettingsDesign.textPrimary),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: _SettingsDesign.textPrimary,
+                      ),
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
-                      Text(subtitle, style: const TextStyle(fontSize: 13, color: _SettingsDesign.textSecondary)),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: _SettingsDesign.textSecondary,
+                        ),
+                      ),
                     ],
                   ],
                 ),
@@ -748,7 +867,9 @@ class _SettingsPageState extends State<SettingsPage>
                   value: value,
                   onChanged: onChanged,
                   activeColor: _SettingsDesign.primaryGreen,
-                  activeTrackColor: _SettingsDesign.primaryGreen.withOpacity(0.3),
+                  activeTrackColor: _SettingsDesign.primaryGreen.withOpacity(
+                    0.3,
+                  ),
                 ),
               ),
             ],
@@ -757,7 +878,10 @@ class _SettingsPageState extends State<SettingsPage>
         if (showDivider)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Divider(height: 1, color: _SettingsDesign.divider.withOpacity(0.5)),
+            child: Divider(
+              height: 1,
+              color: _SettingsDesign.divider.withOpacity(0.5),
+            ),
           ),
       ],
     );
@@ -772,7 +896,11 @@ class _SettingsPageState extends State<SettingsPage>
       ),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _SettingsDesign.primaryGreen),
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: _SettingsDesign.primaryGreen,
+        ),
       ),
     );
   }
@@ -792,7 +920,14 @@ class _SettingsPageState extends State<SettingsPage>
           children: [
             Icon(Icons.logout_rounded, color: _SettingsDesign.danger, size: 22),
             SizedBox(width: 10),
-            Text('Sign Out', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: _SettingsDesign.danger)),
+            Text(
+              'Sign Out',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: _SettingsDesign.danger,
+              ),
+            ),
           ],
         ),
       ),
@@ -802,11 +937,27 @@ class _SettingsPageState extends State<SettingsPage>
   Widget _buildAppVersion() {
     return Column(
       children: [
-        const Text('Housepital', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _SettingsDesign.textSecondary)),
+        const Text(
+          'Housepital',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: _SettingsDesign.textSecondary,
+          ),
+        ),
         const SizedBox(height: 4),
-        const Text('Version 1.0.0', style: TextStyle(fontSize: 13, color: _SettingsDesign.textMuted)),
+        const Text(
+          'Version 1.0.0',
+          style: TextStyle(fontSize: 13, color: _SettingsDesign.textMuted),
+        ),
         const SizedBox(height: 8),
-        Text('© ${DateTime.now().year} Housepital. All rights reserved.', style: const TextStyle(fontSize: 12, color: _SettingsDesign.textMuted)),
+        Text(
+          '© ${DateTime.now().year} Housepital. All rights reserved.',
+          style: const TextStyle(
+            fontSize: 12,
+            color: _SettingsDesign.textMuted,
+          ),
+        ),
       ],
     );
   }
@@ -825,9 +976,12 @@ class _SettingsPageState extends State<SettingsPage>
   String _getThemeName(BuildContext context) {
     final themeMode = context.watch<ThemeProvider>().themeMode;
     switch (themeMode) {
-      case ThemeMode.system: return 'System Default';
-      case ThemeMode.light: return 'Light Mode';
-      case ThemeMode.dark: return 'Dark Mode';
+      case ThemeMode.system:
+        return 'System Default';
+      case ThemeMode.light:
+        return 'Light Mode';
+      case ThemeMode.dark:
+        return 'Dark Mode';
     }
   }
 
@@ -839,30 +993,63 @@ class _SettingsPageState extends State<SettingsPage>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 20),
-            const Text('Select Theme', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            _buildThemeOption('System Default', ThemeMode.system, currentMode, themeProvider),
-            _buildThemeOption('Light Mode', ThemeMode.light, currentMode, themeProvider),
-            _buildThemeOption('Dark Mode', ThemeMode.dark, currentMode, themeProvider),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Select Theme',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                _buildThemeOption(
+                  'System Default',
+                  ThemeMode.system,
+                  currentMode,
+                  themeProvider,
+                ),
+                _buildThemeOption(
+                  'Light Mode',
+                  ThemeMode.light,
+                  currentMode,
+                  themeProvider,
+                ),
+                _buildThemeOption(
+                  'Dark Mode',
+                  ThemeMode.dark,
+                  currentMode,
+                  themeProvider,
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
     );
   }
 
-  Widget _buildThemeOption(String title, ThemeMode mode, ThemeMode currentMode, ThemeProvider provider) {
+  Widget _buildThemeOption(
+    String title,
+    ThemeMode mode,
+    ThemeMode currentMode,
+    ThemeProvider provider,
+  ) {
     final isSelected = currentMode == mode;
     return GestureDetector(
       onTap: () {
@@ -874,39 +1061,90 @@ class _SettingsPageState extends State<SettingsPage>
         padding: const EdgeInsets.all(16),
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: isSelected ? _SettingsDesign.primaryGreen.withOpacity(0.1) : _SettingsDesign.surface,
+          color:
+              isSelected
+                  ? _SettingsDesign.primaryGreen.withOpacity(0.1)
+                  : _SettingsDesign.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.divider),
+          border: Border.all(
+            color:
+                isSelected
+                    ? _SettingsDesign.primaryGreen
+                    : _SettingsDesign.divider,
+          ),
         ),
         child: Row(
           children: [
             Expanded(
-              child: Text(title, style: TextStyle(fontSize: 16, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.textPrimary)),
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color:
+                      isSelected
+                          ? _SettingsDesign.primaryGreen
+                          : _SettingsDesign.textPrimary,
+                ),
+              ),
             ),
-            if (isSelected) const Icon(Icons.check_circle, color: _SettingsDesign.primaryGreen, size: 22),
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: _SettingsDesign.primaryGreen,
+                size: 22,
+              ),
           ],
         ),
       ),
     );
   }
 
-  void _showLanguageSheet() {
+  void _showLanguageSheet(BuildContext context) {
     HapticFeedback.mediumImpact();
-    final languages = ['English', 'العربية', 'Français', 'Español', 'Deutsch'];
+    // For now, only English and Arabic are fully supported
+    final languages = [
+      {'code': 'en', 'name': 'English'},
+      {'code': 'ar', 'name': 'العربية'},
+    ];
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
+      builder:
+          (bottomSheetContext) => Container(
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
                 const SizedBox(height: 20),
-                const Text('Select Language', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: _SettingsDesign.textPrimary)),
+                Text(
+                  AppLocalizations.of(context)!.selectLanguage,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: _SettingsDesign.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 20),
-                ...languages.map((lang) => _buildLanguageOption(lang)),
+                ...languages.map(
+                  (lang) => _buildLanguageOption(
+                    context,
+                    lang['name']!,
+                    lang['code']!,
+                  ),
+                ),
                 const SizedBox(height: 16),
               ],
             ),
@@ -914,28 +1152,56 @@ class _SettingsPageState extends State<SettingsPage>
     );
   }
 
-  Widget _buildLanguageOption(String language) {
-    final isSelected = _selectedLanguage == language;
+  Widget _buildLanguageOption(
+    BuildContext context,
+    String languageName,
+    String languageCode,
+  ) {
+    final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
+    final isSelected = localeProvider.locale.languageCode == languageCode;
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
-        setState(() => _selectedLanguage = language);
+        localeProvider.setLocale(Locale(languageCode));
         Navigator.pop(context);
       },
       child: Container(
         padding: const EdgeInsets.all(16),
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: isSelected ? _SettingsDesign.primaryGreen.withOpacity(0.1) : _SettingsDesign.surface,
+          color:
+              isSelected
+                  ? _SettingsDesign.primaryGreen.withOpacity(0.1)
+                  : _SettingsDesign.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.divider),
+          border: Border.all(
+            color:
+                isSelected
+                    ? _SettingsDesign.primaryGreen
+                    : _SettingsDesign.divider,
+          ),
         ),
         child: Row(
           children: [
             Expanded(
-              child: Text(language, style: TextStyle(fontSize: 16, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: isSelected ? _SettingsDesign.primaryGreen : _SettingsDesign.textPrimary)),
+              child: Text(
+                languageName,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color:
+                      isSelected
+                          ? _SettingsDesign.primaryGreen
+                          : _SettingsDesign.textPrimary,
+                ),
+              ),
             ),
-            if (isSelected) const Icon(Icons.check_circle, color: _SettingsDesign.primaryGreen, size: 22),
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: _SettingsDesign.primaryGreen,
+                size: 22,
+              ),
           ],
         ),
       ),
@@ -946,19 +1212,45 @@ class _SettingsPageState extends State<SettingsPage>
     HapticFeedback.mediumImpact();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text('Clear Cache', style: TextStyle(fontWeight: FontWeight.bold)),
-            content: const Text('This will clear all cached images and data. The app might load slower temporarily.'),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text(
+              'Clear Cache',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: const Text(
+              'This will clear all cached images and data. The app might load slower temporarily.',
+            ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: _SettingsDesign.textSecondary))),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: _SettingsDesign.textSecondary),
+                ),
+              ),
               TextButton(
                 onPressed: () {
                   HapticFeedback.heavyImpact();
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('Cache cleared'), backgroundColor: _SettingsDesign.primaryGreen, behavior: SnackBarBehavior.floating));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Cache cleared'),
+                      backgroundColor: _SettingsDesign.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
                 },
-                child: const Text('Clear', style: TextStyle(color: _SettingsDesign.danger, fontWeight: FontWeight.w600)),
+                child: const Text(
+                  'Clear',
+                  style: TextStyle(
+                    color: _SettingsDesign.danger,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -969,19 +1261,45 @@ class _SettingsPageState extends State<SettingsPage>
     HapticFeedback.mediumImpact();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text('Clear AI History', style: TextStyle(fontWeight: FontWeight.bold)),
-            content: const Text('This will permanently delete all your AI chat history. This action cannot be undone.'),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text(
+              'Clear AI History',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: const Text(
+              'This will permanently delete all your AI chat history. This action cannot be undone.',
+            ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: _SettingsDesign.textSecondary))),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: _SettingsDesign.textSecondary),
+                ),
+              ),
               TextButton(
                 onPressed: () {
                   HapticFeedback.heavyImpact();
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('AI history cleared'), backgroundColor: _SettingsDesign.primaryGreen, behavior: SnackBarBehavior.floating));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('AI history cleared'),
+                      backgroundColor: _SettingsDesign.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
                 },
-                child: const Text('Clear', style: TextStyle(color: _SettingsDesign.danger, fontWeight: FontWeight.w600)),
+                child: const Text(
+                  'Clear',
+                  style: TextStyle(
+                    color: _SettingsDesign.danger,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -992,8 +1310,11 @@ class _SettingsPageState extends State<SettingsPage>
     HapticFeedback.mediumImpact();
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      builder:
+          (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -1001,21 +1322,56 @@ class _SettingsPageState extends State<SettingsPage>
                 children: [
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: _SettingsDesign.danger.withOpacity(0.1), shape: BoxShape.circle),
-                    child: const Icon(Icons.logout_rounded, color: _SettingsDesign.danger, size: 32),
+                    decoration: BoxDecoration(
+                      color: _SettingsDesign.danger.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.logout_rounded,
+                      color: _SettingsDesign.danger,
+                      size: 32,
+                    ),
                   ),
                   const SizedBox(height: 20),
-                  const Text('Sign Out?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: _SettingsDesign.textPrimary)),
+                  const Text(
+                    'Sign Out?',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: _SettingsDesign.textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  const Text('Are you sure you want to sign out of your account?', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: _SettingsDesign.textSecondary)),
+                  const Text(
+                    'Are you sure you want to sign out of your account?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: _SettingsDesign.textSecondary,
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   Row(
                     children: [
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), side: const BorderSide(color: _SettingsDesign.divider), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                          child: const Text('Cancel', style: TextStyle(color: _SettingsDesign.textSecondary, fontWeight: FontWeight.w600)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(
+                              color: _SettingsDesign.divider,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: _SettingsDesign.textSecondary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -1023,17 +1379,36 @@ class _SettingsPageState extends State<SettingsPage>
                         child: ElevatedButton(
                           onPressed: () async {
                             Navigator.pop(context);
-                            context.read<NotificationProvider>().disconnectSocket();
+                            context
+                                .read<NotificationProvider>()
+                                .disconnectSocket();
                             await TokenManager.deleteToken();
                             await TokenManager.deleteUserId();
                             await TokenManager.deleteUserRole();
                             // Keep biometric credentials for next login
                             if (context.mounted) {
-                              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginPage()), (route) => false);
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginPage(),
+                                ),
+                                (route) => false,
+                              );
                             }
                           },
-                          style: ElevatedButton.styleFrom(backgroundColor: _SettingsDesign.danger, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                          child: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.w600)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _SettingsDesign.danger,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Sign Out',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ),
                     ],

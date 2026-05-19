@@ -9,6 +9,7 @@ import '../../../../core/widgets/custom_popup.dart';
 import '../../data/datasources/cloudinary_service.dart';
 import '../../data/datasources/profile_remote_datasource.dart';
 import '../../../../core/network/api_service.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class ScanNationalIDPage extends StatefulWidget {
   final bool isFrontSide;
@@ -113,6 +114,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
   }
 
   Future<void> _takePhoto() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
@@ -129,12 +131,13 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
       }
     } catch (e) {
       if (mounted) {
-        CustomPopup.error(context, 'Failed to open camera');
+        CustomPopup.error(context, l10n.cameraError);
       }
     }
   }
 
   Future<void> _uploadFromGallery() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -150,7 +153,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
       }
     } catch (e) {
       if (mounted) {
-        CustomPopup.error(context, 'Failed to open gallery');
+        CustomPopup.error(context, l10n.galleryError);
       }
     }
   }
@@ -166,6 +169,8 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
 
   Widget _buildPreviewSheet() {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       height: size.height * 0.85,
       decoration: const BoxDecoration(
@@ -189,7 +194,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
           Padding(
             padding: const EdgeInsets.all(20),
             child: Text(
-              widget.isFrontSide ? 'Front ID Preview' : 'Back ID Preview',
+              l10n.idPreview(widget.isFrontSide ? l10n.frontSide : l10n.backSide),
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -217,7 +222,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                 child:
                     _imageFile != null
                         ? Image.file(_imageFile!, fit: BoxFit.contain)
-                        : const Center(child: Text('No image')),
+                        : Center(child: Text(l10n.noImageError)),
               ),
             ),
           ),
@@ -231,7 +236,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                 Icon(Icons.info_outline, color: Colors.grey[600], size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  'Make sure all details are clear and readable',
+                  l10n.clearReadablePrompt,
                   style: TextStyle(color: Colors.grey[600], fontSize: 13),
                 ),
               ],
@@ -251,7 +256,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                       setState(() => _imageFile = null);
                     },
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Retake'),
+                    label: Text(l10n.retake),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF667eea),
                       side: const BorderSide(color: Color(0xFF667eea)),
@@ -273,7 +278,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                       _processAndProceed();
                     },
                     icon: const Icon(Icons.check),
-                    label: Text(widget.isFrontSide ? 'Continue' : 'Upload'),
+                    label: Text(widget.isFrontSide ? l10n.continueButton : l10n.upload),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF667eea),
                       foregroundColor: Colors.white,
@@ -294,6 +299,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
 
   Future<void> _processAndProceed() async {
     if (_imageFile == null) return;
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       // If this is the front side, proceed to back side with the image path
@@ -349,10 +355,6 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
             folder: CloudinaryFolder.idDocuments,
           );
 
-          debugPrint(
-            '📤 Front upload result: ${frontResult.success}, ${frontResult.url ?? frontResult.error}',
-          );
-
           if (!frontResult.success) {
             throw Exception('Failed to upload front ID: ${frontResult.error}');
           }
@@ -362,10 +364,6 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
           final backResult = await _cloudinaryService.uploadFile(
             _imageFile!,
             folder: CloudinaryFolder.idDocuments,
-          );
-
-          debugPrint(
-            '📤 Back upload result: ${backResult.success}, ${backResult.url ?? backResult.error}',
           );
 
           if (!backResult.success) {
@@ -402,7 +400,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
             // Show actual error message
             CustomPopup.error(
               context,
-              'Upload failed: ${e.toString().replaceAll('Exception:', '').trim()}',
+              l10n.uploadFailed(e.toString().replaceAll('Exception:', '').trim()),
             );
           }
         }
@@ -413,7 +411,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
           _isProcessing = false;
           _isUploading = false;
         });
-        CustomPopup.error(context, 'Failed to process image');
+        CustomPopup.error(context, l10n.processImageError);
       }
     }
   }
@@ -421,6 +419,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -441,10 +440,10 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                     child: Column(
                       children: [
                         // App Bar
-                        _buildAppBar(),
+                        _buildAppBar(l10n),
 
                         // Progress Indicator
-                        _buildProgressIndicator(),
+                        _buildProgressIndicator(l10n),
 
                         // Content
                         Expanded(
@@ -456,22 +455,22 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                                 const SizedBox(height: 24),
 
                                 // Header
-                                _buildHeader(),
+                                _buildHeader(l10n),
 
                                 const SizedBox(height: 32),
 
                                 // ID Card Frame
-                                _buildIDCardFrame(),
+                                _buildIDCardFrame(l10n),
 
                                 const SizedBox(height: 32),
 
                                 // Instructions
-                                _buildInstructions(),
+                                _buildInstructions(l10n),
 
                                 const SizedBox(height: 32),
 
                                 // Buttons
-                                _buildButtons(),
+                                _buildButtons(l10n),
 
                                 const SizedBox(height: 40),
                               ],
@@ -487,10 +486,10 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
           ),
 
           // Processing Overlay
-          if (_isProcessing) _buildProcessingOverlay(),
+          if (_isProcessing) _buildProcessingOverlay(l10n),
 
           // Uploading Overlay
-          if (_isUploading) _buildUploadingOverlay(),
+          if (_isUploading) _buildUploadingOverlay(l10n),
         ],
       ),
     );
@@ -572,7 +571,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
     });
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -593,11 +592,11 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
             ),
           ),
 
-          const Expanded(
+          Expanded(
             child: Text(
-              'Identity Verification',
+              l10n.idVerificationTitle,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -612,18 +611,18 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
     );
   }
 
-  Widget _buildProgressIndicator() {
+  Widget _buildProgressIndicator(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         children: [
           Row(
             children: [
-              _buildStepDot(1, true, 'Info'),
+              _buildStepDot(1, true, l10n.stepInfo),
               _buildStepLine(true),
-              _buildStepDot(2, true, 'Medical'),
+              _buildStepDot(2, true, l10n.stepMedical),
               _buildStepLine(true),
-              _buildStepDot(3, true, 'ID'),
+              _buildStepDot(3, true, l10n.stepId),
             ],
           ),
         ],
@@ -714,7 +713,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Column(
       children: [
         Row(
@@ -739,7 +738,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.isFrontSide ? 'Scan Front Side' : 'Scan Back Side',
+                    widget.isFrontSide ? l10n.scanFrontSide : l10n.scanBackSide,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -748,7 +747,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Step ${widget.isFrontSide ? "1" : "2"} of 2',
+                    l10n.stepXofY(widget.isFrontSide ? 1 : 2, 2),
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
@@ -772,7 +771,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
               // Front side indicator
               Expanded(
                 child: _buildSideIndicator(
-                  'Front',
+                  l10n.frontLabel,
                   Icons.credit_card_rounded,
                   true,
                   !widget.isFrontSide,
@@ -792,7 +791,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
               // Back side indicator
               Expanded(
                 child: _buildSideIndicator(
-                  'Back',
+                  l10n.backLabel,
                   Icons.flip_rounded,
                   !widget.isFrontSide,
                   false,
@@ -866,7 +865,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
     );
   }
 
-  Widget _buildIDCardFrame() {
+  Widget _buildIDCardFrame(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _pulseController,
       builder: (context, child) {
@@ -940,8 +939,8 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
 
                         Text(
                           widget.isFrontSide
-                              ? 'Position Front Side of ID'
-                              : 'Position Back Side of ID',
+                              ? l10n.positionFrontId
+                              : l10n.positionBackId,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -952,7 +951,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                         const SizedBox(height: 8),
 
                         Text(
-                          'Keep the card within the frame',
+                          l10n.keepWithinFrame,
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey.shade500,
@@ -1067,21 +1066,21 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
     ];
   }
 
-  Widget _buildInstructions() {
+  Widget _buildInstructions(AppLocalizations l10n) {
     final instructions = [
       {
         'icon': Icons.light_mode_rounded,
-        'text': 'Ensure good lighting',
+        'text': l10n.goodLighting,
         'color': AppColors.warning500,
       },
       {
         'icon': Icons.straighten_rounded,
-        'text': 'Keep ID flat and aligned',
+        'text': l10n.flatAligned,
         'color': AppColors.info500,
       },
       {
         'icon': Icons.blur_off_rounded,
-        'text': 'Avoid blur and reflections',
+        'text': l10n.avoidBlur,
         'color': AppColors.error500,
       },
     ];
@@ -1089,9 +1088,9 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Tips for best results',
-          style: TextStyle(
+        Text(
+          l10n.tipsForResults,
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
@@ -1128,7 +1127,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
     );
   }
 
-  Widget _buildButtons() {
+  Widget _buildButtons(AppLocalizations l10n) {
     return Column(
       children: [
         // Take Photo Button
@@ -1152,7 +1151,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                 const Icon(Icons.camera_alt_rounded, size: 24),
                 const SizedBox(width: 12),
                 Text(
-                  'Take Photo',
+                  l10n.takePhoto,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -1183,9 +1182,9 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
               children: [
                 const Icon(Icons.photo_library_rounded, size: 24),
                 const SizedBox(width: 12),
-                const Text(
-                  'Upload from Gallery',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  l10n.uploadGallery,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -1195,7 +1194,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
     );
   }
 
-  Widget _buildProcessingOverlay() {
+  Widget _buildProcessingOverlay(AppLocalizations l10n) {
     return Container(
       color: Colors.black.withValues(alpha: 0.7),
       child: Center(
@@ -1220,9 +1219,9 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Processing Image...',
-                style: TextStyle(
+              Text(
+                l10n.processingImage,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -1230,7 +1229,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
               ),
               const SizedBox(height: 8),
               Text(
-                'Please wait',
+                l10n.pleaseWait,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
             ],
@@ -1240,7 +1239,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
     );
   }
 
-  Widget _buildUploadingOverlay() {
+  Widget _buildUploadingOverlay(AppLocalizations l10n) {
     return Container(
       color: Colors.black.withValues(alpha: 0.7),
       child: Center(
@@ -1275,9 +1274,9 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Uploading Documents...',
-                style: TextStyle(
+              Text(
+                l10n.uploadingDocs,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -1285,7 +1284,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
               ),
               const SizedBox(height: 8),
               Text(
-                'Securely saving your ID',
+                l10n.securelySavingId,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 16),
@@ -1299,7 +1298,7 @@ class _ScanNationalIDPageState extends State<ScanNationalIDPage>
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'End-to-end encrypted',
+                    l10n.encryptedConnection,
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                   ),
                 ],

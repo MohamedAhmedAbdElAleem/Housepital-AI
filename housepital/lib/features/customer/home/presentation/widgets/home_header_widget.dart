@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../../../../../core/providers/notification_provider.dart';
 import '../../../../notifications/presentation/pages/notifications_page.dart';
-import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../../../core/constants/app_colors.dart';
 
 class HomeHeaderWidget extends StatelessWidget {

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class VerifyIdentityPage extends StatefulWidget {
   const VerifyIdentityPage({super.key});
@@ -94,6 +95,7 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -114,7 +116,7 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
                     child: Column(
                       children: [
                         // Skip button
-                        _buildTopBar(),
+                        _buildTopBar(l10n),
 
                         // Content
                         Expanded(
@@ -131,12 +133,12 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
                                 const SizedBox(height: 40),
 
                                 // Title and description
-                                _buildContent(),
+                                _buildContent(l10n),
 
                                 const SizedBox(height: 40),
 
                                 // Features list
-                                _buildFeaturesList(),
+                                _buildFeaturesList(l10n),
 
                                 const SizedBox(height: 40),
                               ],
@@ -145,7 +147,7 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
                         ),
 
                         // Bottom buttons
-                        _buildBottomButtons(),
+                        _buildBottomButtons(l10n),
                       ],
                     ),
                   ),
@@ -241,7 +243,7 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
     });
   }
 
-  Widget _buildTopBar() {
+  Widget _buildTopBar(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -269,7 +271,7 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
               Navigator.pushReplacementNamed(context, AppRoutes.login);
             },
             child: Text(
-              'Skip for now',
+              l10n.skipForNow,
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontWeight: FontWeight.w500,
@@ -435,13 +437,13 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
     ];
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(AppLocalizations l10n) {
     return Column(
       children: [
-        const Text(
-          'Verify Your Identity',
+        Text(
+          l10n.verifyIdentityTitle,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
@@ -452,7 +454,7 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
         const SizedBox(height: 16),
 
         Text(
-          'As a licensed medical service, we need to verify your identity to ensure safety and trust for everyone.',
+          l10n.verifyIdentityDesc,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 16,
@@ -464,24 +466,24 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
     );
   }
 
-  Widget _buildFeaturesList() {
+  Widget _buildFeaturesList(AppLocalizations l10n) {
     final features = [
       {
         'icon': Icons.shield_rounded,
-        'title': 'Secure & Private',
-        'description': 'Your data is encrypted and protected',
+        'title': l10n.securePrivateTitle,
+        'description': l10n.securePrivateDesc,
         'color': AppColors.success500,
       },
       {
         'icon': Icons.speed_rounded,
-        'title': 'Quick Process',
-        'description': 'Verification takes less than 2 minutes',
+        'title': l10n.quickProcessTitle,
+        'description': l10n.quickProcessDesc,
         'color': AppColors.info500,
       },
       {
         'icon': Icons.verified_rounded,
-        'title': 'One-Time Only',
-        'description': 'Verify once, access all services',
+        'title': l10n.oneTimeOnlyTitle,
+        'description': l10n.oneTimeOnlyDesc,
         'color': AppColors.warning500,
       },
     ];
@@ -564,7 +566,7 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
     );
   }
 
-  Widget _buildBottomButtons() {
+  Widget _buildBottomButtons(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -599,14 +601,14 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.verified_user_rounded, size: 22),
-                    SizedBox(width: 10),
+                    const Icon(Icons.verified_user_rounded, size: 22),
+                    const SizedBox(width: 10),
                     Text(
-                      'Verify Now',
-                      style: TextStyle(
+                      l10n.verifyNowButton,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -624,7 +626,7 @@ class _VerifyIdentityPageState extends State<VerifyIdentityPage>
                 Navigator.pushReplacementNamed(context, AppRoutes.login);
               },
               child: Text(
-                'I\'ll do this later',
+                l10n.doItLater,
                 style: TextStyle(
                   fontSize: 15,
                   color: Colors.grey.shade600,

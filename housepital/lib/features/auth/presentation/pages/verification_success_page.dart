@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class VerificationSuccessPage extends StatefulWidget {
   const VerificationSuccessPage({super.key});
@@ -157,6 +158,7 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Stack(
@@ -181,22 +183,22 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
                     SizedBox(height: size.height * 0.06),
 
                     // Header with badge
-                    _buildHeader(),
+                    _buildHeader(l10n),
 
                     const SizedBox(height: 30),
 
                     // Main card
-                    _buildMainCard(),
+                    _buildMainCard(l10n),
 
                     const SizedBox(height: 24),
 
                     // Benefits section
-                    _buildBenefitsSection(),
+                    _buildBenefitsSection(l10n),
 
                     const SizedBox(height: 30),
 
                     // Continue button
-                    _buildContinueButton(),
+                    _buildContinueButton(l10n),
 
                     const SizedBox(height: 40),
                   ],
@@ -342,7 +344,7 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: Listenable.merge([_mainController, _pulseController]),
       builder: (context, child) {
@@ -423,10 +425,10 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
               ),
               const SizedBox(height: 24),
               // Title
-              const Text(
-                'Verification\nSuccessful! 🎉',
+              Text(
+                l10n.verificationSuccessTitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -443,7 +445,7 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
               ),
               const SizedBox(height: 12),
               Text(
-                'Your identity has been verified successfully',
+                l10n.verificationSuccessSubtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -458,7 +460,7 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
     );
   }
 
-  Widget _buildMainCard() {
+  Widget _buildMainCard(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _mainController,
       builder: (context, child) {
@@ -485,26 +487,29 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
             // Status row
             _buildStatusItem(
               icon: Icons.person_rounded,
-              title: 'Identity Verified',
-              subtitle: 'Your ID has been confirmed',
+              title: l10n.identityVerified,
+              subtitle: l10n.idConfirmed,
               color: AppColors.success500,
               isCompleted: true,
+              doneText: l10n.done,
             ),
             const SizedBox(height: 16),
             _buildStatusItem(
               icon: Icons.badge_rounded,
-              title: 'Documents Approved',
-              subtitle: 'All documents are valid',
+              title: l10n.documentsApproved,
+              subtitle: l10n.documentsValid,
               color: AppColors.success500,
               isCompleted: true,
+              doneText: l10n.done,
             ),
             const SizedBox(height: 16),
             _buildStatusItem(
               icon: Icons.verified_user_rounded,
-              title: 'Account Secured',
-              subtitle: 'Your account is protected',
+              title: l10n.accountSecured,
+              subtitle: l10n.accountProtected,
               color: AppColors.success500,
               isCompleted: true,
+              doneText: l10n.done,
             ),
           ],
         ),
@@ -518,6 +523,7 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
     required String subtitle,
     required Color color,
     required bool isCompleted,
+    required String doneText,
   }) {
     return Row(
       children: [
@@ -585,7 +591,7 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
               Icon(Icons.check_rounded, color: color, size: 14),
               const SizedBox(width: 4),
               Text(
-                'Done',
+                doneText,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -599,7 +605,7 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
     );
   }
 
-  Widget _buildBenefitsSection() {
+  Widget _buildBenefitsSection(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _mainController,
       builder: (context, child) {
@@ -633,9 +639,9 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'What You Can Do Now',
-                  style: TextStyle(
+                Text(
+                  l10n.whatYouCanDo,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -646,19 +652,19 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
             const SizedBox(height: 16),
             _buildBenefitItem(
               Icons.medical_services_rounded,
-              'Book medical services',
+              l10n.bookServices,
             ),
             const SizedBox(height: 10),
-            _buildBenefitItem(Icons.home_rounded, 'Request home visits'),
+            _buildBenefitItem(Icons.home_rounded, l10n.requestVisits),
             const SizedBox(height: 10),
             _buildBenefitItem(
               Icons.chat_rounded,
-              'Chat with healthcare providers',
+              l10n.chatProviders,
             ),
             const SizedBox(height: 10),
             _buildBenefitItem(
               Icons.history_rounded,
-              'Access your medical history',
+              l10n.accessHistory,
             ),
           ],
         ),
@@ -682,7 +688,7 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
     );
   }
 
-  Widget _buildContinueButton() {
+  Widget _buildContinueButton(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _mainController,
       builder: (context, child) {
@@ -715,9 +721,9 @@ class _VerificationSuccessPageState extends State<VerificationSuccessPage>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Continue to Login',
-                    style: TextStyle(
+                  Text(
+                    l10n.continueToLogin,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.3,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class VerifyingIdentityPage extends StatefulWidget {
   const VerifyingIdentityPage({super.key});
@@ -33,6 +33,8 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.primary500,
       body: SafeArea(
@@ -146,10 +148,10 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
                   const SizedBox(height: 40),
 
                   // العنوان
-                  const Text(
-                    'Documents Submitted!',
+                  Text(
+                    l10n.docsSubmittedTitle,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
@@ -161,7 +163,7 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
 
                   // النص الوصفي
                   Text(
-                    'Your ID has been sent for review.\nOur team will verify it shortly.',
+                    l10n.docsSubmittedDesc,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -196,7 +198,7 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Pending Admin Review',
+                          l10n.pendingAdminReview,
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.orange.shade800,
@@ -234,7 +236,7 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Usually takes 24-48 hours',
+                          l10n.takes24to48Hours,
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey.shade700,
@@ -269,9 +271,9 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
                       elevation: 2,
                     ),
                     icon: const Icon(Icons.check_circle_rounded, size: 22),
-                    label: const Text(
-                      'Got it, Continue',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.gotItContinue,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -282,7 +284,7 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage>
 
                   // نص توضيحي
                   Text(
-                    'You can start using the app while we review',
+                    l10n.reviewNotice,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                   ),

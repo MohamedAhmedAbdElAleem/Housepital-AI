@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/network/api_constants.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../widgets/medical_record_card.dart';

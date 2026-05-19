@@ -8,6 +8,7 @@ import '../../../../core/network/api_service.dart';
 import '../../../../core/network/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/widgets/custom_popup.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class ResetPasswordOtpPage extends StatefulWidget {
   final String email;
@@ -171,9 +172,10 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
   String get _otpCode => _controllers.map((c) => c.text).join();
 
   Future<void> _verifyOTP() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_otpCode.length != 6) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please enter the complete 6-digit code');
+      CustomPopup.warning(context, l10n.warningCompleteOtp);
       return;
     }
 
@@ -191,7 +193,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
         if (response['success'] == true) {
           setState(() => _isSuccess = true);
           _successController.forward();
-          CustomPopup.success(context, 'Code verified successfully!');
+          CustomPopup.success(context, l10n.otpVerifySuccess);
           Future.delayed(const Duration(milliseconds: 800), () {
             if (mounted) {
               Navigator.pushReplacementNamed(
@@ -203,7 +205,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
           });
         } else {
           _triggerShake();
-          CustomPopup.error(context, response['message'] ?? 'Invalid code');
+          CustomPopup.error(context, response['message'] ?? l10n.somethingWentWrong);
           _clearFields();
         }
       }
@@ -211,18 +213,19 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
       if (mounted) {
         setState(() => _isLoading = false);
         _triggerShake();
-        CustomPopup.error(context, 'No internet connection');
+        CustomPopup.error(context, l10n.noInternet);
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
         _triggerShake();
-        CustomPopup.error(context, 'Verification failed');
+        CustomPopup.error(context, l10n.somethingWentWrong);
       }
     }
   }
 
   Future<void> _resendOTP() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_canResend) return;
 
     setState(() {
@@ -236,15 +239,19 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
     try {
       final apiService = ApiService();
       await apiService.post(
-        ApiConstants.otpResend,
-        body: {'contact': widget.email},
+        ApiConstants.otpRequest,
+        body: {
+          'contact': widget.email,
+          'contactType': 'email',
+          'purpose': 'password_reset',
+        },
       );
       if (mounted) {
-        CustomPopup.success(context, 'New code sent to your email');
+        CustomPopup.success(context, l10n.newOtpSent);
       }
     } catch (e) {
       if (mounted) {
-        CustomPopup.error(context, 'Failed to resend code');
+        CustomPopup.error(context, l10n.resendFailed);
       }
     }
   }
@@ -259,6 +266,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Stack(
@@ -281,11 +289,11 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
-                      _buildHeader(),
+                      _buildHeader(l10n),
                       const SizedBox(height: 32),
-                      _buildCard(),
+                      _buildCard(l10n),
                       const SizedBox(height: 24),
-                      _buildSecurityNote(),
+                      _buildSecurityNote(l10n),
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -395,7 +403,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Column(
       children: [
         Row(
@@ -408,9 +416,9 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
           ],
         ),
         const SizedBox(height: 24),
-        const Text(
-          'Verify Your Email',
-          style: TextStyle(
+        Text(
+          l10n.verifyEmailTitle,
+          style: const TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -426,7 +434,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
         ),
         const SizedBox(height: 12),
         Text(
-          'Enter the 6-digit code sent to:',
+          l10n.otpSentSuccess,
           style: TextStyle(
             fontSize: 15,
             color: Colors.white.withValues(alpha: 0.9),
@@ -527,7 +535,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
     );
   }
 
-  Widget _buildCard() {
+  Widget _buildCard(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _shakeController,
       builder: (context, child) {
@@ -550,26 +558,26 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
         child: Column(
           children: [
             // Timer Section
-            _buildTimerSection(),
+            _buildTimerSection(l10n),
             const SizedBox(height: 28),
 
             // OTP Fields
-            _buildOTPSection(),
+            _buildOTPSection(l10n),
             const SizedBox(height: 24),
 
             // Resend Section
-            _buildResendSection(),
+            _buildResendSection(l10n),
             const SizedBox(height: 28),
 
             // Verify Button
-            _buildVerifyButton(),
+            _buildVerifyButton(l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTimerSection() {
+  Widget _buildTimerSection(AppLocalizations l10n) {
     final isExpiring = _secondsRemaining < 30;
     final isExpired = _secondsRemaining == 0;
 
@@ -619,7 +627,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isExpired ? 'Code expired' : 'Code expires in',
+                isExpired ? l10n.tooManyAttempts : l10n.codeExpiresIn,
                 style: TextStyle(
                   fontSize: 12,
                   color:
@@ -631,7 +639,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
                 ),
               ),
               Text(
-                isExpired ? 'Request new code' : _formatTime(_secondsRemaining),
+                isExpired ? l10n.accountLocked : _formatTime(_secondsRemaining),
                 style: TextStyle(
                   fontSize: isExpired ? 14 : 26,
                   fontWeight: FontWeight.bold,
@@ -651,12 +659,12 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
     );
   }
 
-  Widget _buildOTPSection() {
+  Widget _buildOTPSection(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Enter verification code',
+          l10n.enterVerificationCode,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -742,12 +750,12 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
     );
   }
 
-  Widget _buildResendSection() {
+  Widget _buildResendSection(AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "Didn't receive the code?",
+          l10n.didntReceiveCode,
           style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
         TextButton(
@@ -767,7 +775,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
               ),
               const SizedBox(width: 4),
               Text(
-                'Resend',
+                l10n.resend,
                 style: TextStyle(
                   fontSize: 14,
                   color: _canResend ? AppColors.primary500 : Colors.grey,
@@ -781,7 +789,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
     );
   }
 
-  Widget _buildVerifyButton() {
+  Widget _buildVerifyButton(AppLocalizations l10n) {
     return SizedBox(
       width: double.infinity,
       height: 58,
@@ -811,12 +819,12 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
                   : Row(
                     key: const ValueKey('button'),
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.verified_rounded, size: 22),
-                      SizedBox(width: 10),
+                    children: [
+                      const Icon(Icons.verified_rounded, size: 22),
+                      const SizedBox(width: 10),
                       Text(
-                        'Verify Code',
-                        style: TextStyle(
+                        l10n.verifyEmailButton,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.3,
@@ -829,7 +837,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
     );
   }
 
-  Widget _buildSecurityNote() {
+  Widget _buildSecurityNote(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -857,7 +865,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Security Notice',
+                  l10n.securityNotice,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -866,7 +874,7 @@ class _ResetPasswordOtpPageState extends State<ResetPasswordOtpPage>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'This code is for password reset only. Never share it with anyone.',
+                  l10n.securityNoticeDesc,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.white.withValues(alpha: 0.8),
