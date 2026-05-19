@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../chatbot/presentation/pages/chatbot_page.dart';
+import '../../../../../../generated/l10n/app_localizations.dart';
 
 class HomeAICard extends StatefulWidget {
   const HomeAICard({super.key});
@@ -10,128 +11,131 @@ class HomeAICard extends StatefulWidget {
 }
 
 class _HomeAICardState extends State<HomeAICard> with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
+  late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
+    _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+      duration: const Duration(seconds: 4),
+    )..repeat();
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: GestureDetector(
         onTap: () {
-          HapticFeedback.mediumImpact();
+          HapticFeedback.heavyImpact();
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const ChatbotPage()),
+            MaterialPageRoute(builder: (context) => const ChatbotPage()),
           );
         },
         child: Container(
+          height: 120,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-            ),
-            borderRadius: BorderRadius.circular(24),
+            color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+            borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF764BA2).withAlpha(80),
-                blurRadius: 20,
+                color: const Color(0xFF667eea).withOpacity(0.08),
+                blurRadius: 30,
                 offset: const Offset(0, 10),
               ),
             ],
+            border: Border.all(
+              color: isDark ? Colors.white10 : Colors.grey.withOpacity(0.1),
+            ),
           ),
           child: Stack(
             children: [
-              // Large background watermark icon
+              // Background Pattern
               Positioned(
                 right: -20,
-                bottom: -20,
-                child: Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 140,
-                  color: Colors.white.withAlpha(20),
+                top: -20,
+                child: RotationTransition(
+                  turns: _controller,
+                  child: Icon(
+                    Icons.psychology_rounded,
+                    size: 160,
+                    color: const Color(0xFF667eea).withOpacity(0.05),
+                  ),
                 ),
               ),
+
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 child: Row(
                   children: [
-                    // AI Icon
-                    AnimatedBuilder(
-                      animation: _pulseController,
-                      builder: (context, child) {
-                        return Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(
-                              (40 + (_pulseController.value * 20)).toInt(),
-                            ),
-                            borderRadius: BorderRadius.circular(16),
+                    // Icon with Animation
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF667eea).withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
-                          child: const Icon(
-                            Icons.psychology_rounded,
-                            color: Colors.white,
-                            size: 30,
-                          ),
-                        );
-                      },
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.psychology_rounded,
+                        color: Colors.white,
+                        size: 32,
+                      ),
                     ),
-                    const SizedBox(width: 16),
 
-                    // Text
+                    const SizedBox(width: 20),
+
+                    // Content
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Row(
                             children: [
-                              const Flexible(
-                                child: Text(
-                                  'AI Health Assistant',
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                              Text(
+                                l10n.aiHealthAssistant,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : const Color(0xFF1A1A2E),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
+                                  horizontal: 6,
+                                  vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withAlpha(50),
-                                  borderRadius: BorderRadius.circular(20),
+                                  color: const Color(0xFFFF4B2B),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                                child: const Text(
-                                  'NEW',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
+                                child: Text(
+                                  l10n.newLabel,
+                                  style: const TextStyle(
+                                    color: Colors.white,
                                     fontSize: 9,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    letterSpacing: 0.5,
                                   ),
                                 ),
                               ),
@@ -139,15 +143,28 @@ class _HomeAICardState extends State<HomeAICard> with SingleTickerProviderStateM
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Get instant health advice',
+                            l10n.aiAdviceSubtitle,
                             style: TextStyle(
-                              fontFamily: 'Inter',
                               fontSize: 13,
+                              color: isDark ? Colors.grey[400] : Colors.grey[600],
                               fontWeight: FontWeight.w500,
-                              color: Colors.white.withAlpha(200),
                             ),
                           ),
                         ],
+                      ),
+                    ),
+
+                    // Action Arrow
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF667eea).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 14,
+                        color: Color(0xFF667eea),
                       ),
                     ),
                   ],

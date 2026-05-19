@@ -2,199 +2,202 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../../../profile/presentation/pages/wallet_page.dart';
+import '../../../../../../generated/l10n/app_localizations.dart';
 
 class HomeWalletCard extends StatelessWidget {
   final UserModel? user;
-  
-  const HomeWalletCard({super.key, required this.user});
+
+  const HomeWalletCard({super.key, this.user});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final double balance = user?.wallet ?? 0.0;
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: GestureDetector(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const WalletPage()),
-          );
-        },
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: isDark 
-              ? const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF1E1C24), Color(0xFF16151A)], // Elevated dark card
-                )
-              : const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF2B32B2), Color(0xFF1488CC)], // Rich indigo to bright blue
-                ),
-            borderRadius: BorderRadius.circular(24),
-            border: isDark ? Border.all(color: Colors.white.withAlpha(15), width: 1) : null,
-            boxShadow: [
-              BoxShadow(
-                color: isDark ? const Color(0xFF764BA2).withAlpha(40) : const Color(0xFF1488CC).withAlpha(100),
-                blurRadius: isDark ? 40 : 24,
-                offset: const Offset(0, 12),
-              ),
-            ],
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+          border: Border.all(
+            color: isDark ? Colors.white10 : Colors.grey.withOpacity(0.1),
           ),
-          child: Stack(
-            children: [
-              // Glassmorphic / Geometric Rings
-              Positioned(
-                right: -40,
-                top: -40,
-                child: Container(
-                  width: 140,
-                  height: 140,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withAlpha(20), width: 24),
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 30,
-                bottom: -60,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withAlpha(15), width: 12),
-                  ),
-                ),
-              ),
-              
-              // Content
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        child: Column(
+          children: [
+            // Top Section
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Housepital Wallet',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 15,
-                          color: Colors.white.withAlpha(220),
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(30),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.contactless_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-                  Text(
-                    'Available Balance',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 13,
-                      color: Colors.white.withAlpha(180),
-                      fontWeight: FontWeight.w500,
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF667eea).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: Color(0xFF667eea),
+                      size: 22,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        balance.toStringAsFixed(2),
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: -1,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.housepitalWallet,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'EGP',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withAlpha(220),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text(
+                              '${user?.walletBalance ?? "0.0"}',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : const Color(0xFF1A1A2E),
+                                letterSpacing: -1,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              l10n.currencyEgp,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF667eea),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          _buildCardAction(icon: Icons.add_rounded, label: 'Top Up'),
-                          const SizedBox(width: 12),
-                          _buildCardAction(icon: Icons.history_rounded, label: 'History'),
-                        ],
-                      ),
-                      const Icon(
-                        Icons.sim_card_rounded,
-                        color: Colors.white54,
-                        size: 32,
-                      ),
-                    ],
+                  _buildActionButton(
+                    icon: Icons.add_circle_outline_rounded,
+                    label: l10n.topUp,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const WalletPage()),
+                      );
+                    },
+                    isDark: isDark,
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+
+            // Bottom Info
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFF8FAFF),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 14,
+                    color: isDark ? Colors.grey[500] : Colors.grey[500],
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.availableBalance,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const WalletPage()),
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        Text(
+                          l10n.history,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF667eea),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          size: 16,
+                          color: Color(0xFF667eea),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildCardAction({required IconData icon, required String label}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(30),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withAlpha(40), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 16),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF667eea),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF667eea).withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-          ),
-        ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

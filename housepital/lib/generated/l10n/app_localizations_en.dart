@@ -773,4 +773,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get defaultNurseName => 'Nurse';
+
+  @override
+  String get goodMorning => 'Good Morning';
+
+  @override
+  String get goodAfternoon => 'Good Afternoon';
+
+  @override
+  String get goodEvening => 'Good Evening';
+
+  @override
+  String get welcomeBack => 'Welcome';
+
+  @override
+  String get searchPlaceholder => 'What do you need help with?';
+
+  @override
+  String get searchSemanticLabel =>
+      'Search for clinics, nurses, or use AI Chatbot';
+
+  @override
+  String get nursingService => 'Nursing Service';
+
+  @override
+  String get assigningNurse => 'Assigning...';
+
+  @override
+  String get activeStatus => 'Active';
+
+  @override
+  String get housepitalWallet => 'Housepital Wallet';
+
+  @override
+  String get availableBalance => 'Available Balance';
+
+  @override
+  String get topUp => 'Top Up';
+
+  @override
+  String get history => 'History';
+
+  @override
+  String get bookNurse => 'Book Nurse';
+
+  @override
+  String get homeCare => 'Home care';
+
+  @override
+  String get findClinic => 'Find Clinic';
+
+  @override
+  String get bookVisits => 'Book visits';
+
+  @override
+  String get aiHealthAssistant => 'AI Health Assistant';
+
+  @override
+  String get newLabel => 'NEW';
+
+  @override
+  String get aiAdviceSubtitle => 'Get instant health advice';
+
+  @override
+  String get newsAndOffers => 'News & Offers';
+
+  @override
+  String get offer1Title => '20% off General Checkups';
+
+  @override
+  String get offer1Subtitle => 'Valid until end of month';
+
+  @override
+  String get offer2Title => 'Free Dietitian Consult';
+
+  @override
+  String get offer2Subtitle => 'With premium subscription';
+
+  @override
+  String get offer3Title => 'Winter Flu Shots Available';
+
+  @override
+  String get offer3Subtitle => 'Book home visit now';
+
+  @override
+  String offerDetailsSnack(Object title) {
+    return 'Offer: $title - Details coming soon';
+  }
 }

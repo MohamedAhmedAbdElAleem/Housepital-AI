@@ -2,81 +2,84 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui';
 import '../pages/search_page.dart';
+import '../../../../../../generated/l10n/app_localizations.dart';
 
 class HomeSearchBar extends StatelessWidget {
   const HomeSearchBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    // Actionable Medical Green
-    const ctaColor = Color(0xFF43A048);
-    
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Use app colors or standard ones
+    const primaryColor = Color(0xFF667eea);
+    const ctaColor = Color(0xFF764ba2);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Semantics(
-        button: true,
-        label: 'Search for clinics, nurses, or use AI Chatbot',
-        child: GestureDetector(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SearchPage()),
-            );
-          },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                decoration: BoxDecoration(
-                  color: (isDark ? Colors.black : Colors.white).withAlpha(isDark ? 30 : 50),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: Colors.white.withAlpha(isDark ? 20 : 40),
-                    width: 1.5,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SearchPage()),
+          );
+        },
+        child: Hero(
+          tag: 'home_search_bar',
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: primaryColor.withOpacity(0.12),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(isDark ? 40 : 15),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
+                ],
+                border: Border.all(
+                  color: primaryColor.withOpacity(0.1),
+                  width: 1.5,
                 ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
                 child: Row(
                   children: [
-                    const Icon(
+                    const SizedBox(width: 20),
+                    Icon(
                       Icons.search_rounded,
-                      color: ctaColor,
-                      size: 28,
+                      color: isDark ? Colors.grey[400] : primaryColor,
+                      size: 24,
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Text(
-                        'What do you need help with?',
+                        l10n.searchPlaceholder,
                         style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 16,
+                          fontSize: 15,
+                          color: isDark ? Colors.grey[500] : Colors.grey[600],
                           fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white.withAlpha(220) : Colors.black.withAlpha(180),
                         ),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      margin: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: ctaColor.withAlpha(38),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: ctaColor.withAlpha(40)),
+                        gradient: const LinearGradient(
+                          colors: [primaryColor, ctaColor],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
-                        Icons.auto_awesome_rounded,
-                        color: ctaColor,
+                        Icons.tune_rounded,
+                        color: Colors.white,
                         size: 20,
                       ),
                     ),

@@ -1,45 +1,70 @@
-# خطة دعم اللغتين (العربية والإنجليزية) وتفعيل نظام الـ RTL في تطبيق Housepital
+# Localization Progress: Housepital-AI
 
-تهدف هذه الخطة إلى تحويل التطبيق ليدعم اللغة العربية والإنجليزية بشكل كامل، بالإضافة إلى تهيئة واجهة المستخدم (UI/UX) لتدعم الاتجاهين (من اليمين لليسار RTL، ومن اليسار لليمين LTR).
-
----
-
-## ✅ حالة الإنجاز (Progress Status)
-- [x] **المرحلة الأولى: البنية التحتية** (LocaleProvider, main.dart integration).
-- [x] **المرحلة الثانية: ملفات الترجمة** (ARB files structure).
-- [ ] **المرحلة الثالثة: تعديل الشاشات** (جاري العمل عليها).
-  - [x] شاشات البداية (Splash & Onboarding).
-  - [x] مسار الدخول (Auth Flow - Login, Register, Forgot Password, OTP, Medical History, Identity).
-  - [ ] الشاشة الرئيسية (Home).
-  - [ ] صفحة الملف الشخصي (Profile).
-  - [ ] مسار الحجز (Booking Flow).
-- [ ] **المرحلة الرابعة: المميزات الإضافية** (Chatbot, Notifications).
+## Overview
+- **Primary Languages:** Arabic (RTL), English (LTR)
+- **Framework:** Flutter (Intl / AppLocalizations)
+- **Current Status:** 80% Complete
 
 ---
 
-## 🛠️ المرحلة الأولى: البنية التحتية لإدارة اللغة (Infrastructure)
-... (بقية المحتوى كما هو) ...
+## 🟢 Phase 1: Infrastructure (Completed)
+- [x] Configure `l10n.yaml`
+- [x] Create `app_en.arb` and `app_ar.arb`
+- [x] Implement `LocaleProvider` for dynamic switching
+- [x] Configure `MaterialApp` with delegates
 
+## 🟢 Phase 2: Core Components (Completed)
+- [x] Localize `CustomPopup` (Success/Error/Warning)
+- [x] Localize `CustomTextField` placeholders
+- [x] Directional layouts for `CustomButton`
+- [x] Support for RTL in main navigation components
 
-### 4. مسار الحجز (Booking Flow)
-- `booking_step1_select_patient.dart` (اختيار المريض).
-- `booking_step2_select_service.dart` (تحديد الخدمة / القسم).
-- `booking_step3_select_time.dart` (الموعد والطبيب).
-- `booking_step4_confirmation.dart` (ملخص وتأكيد الحجز).
+## 🟢 Phase 3: Screen Localization
+
+### 1. Splash & Onboarding (Completed)
+- [x] Splash screen text
+- [x] Onboarding illustrations & text
+- [x] Language selector intro
+
+### 2. Authentication (Completed)
+- [x] Login page
+- [x] Registration flow (Step 1 & 2)
+- [x] Forgot/Reset Password flow
+- [x] OTP Verification (Unified key `code`)
+- [x] Terms & Privacy agreement
+
+### 3. Medical Profile & Identity (Completed)
+- [x] Medical History (Blood types, Chronic diseases, Allergies)
+- [x] Identity Verification Intro
+- [x] ID Document Scanning (Front/Back/Preview)
+- [x] Verification Status screens
+
+### 4. Home Page (Completed)
+- [x] Home Header (Greeting, User name)
+- [x] Global Search placeholder
+- [x] Quick Actions (Book Nurse, Find Clinic)
+- [x] Wallet Card (Balance, Top-up)
+- [x] AI Assistant Card
+- [x] News & Offers Carousel
+- [x] Upcoming Booking Banner
+- [x] Navigation Bar (Home, Bookings, AI, Alerts, Profile)
+
+### 5. Profile & Settings (In Progress)
+- [x] Main Settings Page (Theme, Language, Notifications)
+- [ ] Account Details Page
+- [ ] Wallet & Transaction History
+- [ ] Dependents Management
+
+### 6. Booking Flow (Pending)
+- [ ] Clinic/Service Discovery
+- [ ] Date & Time Selection
+- [ ] Patient Selection
+- [ ] Booking Confirmation
+- [ ] Live Tracking / Live Map
 
 ---
 
-## 🤖 المرحلة الرابعة: باقي المميزات (Chatbot & Notifications)
-1. **شاشة الإشعارات (Notifications)**: 
-   - ضبط اتجاه أيقونة الإشعار والوقت.
-2. **شاشة الشات (Chatbot)**:
-   - التأكد من أن فقاعة رسائل المستخدم تظهر جهة البداية (Start) حسب اللغة وفقاعة الشات بوت تظهر في الجهة الأخرى.
-
----
-
-## 💡 قواعد وملاحظات هامة لتعديل الكود (Cheat Sheet)
-دائماً استبدل عناصر الاتجاه الثابتة بعناصر تعتمد على اتجاه الشاشة:
-- `EdgeInsets.only(left: 10)` ⬅️ تُستبدل بـ `EdgeInsetsDirectional.only(start: 10)`
-- `Alignment.topLeft` ⬅️ تُستبدل بـ `AlignmentDirectional.topStart`
-- `Positioned(left: 20)` ⬅️ تُستبدل بـ `Positioned.directional(textDirection: Directionality.of(context), start: 20)`
-- `BorderRadius.only(topLeft: ...)` ⬅️ تُستبدل بـ `BorderRadiusDirectional.only(topStart: ...)`
+## 📋 Next Steps
+1. Finish localizing all sub-pages in the **Profile** section.
+2. Begin the deep localization of the **Booking Flow**.
+3. Verify RTL layout consistency across all new screens.

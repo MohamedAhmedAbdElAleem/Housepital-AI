@@ -362,5 +362,38 @@
   "defaultNurseName": "Nurse",
   "@defaultNurseName": {
     "description": "Fallback nurse name if missing"
+  },
+  "goodMorning": "Good Morning",
+  "goodAfternoon": "Good Afternoon",
+  "goodEvening": "Good Evening",
+  "welcomeBack": "Welcome",
+  "searchPlaceholder": "What do you need help with?",
+  "searchSemanticLabel": "Search for clinics, nurses, or use AI Chatbot",
+  "nursingService": "Nursing Service",
+  "assigningNurse": "Assigning...",
+  "activeStatus": "Active",
+  "housepitalWallet": "Housepital Wallet",
+  "availableBalance": "Available Balance",
+  "topUp": "Top Up",
+  "history": "History",
+  "bookNurse": "Book Nurse",
+  "homeCare": "Home care",
+  "findClinic": "Find Clinic",
+  "bookVisits": "Book visits",
+  "aiHealthAssistant": "AI Health Assistant",
+  "newLabel": "NEW",
+  "aiAdviceSubtitle": "Get instant health advice",
+  "newsAndOffers": "News & Offers",
+  "offer1Title": "20% off General Checkups",
+  "offer1Subtitle": "Valid until end of month",
+  "offer2Title": "Free Dietitian Consult",
+  "offer2Subtitle": "With premium subscription",
+  "offer3Title": "Winter Flu Shots Available",
+  "offer3Subtitle": "Book home visit now",
+  "offerDetailsSnack": "Offer: {title} - Details coming soon",
+  "@offerDetailsSnack": {
+    "placeholders": {
+      "title": {}
+    }
   }
 }

@@ -1567,6 +1567,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nurse'**
   String get defaultNurseName;
+
+  /// No description provided for @goodMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Morning'**
+  String get goodMorning;
+
+  /// No description provided for @goodAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Afternoon'**
+  String get goodAfternoon;
+
+  /// No description provided for @goodEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Evening'**
+  String get goodEvening;
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get welcomeBack;
+
+  /// No description provided for @searchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you need help with?'**
+  String get searchPlaceholder;
+
+  /// No description provided for @searchSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for clinics, nurses, or use AI Chatbot'**
+  String get searchSemanticLabel;
+
+  /// No description provided for @nursingService.
+  ///
+  /// In en, this message translates to:
+  /// **'Nursing Service'**
+  String get nursingService;
+
+  /// No description provided for @assigningNurse.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigning...'**
+  String get assigningNurse;
+
+  /// No description provided for @activeStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get activeStatus;
+
+  /// No description provided for @housepitalWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Housepital Wallet'**
+  String get housepitalWallet;
+
+  /// No description provided for @availableBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Balance'**
+  String get availableBalance;
+
+  /// No description provided for @topUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Up'**
+  String get topUp;
+
+  /// No description provided for @history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get history;
+
+  /// No description provided for @bookNurse.
+  ///
+  /// In en, this message translates to:
+  /// **'Book Nurse'**
+  String get bookNurse;
+
+  /// No description provided for @homeCare.
+  ///
+  /// In en, this message translates to:
+  /// **'Home care'**
+  String get homeCare;
+
+  /// No description provided for @findClinic.
+  ///
+  /// In en, this message translates to:
+  /// **'Find Clinic'**
+  String get findClinic;
+
+  /// No description provided for @bookVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Book visits'**
+  String get bookVisits;
+
+  /// No description provided for @aiHealthAssistant.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Health Assistant'**
+  String get aiHealthAssistant;
+
+  /// No description provided for @newLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW'**
+  String get newLabel;
+
+  /// No description provided for @aiAdviceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get instant health advice'**
+  String get aiAdviceSubtitle;
+
+  /// No description provided for @newsAndOffers.
+  ///
+  /// In en, this message translates to:
+  /// **'News & Offers'**
+  String get newsAndOffers;
+
+  /// No description provided for @offer1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'20% off General Checkups'**
+  String get offer1Title;
+
+  /// No description provided for @offer1Subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until end of month'**
+  String get offer1Subtitle;
+
+  /// No description provided for @offer2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Dietitian Consult'**
+  String get offer2Title;
+
+  /// No description provided for @offer2Subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'With premium subscription'**
+  String get offer2Subtitle;
+
+  /// No description provided for @offer3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Winter Flu Shots Available'**
+  String get offer3Title;
+
+  /// No description provided for @offer3Subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Book home visit now'**
+  String get offer3Subtitle;
+
+  /// No description provided for @offerDetailsSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer: {title} - Details coming soon'**
+  String offerDetailsSnack(Object title);
 }
 
 class _AppLocalizationsDelegate

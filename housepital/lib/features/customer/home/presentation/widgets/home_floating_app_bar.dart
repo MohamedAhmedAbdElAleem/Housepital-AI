@@ -4,8 +4,7 @@ import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../auth/data/models/user_model.dart';
-import '../../../../../core/providers/notification_provider.dart';
-import '../../../../notifications/presentation/pages/notifications_page.dart';
+import '../../../../../../generated/l10n/app_localizations.dart';
 
 class HomeFloatingAppBar extends StatelessWidget {
   final bool isScrolled;
@@ -14,72 +13,93 @@ class HomeFloatingAppBar extends StatelessWidget {
   const HomeFloatingAppBar({
     super.key,
     required this.isScrolled,
-    required this.user,
+    this.user,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Positioned(
-      top: 0,
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOutCubic,
+      top: isScrolled ? 0 : -120,
       left: 0,
       right: 0,
-      child: AnimatedOpacity(
-        opacity: isScrolled ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 200),
-        child: IgnorePointer(
-          ignoring: !isScrolled,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              MediaQuery.of(context).padding.top + 8,
-              20,
-              12,
+      child: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            padding: EdgeInsets.fromLTRB(24, MediaQuery.of(context).padding.top + 10, 24, 15),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0D0C11).withOpacity(0.8) : Colors.white.withOpacity(0.9),
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+                ),
+              ),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.black.withAlpha(120) : Colors.white.withAlpha(180),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: isDark ? Colors.white.withAlpha(30) : Colors.white.withAlpha(150),
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(isDark ? 40 : 10),
-                        blurRadius: 20,
-                        offset: const Offset(0, 4),
+            child: Row(
+              children: [
+                // Mini Avatar
+                Hero(
+                  tag: 'home_avatar_mini',
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF667eea), Color(0xFF764ba2)],
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      _buildMiniAvatar(theme),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Hi, ${user?.name.split(' ').first ?? 'there'}!',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(1.5),
+                      child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        child: ClipOval(
+                          child: user?.profileImage != null && user!.profileImage!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: user!.profileImage!,
+                                  width: 35,
+                                  height: 35,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => _buildPlaceholder(),
+                                  errorWidget: (_, __, ___) => _buildPlaceholder(),
+                                )
+                              : _buildPlaceholder(),
                         ),
                       ),
-                      _buildNotificationBell(context, theme, isDark),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Hi, ${user?.name?.split(" ")[0] ?? l10n.welcomeBack}!',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF1A1A2E),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ),
+                // Quick Action
+                _buildActionIcon(Icons.search_rounded, () {
+                  HapticFeedback.lightImpact();
+                }),
+                const SizedBox(width: 10),
+                _buildActionIcon(Icons.notifications_none_rounded, () {
+                  HapticFeedback.lightImpact();
+                }, hasNotification: true),
+              ],
             ),
           ),
         ),
@@ -87,129 +107,41 @@ class HomeFloatingAppBar extends StatelessWidget {
     );
   }
 
-  Widget _buildMiniAvatar(ThemeData theme) {
+  Widget _buildPlaceholder() {
     return Container(
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: theme.brightness == Brightness.dark 
-              ? Colors.white.withAlpha(50) 
-              : Colors.black.withAlpha(20),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(20),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: CircleAvatar(
-        radius: 16,
-        backgroundColor: Colors.white,
-        child: user?.profileImage != null && user!.profileImage!.isNotEmpty
-            ? ClipOval(
-                child: CachedNetworkImage(
-                  imageUrl: user!.profileImage!,
-                  width: 32,
-                  height: 32,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    width: 32,
-                    height: 32,
-                    color: Colors.grey[100],
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Text(
-                    user?.name != null ? user!.name[0].toUpperCase() : 'U',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ),
-              )
-            : Text(
-                user?.name != null ? user!.name[0].toUpperCase() : 'U',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-      ),
+      color: Colors.grey[100],
+      child: Icon(Icons.person_rounded, size: 18, color: Colors.grey[400]),
     );
   }
 
-  Widget _buildNotificationBell(BuildContext context, ThemeData theme, bool isDark) {
-    return Consumer<NotificationProvider>(
-      builder: (context, provider, _) {
-        final count = provider.unreadCount;
-        return GestureDetector(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ChangeNotifierProvider.value(
-                  value: provider,
-                  child: const NotificationsPage(),
-                ),
-              ),
-            );
-          },
-          child: Stack(
-            alignment: Alignment.center,
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withAlpha(20) : Colors.black.withAlpha(10),
+  Widget _buildActionIcon(IconData icon, VoidCallback onTap, {bool hasNotification = false}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.03),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 22, color: Colors.grey[800]),
+          ),
+          if (hasNotification)
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFF4B2B),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.notifications_outlined,
-                  color: isDark ? Colors.white : Colors.black87,
-                  size: 20,
-                ),
               ),
-              if (count > 0)
-                Positioned(
-                  top: -2,
-                  right: -2,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFB8A00), // Warning Orange
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      count > 9 ? '9+' : count.toString(),
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
+            ),
+        ],
+      ),
     );
   }
 }

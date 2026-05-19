@@ -12,7 +12,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appName => 'هاوسبيتال';
 
   @override
-  String get appTagline => 'رعاية صحية منزلية بالذكاء الاصطناعي';
+  String get appTagline => 'رعاية صحية منزلية مدعومة بالذكاء الاصطناعي';
 
   @override
   String get loading => 'جاري التحميل...';
@@ -37,14 +37,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboarding1Desc =>
-      'احصل على ممرضين معتمدين ومتخصصين في الرعاية الصحية\nبمنزلك، عند الطلب أو بجدولة مسبقة';
+      'احصل على ممرضين ومعتمدين ومحترفين في الرعاية الصحية\nيصلون إلى منزلك، عند الطلب أو بجدولة مسبقة';
 
   @override
   String get onboarding2Title => 'مساعد رعاية صحية\nبالذكاء الاصطناعي';
 
   @override
   String get onboarding2Desc =>
-      'توصيات ذكية ودعم على مدار الساعة\nمع رفيق الرعاية الصحية الذكي الخاص بنا';
+      'توصيات ذكية ودعم على مدار الساعة مع\nرفيق الرعاية الصحية الذكي الخاص بنا';
 
   @override
   String get next => 'التالي';
@@ -53,7 +53,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get getStarted => 'ابدأ الآن';
 
   @override
-  String get skipIntro => 'تخطي المقدمة';
+  String get skipIntro => 'تخطي';
 
   @override
   String get version => 'الإصدار 1.0.0';
@@ -62,7 +62,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginTitle => 'مرحباً بعودتك';
 
   @override
-  String get loginSubtitle => 'قم بتسجيل الدخول إلى حسابك';
+  String get loginSubtitle => 'سجل دخولك إلى حساب هاوسبيتال الخاص بك';
 
   @override
   String get emailLabel => 'البريد الإلكتروني';
@@ -80,7 +80,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rememberMe => 'تذكرني';
 
   @override
-  String get forgotPassword => 'هل نسيت كلمة المرور؟';
+  String get forgotPassword => 'نسيت كلمة المرور؟';
 
   @override
   String get loginButton => 'تسجيل الدخول';
@@ -92,7 +92,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get registerHere => 'سجل هنا';
 
   @override
-  String get orLoginWith => 'أو سجل الدخول عبر';
+  String get orLoginWith => 'أو سجل دخولك بواسطة';
 
   @override
   String get google => 'جوجل';
@@ -104,7 +104,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionExpired => 'انتهت الجلسة. يرجى تسجيل الدخول بكلمة المرور.';
 
   @override
-  String get warningEmptyEmail => 'يرجى إدخال البريد الإلكتروني';
+  String get warningEmptyEmail => 'يرجى إدخال بريدك الإلكتروني';
 
   @override
   String get warningInvalidEmail => 'يرجى إدخال بريد إلكتروني صحيح';
@@ -117,44 +117,44 @@ class AppLocalizationsAr extends AppLocalizations {
       'البريد الإلكتروني أو كلمة المرور غير صحيحة';
 
   @override
-  String get forgotPasswordTitle => 'هل نسيت كلمة المرور؟';
+  String get forgotPasswordTitle => 'نسيت كلمة المرور؟';
 
   @override
   String get forgotPasswordSubtitle => '🔐 لا تقلق! سنساعدك في استعادتها';
 
   @override
-  String get resetViaEmail => 'إعادة التعيين عبر البريد';
+  String get resetViaEmail => 'إعادة تعيين عبر البريد الإلكتروني';
 
   @override
-  String get sendVerificationCodeDesc => 'سنرسل لك رمز تحقق';
+  String get sendVerificationCodeDesc => 'سنرسل لك رمز تأكيد';
 
   @override
-  String get emailHintForgot => 'أدخل بريدك المسجل';
+  String get emailHintForgot => 'أدخل بريدك الإلكتروني المسجل';
 
   @override
-  String get sendCodeButton => 'إرسال رمز التحقق';
+  String get sendCodeButton => 'إرسال رمز التأكيد';
 
   @override
   String get resendCode => 'إعادة إرسال الرمز';
 
   @override
-  String get securityTips => 'نصائح الأمان';
+  String get securityTips => 'نصائح أمنية';
 
   @override
   String get tipSpamFolder =>
-      'تحقق من مجلد الرسائل غير المرغوب فيها إذا لم تجد الرسالة';
+      'افحص ملف البريد المزعج (Spam) إذا لم تجد الرسالة';
 
   @override
-  String get tipCodeExpiry => 'تنتهي صلاحية الرمز خلال 10 دقائق';
+  String get tipCodeExpiry => 'الرمز صالح لمدة 10 دقائق';
 
   @override
-  String get tipNeverShare => 'لا تشارك الرمز مع أي شخص أبدًا';
+  String get tipNeverShare => 'لا تشارك الرمز مع أي شخص أبداً';
 
   @override
   String get backToLogin => 'العودة لتسجيل الدخول';
 
   @override
-  String get otpSentSuccess => 'تم إرسال رمز التحقق إلى بريدك';
+  String get otpSentSuccess => 'تم إرسال رمز التأكيد إلى بريدك الإلكتروني';
 
   @override
   String get otpSendFailed => 'فشل إرسال الرمز';
@@ -173,7 +173,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String registrationStep(Object current, Object total) {
-    return 'الخطوة $current من $total';
+    return 'خطوة $current من $total';
   }
 
   @override
@@ -216,7 +216,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signIn => 'تسجيل الدخول';
 
   @override
-  String get passwordTooShort => 'قصيرة جدًا';
+  String get passwordTooShort => 'قصيرة جداً';
 
   @override
   String get passwordWeak => 'ضعيفة';
@@ -228,7 +228,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passwordStrong => 'قوية';
 
   @override
-  String get passwordVeryStrong => 'قوية جدًا';
+  String get passwordVeryStrong => 'قوية جداً';
 
   @override
   String get warningEmptyName => 'يرجى إدخال اسمك الكامل';
@@ -255,7 +255,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get registrationSuccess => 'تم التسجيل بنجاح! أكمل ملفك الشخصي';
 
   @override
-  String get serverError => 'خطأ في السيرفر. يرجى المحاولة لاحقًا';
+  String get serverError => 'خطأ في السيرفر. يرجى المحاولة مرة أخرى';
 
   @override
   String get verifyEmailTitle => 'تأكيد بريدك الإلكتروني';
@@ -264,7 +264,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get otpVerifySuccess => 'تم تأكيد البريد بنجاح!';
 
   @override
-  String get tooManyAttempts => 'محاولات كثيرة فاشلة. اطلب رمزًا جديدًا.';
+  String get tooManyAttempts => 'محاولات كثيرة خاطئة. اطلب رمزاً جديداً.';
 
   @override
   String get warningCompleteOtp => 'يرجى إدخال الرمز المكون من 6 أرقام';
@@ -275,22 +275,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get accountLocked => 'الحساب مغلق! اطلب رمزًا جديدًا.';
+  String get accountLocked => 'الحساب مقفل! اطلب رمزاً جديداً.';
 
   @override
   String get waitBeforeResend => 'يرجى الانتظار قبل طلب رمز جديد';
 
   @override
-  String get newOtpSent => 'تم إرسال رمز تحقق جديد!';
+  String get newOtpSent => 'تم إرسال رمز تأكيد جديد!';
 
   @override
   String get resendFailed => 'فشل إعادة إرسال الرمز';
 
   @override
-  String get codeExpiresIn => 'تنتهي صلاحية الرمز خلال';
+  String get codeExpiresIn => 'ينتهي الرمز خلال';
 
   @override
-  String get enterVerificationCode => 'أدخل رمز التحقق';
+  String get enterVerificationCode => 'أدخل رمز التأكيد';
 
   @override
   String attemptIndicator(Object current, Object total) {
@@ -298,23 +298,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get didntReceiveCode => 'لم تستلم الرمز؟';
+  String get didntReceiveCode => 'لم تصلك الرسالة؟';
 
   @override
-  String get resend => 'إعادة الإرسال';
+  String get resend => 'إعادة إرسال';
 
   @override
   String get verifyEmailButton => 'تأكيد البريد';
 
   @override
-  String get locked => 'مغلق';
+  String get locked => 'مقفل';
 
   @override
   String get securityNotice => 'تنبيه أمني';
 
   @override
   String get securityNoticeDesc =>
-      'لا تشارك هذا الرمز مع أي شخص أبدًا. فريقنا لن يطلبه منك.';
+      'لا تشارك هذا الرمز مع أحد. فريقنا لن يطلبه منك أبداً.';
 
   @override
   String get createNewPasswordTitle => 'إنشاء كلمة مرور جديدة';
@@ -338,16 +338,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get resetPasswordButton => 'إعادة تعيين كلمة المرور';
 
   @override
-  String get passwordTips => 'نصائح كلمة المرور';
+  String get passwordTips => 'نصائح لكلمة المرور';
 
   @override
-  String get tipMixChars => 'استخدم مزيجًا من الحروف والأرقام والرموز';
+  String get tipMixChars => 'استخدم مزيجاً من الحروف والأرقام والرموز';
 
   @override
   String get tipAvoidPersonalInfo => 'تجنب استخدام معلوماتك الشخصية';
 
   @override
-  String get tipDontReuse => 'لا تكرر استخدام كلمات مرور من مواقع أخرى';
+  String get tipDontReuse => 'لا تكرر كلمات مرور من مواقع أخرى';
 
   @override
   String get warningEmptyNewPassword => 'يرجى إدخال كلمة مرور جديدة';
@@ -356,14 +356,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get resetFailed => 'فشل إعادة تعيين كلمة المرور';
 
   @override
-  String get resetSuccessTitle => 'تمت إعادة تعيين\nكلمة المرور بنجاح! 🎉';
+  String get resetSuccessTitle => 'تمت إعادة التعيين\nبنجاح! 🎉';
 
   @override
   String get resetSuccessSubtitle =>
       'تم تغيير كلمة المرور الخاصة بك بنجاح.\nيمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.';
 
   @override
-  String get tipPrivatePassword => 'حافظ على خصوصية كلمة مرورك';
+  String get tipPrivatePassword => 'حافظ على سرية كلمة مرورك';
 
   @override
   String get tipChangeRegularly => 'قم بتغييرها كل 3-6 أشهر';
@@ -372,19 +372,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tipSignOutUnknown => 'سجل الخروج من الأجهزة غير المعروفة';
 
   @override
-  String get verificationSuccessTitle => 'تم التأكيد\nبنجاح! 🎉';
+  String get verificationSuccessTitle => 'تم التوثيق\nبنجاح! 🎉';
 
   @override
-  String get verificationSuccessSubtitle => 'تم تأكيد هويتك بنجاح';
+  String get verificationSuccessSubtitle => 'تم التحقق من هويتك بنجاح';
 
   @override
-  String get identityVerified => 'تم تأكيد الهوية';
+  String get identityVerified => 'الهوية موثقة';
 
   @override
-  String get idConfirmed => 'تم تأكيد هويتك';
+  String get idConfirmed => 'تم تأكيد بطاقة الهوية';
 
   @override
-  String get documentsApproved => 'تمت الموافقة على المستندات';
+  String get documentsApproved => 'المستندات مقبولة';
 
   @override
   String get documentsValid => 'جميع المستندات صالحة';
@@ -393,7 +393,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountSecured => 'الحساب مؤمن';
 
   @override
-  String get accountProtected => 'حسابك محمي';
+  String get accountProtected => 'حسابك محمي الآن';
 
   @override
   String get done => 'تم';
@@ -408,7 +408,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get requestVisits => 'طلب زيارات منزلية';
 
   @override
-  String get chatProviders => 'الدردشة مع مقدمي الرعاية';
+  String get chatProviders => 'التحدث مع مقدمي الخدمة';
 
   @override
   String get accessHistory => 'الوصول لسجلك الطبي';
@@ -423,10 +423,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get skip => 'تخطي';
 
   @override
-  String get stepInfo => 'المعلومات';
+  String get stepInfo => 'البيانات';
 
   @override
-  String get stepMedical => 'طبي';
+  String get stepMedical => 'الطبي';
 
   @override
   String get stepId => 'الهوية';
@@ -435,11 +435,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get healthInfoTitle => 'المعلومات الصحية';
 
   @override
-  String get healthInfoSubtitle => 'ساعدنا لنقدم لك رعاية أفضل';
+  String get healthInfoSubtitle => 'ساعدنا لتقديم رعاية أفضل لك';
 
   @override
   String get healthInfoSafetyDesc =>
-      'تساعد هذه المعلومات فريقنا الطبي على الاستعداد بشكل أفضل لزياراتك وضمان سلامتك.';
+      'تساعد هذه المعلومات فريقنا الطبي على الاستعداد بشكل أفضل لزياراتك وتضمن سلامتك.';
 
   @override
   String get bloodTypeTitle => 'فصيلة الدم';
@@ -457,7 +457,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get allergiesTitle => 'الحساسية';
 
   @override
-  String get noAllergies => 'ليس لدي أي أنواع حساسية معروفة';
+  String get noAllergies => 'ليس لدي أي حساسية معروفة';
 
   @override
   String get otherConditionsTitle => 'حالات طبية أخرى';
@@ -475,7 +475,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get saving => 'جاري الحفظ...';
 
   @override
-  String get continueButton => 'المتابعة';
+  String get continueButton => 'متابعة';
 
   @override
   String get saveMedicalInfoError =>
@@ -485,7 +485,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diabetes => 'السكري';
 
   @override
-  String get highBloodPressure => 'ارتفاع ضغط الدم';
+  String get highBloodPressure => 'ضغط الدم المرتفع';
 
   @override
   String get heartDisease => 'أمراض القلب';
@@ -503,7 +503,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cancer => 'السرطان';
 
   @override
-  String get thyroidDisorder => 'اضطراب الغدة الدرقية';
+  String get thyroidDisorder => 'اضطرابات الغدة الدرقية';
 
   @override
   String get arthritis => 'التهاب المفاصل';
@@ -536,14 +536,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eggs => 'البيض';
 
   @override
-  String get verifyIdentityTitle => 'تأكيد هويتك';
+  String get verifyIdentityTitle => 'توثيق هويتك';
 
   @override
-  String get skipForNow => 'تخطي حالياً';
+  String get skipForNow => 'تخطي الآن';
 
   @override
   String get verifyIdentityDesc =>
-      'كخدمة طبية مرخصة، نحتاج إلى تأكيد هويتك لضمان السلامة والثقة للجميع.';
+      'كخدمة طبية مرخصة، نحتاج للتحقق من هويتك لضمان السلامة والثقة للجميع.';
 
   @override
   String get securePrivateTitle => 'آمن وخصوصي';
@@ -555,22 +555,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get quickProcessTitle => 'عملية سريعة';
 
   @override
-  String get quickProcessDesc => 'يستغرق التأكيد أقل من دقيقتين';
+  String get quickProcessDesc => 'التوثيق يستغرق أقل من دقيقتين';
 
   @override
   String get oneTimeOnlyTitle => 'لمرة واحدة فقط';
 
   @override
-  String get oneTimeOnlyDesc => 'أكد هويتك مرة واحدة، واستخدم جميع الخدمات';
+  String get oneTimeOnlyDesc => 'وثق مرة واحدة، واستخدم كل الخدمات';
 
   @override
-  String get verifyNowButton => 'أكد هويتك الآن';
+  String get verifyNowButton => 'وثق الآن';
 
   @override
-  String get doItLater => 'سأقوم بذلك لاحقاً';
+  String get doItLater => 'سأفعل هذا لاحقاً';
 
   @override
-  String get idVerificationTitle => 'تأكيد الهوية';
+  String get idVerificationTitle => 'توثيق الهوية';
 
   @override
   String get scanFrontSide => 'مسح الوجه الأمامي';
@@ -580,7 +580,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String stepXofY(Object current, Object total) {
-    return 'الخطوة $current من $total';
+    return 'خطوة $current من $total';
   }
 
   @override
@@ -596,7 +596,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get positionBackId => 'ضع الوجه الخلفي للبطاقة';
 
   @override
-  String get keepWithinFrame => 'أبقِ البطاقة داخل الإطار';
+  String get keepWithinFrame => 'حافظ على البطاقة داخل الإطار';
 
   @override
   String get tipsForResults => 'نصائح لأفضل النتائج';
@@ -605,7 +605,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get goodLighting => 'تأكد من وجود إضاءة جيدة';
 
   @override
-  String get flatAligned => 'أبقِ البطاقة مسطحة ومحاذية';
+  String get flatAligned => 'ضع البطاقة بشكل مستوٍ ومحاذٍ';
 
   @override
   String get avoidBlur => 'تجنب الاهتزاز والانعكاسات';
@@ -614,7 +614,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get takePhoto => 'التقاط صورة';
 
   @override
-  String get uploadGallery => 'رفع من الاستوديو';
+  String get uploadGallery => 'رفع من المعرض';
 
   @override
   String get processingImage => 'جاري معالجة الصورة...';
@@ -626,7 +626,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get uploadingDocs => 'جاري رفع المستندات...';
 
   @override
-  String get securelySavingId => 'حفظ هويتك بشكل آمن';
+  String get securelySavingId => 'يتم حفظ هويتك بأمان';
 
   @override
   String get encryptedConnection => 'اتصال مشفر بالكامل';
@@ -652,16 +652,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backSide => 'الخلفي';
 
   @override
-  String get cameraError => 'تعذر فتح الكاميرا';
+  String get cameraError => 'فشل في فتح الكاميرا';
 
   @override
-  String get galleryError => 'تعذر فتح الاستوديو';
+  String get galleryError => 'فشل في فتح المعرض';
 
   @override
   String get noImageError => 'لم يتم اختيار صورة';
 
   @override
-  String get processImageError => 'تعذر معالجة الصورة';
+  String get processImageError => 'فشل في معالجة الصورة';
 
   @override
   String uploadFailed(Object error) {
@@ -669,23 +669,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get docsSubmittedTitle => 'تم تسليم المستندات!';
+  String get docsSubmittedTitle => 'تم إرسال المستندات!';
 
   @override
   String get docsSubmittedDesc =>
-      'لقد تم إرسال هويتك للمراجعة.\nسيقوم فريقنا بالتحقق منها قريباً.';
+      'تم إرسال هويتك للمراجعة.\nسيقوم فريقنا بالتحقق منها قريباً.';
 
   @override
-  String get pendingAdminReview => 'بانتظار مراجعة الإدارة';
+  String get pendingAdminReview => 'في انتظار مراجعة الإدارة';
 
   @override
-  String get takes24to48Hours => 'يستغرق عادة 24-48 ساعة';
+  String get takes24to48Hours => 'يستغرق عادة من 24 إلى 48 ساعة';
 
   @override
-  String get gotItContinue => 'حسناً، متابعة';
+  String get gotItContinue => 'فهمت، متابعة';
 
   @override
-  String get reviewNotice => 'يمكنك البدء باستخدام التطبيق أثناء المراجعة';
+  String get reviewNotice => 'يمكنك البدء في استخدام التطبيق أثناء المراجعة';
 
   @override
   String get navHome => 'الرئيسية';
@@ -694,7 +694,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navBookings => 'الحجوزات';
 
   @override
-  String get navAI => 'مساعد الذكاء الاصطناعي';
+  String get navAI => 'المساعد الذكي';
 
   @override
   String get navAlerts => 'التنبيهات';
@@ -717,7 +717,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get serviceLabel => 'الخدمة';
 
   @override
-  String get destinationFeeLabel => 'رسوم الوجهة';
+  String get destinationFeeLabel => 'رسوم الانتقال';
 
   @override
   String get platformFeeLabel => 'رسوم المنصة';
@@ -730,7 +730,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String rateNurseTitle(Object nurseName) {
-    return 'قيّم $nurseName';
+    return 'تقييم $nurseName';
   }
 
   @override
@@ -740,7 +740,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ratingPrompt => 'كيف كانت الخدمة المقدمة؟';
 
   @override
-  String get ratingThanks => 'شكرًا لملاحظاتك!';
+  String get ratingThanks => 'شكراً لتعليقاتك!';
 
   @override
   String get ratingSelectError => 'يرجى اختيار تقييم';
@@ -752,20 +752,107 @@ class AppLocalizationsAr extends AppLocalizations {
   String get submitRating => 'إرسال التقييم';
 
   @override
-  String get submitting => 'جارٍ الإرسال...';
+  String get submitting => 'جاري الإرسال...';
 
   @override
-  String get ratingThanksSnack => 'شكرًا على التقييم!';
+  String get ratingThanksSnack => 'شكراً لتقييمك!';
 
   @override
   String get ratingSaved => 'تم حفظ التقييم بنجاح!';
 
   @override
-  String get backToHome => 'العودة إلى الرئيسية';
+  String get backToHome => 'العودة للرئيسية';
 
   @override
   String get currencyEgp => 'ج.م';
 
   @override
-  String get defaultNurseName => 'الممرض';
+  String get defaultNurseName => 'ممرض';
+
+  @override
+  String get goodMorning => 'صباح الخير';
+
+  @override
+  String get goodAfternoon => 'مساء الخير';
+
+  @override
+  String get goodEvening => 'مساء الخير';
+
+  @override
+  String get welcomeBack => 'مرحباً';
+
+  @override
+  String get searchPlaceholder => 'بماذا يمكننا مساعدتك؟';
+
+  @override
+  String get searchSemanticLabel =>
+      'ابحث عن العيادات، الممرضين، أو استخدم المساعد الذكي';
+
+  @override
+  String get nursingService => 'خدمة تمريض';
+
+  @override
+  String get assigningNurse => 'جاري التعيين...';
+
+  @override
+  String get activeStatus => 'نشط';
+
+  @override
+  String get housepitalWallet => 'محفظة هاوسبيتال';
+
+  @override
+  String get availableBalance => 'الرصيد المتاح';
+
+  @override
+  String get topUp => 'شحن';
+
+  @override
+  String get history => 'السجل';
+
+  @override
+  String get bookNurse => 'احجز ممرض';
+
+  @override
+  String get homeCare => 'رعاية منزلية';
+
+  @override
+  String get findClinic => 'ابحث عن عيادة';
+
+  @override
+  String get bookVisits => 'احجز زيارة';
+
+  @override
+  String get aiHealthAssistant => 'المساعد الصحي الذكي';
+
+  @override
+  String get newLabel => 'جديد';
+
+  @override
+  String get aiAdviceSubtitle => 'احصل على استشارات صحية فورية';
+
+  @override
+  String get newsAndOffers => 'الأخبار والعروض';
+
+  @override
+  String get offer1Title => 'خصم 20% على الفحوصات العامة';
+
+  @override
+  String get offer1Subtitle => 'صالح حتى نهاية الشهر';
+
+  @override
+  String get offer2Title => 'استشارة أخصائي تغذية مجانية';
+
+  @override
+  String get offer2Subtitle => 'مع الاشتراك المميز';
+
+  @override
+  String get offer3Title => 'لقاحات الإنفلونزا متوفرة';
+
+  @override
+  String get offer3Subtitle => 'احجز زيارة منزلية الآن';
+
+  @override
+  String offerDetailsSnack(Object title) {
+    return 'العرض: $title - التفاصيل قريباً';
+  }
 }
