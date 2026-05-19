@@ -26,7 +26,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
   late final Animation<double> _fadeAnimation;
   late final Animation<Offset> _slideAnimation;
 
-  final List<_HomeAction> _actions = [
+  List<_HomeAction> get _actions => [
     _HomeAction(
       title: 'my_profile'.tr(),
       subtitle: 'credentials_and_identity'.tr(),

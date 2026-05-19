@@ -58,7 +58,7 @@ class _DoctorProfileCompletionPageState
   DoctorModel? _existingProfile;
   final ImagePicker _picker = ImagePicker();
 
-  final List<String> _specializations = [
+  List<String> get _specializations => [
     'general_practice'.tr(),
     'Pediatrics',
     'internal_medicine'.tr(),

@@ -29,7 +29,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
 
   DoctorModel? _currentProfile;
 
-  final List<String> _specializations = [
+  List<String> get _specializations => [
     'general_practice'.tr(),
     'Pediatrics',
     'internal_medicine'.tr(),
