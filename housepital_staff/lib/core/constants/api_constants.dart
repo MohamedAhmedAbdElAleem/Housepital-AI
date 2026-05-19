@@ -1,6 +1,6 @@
 class ApiConstants {
   // For Android Emulator: 10.0.2.2  |  For iOS Simulator: localhost  |  For Physical Device: 192.168.1.3 or 172.20.10.3
-  static const String baseUrl = 'http://10.0.2.2:3500/api';
+  static const String baseUrl = 'http://192.168.1.208:3500/api';
   // Base URL - Use localhost for emulator/simulator
   // For physical device testing, use your computer's IP: http://172.20.10.3:3500/api
   // Auth Endpoints

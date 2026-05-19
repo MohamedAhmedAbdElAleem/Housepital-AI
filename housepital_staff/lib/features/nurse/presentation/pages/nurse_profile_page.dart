@@ -5,6 +5,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/nurse_profile_cubit.dart';
 import '../../data/models/nurse_profile_model.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class NurseProfilePage extends StatefulWidget {
   const NurseProfilePage({super.key});
@@ -17,18 +18,20 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
   @override
   void initState() {
     super.initState();
-    // Load profile if not already loaded
     context.read<NurseProfileCubit>().loadProfile();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          'My Profile',
-          style: TextStyle(
+        title: Text(
+          l10n.myProfile,
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontFamily: 'Poppins',
@@ -51,30 +54,21 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 80,
-                      color: Colors.red[300],
-                    ),
+                    Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
                     const SizedBox(height: 24),
                     Text(
                       'Unable to Load Profile',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: theme.textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 12),
                     Text(
                       state.message,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 16, color: theme.colorScheme.onSurface.withAlpha(150)),
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        context.read<NurseProfileCubit>().loadProfile();
-                      },
+                      onPressed: () => context.read<NurseProfileCubit>().loadProfile(),
                       icon: const Icon(Icons.refresh),
                       label: const Text('Retry'),
                       style: ElevatedButton.styleFrom(
@@ -88,17 +82,12 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
             );
           }
 
-          NurseProfile? profile;
-          if (state is NurseProfileLoaded) {
-            profile = state.profile;
-          } else {
-            profile = context.read<NurseProfileCubit>().currentProfile;
-          }
+          NurseProfile? profile = state is NurseProfileLoaded 
+              ? state.profile 
+              : context.read<NurseProfileCubit>().currentProfile;
 
           if (profile == null) {
-            return const Center(
-              child: Text('No profile data available'),
-            );
+            return const Center(child: Text('No profile data available'));
           }
 
           return SingleChildScrollView(
@@ -106,118 +95,84 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Profile Header Card
-                _buildProfileHeader(profile),
+                _buildProfileHeader(context, profile, l10n),
                 const SizedBox(height: 24),
 
-                // Status Section
                 if (profile.profileStatus != 'approved') ...[
-                  _buildStatusCard(profile),
+                  _buildStatusCard(context, profile),
                   const SizedBox(height: 24),
                 ],
 
-                // Account Section
-                _buildSectionTitle('Account'),
-                _buildSettingsCard([
+                _buildSectionTitle(context, l10n.myProfile),
+                _buildSettingsCard(context, [
                   _buildSettingsTile(
+                    context,
                     icon: Icons.person_outline,
-                    title: 'My Profile',
+                    title: l10n.myProfile,
                     subtitle: 'Standard personal info',
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.nursePersonalInfo,
-                      );
-                    },
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.nursePersonalInfo),
                   ),
                   _buildSettingsTile(
+                    context,
                     icon: Icons.badge_outlined,
-                    title: 'Professional Credentials',
+                    title: l10n.credentials,
                     subtitle: 'Medical licenses, ID, and certificates',
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.nurseCredentials,
-                      );
-                    },
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.nurseCredentials),
                   ),
                   _buildSettingsTile(
+                    context,
                     icon: Icons.map_outlined,
-                    title: 'Service Areas',
+                    title: l10n.serviceAreas,
                     subtitle: 'Geographical zones for travel',
                     showBottomDivider: false,
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.nurseServiceAreas,
-                      );
-                    },
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.nurseServiceAreas),
                   ),
                 ]),
                 const SizedBox(height: 24),
 
-                // Services Section
-                _buildSectionTitle('Services'),
-                _buildSettingsCard([
+                _buildSectionTitle(context, l10n.performanceReviews),
+                _buildSettingsCard(context, [
                   _buildSettingsTile(
+                    context,
                     icon: Icons.schedule,
                     title: 'Availability & Schedule',
                     subtitle: 'Working hours, days off, shift preferences',
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.nurseSchedule,
-                      );
-                    },
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.nurseSchedule),
                   ),
                   _buildSettingsTile(
+                    context,
                     icon: Icons.account_balance_wallet_outlined,
-                    title: 'Wallet & Earnings',
+                    title: '${l10n.wallet} & Earnings',
                     subtitle: 'Payouts, pending balance, history',
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.nurseWallet,
-                      );
-                    },
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.nurseWallet),
                   ),
                   _buildSettingsTile(
+                    context,
                     icon: Icons.star_outline,
-                    title: 'Performance & Reviews',
+                    title: l10n.performanceReviews,
                     subtitle: 'Read patient feedback',
                     showBottomDivider: false,
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.nurseReviews,
-                      );
-                    },
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.nurseReviews),
                   ),
                 ]),
                 const SizedBox(height: 24),
 
-                // Support Section
-                _buildSectionTitle('Support'),
-                _buildSettingsCard([
+                _buildSectionTitle(context, l10n.settings),
+                _buildSettingsCard(context, [
                   _buildSettingsTile(
+                    context,
                     icon: Icons.settings_outlined,
-                    title: 'Settings',
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.nurseSettings,
-                      );
-                    },
+                    title: l10n.settings,
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.nurseSettings),
                   ),
                   _buildSettingsTile(
+                    context,
                     icon: Icons.logout_rounded,
-                    title: 'Sign Out',
+                    title: l10n.signOut,
                     iconColor: Colors.red,
                     textColor: Colors.red,
                     showBottomDivider: false,
-                    onTap: () {
-                      _showLogoutConfirmation(context);
-                    },
+                    onTap: () => _showLogoutConfirmation(context, l10n),
                   ),
                 ]),
                 const SizedBox(height: 40),
@@ -229,7 +184,8 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
     );
   }
 
-  Widget _buildProfileHeader(NurseProfile profile) {
+  Widget _buildProfileHeader(BuildContext context, NurseProfile profile, AppLocalizations l10n) {
+    final theme = Theme.of(context);
     final userName = profile.userName ?? 'Nurse';
     final userInitial = userName.isNotEmpty ? userName[0].toUpperCase() : 'N';
     final specialization = profile.specialization ?? 'Registered Nurse';
@@ -238,18 +194,15 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary500,
-            AppColors.primary400,
-          ],
+        gradient: const LinearGradient(
+          colors: [AppColors.primary600, AppColors.primary400],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary500.withOpacity(0.3),
+            color: AppColors.primary500.withAlpha(theme.brightness == Brightness.dark ? 40 : 80),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -260,19 +213,13 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
         children: [
           Row(
             children: [
-              // Avatar
               Container(
                 width: 70,
                 height: 70,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                    ),
-                  ],
+                  color: theme.colorScheme.surface,
+                  boxShadow: [BoxShadow(color: Colors.black.withAlpha(20), blurRadius: 10)],
                 ),
                 child: Center(
                   child: Text(
@@ -286,27 +233,18 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
                 ),
               ),
               const SizedBox(width: 16),
-              // Name and Specialization
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       userName,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       specialization,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withOpacity(0.9),
-                      ),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white.withAlpha(230)),
                     ),
                   ],
                 ),
@@ -314,34 +252,20 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
             ],
           ),
           const SizedBox(height: 24),
-
-          // Quick Stats
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withAlpha(40),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildQuickStat(
-                  'Visits',
-                  '${profile.completedVisits}',
-                  Icons.check_circle_outline,
-                ),
-                Container(width: 1, height: 40, color: Colors.white.withOpacity(0.3)),
-                _buildQuickStat(
-                  'Rating',
-                  '⭐ ${profile.rating.toStringAsFixed(1)}',
-                  Icons.star_border,
-                ),
-                Container(width: 1, height: 40, color: Colors.white.withOpacity(0.3)),
-                _buildQuickStat(
-                  'Earnings',
-                  'EGP 0', // Using placeholder as earnings aren't in profile yet
-                  Icons.account_balance_wallet_outlined,
-                ),
+                _buildQuickStat('Visits', '${profile.completedVisits}', Icons.check_circle_outline),
+                Container(width: 1, height: 40, color: Colors.white.withAlpha(40)),
+                _buildQuickStat('Rating', '⭐ ${profile.rating.toStringAsFixed(1)}', Icons.star_border),
+                Container(width: 1, height: 40, color: Colors.white.withAlpha(40)),
+                _buildQuickStat(l10n.wallet, 'EGP 0', Icons.account_balance_wallet_outlined),
               ],
             ),
           ),
@@ -355,60 +279,44 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
       children: [
         Icon(icon, color: Colors.white, size: 20),
         const SizedBox(height: 8),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        Text(value, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: 12,
-          ),
-        ),
+        Text(label, style: TextStyle(color: Colors.white.withAlpha(200), fontSize: 12)),
       ],
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 8, bottom: 12),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
       ),
     );
   }
 
-  Widget _buildSettingsCard(List<Widget> children) {
+  Widget _buildSettingsCard(BuildContext context, List<Widget> children) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outline.withAlpha(theme.brightness == Brightness.dark ? 50 : 100)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withAlpha(theme.brightness == Brightness.dark ? 40 : 10),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 
-  Widget _buildSettingsTile({
+  Widget _buildSettingsTile(
+    BuildContext context, {
     required IconData icon,
     required String title,
     String? subtitle,
@@ -417,9 +325,12 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
     bool showBottomDivider = true,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16), // Match card border radius
+      borderRadius: BorderRadius.circular(16),
       child: Column(
         children: [
           Padding(
@@ -429,14 +340,10 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: (iconColor ?? AppColors.primary500).withOpacity(0.1),
+                    color: (iconColor ?? AppColors.primary500).withAlpha(isDark ? 30 : 25),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    icon,
-                    color: iconColor ?? AppColors.primary500,
-                    size: 22,
-                  ),
+                  child: Icon(icon, color: iconColor ?? AppColors.primary500, size: 22),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -448,44 +355,33 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: textColor ?? AppColors.textPrimary,
+                          color: textColor ?? theme.colorScheme.onSurface,
                         ),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                          ),
+                          style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface.withAlpha(150)),
                         ),
                       ],
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: Colors.grey[400],
-                  size: 24,
-                ),
+                Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurface.withAlpha(100), size: 24),
               ],
             ),
           ),
           if (showBottomDivider)
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: Colors.grey[100],
-              indent: 64,
-            ),
+            Divider(height: 1, thickness: 1, color: theme.colorScheme.outline.withAlpha(50), indent: 64),
         ],
       ),
     );
   }
 
-  Widget _buildStatusCard(NurseProfile profile) {
-    final statusInfo = _getStatusInfo(profile.profileStatus);
+  Widget _buildStatusCard(BuildContext context, NurseProfile profile) {
+    final theme = Theme.of(context);
+    final statusInfo = _getStatusInfo(profile.profileStatus, theme.brightness == Brightness.dark);
 
     return Container(
       width: double.infinity,
@@ -493,17 +389,11 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
       decoration: BoxDecoration(
         color: statusInfo['bgColor'],
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: statusInfo['borderColor'],
-        ),
+        border: Border.all(color: statusInfo['borderColor']),
       ),
       child: Row(
         children: [
-          Icon(
-            statusInfo['icon'],
-            color: statusInfo['textColor'],
-            size: 24,
-          ),
+          Icon(statusInfo['icon'], color: statusInfo['textColor'], size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -511,18 +401,11 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
               children: [
                 Text(
                   statusInfo['title'],
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: statusInfo['textColor'],
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: statusInfo['textColor']),
                 ),
                 Text(
                   statusInfo['message'],
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: statusInfo['textColor'],
-                  ),
+                  style: TextStyle(fontSize: 12, color: statusInfo['textColor']),
                 ),
               ],
             ),
@@ -532,15 +415,16 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
     );
   }
 
-  void _showLogoutConfirmation(BuildContext context) {
+  void _showLogoutConfirmation(BuildContext context, AppLocalizations l10n) {
+    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -549,7 +433,7 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: theme.colorScheme.outline.withAlpha(100),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -557,32 +441,21 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withAlpha(theme.brightness == Brightness.dark ? 40 : 25),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.logout_rounded,
-                color: Colors.red,
-                size: 32,
-              ),
+              child: const Icon(Icons.logout_rounded, color: Colors.red, size: 32),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Sign Out?',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+            Text(
+              '${l10n.signOut}?',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
             ),
             const SizedBox(height: 8),
             Text(
               'Are you sure you want to sign out of your account?',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface.withAlpha(150)),
             ),
             const SizedBox(height: 24),
             Row(
@@ -592,17 +465,11 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      foregroundColor: theme.colorScheme.onSurface.withAlpha(150),
+                      side: BorderSide(color: theme.colorScheme.outline.withAlpha(100)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    child: Text(l10n.goBack, style: const TextStyle(fontWeight: FontWeight.w600)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -611,21 +478,15 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
                     onPressed: () {
                       Navigator.pop(context);
                       context.read<AuthCubit>().logout();
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.login,
-                        (route) => false,
-                      );
+                      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Sign Out'),
+                    child: Text(l10n.signOut),
                   ),
                 ),
               ],
@@ -636,43 +497,43 @@ class _NurseProfilePageState extends State<NurseProfilePage> {
     );
   }
 
-  Map<String, dynamic> _getStatusInfo(String status) {
+  Map<String, dynamic> _getStatusInfo(String status, bool isDark) {
     switch (status) {
       case 'incomplete':
         return {
           'icon': Icons.info_outline,
           'title': 'Profile Incomplete',
           'message': 'Please complete your profile to start receiving bookings',
-          'textColor': Colors.orange,
-          'bgColor': Colors.orange.withOpacity(0.1),
-          'borderColor': Colors.orange.withOpacity(0.3),
+          'textColor': isDark ? Colors.orange[200] : Colors.orange[800],
+          'bgColor': Colors.orange.withAlpha(isDark ? 40 : 25),
+          'borderColor': Colors.orange.withAlpha(isDark ? 80 : 50),
         };
       case 'pending_review':
         return {
           'icon': Icons.hourglass_empty,
           'title': 'Pending Approval',
           'message': 'Your profile is under review. We\'ll notify you soon',
-          'textColor': Colors.blue,
-          'bgColor': Colors.blue.withOpacity(0.1),
-          'borderColor': Colors.blue.withOpacity(0.3),
+          'textColor': isDark ? Colors.blue[200] : Colors.blue[800],
+          'bgColor': Colors.blue.withAlpha(isDark ? 40 : 25),
+          'borderColor': Colors.blue.withAlpha(isDark ? 80 : 50),
         };
       case 'rejected':
         return {
           'icon': Icons.error_outline,
           'title': 'Profile Rejected',
           'message': 'Your profile was rejected. Please review and resubmit',
-          'textColor': Colors.red,
-          'bgColor': Colors.red.withOpacity(0.1),
-          'borderColor': Colors.red.withOpacity(0.3),
+          'textColor': isDark ? Colors.red[200] : Colors.red[800],
+          'bgColor': Colors.red.withAlpha(isDark ? 40 : 25),
+          'borderColor': Colors.red.withAlpha(isDark ? 80 : 50),
         };
       default:
         return {
           'icon': Icons.check_circle,
           'title': 'Profile Approved',
           'message': 'Your profile is active and you can receive bookings',
-          'textColor': Colors.green,
-          'bgColor': Colors.green.withOpacity(0.1),
-          'borderColor': Colors.green.withOpacity(0.3),
+          'textColor': isDark ? Colors.green[200] : Colors.green[800],
+          'bgColor': Colors.green.withAlpha(isDark ? 40 : 25),
+          'borderColor': Colors.green.withAlpha(isDark ? 80 : 50),
         };
     }
   }

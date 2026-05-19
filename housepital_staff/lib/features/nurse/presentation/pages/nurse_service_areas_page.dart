@@ -3,114 +3,60 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../cubit/nurse_profile_cubit.dart';
 import '../../data/models/nurse_profile_model.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class NurseServiceAreasPage extends StatelessWidget {
   const NurseServiceAreasPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          'Service Areas',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+        title: Text(
+          l10n.serviceAreas,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
+        foregroundColor: theme.colorScheme.onSurface,
       ),
       body: BlocBuilder<NurseProfileCubit, NurseProfileState>(
         builder: (context, state) {
-          NurseProfile? profile;
-          if (state is NurseProfileLoaded) {
-            profile = state.profile;
-          } else {
-            profile = context.read<NurseProfileCubit>().currentProfile;
-          }
+          NurseProfile? profile = state is NurseProfileLoaded
+              ? state.profile
+              : context.read<NurseProfileCubit>().currentProfile;
 
           if (profile == null) {
             return const Center(child: Text('No service area data available'));
           }
-
-          final workZone = profile.workZone;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionTitle('My Coverage Area'),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                _buildSectionTitle(context, 'Work Zone'),
+                if (profile.workZone != null)
+                  _buildWorkZoneCard(context, profile.workZone!)
+                else
+                  _buildEmptyState(context),
+                const SizedBox(height: 24),
+                _buildSectionTitle(context, 'Availability'),
+                _buildInfoCard(context, [
+                  _buildInfoRow(
+                    context,
+                    'Online Status',
+                    profile.isOnline ? 'Available' : 'Offline',
+                    profile.isOnline ? Icons.circle : Icons.circle_outlined,
+                    valueColor: profile.isOnline ? Colors.green : Colors.grey,
+                    showBottomDivider: false,
                   ),
-                  child: workZone == null
-                      ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Text(
-                              'You have not set up your service area yet.',
-                              style: TextStyle(color: Colors.grey, fontSize: 16),
-                            ),
-                          ),
-                        )
-                      : Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary50.withOpacity(0.5),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.my_location,
-                                color: AppColors.primary500,
-                                size: 40,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Coverage Radius',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${workZone.radiusKm.toStringAsFixed(1)} km',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            const Divider(height: 1),
-                            const SizedBox(height: 24),
-                            _buildDetailRow(Icons.location_on_outlined, 'Base Address', workZone.address),
-                            const SizedBox(height: 16),
-                            _buildDetailRow(Icons.map_outlined, 'Coordinates', '${workZone.latitude.toStringAsFixed(4)}, ${workZone.longitude.toStringAsFixed(4)}'),
-                          ],
-                        ),
-                ),
+                ]),
               ],
             ),
           );
@@ -119,51 +65,209 @@ class NurseServiceAreasPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 8, bottom: 12),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildInfoCard(BuildContext context, List<Widget> children) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline
+              .withAlpha(theme.brightness == Brightness.dark ? 50 : 100),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black
+                .withAlpha(theme.brightness == Brightness.dark ? 40 : 10),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(children: children),
+    );
+  }
+
+  Widget _buildWorkZoneCard(BuildContext context, WorkZone zone) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withAlpha(isDark ? 50 : 100),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(isDark ? 40 : 10),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildInfoRow(
+            context,
+            'Address',
+            zone.address,
+            Icons.location_on_outlined,
+          ),
+          _buildInfoRow(
+            context,
+            'Service Radius',
+            '${zone.radiusKm.toStringAsFixed(1)} km',
+            Icons.radar,
+          ),
+          _buildInfoRow(
+            context,
+            'Latitude',
+            zone.latitude.toStringAsFixed(6),
+            Icons.explore_outlined,
+          ),
+          _buildInfoRow(
+            context,
+            'Longitude',
+            zone.longitude.toStringAsFixed(6),
+            Icons.explore_outlined,
+            showBottomDivider: false,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon, {
+    bool showBottomDivider = true,
+    Color? valueColor,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
       children: [
-        Icon(icon, color: Colors.grey[500], size: 20),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary50.withAlpha(isDark ? 30 : 25),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: Icon(icon, color: AppColors.primary500, size: 22),
               ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color:
+                            theme.colorScheme.onSurface.withAlpha(150),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: valueColor ?? theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
+        if (showBottomDivider)
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: theme.colorScheme.outline.withAlpha(50),
+            indent: 64,
+          ),
       ],
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withAlpha(isDark ? 50 : 100),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(isDark ? 40 : 10),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.location_off_outlined,
+            size: 56,
+            color: theme.colorScheme.onSurface.withAlpha(60),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Work Zone Set',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Your service coverage area will appear here once configured.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: theme.colorScheme.onSurface.withAlpha(150),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

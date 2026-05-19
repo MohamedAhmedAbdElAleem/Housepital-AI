@@ -22,6 +22,10 @@ import 'features/nurse/presentation/cubit/wallet_cubit.dart';
 import 'features/doctor/presentation/cubit/wallet_cubit.dart';
 import 'features/doctor/presentation/cubit/notification_cubit.dart';
 import 'features/admin/presentation/cubit/admin_cubit.dart';
+import 'config/theme/theme_cubit.dart';
+import 'config/language/language_cubit.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 
 void main() {
   // Ensure Flutter bindings are initialized
@@ -47,6 +51,8 @@ void main() {
   runApp(
     MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => ThemeCubit()),
+        BlocProvider(create: (_) => LanguageCubit()),
         BlocProvider(create: (_) => AuthCubit(repository: authRepository)),
         BlocProvider(create: (_) => DoctorCubit(repository: doctorRepository)),
         BlocProvider(create: (_) => ClinicCubit(repository: doctorRepository)),
@@ -71,12 +77,33 @@ class HousepitalStaffApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppStrings.appName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      initialRoute: AppRoutes.splash,
-      onGenerateRoute: AppRouter.generateRoute,
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return BlocBuilder<LanguageCubit, Locale>(
+          builder: (context, locale) {
+            return MaterialApp(
+              title: AppStrings.appName,
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeMode,
+              locale: locale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en'),
+                Locale('ar'),
+              ],
+              initialRoute: AppRoutes.splash,
+              onGenerateRoute: AppRouter.generateRoute,
+            );
+          },
+        );
+      },
     );
   }
 }

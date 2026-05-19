@@ -3,7 +3,7 @@ class ApiConstants {
   // For Physical Device: Use http://192.168.1.208:3500
   // For Android Emulator: Use 10.0.2.2
 
-  static const String baseUrl = 'http://192.168.1.6:3500';
+  static const String baseUrl = 'http://192.168.1.208:3500';
 
   // Auth Endpoints
   static const String register = '/api/auth/register';
