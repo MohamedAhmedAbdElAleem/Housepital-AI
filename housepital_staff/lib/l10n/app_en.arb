@@ -206,5 +206,13 @@
   "fixNow": "Fix Now",
   "profileApprovalRequired": "You cannot receive requests until your profile is approved.",
   "reviewDuration": "We are reviewing your profile. This usually takes 24h.",
-  "updateDocuments": "Please update your documents."
+  "updateDocuments": "Please update your documents.",
+
+  "serviceVitalSigns": "Vital Signs Measurement",
+  "serviceWoundCare": "Wound Care",
+  "serviceMedicationAdmin": "Medication Administration",
+  "serviceIvCare": "IV Care",
+  "servicePatientEducation": "Patient Education",
+  "servicePainAssessment": "Pain Assessment",
+  "serviceMobilityAssist": "Mobility Assistance"
 }

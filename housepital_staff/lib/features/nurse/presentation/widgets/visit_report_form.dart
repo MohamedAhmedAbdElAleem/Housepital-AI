@@ -1426,19 +1426,26 @@ class _ServicesChecklistState extends State<_ServicesChecklist> {
   @override
   void initState() {
     super.initState();
+    _allServices = [widget.initialService];
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _allServices = _defaultServices(widget.initialService);
   }
 
   List<String> _defaultServices(String primaryService) {
+    final l10n = AppLocalizations.of(context)!;
     final base = <String>[primaryService];
     final extras = [
-      'قياس العلامات الحيوية',
-      'العناية بالجروح',
-      'إعطاء الأدوية',
-      'العناية بالوريد',
-      'تثقيف المريض',
-      'تقييم الألم',
-      'المساعدة في الحركة',
+      l10n.serviceVitalSigns,
+      l10n.serviceWoundCare,
+      l10n.serviceMedicationAdmin,
+      l10n.serviceIvCare,
+      l10n.servicePatientEducation,
+      l10n.servicePainAssessment,
+      l10n.serviceMobilityAssist,
     ];
     for (final s in extras) {
       if (!base.contains(s)) base.add(s);

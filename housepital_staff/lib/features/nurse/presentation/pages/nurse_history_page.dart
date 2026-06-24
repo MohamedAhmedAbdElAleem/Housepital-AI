@@ -36,21 +36,37 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
     return '${hours > 0 ? '$hours h ' : ''}$minutes m';
   }
 
-  String _translateService(String service) {
-    // Basic mapping for common services
-    switch (service.toLowerCase().replaceAll(' ', '_')) {
-      case 'wound_care': return 'العناية بالجروح';
-      case 'iv_insertion': return 'تركيب الكانيولا';
-      case 'injections': 
-      case 'injection': return 'الحقن';
-      case 'blood_draw': return 'سحب الدم';
-      case 'elderly_care': return 'رعاية المسنين';
-      case 'patient_monitoring': return 'مراقبة المريض';
-      case 'physiotherapy_support': return 'دعم العلاج الطبيعي';
-      case 'baby_care': return 'رعاية الأطفال';
-      case 'emergency_response': return 'الاستجابة للطوارئ';
-      default: return service;
-    }
+  String _translateService(BuildContext context, String service) {
+    // Provide locale-aware labels for common services. This avoids
+    // returning Arabic strings when the app locale is English.
+    final code = Localizations.localeOf(context).languageCode;
+    final key = service.toLowerCase().replaceAll(' ', '_');
+    final en = {
+      'wound_care': 'Wound Care',
+      'iv_insertion': 'IV Insertion',
+      'injections': 'Injections',
+      'injection': 'Injection',
+      'blood_draw': 'Blood Draw',
+      'elderly_care': 'Elderly Care',
+      'patient_monitoring': 'Patient Monitoring',
+      'physiotherapy_support': 'Physiotherapy Support',
+      'baby_care': 'Baby Care',
+      'emergency_response': 'Emergency Response',
+    };
+    final ar = {
+      'wound_care': 'العناية بالجروح',
+      'iv_insertion': 'تركيب الكانيولا',
+      'injections': 'الحقن',
+      'injection': 'الحقن',
+      'blood_draw': 'سحب الدم',
+      'elderly_care': 'رعاية المسنين',
+      'patient_monitoring': 'مراقبة المريض',
+      'physiotherapy_support': 'دعم العلاج الطبيعي',
+      'baby_care': 'رعاية الأطفال',
+      'emergency_response': 'الاستجابة للطوارئ',
+    };
+    if (code == 'ar') return ar[key] ?? service;
+    return en[key] ?? service;
   }
 
   @override
@@ -241,7 +257,7 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _translateService(booking.serviceName),
+                            _translateService(context, booking.serviceName),
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,

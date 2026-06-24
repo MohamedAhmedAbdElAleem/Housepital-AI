@@ -205,5 +205,13 @@
   "fixNow": "إصلاح الآن",
   "profileApprovalRequired": "لا يمكنك استلام الطلبات حتى يتمت الموافقة على ملفك الشخصي.",
   "reviewDuration": "نحن نقوم بمراجعة ملفك الشخصي. يستغرق هذا عادةً 24 ساعة.",
-  "updateDocuments": "يرجى تحديث مستنداتك."
+  "updateDocuments": "يرجى تحديث مستنداتك.",
+
+  "serviceVitalSigns": "قياس العلامات الحيوية",
+  "serviceWoundCare": "العناية بالجروح",
+  "serviceMedicationAdmin": "إعطاء الأدوية",
+  "serviceIvCare": "العناية بالوريد",
+  "servicePatientEducation": "تثقيف المريض",
+  "servicePainAssessment": "تقييم الألم",
+  "serviceMobilityAssist": "المساعدة في الحركة"
 }

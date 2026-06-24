@@ -224,18 +224,66 @@ class _VisitInProgressPageState extends State<VisitInProgressPage> with SingleTi
   }
 
   Widget _buildActiveVisitContent() {
-    return Stack(children: [
-      _buildHeader(),
-      SafeArea(child: SingleChildScrollView(controller: _scrollController, padding: const EdgeInsets.only(top: 140, left: 20, right: 20, bottom: 120), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _buildTimerCard(), const SizedBox(height: 20),
-        _buildPatientCard(), const SizedBox(height: 20),
-        _buildServiceDetailsCard(), const SizedBox(height: 20),
-        if (!_reportData.isReadyToSubmit) _buildRequiredFieldsReminder(),
-        if (!_reportData.isReadyToSubmit) const SizedBox(height: 12),
-        _buildReportSection(),
-      ]))),
-      _buildBottomCompleteButton(),
-    ]);
+    // Include header, content and complete button in a single scrollable
+    // column so everything scrolls together and widgets don't overlay the
+    // header when scrolling.
+    return SafeArea(
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        padding: const EdgeInsets.symmetric(horizontal: 20).copyWith(top: 16, bottom: 24),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          _buildHeader(),
+          const SizedBox(height: 16),
+          _buildTimerCard(),
+          const SizedBox(height: 20),
+          _buildPatientCard(),
+          const SizedBox(height: 20),
+          _buildServiceDetailsCard(),
+          const SizedBox(height: 20),
+          if (!_reportData.isReadyToSubmit) _buildRequiredFieldsReminder(),
+          if (!_reportData.isReadyToSubmit) const SizedBox(height: 12),
+          _buildReportSection(),
+          const SizedBox(height: 20),
+          // Place the complete button inline so it scrolls with the rest of
+          // the content instead of overlapping it.
+          _buildBottomCompleteButtonInline(),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildBottomCompleteButtonInline() {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        if (!_reportData.isReadyToSubmit)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.error),
+              const SizedBox(width: 8),
+              Text(l10n.fillVitalsToComplete, style: const TextStyle(color: AppColors.error, fontSize: 13, fontWeight: FontWeight.w600)),
+            ]),
+          ),
+        Container(
+          width: double.infinity,
+          height: 60,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: LinearGradient(colors: _reportData.isReadyToSubmit ? [AppColors.primary700, AppColors.primary500] : [Colors.grey[400]!, Colors.grey[300]!]),
+            boxShadow: _reportData.isReadyToSubmit ? [BoxShadow(color: AppColors.primary500.withAlpha(80), blurRadius: 12, offset: const Offset(0, 6))] : null,
+          ),
+          child: ElevatedButton(
+            onPressed: _reportData.isReadyToSubmit ? _confirmCompleteVisit : null,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, foregroundColor: Colors.white, shadowColor: Colors.transparent, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
+            child: Text(l10n.completeVisit, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: 1)),
+          ),
+        ),
+      ]),
+    );
   }
 
   Widget _buildHeader() {

@@ -217,6 +217,10 @@ class _LoginPageState extends State<LoginPage>
                                       // Inputs
                                       TextFormField(
                                         controller: _emailController,
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                        ),
+                                        cursorColor: AppColors.primary500,
                                         decoration: _buildInputDecoration(
                                           'Email Address',
                                           Icons.email_outlined,
@@ -232,6 +236,10 @@ class _LoginPageState extends State<LoginPage>
                                       TextFormField(
                                         controller: _passwordController,
                                         obscureText: !_isPasswordVisible,
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                        ),
+                                        cursorColor: AppColors.primary500,
                                         decoration: _buildInputDecoration(
                                           'Password',
                                           Icons.lock_outline,

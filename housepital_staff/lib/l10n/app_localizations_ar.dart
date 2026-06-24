@@ -563,4 +563,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get updateDocuments => 'يرجى تحديث مستنداتك.';
+
+  @override
+  String get serviceVitalSigns => 'قياس العلامات الحيوية';
+
+  @override
+  String get serviceWoundCare => 'العناية بالجروح';
+
+  @override
+  String get serviceMedicationAdmin => 'إعطاء الأدوية';
+
+  @override
+  String get serviceIvCare => 'العناية بالوريد';
+
+  @override
+  String get servicePatientEducation => 'تثقيف المريض';
+
+  @override
+  String get servicePainAssessment => 'تقييم الألم';
+
+  @override
+  String get serviceMobilityAssist => 'المساعدة في الحركة';
 }

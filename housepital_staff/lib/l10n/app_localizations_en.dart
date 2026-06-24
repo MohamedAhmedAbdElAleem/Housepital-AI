@@ -568,4 +568,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateDocuments => 'Please update your documents.';
+
+  @override
+  String get serviceVitalSigns => 'Vital Signs Measurement';
+
+  @override
+  String get serviceWoundCare => 'Wound Care';
+
+  @override
+  String get serviceMedicationAdmin => 'Medication Administration';
+
+  @override
+  String get serviceIvCare => 'IV Care';
+
+  @override
+  String get servicePatientEducation => 'Patient Education';
+
+  @override
+  String get servicePainAssessment => 'Pain Assessment';
+
+  @override
+  String get serviceMobilityAssist => 'Mobility Assistance';
 }

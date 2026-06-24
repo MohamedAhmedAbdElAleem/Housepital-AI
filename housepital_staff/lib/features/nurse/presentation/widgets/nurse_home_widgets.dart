@@ -116,6 +116,23 @@ class NurseHomeHeader extends StatelessWidget {
     return l10n.goodEvening;
   }
 
+  String _getDisplayName(AuthUser? user, NurseProfile? profile, AppLocalizations l10n) {
+    // 1. Try the AuthUser name (from login session)
+    final userName = user?.name;
+    if (userName != null && userName.trim().isNotEmpty) {
+      return userName.split(' ').first;
+    }
+    // 2. Try the NurseProfile userName (from API profile data)
+    final profileName = profile?.userName;
+    if (profileName != null && profileName.trim().isNotEmpty) {
+      return profileName.split(' ').first;
+    }
+    // 3. Fallback to gendered nurse title
+    if (profile?.gender == 'male') return l10n.nurseMale;
+    if (profile?.gender == 'female') return l10n.nurseFemale;
+    return l10n.nurse;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -186,7 +203,7 @@ class NurseHomeHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  user?.name.split(' ').first ?? (profile?.gender == 'male' ? l10n.nurseMale : (profile?.gender == 'female' ? l10n.nurseFemale : l10n.nurse)),
+                  _getDisplayName(user, profile, l10n),
                   style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 24,

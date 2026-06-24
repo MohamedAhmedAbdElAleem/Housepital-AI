@@ -1183,6 +1183,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please update your documents.'**
   String get updateDocuments;
+
+  /// No description provided for @serviceVitalSigns.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital Signs Measurement'**
+  String get serviceVitalSigns;
+
+  /// No description provided for @serviceWoundCare.
+  ///
+  /// In en, this message translates to:
+  /// **'Wound Care'**
+  String get serviceWoundCare;
+
+  /// No description provided for @serviceMedicationAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication Administration'**
+  String get serviceMedicationAdmin;
+
+  /// No description provided for @serviceIvCare.
+  ///
+  /// In en, this message translates to:
+  /// **'IV Care'**
+  String get serviceIvCare;
+
+  /// No description provided for @servicePatientEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient Education'**
+  String get servicePatientEducation;
+
+  /// No description provided for @servicePainAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Pain Assessment'**
+  String get servicePainAssessment;
+
+  /// No description provided for @serviceMobilityAssist.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobility Assistance'**
+  String get serviceMobilityAssist;
 }
 
 class _AppLocalizationsDelegate
