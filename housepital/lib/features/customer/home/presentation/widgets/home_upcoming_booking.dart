@@ -54,15 +54,15 @@ class _HomeUpcomingBookingState extends State<HomeUpcomingBooking>
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF667eea), Color(0xFF764ba2)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
+              colors: [Color(0xFF3498BB), Color(0xFF1E5B70)], // Trust Blue gradient
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF667eea).withOpacity(0.3),
-                blurRadius: 15,
+                color: const Color(0xFF3498BB).withAlpha(isDark ? 60 : 80),
+                blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
             ],

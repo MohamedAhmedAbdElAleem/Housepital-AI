@@ -16,19 +16,31 @@ class HomeWalletCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const WalletPage()),
+          );
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF2B32B2), Color(0xFF1488CC)], // Rich indigo to bright blue
             ),
-          ],
-          border: Border.all(
-            color: isDark ? Colors.white10 : Colors.grey.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1488CC).withAlpha(isDark ? 80 : 100),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
+              ),
+            ],
           ),
         ),
         child: Column(

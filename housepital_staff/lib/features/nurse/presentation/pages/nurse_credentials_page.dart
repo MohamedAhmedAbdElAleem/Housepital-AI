@@ -4,36 +4,33 @@ import '../../../../core/constants/app_colors.dart';
 import '../cubit/nurse_profile_cubit.dart';
 import '../../data/models/nurse_profile_model.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class NurseCredentialsPage extends StatelessWidget {
   const NurseCredentialsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          'Professional Credentials',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+        title: Text(
+          l10n.credentials,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
+        foregroundColor: theme.colorScheme.onSurface,
       ),
       body: BlocBuilder<NurseProfileCubit, NurseProfileState>(
         builder: (context, state) {
-          NurseProfile? profile;
-          if (state is NurseProfileLoaded) {
-            profile = state.profile;
-          } else {
-            profile = context.read<NurseProfileCubit>().currentProfile;
-          }
+          NurseProfile? profile = state is NurseProfileLoaded 
+              ? state.profile 
+              : context.read<NurseProfileCubit>().currentProfile;
 
           if (profile == null) {
             return const Center(child: Text('No credentials data available'));
@@ -44,13 +41,13 @@ class NurseCredentialsPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionTitle('Identifiers'),
-                _buildInfoCard([
-                  _buildInfoRow('License Number', profile.licenseNumber ?? 'Not provided', Icons.badge_outlined, showBottomDivider: false),
+                _buildSectionTitle(context, 'Identifiers'),
+                _buildInfoCard(context, [
+                  _buildInfoRow(context, 'License Number', profile.licenseNumber ?? 'Not provided', Icons.badge_outlined, showBottomDivider: false),
                 ]),
                 const SizedBox(height: 24),
-                _buildSectionTitle('Uploaded Documents'),
-                _buildInfoCard([
+                _buildSectionTitle(context, 'Uploaded Documents'),
+                _buildInfoCard(context, [
                   _buildDocumentRow(
                     context,
                     'National ID',
@@ -79,40 +76,39 @@ class NurseCredentialsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 8, bottom: 12),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
       ),
     );
   }
 
-  Widget _buildInfoCard(List<Widget> children) {
+  Widget _buildInfoCard(BuildContext context, List<Widget> children) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outline.withAlpha(theme.brightness == Brightness.dark ? 50 : 100)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withAlpha(theme.brightness == Brightness.dark ? 40 : 10),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, IconData icon, {bool showBottomDivider = true}) {
+  Widget _buildInfoRow(BuildContext context, String label, String value, IconData icon, {bool showBottomDivider = true}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       children: [
         Padding(
@@ -123,7 +119,7 @@ class NurseCredentialsPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.primary50.withOpacity(0.5),
+                  color: AppColors.primary50.withAlpha(isDark ? 30 : 25),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: AppColors.primary500, size: 22),
@@ -135,20 +131,12 @@ class NurseCredentialsPage extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
-                      ),
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: theme.colorScheme.onSurface.withAlpha(150)),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       value,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
                     ),
                   ],
                 ),
@@ -157,12 +145,14 @@ class NurseCredentialsPage extends StatelessWidget {
           ),
         ),
         if (showBottomDivider)
-          Divider(height: 1, thickness: 1, color: Colors.grey[100], indent: 64),
+          Divider(height: 1, thickness: 1, color: theme.colorScheme.outline.withAlpha(50), indent: 64),
       ],
     );
   }
 
   Widget _buildDocumentRow(BuildContext context, String label, String? url, IconData icon, {bool showBottomDivider = true}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final bool hasDocument = url != null && url.isNotEmpty;
 
     return Column(
@@ -178,10 +168,12 @@ class NurseCredentialsPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: hasDocument ? AppColors.primary50.withOpacity(0.5) : Colors.grey[100],
+                    color: hasDocument 
+                        ? AppColors.primary50.withAlpha(isDark ? 30 : 25) 
+                        : theme.colorScheme.surfaceContainerHighest.withAlpha(isDark ? 100 : 255),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, color: hasDocument ? AppColors.primary500 : Colors.grey[400], size: 22),
+                  child: Icon(icon, color: hasDocument ? AppColors.primary500 : theme.colorScheme.onSurface.withAlpha(100), size: 22),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -190,11 +182,7 @@ class NurseCredentialsPage extends StatelessWidget {
                     children: [
                       Text(
                         label,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -209,17 +197,13 @@ class NurseCredentialsPage extends StatelessWidget {
                   ),
                 ),
                 if (hasDocument)
-                  Icon(
-                    Icons.open_in_new,
-                    color: Colors.grey[400],
-                    size: 20,
-                  ),
+                  Icon(Icons.open_in_new, color: theme.colorScheme.onSurface.withAlpha(100), size: 20),
               ],
             ),
           ),
         ),
         if (showBottomDivider)
-          Divider(height: 1, thickness: 1, color: Colors.grey[100], indent: 64),
+          Divider(height: 1, thickness: 1, color: theme.colorScheme.outline.withAlpha(50), indent: 64),
       ],
     );
   }

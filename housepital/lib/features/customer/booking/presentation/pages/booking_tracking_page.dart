@@ -9,7 +9,6 @@ import '../../../../../core/services/socket_notification_service.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/constants/app_colors.dart';
 import 'booking_invoice_page.dart';
-import '../../../vitals_monitor/live_vitals_monitor_screen.dart';
 
 /// Patient-side tracking page.
 ///
@@ -1064,103 +1063,21 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: isDark ? const Color(0xFF16151A) : Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'The nurse is providing $_serviceName. The visit will be marked complete soon.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withOpacity(0.9),
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Live Vitals Monitor Button
-        _buildLiveVitalsButton(),
-      ],
-    );
-  }
-
-  Widget _buildLiveVitalsButton() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bookingId = _booking['_id'] ?? _booking['id'] ?? '';
-    final patientName = _booking['patientName'] ?? 'Patient';
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => LiveVitalsMonitorScreen(
-                bookingId: bookingId,
-                patientName: patientName,
-              ),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF667EEA).withOpacity(0.35),
-                blurRadius: 14,
-                offset: Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.monitor_heart_rounded,
-                  color: isDark ? const Color(0xFF16151A) : Colors.white, size: 22),
-              const SizedBox(width: 10),
-              Text(
-                'Live Vitals Monitor',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? const Color(0xFF16151A) : Colors.white,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'LIVE',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? const Color(0xFF16151A) : Colors.white,
-                    letterSpacing: 1.0,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  'The nurse is providing $_serviceName. The visit will be marked complete soon.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withOpacity(0.9),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -1312,11 +1229,6 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
-        // Live Vitals button for arrived/in-progress (when not shown in notice)
-        if (_status == 'arrived') ...[
-          _buildLiveVitalsButton(),
-          const SizedBox(height: 12),
-        ],
         Row(
           children: [
             Expanded(
@@ -1341,6 +1253,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),
+              elevation: 0,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1365,8 +1278,14 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),
+              elevation: 0,
             ),
-          ],
+            icon: const Icon(Icons.flag, size: 20, color: AppColors.warning500),
+            label: const Text(
+              'Report',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+          ),
         ),
       ],
     );

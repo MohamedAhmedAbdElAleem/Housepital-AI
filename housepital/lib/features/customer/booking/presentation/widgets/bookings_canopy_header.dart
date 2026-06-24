@@ -16,13 +16,10 @@ class BookingsCanopyHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Container(
       height: 300,
       decoration: BoxDecoration(
-        gradient: isDark
+        gradient: Theme.of(context).brightness == Brightness.dark
             ? const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -47,7 +44,7 @@ class BookingsCanopyHeader extends StatelessWidget {
           bottomLeft: Radius.circular(40),
           bottomRight: Radius.circular(40),
         ),
-        boxShadow: isDark ? [
+        boxShadow: Theme.of(context).brightness == Brightness.dark ? [
           BoxShadow(
             color: AppColors.primary500.withAlpha(30),
             blurRadius: 60,
@@ -67,7 +64,7 @@ class BookingsCanopyHeader extends StatelessWidget {
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withAlpha(isDark ? 10 : 20),
+                color: Colors.white.withAlpha(20),
               ),
             ),
           ),
@@ -79,7 +76,7 @@ class BookingsCanopyHeader extends StatelessWidget {
               height: 260,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withAlpha(isDark ? 5 : 15),
+                color: Colors.white.withAlpha(15),
               ),
             ),
           ),
@@ -92,7 +89,7 @@ class BookingsCanopyHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withAlpha(isDark ? 10 : 20),
+                  color: Colors.white.withAlpha(20),
                   width: 2,
                 ),
               ),
@@ -108,7 +105,7 @@ class BookingsCanopyHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withAlpha(isDark ? 10 : 25),
+                  color: Colors.white.withAlpha(25),
                   width: 1.5,
                 ),
               ),

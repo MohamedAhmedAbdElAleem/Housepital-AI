@@ -4,1380 +4,383 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_routes.dart';
 import '../../../../core/utils/token_manager.dart';
 import '../../data/models/booking_model.dart';
 import '../../data/models/visit_report_data.dart';
 import '../../data/services/visit_report_pdf_service.dart';
 import '../cubit/nurse_booking_cubit.dart';
 import '../widgets/visit_report_form.dart';
+import '../../../../l10n/app_localizations.dart';
 
-/// Full-screen page the nurse sees **while a visit is in progress**.
-///
-/// Displayed after the 4-digit PIN is verified and the visit starts.
-/// Houses a live duration timer, patient/service info, a visit-report
-/// text field, and the "Complete Visit" action button.
 class VisitInProgressPage extends StatefulWidget {
   final NurseBooking booking;
-
   const VisitInProgressPage({super.key, required this.booking});
-
   @override
   State<VisitInProgressPage> createState() => _VisitInProgressPageState();
 }
 
-class _VisitInProgressPageState extends State<VisitInProgressPage>
-    with SingleTickerProviderStateMixin {
+class _VisitInProgressPageState extends State<VisitInProgressPage> with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
-
   Timer? _durationTimer;
   Duration _elapsed = Duration.zero;
   bool _isCompleting = false;
-
-  // Visit report state
   late VisitReportData _reportData;
-
-  // Nurse name (loaded from prefs for PDF header)
   String _nurseName = 'Nurse';
   bool _pdfGenerating = false;
-
-  // Scroll controller to jump to the report section on validation failure
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _reportSectionKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    _reportData = VisitReportData(
-      servicesPerformed: [widget.booking.serviceName],
-    );
-
-    // Load nurse name from JWT for PDF header
+    _reportData = VisitReportData(servicesPerformed: [widget.booking.serviceName]);
     TokenManager.getUserFromToken().then((user) {
       if (mounted && user != null) {
-        setState(() {
-          _nurseName = (user['name'] as String?) ??
-              (user['fullName'] as String?) ??
-              'Nurse';
-        });
+        setState(() { _nurseName = (user['name'] as String?) ?? (user['fullName'] as String?) ?? 'Nurse'; });
       }
     });
-
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
-
-    // Start counting from visitStartedAt or now
+    _pulseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat(reverse: true);
     final visitStartedAt = widget.booking.visitStartedAt ?? DateTime.now();
     _elapsed = DateTime.now().difference(visitStartedAt);
-
     _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) {
-        setState(() {
-          _elapsed = DateTime.now().difference(visitStartedAt);
-        });
-      }
+      if (mounted) { setState(() { _elapsed = DateTime.now().difference(visitStartedAt); }); }
     });
   }
 
   @override
-  void dispose() {
-    _durationTimer?.cancel();
-    _pulseController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
+  void dispose() { _durationTimer?.cancel(); _pulseController.dispose(); _scrollController.dispose(); super.dispose(); }
 
   String _formatDuration(Duration d) {
     final hours = d.inHours;
     final minutes = d.inMinutes.remainder(60);
     final seconds = d.inSeconds.remainder(60);
-    if (hours > 0) {
-      return '${hours}h ${minutes.toString().padLeft(2, '0')}m ${seconds.toString().padLeft(2, '0')}s';
-    }
+    if (hours > 0) return '${hours}h ${minutes.toString().padLeft(2, '0')}m ${seconds.toString().padLeft(2, '0')}s';
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  /// Returns a human-readable list of missing required fields.
-  List<String> get _missingFields {
+  List<String> _getMissingFieldLabels(AppLocalizations l10n) {
     final missing = <String>[];
-    if (_reportData.bpSystolic == null || _reportData.bpDiastolic == null) {
-      missing.add('Blood Pressure');
-    }
-    if (_reportData.heartRate == null) missing.add('Heart Rate');
-    if (_reportData.temperature == null) missing.add('Temperature');
-    if (_reportData.oxygenSaturation == null) missing.add('SpO₂');
-    if (_reportData.servicesPerformed.isEmpty) missing.add('Services Performed');
+    if (_reportData.bpSystolic == null || _reportData.bpDiastolic == null) missing.add(l10n.bloodPressure);
+    if (_reportData.heartRate == null) missing.add(l10n.heartRate);
+    if (_reportData.temperature == null) missing.add(l10n.temperature);
+    if (_reportData.oxygenSaturation == null) missing.add(l10n.oxygenSaturation);
+    if (_reportData.servicesPerformed.isEmpty) missing.add(l10n.servicesPerformed.replaceAll(' *', ''));
     return missing;
   }
 
   void _confirmCompleteVisit() {
+    final l10n = AppLocalizations.of(context)!;
     if (!_reportData.isReadyToSubmit) {
-      // Scroll to the report section so the nurse can see what's missing
       _scrollToReportSection();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Missing: ${_missingFields.join(', ')}. Please fill required fields first.',
-          ),
-          backgroundColor: AppColors.warning500,
-          duration: const Duration(seconds: 5),
-          action: SnackBarAction(
-            label: 'GO TO FORM',
-            textColor: Colors.white,
-            onPressed: _scrollToReportSection,
-          ),
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Missing: ${_getMissingFieldLabels(l10n).join(', ')}. Please fill required fields first.'),
+        backgroundColor: AppColors.warning500, duration: const Duration(seconds: 5),
+        action: SnackBarAction(label: 'GO TO FORM', textColor: Colors.white, onPressed: _scrollToReportSection),
+      ));
       return;
     }
-
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Icon
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.success50,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_circle_outline_rounded,
-                color: AppColors.success500,
-                size: 40,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            const Text(
-              'Complete Visit?',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'This will finalize the visit and deduct the platform commission from your wallet.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Summary
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.light100,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _summaryRow('Patient', widget.booking.patientName),
-                  const SizedBox(height: 8),
-                  _summaryRow('Service', widget.booking.serviceName),
-                  const SizedBox(height: 8),
-                  _summaryRow('Duration', _formatDuration(_elapsed)),
-                  const SizedBox(height: 8),
-                  _summaryRow(
-                    'Condition',
-                    _reportData.overallCondition.toUpperCase(),
-                  ),
-                  if (_reportData.bpSystolic != null) ...[
-                    const SizedBox(height: 8),
-                    _summaryRow(
-                      'BP',
-                      '${_reportData.bpSystolic}/${_reportData.bpDiastolic} mmHg',
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textSecondary,
-                      side: BorderSide(color: Colors.grey.shade300),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    child: const Text(
-                      'Go Back',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _doCompleteVisit();
-                    },
-                    icon: const Icon(Icons.check_rounded, size: 20),
-                    label: const Text(
-                      'Complete Visit',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.success500,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+        padding: EdgeInsets.only(left: 24, right: 24, top: 24, bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
+        decoration: BoxDecoration(color: theme.colorScheme.surface, borderRadius: const BorderRadius.vertical(top: Radius.circular(28))),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: theme.colorScheme.outline.withAlpha(100), borderRadius: BorderRadius.circular(2)))),
+          const SizedBox(height: 24),
+          Container(width: 72, height: 72, decoration: BoxDecoration(color: AppColors.primary50.withAlpha(isDark ? 40 : 255), shape: BoxShape.circle), child: const Icon(Icons.check_circle_outline_rounded, color: AppColors.primary500, size: 40)),
+          const SizedBox(height: 20),
+          Text(l10n.confirmCompleteTitle, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: theme.colorScheme.onSurface, fontFamily: 'Poppins')),
+          const SizedBox(height: 8),
+          Text(l10n.confirmCompleteSub, textAlign: TextAlign.center, style: TextStyle(color: theme.colorScheme.onSurface.withAlpha(150), fontSize: 14, height: 1.4, fontFamily: 'Inter')),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity, padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: theme.colorScheme.surfaceContainerHighest.withAlpha(isDark ? 100 : 255), borderRadius: BorderRadius.circular(14), border: Border.all(color: theme.colorScheme.outline.withAlpha(50))),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              _summaryRow(l10n.profile, widget.booking.patientName, theme),
+              const SizedBox(height: 8),
+              _summaryRow(l10n.home, widget.booking.serviceName, theme),
+              const SizedBox(height: 8),
+              _summaryRow(l10n.liveDuration, _formatDuration(_elapsed), theme),
+              const SizedBox(height: 8),
+              _summaryRow(l10n.overallCondition.replaceAll(' *', ''), _reportData.overallCondition.toUpperCase(), theme),
+              if (_reportData.bpSystolic != null) ...[const SizedBox(height: 8), _summaryRow(l10n.bloodPressure, '${_reportData.bpSystolic}/${_reportData.bpDiastolic} mmHg', theme)],
+            ]),
+          ),
+          const SizedBox(height: 24),
+          Row(children: [
+            Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx), style: OutlinedButton.styleFrom(foregroundColor: theme.colorScheme.onSurface.withAlpha(150), side: BorderSide(color: theme.colorScheme.outline.withAlpha(100)), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))), child: Text(l10n.goBack))),
+            const SizedBox(width: 14),
+            Expanded(flex: 2, child: ElevatedButton.icon(onPressed: () { Navigator.pop(ctx); _doCompleteVisit(); }, icon: const Icon(Icons.check_rounded, size: 20), label: Text(l10n.completeVisit), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary500, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))))),
+          ]),
+        ]),
       ),
     );
   }
 
-  Widget _summaryRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ),
-      ],
-    );
+  Widget _summaryRow(String label, String value, ThemeData theme) {
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      SizedBox(width: 100, child: Text(label, style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface.withAlpha(150), fontWeight: FontWeight.w500))),
+      Expanded(child: Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface))),
+    ]);
   }
 
   Future<void> _doCompleteVisit() async {
     setState(() => _isCompleting = true);
     _durationTimer?.cancel();
-
-    context.read<NurseBookingCubit>().completeVisit(
-          widget.booking.id,
-          reportData: _reportData,
-        );
+    context.read<NurseBookingCubit>().completeVisit(widget.booking.id, reportData: _reportData);
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return BlocListener<NurseBookingCubit, NurseBookingState>(
       listener: (context, state) {
-        if (state is NurseBookingCompleted) {
-          _showSuccessAndReturn();
-        } else if (state is NurseBookingError) {
+        if (state is NurseBookingCompleted) { _showSuccessAndReturn(); }
+        else if (state is NurseBookingError) {
           setState(() => _isCompleting = false);
-          // Restart timer
-          final visitStartedAt =
-              widget.booking.visitStartedAt ?? DateTime.now();
-          _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-            if (mounted) {
-              setState(() {
-                _elapsed = DateTime.now().difference(visitStartedAt);
-              });
-            }
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.error,
-            ),
-          );
+          final visitStartedAt = widget.booking.visitStartedAt ?? DateTime.now();
+          _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) { if (mounted) { setState(() { _elapsed = DateTime.now().difference(visitStartedAt); }); } });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: AppColors.error));
         }
       },
-      child: PopScope(
-        canPop: false, // Prevent accidental back navigation
-        child: Scaffold(
-          backgroundColor: AppColors.background,
-          body: SafeArea(
-            child: _isCompleting
-                ? _buildCompletingView()
-                : _buildActiveVisitContent(),
-          ),
-        ),
-      ),
+      child: PopScope(canPop: false, child: Scaffold(backgroundColor: theme.scaffoldBackgroundColor, body: SafeArea(child: _isCompleting ? _buildCompletingView(theme, l10n) : _buildActiveVisitContent()))),
     );
   }
 
-  Widget _buildCompletingView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(
-            width: 56,
-            height: 56,
-            child: CircularProgressIndicator(
-              color: AppColors.success500,
-              strokeWidth: 3,
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Completing Visit...',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Calculating commission & finalizing...',
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
-          ),
-        ],
-      ),
-    );
+  Widget _buildCompletingView(ThemeData theme, AppLocalizations l10n) {
+    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      const SizedBox(width: 56, height: 56, child: CircularProgressIndicator(color: AppColors.primary500, strokeWidth: 3)),
+      const SizedBox(height: 24),
+      Text(l10n.completeVisit + '...', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: theme.colorScheme.onSurface, fontFamily: 'Poppins')),
+      const SizedBox(height: 8),
+      Text('Finalizing...', style: TextStyle(color: theme.colorScheme.onSurface.withAlpha(150), fontSize: 14, fontFamily: 'Inter')),
+    ]));
   }
 
   void _showSuccessAndReturn() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => PopScope(
-          canPop: false,
-          child: Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Animated check
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.elasticOut,
-                    builder: (context, value, child) {
-                      return Transform.scale(
-                        scale: value,
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: const BoxDecoration(
-                            color: AppColors.success50,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.check_circle_rounded,
-                            color: AppColors.success500,
-                            size: 48,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  const Text(
-                    'Visit Completed! 🎉',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Great job! The commission has been processed.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 13,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Stats strip
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.light100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _statItem(Icons.timer_outlined,
-                            _formatDuration(_elapsed)),
-                        Container(
-                            width: 1,
-                            height: 24,
-                            color: AppColors.light500),
-                        _statItem(Icons.medical_services_outlined,
-                            widget.booking.serviceName),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── PDF Buttons ──
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Visit Report PDF',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      // Preview button
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _pdfGenerating
-                              ? null
-                              : () async {
-                                  setDialogState(
-                                      () => _pdfGenerating = true);
-                                  try {
-                                    await VisitReportPdfService().preview(
-                                      widget.booking,
-                                      _reportData,
-                                      _nurseName,
-                                      _elapsed,
-                                    );
-                                  } finally {
-                                    if (mounted) {
-                                      setDialogState(() =>
-                                          _pdfGenerating = false);
-                                    }
-                                  }
-                                },
-                          icon: const Icon(Icons.visibility_rounded,
-                              size: 16),
-                          label: const Text('Preview',
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600)),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.primary500,
-                            side: const BorderSide(
-                                color: AppColors.primary500),
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      // Download / Share button
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _pdfGenerating
-                              ? null
-                              : () async {
-                                  setDialogState(
-                                      () => _pdfGenerating = true);
-                                  try {
-                                    await VisitReportPdfService().share(
-                                      widget.booking,
-                                      _reportData,
-                                      _nurseName,
-                                      _elapsed,
-                                    );
-                                  } finally {
-                                    if (mounted) {
-                                      setDialogState(() =>
-                                          _pdfGenerating = false);
-                                    }
-                                  }
-                                },
-                          icon: _pdfGenerating
-                              ? const SizedBox(
-                                  width: 14,
-                                  height: 14,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white))
-                              : const Icon(
-                                  Icons.download_rounded,
-                                  size: 16),
-                          label: Text(
-                              _pdfGenerating ? 'Generating...' : 'Download',
-                              style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary500,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Back to Home
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        'Back to Home',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+      context: context, barrierDismissible: false,
+      builder: (ctx) { return StatefulBuilder(builder: (ctx, setDialogState) { return PopScope(canPop: false, child: Dialog(
+        backgroundColor: Colors.transparent, insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(
+          decoration: BoxDecoration(color: theme.colorScheme.surface, borderRadius: BorderRadius.circular(32), boxShadow: [BoxShadow(color: Colors.black.withAlpha(isDark ? 80 : 20), blurRadius: 40, offset: const Offset(0, 20))]),
+          child: ClipRRect(borderRadius: BorderRadius.circular(32), child: Stack(children: [
+            Positioned(top: -50, right: -50, child: Container(width: 150, height: 150, decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.primary50.withAlpha(isDark ? 20 : 100)))),
+            Padding(padding: const EdgeInsets.all(32), child: Column(mainAxisSize: MainAxisSize.min, children: [
+              TweenAnimationBuilder<double>(tween: Tween(begin: 0.0, end: 1.0), duration: const Duration(milliseconds: 800), curve: Curves.elasticOut, builder: (context, value, child) {
+                return Transform.scale(scale: value, child: Container(width: 90, height: 90, decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary600, AppColors.primary400], begin: Alignment.topLeft, end: Alignment.bottomRight), shape: BoxShape.circle, boxShadow: [BoxShadow(color: AppColors.primary500.withAlpha(60), blurRadius: 20, offset: const Offset(0, 10))]), child: const Icon(Icons.check_rounded, color: Colors.white, size: 50)));
+              }),
+              const SizedBox(height: 24),
+              Text(l10n.visitCompleted, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: theme.colorScheme.onSurface, fontFamily: 'Poppins')),
+              const SizedBox(height: 8),
+              Text(l10n.visitCompletedSub, textAlign: TextAlign.center, style: TextStyle(color: theme.colorScheme.onSurface.withAlpha(150), fontSize: 14, height: 1.5, fontFamily: 'Inter')),
+              const SizedBox(height: 28),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(color: theme.colorScheme.surfaceContainerHighest.withAlpha(isDark ? 100 : 255), borderRadius: BorderRadius.circular(20), border: Border.all(color: theme.colorScheme.outline.withAlpha(50))),
+                child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+                  _modernStatItem(Icons.timer_outlined, l10n.liveDuration, _formatDuration(_elapsed), theme),
+                  Container(width: 1, height: 30, color: theme.colorScheme.outline.withAlpha(100)),
+                  _modernStatItem(Icons.medical_services_outlined, l10n.home, widget.booking.serviceName, theme),
+                ]),
               ),
-            ),
-          ),
+              const SizedBox(height: 28),
+              Align(alignment: Alignment.centerLeft, child: Text(l10n.documentation, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: theme.colorScheme.onSurface.withAlpha(100), letterSpacing: 1.2))),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(child: ElevatedButton.icon(onPressed: _pdfGenerating ? null : () async { setDialogState(() => _pdfGenerating = true); try { await VisitReportPdfService().share(widget.booking, _reportData, _nurseName, _elapsed); } finally { if (mounted) { setDialogState(() => _pdfGenerating = false); } } }, icon: _pdfGenerating ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.share_rounded, size: 18), label: Text(l10n.sharePdf), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary600, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))),
+              ]),
+              const SizedBox(height: 12),
+              TextButton(onPressed: _pdfGenerating ? null : () async { setDialogState(() => _pdfGenerating = true); try { await VisitReportPdfService().preview(widget.booking, _reportData, _nurseName, _elapsed); } finally { if (mounted) { setDialogState(() => _pdfGenerating = false); } } }, child: Text(l10n.previewReport, style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary, letterSpacing: 0.5))),
+              const SizedBox(height: 20),
+              SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () { Navigator.pop(ctx); Navigator.pop(context); }, style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.onSurface, foregroundColor: theme.colorScheme.surface, padding: const EdgeInsets.symmetric(vertical: 18), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))), child: Text(l10n.backToHome, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 1)))),
+            ])),
+          ])),
         ),
-      ),
+      )); }); },
     );
   }
 
-  Widget _statItem(IconData icon, String value) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 18, color: AppColors.primary500),
-        const SizedBox(width: 6),
-        Flexible(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-              color: AppColors.textPrimary,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
+  Widget _modernStatItem(IconData icon, String label, String value, ThemeData theme) {
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      Icon(icon, size: 20, color: AppColors.primary500), const SizedBox(height: 8),
+      Text(label.toUpperCase(), style: TextStyle(fontSize: 10, color: theme.colorScheme.onSurface.withAlpha(100), fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+      const SizedBox(height: 2),
+      Text(value, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: theme.colorScheme.onSurface)),
+    ]);
   }
 
   void _scrollToReportSection() {
     final context = _reportSectionKey.currentContext;
-    if (context != null) {
-      Scrollable.ensureVisible(
-        context,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-        alignment: 0.0,
-      );
-    } else {
-      // Fallback: scroll to bottom of the scrollable area
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      }
-    }
+    if (context != null) { Scrollable.ensureVisible(context, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut, alignment: 0.0); }
+    else if (_scrollController.hasClients) { _scrollController.animateTo(_scrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut); }
   }
 
   Widget _buildActiveVisitContent() {
-    return Column(
-      children: [
-        // ── Header ──
-        _buildHeader(),
-
-        // ── Content ──
-        Expanded(
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Timer Card
-                _buildTimerCard(),
-                const SizedBox(height: 20),
-
-                // Patient Info
-                _buildPatientCard(),
-                const SizedBox(height: 20),
-
-                // Service Details
-                _buildServiceDetailsCard(),
-                const SizedBox(height: 20),
-
-                // Device Management
-                _buildDeviceManagementCard(),
-                const SizedBox(height: 20),
-
-                // ── Required Fields Reminder ──
-                if (!_reportData.isReadyToSubmit) _buildRequiredFieldsReminder(),
-                if (!_reportData.isReadyToSubmit) const SizedBox(height: 12),
-
-                // Visit Report
-                _buildReportSection(),
-                const SizedBox(height: 100), // Space for bottom button
-              ],
-            ),
-          ),
-        ),
-
-        // ── Bottom Complete Button ──
-        _buildBottomCompleteButton(),
-      ],
-    );
-  }
-
-  /// A banner shown above the report form reminding the nurse which fields
-  /// are required before the visit can be completed.
-  Widget _buildRequiredFieldsReminder() {
-    final missing = _missingFields;
-    if (missing.isEmpty) return const SizedBox.shrink();
-
-    return GestureDetector(
-      onTap: _scrollToReportSection,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFFF3CD), Color(0xFFFFE69C)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.warning300, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.warning300.withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.warning500,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.assignment_late_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Required before completing visit:',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.warning700,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: missing.map((field) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning600,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        field,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    )).toList(),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.warning600,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
+    return Stack(children: [
+      _buildHeader(),
+      SafeArea(child: SingleChildScrollView(controller: _scrollController, padding: const EdgeInsets.only(top: 140, left: 20, right: 20, bottom: 120), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _buildTimerCard(), const SizedBox(height: 20),
+        _buildPatientCard(), const SizedBox(height: 20),
+        _buildServiceDetailsCard(), const SizedBox(height: 20),
+        if (!_reportData.isReadyToSubmit) _buildRequiredFieldsReminder(),
+        if (!_reportData.isReadyToSubmit) const SizedBox(height: 12),
+        _buildReportSection(),
+      ]))),
+      _buildBottomCompleteButton(),
+    ]);
   }
 
   Widget _buildHeader() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Animated pulsing dot
-          AnimatedBuilder(
-            animation: _pulseController,
-            builder: (context, child) {
-              return Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color:
-                      AppColors.success500.withOpacity(0.5 + _pulseController.value * 0.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.success500
-                          .withOpacity(0.3 * _pulseController.value),
-                      blurRadius: 8,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'VISIT IN PROGRESS',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              color: AppColors.success700,
-              letterSpacing: 1,
-            ),
-          ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.success50,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              _formatDuration(_elapsed),
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: AppColors.success700,
-                fontSize: 14,
-                fontFamily: 'monospace',
-              ),
-            ),
-          ),
-        ],
-      ),
+      height: 240, width: double.infinity,
+      decoration: const BoxDecoration(gradient: LinearGradient(colors: [AppColors.primary700, AppColors.primary500], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40))),
+      child: Stack(children: [
+        Positioned(top: -40, right: -40, child: Container(width: 160, height: 160, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withAlpha(20)))),
+        SafeArea(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), child: Column(children: [
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            AnimatedBuilder(animation: _pulseController, builder: (context, child) { return Container(width: 10, height: 10, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.6 + _pulseController.value * 0.4), boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.4 * _pulseController.value), blurRadius: 8, spreadRadius: 2)])); }),
+            const SizedBox(width: 12),
+            Text(l10n.visitInProgress, style: const TextStyle(fontFamily: 'Poppins', fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 1.5)),
+          ]),
+          const SizedBox(height: 20),
+          Text(_formatDuration(_elapsed), style: const TextStyle(fontFamily: 'monospace', fontSize: 42, fontWeight: FontWeight.w900, color: Colors.white)),
+          Text(l10n.liveDuration, style: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white.withAlpha(180), letterSpacing: 2)),
+        ]))),
+      ]),
     );
   }
 
   Widget _buildTimerCard() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1B5E20), Color(0xFF2E7D32), Color(0xFF43A048)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.success500.withOpacity(0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            'ELAPSED TIME',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: Colors.white.withOpacity(0.7),
-              letterSpacing: 2,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _formatDuration(_elapsed),
-            style: const TextStyle(
-              fontSize: 44,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              fontFamily: 'monospace',
-              letterSpacing: 2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.access_time, color: Colors.white70, size: 14),
-                const SizedBox(width: 6),
-                Text(
-                  'Started at ${_formatTime(widget.booking.visitStartedAt ?? DateTime.now())}',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      width: double.infinity, padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(color: theme.colorScheme.surface, borderRadius: BorderRadius.circular(28), boxShadow: [BoxShadow(color: Colors.black.withAlpha(isDark ? 40 : 10), blurRadius: 20, offset: const Offset(0, 10))]),
+      child: ClipRRect(borderRadius: BorderRadius.circular(28), child: Stack(children: [
+        Positioned(bottom: -30, right: -30, child: Icon(Icons.timer_outlined, size: 100, color: AppColors.primary50.withAlpha(isDark ? 30 : 150))),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(l10n.sessionOverview, style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+          const SizedBox(height: 16),
+          Row(children: [
+            _buildMiniStat(Icons.calendar_today_rounded, l10n.started, TimeOfDay.fromDateTime(widget.booking.visitStartedAt ?? DateTime.now()).format(context)),
+            const SizedBox(width: 24),
+            _buildMiniStat(Icons.medical_services_rounded, l10n.type, l10n.inPerson),
+          ]),
+        ]),
+      ])),
     );
   }
 
-  String _formatTime(DateTime dt) {
-    final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
-    final minute = dt.minute.toString().padLeft(2, '0');
-    final period = dt.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $period';
+  Widget _buildMiniStat(IconData icon, String label, String value) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Row(children: [
+      Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.primary50.withAlpha(isDark ? 40 : 255), borderRadius: BorderRadius.circular(10)), child: Icon(icon, size: 16, color: AppColors.primary600)),
+      const SizedBox(width: 12),
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label.toUpperCase(), style: TextStyle(fontFamily: 'Inter', fontSize: 10, fontWeight: FontWeight.w700, color: theme.colorScheme.onSurface.withAlpha(100), letterSpacing: 0.5)),
+        Text(value, style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface)),
+      ]),
+    ]);
   }
 
   Widget _buildPatientCard() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section header
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primary50,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.person_rounded,
-                  color: AppColors.primary500,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Patient Information',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 24),
-
-          // Patient name
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: AppColors.primary50,
-                child: Text(
-                  widget.booking.patientName.isNotEmpty
-                      ? widget.booking.patientName[0].toUpperCase()
-                      : '?',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary500,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.booking.patientName,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    if (widget.booking.customerName !=
-                        widget.booking.patientName)
-                      Text(
-                        'Booked by: ${widget.booking.customerName}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-
-              // Call button
-              if (widget.booking.patientPhone != null &&
-                  widget.booking.patientPhone!.isNotEmpty)
-                IconButton(
-                  onPressed: () async {
-                    final uri =
-                        Uri(scheme: 'tel', path: widget.booking.patientPhone);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri);
-                    }
-                  },
-                  icon: const Icon(Icons.phone_rounded),
-                  color: AppColors.primary500,
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.primary50,
-                    padding: const EdgeInsets.all(12),
-                  ),
-                ),
-            ],
-          ),
-
-          // Address
-          if (widget.booking.address != null) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.light100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.location_on_rounded,
-                      color: AppColors.warning500, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      widget.booking.address!.fullAddress,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[700],
-                        height: 1.3,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
+      width: double.infinity, padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: theme.colorScheme.surface, borderRadius: BorderRadius.circular(24), border: Border.all(color: theme.colorScheme.outline.withAlpha(isDark ? 40 : 100))),
+      child: Row(children: [
+        Container(padding: const EdgeInsets.all(2), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary500, width: 2)), child: CircleAvatar(radius: 28, backgroundColor: theme.colorScheme.primaryContainer.withAlpha(isDark ? 50 : 255), child: Icon(Icons.person_rounded, color: theme.colorScheme.primary, size: 30))),
+        const SizedBox(width: 16),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(widget.booking.patientName, style: TextStyle(fontFamily: 'Poppins', fontSize: 17, fontWeight: FontWeight.w700, color: theme.colorScheme.onSurface)),
+          Text(l10n.patientRecord + ' #12345', style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: theme.colorScheme.onSurface.withAlpha(150))),
+        ])),
+        IconButton(onPressed: () {}, icon: Icon(Icons.info_outline_rounded, color: theme.colorScheme.primary)),
+      ]),
     );
   }
 
   Widget _buildServiceDetailsCard() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary50,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.medical_services_rounded,
-                  color: AppColors.secondary500,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Service Details',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 24),
-          _detailRow(Icons.medical_services_outlined, 'Service',
-              widget.booking.serviceName),
+      width: double.infinity, padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.secondary700, AppColors.secondary500], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: AppColors.secondary500.withAlpha(40), blurRadius: 15, offset: const Offset(0, 8))]),
+      child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Stack(children: [
+        Positioned(bottom: -20, right: -20, child: Icon(Icons.medical_information_rounded, size: 80, color: Colors.white.withAlpha(30))),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(l10n.serviceDetails, style: const TextStyle(fontFamily: 'Poppins', fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 1.5)),
+          const SizedBox(height: 8),
+          Text(widget.booking.serviceName, style: const TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
           const SizedBox(height: 12),
-          _detailRow(Icons.payments_outlined, 'Price',
-              'EGP ${widget.booking.servicePrice.toStringAsFixed(0)}'),
-          if (widget.booking.notes != null &&
-              widget.booking.notes!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _detailRow(Icons.note_outlined, 'Notes', widget.booking.notes!),
-          ],
-          const SizedBox(height: 12),
-          _detailRow(
-            Icons.schedule_outlined,
-            'Type',
-            widget.booking.isAsap ? 'ASAP (Immediate)' : 'Scheduled',
-          ),
-        ],
-      ),
+          Row(children: [
+            const Icon(Icons.payments_rounded, color: Colors.white, size: 16), const SizedBox(width: 8),
+            Text('${l10n.egp} ${widget.booking.servicePrice.toStringAsFixed(0)}', style: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
+          ]),
+        ]),
+      ])),
     );
   }
 
-  Widget _buildDeviceManagementCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+  Widget _buildRequiredFieldsReminder() {
+    final l10n = AppLocalizations.of(context)!;
+    final missingCount = _getMissingFieldLabels(l10n).length;
+    if (missingCount == 0) return const SizedBox.shrink();
+    return GestureDetector(
+      onTap: _scrollToReportSection,
+      child: Container(
+        width: double.infinity, padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: AppColors.warning50.withAlpha(Theme.of(context).brightness == Brightness.dark ? 40 : 255), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.warning300.withAlpha(100), width: 1)),
+        child: Row(children: [
+          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.warning500, borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.assignment_late_rounded, color: Colors.white, size: 20)),
+          const SizedBox(width: 16),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(l10n.completeReportForm, style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700, color: Theme.of(context).brightness == Brightness.dark ? AppColors.warning200 : AppColors.warning700)),
+            Text(l10n.fieldsRemaining(missingCount), style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? AppColors.warning200 : AppColors.warning700).withAlpha(180))),
+          ])),
+          Icon(Icons.chevron_right_rounded, color: Theme.of(context).brightness == Brightness.dark ? AppColors.warning200 : AppColors.warning600),
+        ]),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              AppRoutes.nurseDeviceManagement,
-              arguments: {
-                'bookingId': widget.booking.id,
-                'patientId': widget.booking.patientId,
-                'patientName': widget.booking.patientName,
-              },
-            );
-          },
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary50,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.monitor_heart_outlined,
-                    color: AppColors.primary500,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Device & Vitals',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Monitor live patient vitals via device.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 16,
-                  color: AppColors.textSecondary,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _detailRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: Colors.grey[500]),
-        const SizedBox(width: 10),
-        SizedBox(
-          width: 70,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[500],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
   Widget _buildReportSection() {
-    return KeyedSubtree(
-      key: _reportSectionKey,
-      child: VisitReportForm(
-        initialService: widget.booking.serviceName,
-        onChanged: (data) {
-          setState(() => _reportData = data);
-        },
-      ),
-    );
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    return Column(key: _reportSectionKey, crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(padding: const EdgeInsets.only(left: 4, bottom: 12), child: Text(l10n.visitReport, style: TextStyle(fontFamily: 'Poppins', fontSize: 16, fontWeight: FontWeight.w800, color: theme.colorScheme.onSurface, letterSpacing: 1))),
+      VisitReportForm(initialService: widget.booking.serviceName, prefill: _reportData, onChanged: (updated) { setState(() => _reportData = updated); }),
+    ]);
   }
 
   Widget _buildBottomCompleteButton() {
-    final missing = _missingFields;
-    final isReady = missing.isEmpty;
-    final filledCount = 5 - missing.length; // 5 required fields total
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, -4),
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    return Positioned(
+      bottom: 0, left: 0, right: 0,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(color: theme.colorScheme.surface, boxShadow: [BoxShadow(color: Colors.black.withAlpha(theme.brightness == Brightness.dark ? 80 : 30), blurRadius: 15, offset: const Offset(0, -5))]),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          if (!_reportData.isReadyToSubmit) Padding(padding: const EdgeInsets.only(bottom: 12), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.error), const SizedBox(width: 8), Text(l10n.fillVitalsToComplete, style: const TextStyle(color: AppColors.error, fontSize: 13, fontWeight: FontWeight.w600))])),
+          Container(
+            width: double.infinity, height: 60,
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), gradient: LinearGradient(colors: _reportData.isReadyToSubmit ? [AppColors.primary700, AppColors.primary500] : [Colors.grey[400]!, Colors.grey[300]!]), boxShadow: _reportData.isReadyToSubmit ? [BoxShadow(color: AppColors.primary500.withAlpha(80), blurRadius: 12, offset: const Offset(0, 6))] : null),
+            child: ElevatedButton(onPressed: _reportData.isReadyToSubmit ? _confirmCompleteVisit : null, style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, foregroundColor: Colors.white, shadowColor: Colors.transparent, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))), child: Text(l10n.completeVisit, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: 1))),
           ),
-        ],
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Progress bar showing required fields completion
-            if (!isReady) ...[
-              Row(
-                children: [
-                  const Icon(
-                    Icons.info_outline_rounded,
-                    size: 14,
-                    color: AppColors.warning600,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Fill required vitals to complete ($filledCount/5 done)',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.warning600,
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: _scrollToReportSection,
-                    child: const Text(
-                      'Fill now ↑',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary500,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: filledCount / 5,
-                  minHeight: 5,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    isReady ? AppColors.success500 : AppColors.warning500,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-            ],
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _confirmCompleteVisit,
-                icon: Icon(
-                  isReady
-                      ? Icons.check_circle_rounded
-                      : Icons.assignment_late_rounded,
-                  size: 22,
-                ),
-                label: Text(
-                  isReady ? 'Complete Visit' : 'Complete Visit (${missing.length} fields missing)',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      isReady ? AppColors.success500 : AppColors.warning500,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 2,
-                ),
-              ),
-            ),
-          ],
-        ),
+        ]),
       ),
     );
   }

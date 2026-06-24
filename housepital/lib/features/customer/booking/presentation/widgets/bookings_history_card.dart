@@ -135,9 +135,9 @@ class BookingsHistoryCard extends StatelessWidget {
                     child: Icon(
                       watermarkIcon,
                       size: 80,
-                      color: isDark ? Colors.white.withAlpha(10) : statusGradient[0].withAlpha(15),
-                    ),
-                  ),
+                      color: statusGradient[0].withAlpha(15),
+              ),
+            ),
 
             Padding(
               padding: const EdgeInsets.all(16),
@@ -175,11 +175,11 @@ class BookingsHistoryCard extends StatelessWidget {
                       children: [
                         Text(
                           serviceName,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
+                            color: Color(0xFF1E293B),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -265,11 +265,11 @@ class BookingsHistoryCard extends StatelessWidget {
                     children: [
                       Text(
                         '${price.toStringAsFixed(0)} EGP',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
+                          color: Color(0xFF1E293B),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -346,8 +346,5 @@ class BookingsHistoryCard extends StatelessWidget {
         ),
       ),
     );
-  },
-),
-);
-}
+  }
 }

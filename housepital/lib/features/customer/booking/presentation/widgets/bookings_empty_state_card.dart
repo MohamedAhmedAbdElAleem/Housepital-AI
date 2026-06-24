@@ -18,7 +18,6 @@ class BookingsEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -52,21 +51,21 @@ class BookingsEmptyState extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
+                color: Color(0xFF1E293B),
               ),
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 14,
-                color: isDark ? const Color(0xFFA19EAB) : const Color(0xFF94A3B8),
+                color: Color(0xFF94A3B8),
               ),
             ),
             if (showAction) ...[

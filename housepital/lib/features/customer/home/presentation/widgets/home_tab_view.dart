@@ -170,8 +170,7 @@ class _HomeTabViewState extends State<HomeTabView> with TickerProviderStateMixin
                         Container(
                           height: 280, // Fixed height for overlap effect
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF16151A) : null,
-                            gradient: isDark ? null : LinearGradient(
+                            gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
@@ -183,16 +182,6 @@ class _HomeTabViewState extends State<HomeTabView> with TickerProviderStateMixin
                               bottomLeft: Radius.circular(40),
                               bottomRight: Radius.circular(40),
                             ),
-                            boxShadow: isDark 
-                              ? [
-                                  BoxShadow(
-                                    color: theme.colorScheme.primary.withAlpha(20),
-                                    blurRadius: 60,
-                                    spreadRadius: 20,
-                                    offset: const Offset(0, -20),
-                                  )
-                                ]
-                              : null,
                           ),
                           child: Stack(
                             children: [
@@ -205,7 +194,7 @@ class _HomeTabViewState extends State<HomeTabView> with TickerProviderStateMixin
                                   height: 180,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: Colors.white.withAlpha(10), // reduced alpha for dark mode
+                                    color: Colors.white.withAlpha(20),
                                   ),
                                 ),
                               ),
@@ -217,7 +206,7 @@ class _HomeTabViewState extends State<HomeTabView> with TickerProviderStateMixin
                                   height: 240,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: Colors.white.withAlpha(5),
+                                    color: Colors.white.withAlpha(15),
                                   ),
                                 ),
                               ),
