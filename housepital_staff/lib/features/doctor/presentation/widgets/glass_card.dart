@@ -8,7 +8,7 @@ class GlassCard extends StatelessWidget {
     super.key,
     required this.child,
     this.accentColor,
-    this.padding = const EdgeInsets.all(16),
+    this.padding = EdgeInsets.all(16),
     this.hasBorder = true,
     this.borderColor,
     this.onTap,
@@ -26,12 +26,12 @@ class GlassCard extends StatelessWidget {
     final card = Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: DoctorTheme.surface,
+        color: DoctorTheme.surface(context),
         borderRadius: BorderRadius.circular(DoctorTheme.radiusMD),
         border: hasBorder
-            ? Border.all(color: borderColor ?? DoctorTheme.border)
+            ? Border.all(color: borderColor ?? DoctorTheme.border(context))
             : null,
-        boxShadow: DoctorTheme.cardShadow,
+        boxShadow: DoctorTheme.cardShadow(context),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -13,11 +13,11 @@ class DoctorRejectedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DoctorTheme.background,
+      backgroundColor: DoctorTheme.background(context),
       body: BackgroundBlobs(
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
+            padding: EdgeInsets.symmetric(horizontal: 28),
             child: BlocBuilder<DoctorCubit, DoctorState>(
               builder: (context, state) {
                 String? rejectionReason;
@@ -51,37 +51,37 @@ class DoctorRejectedPage extends StatelessWidget {
                         ],
                       ),
                       child: Container(
-                        margin: const EdgeInsets.all(12),
-                        decoration: const BoxDecoration(
+                        margin: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: DoctorTheme.dangerLight,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.block_rounded,
                           color: DoctorTheme.danger,
                           size: 44,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
 
                     // ── Title ──
-                    const Text(
+                    Text(
                       'Verification Unsuccessful',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: DoctorTheme.textPrimary,
+                        color: DoctorTheme.textPrimary(context),
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.2,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
+                    SizedBox(height: 12),
+                    Text(
                       'Your profile could not be verified at this time. Please review the feedback below and resubmit.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: DoctorTheme.textSecondary,
+                        color: DoctorTheme.textSecondary(context),
                         fontSize: 15,
                         height: 1.5,
                       ),
@@ -90,12 +90,12 @@ class DoctorRejectedPage extends StatelessWidget {
                     // ── Rejection Reason Card ──
                     if (rejectionReason != null &&
                         rejectionReason.isNotEmpty) ...[
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       Container(
                         width: double.infinity,
                         clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
-                          color: DoctorTheme.surface,
+                          color: DoctorTheme.surface(context),
                           borderRadius:
                               BorderRadius.circular(DoctorTheme.radiusSM),
                           border: Border.all(
@@ -120,12 +120,12 @@ class DoctorRejectedPage extends StatelessWidget {
                               ),
                               Expanded(
                                 child: Padding(
-                                  padding: const EdgeInsets.all(14),
+                                  padding: EdgeInsets.all(14),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Row(
+                                      Row(
                                         children: [
                                           Icon(Icons.feedback_rounded,
                                               size: 18,
@@ -141,11 +141,11 @@ class DoctorRejectedPage extends StatelessWidget {
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 8),
+                                      SizedBox(height: 8),
                                       Text(
                                         rejectionReason,
-                                        style: const TextStyle(
-                                          color: DoctorTheme.textSecondary,
+                                        style: TextStyle(
+                                          color: DoctorTheme.textSecondary(context),
                                           fontSize: 14,
                                           height: 1.5,
                                         ),
@@ -160,7 +160,7 @@ class DoctorRejectedPage extends StatelessWidget {
                       ),
                     ],
 
-                    const SizedBox(height: 28),
+                    SizedBox(height: 28),
 
                     // ── Update Profile Button ──
                     SizedBox(
@@ -168,7 +168,7 @@ class DoctorRejectedPage extends StatelessWidget {
                       height: 52,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          gradient: DoctorTheme.headerGradient,
+                          gradient: DoctorTheme.headerGradient(context),
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
@@ -194,8 +194,8 @@ class DoctorRejectedPage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          icon: const Icon(Icons.edit_document),
-                          label: const Text(
+                          icon: Icon(Icons.edit_document),
+                          label: Text(
                             'Update & Resubmit',
                             style: TextStyle(
                               fontSize: 16,
@@ -218,16 +218,16 @@ class DoctorRejectedPage extends StatelessWidget {
                           (route) => false,
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         'Sign out',
                         style: TextStyle(
-                          color: DoctorTheme.textSecondary,
+                          color: DoctorTheme.textSecondary(context),
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                   ],
                 );
               },

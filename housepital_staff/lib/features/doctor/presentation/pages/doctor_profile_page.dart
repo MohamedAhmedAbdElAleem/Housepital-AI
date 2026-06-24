@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../config/theme/theme_cubit.dart';
+import '../../../../config/language/language_cubit.dart';
 import '../../../../core/utils/token_manager.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/models/doctor_model.dart';
 import '../cubit/doctor_cubit.dart';
 import '../theme/doctor_theme.dart';
@@ -77,6 +80,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
 
     final doctorCubit = context.read<DoctorCubit>();
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final userId = await TokenManager.getUserId();
 
     final profileToSave = DoctorModel(
@@ -112,7 +116,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
     if (!mounted) return;
     messenger.showSnackBar(
       SnackBar(
-        content: const Text('Profile saved successfully'),
+        content: Text(l10n.save),
         backgroundColor: DoctorTheme.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -122,8 +126,9 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: DoctorTheme.background,
+      backgroundColor: DoctorTheme.background(context),
       body: BackgroundBlobs(
         child: SafeArea(
           child: BlocConsumer<DoctorCubit, DoctorState>(
@@ -143,8 +148,8 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
               return Column(
                 children: [
                   GlassHeader(
-                    title: 'Professional Profile',
-                    subtitle: 'Set your identity for patient trust',
+                    title: l10n.myProfile,
+                    subtitle: l10n.editProfileData,
                     onBack: () => Navigator.maybePop(context),
                     actionIcon: Icons.refresh_rounded,
                     actionTooltip: 'Refresh',
@@ -152,17 +157,19 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                   ),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 20),
+                      padding: EdgeInsets.fromLTRB(16, 6, 16, 20),
                       child: Form(
                         key: _formKey,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _buildIdentityCard(),
-                            const SizedBox(height: 14),
-                            _buildFormCard(),
-                            const SizedBox(height: 20),
-                            _buildSaveButton(isLoading),
+                            _buildIdentityCard(l10n),
+                            SizedBox(height: 14),
+                            _buildSettingsCard(l10n),
+                            SizedBox(height: 14),
+                            _buildFormCard(l10n),
+                            SizedBox(height: 20),
+                            _buildSaveButton(isLoading, l10n),
                           ],
                         ),
                       ),
@@ -179,13 +186,13 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
 
   // ── Identity Card ──────────────────────────────────────────────
 
-  Widget _buildIdentityCard() {
+  Widget _buildIdentityCard(AppLocalizations l10n) {
     final verificationStatus =
         _currentProfile?.verificationStatus ?? 'pending';
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: DoctorTheme.cardDecoration(),
+      padding: EdgeInsets.all(16),
+      decoration: DoctorTheme.cardDecoration(context),
       child: Row(
         children: [
           // Avatar with gradient ring
@@ -205,28 +212,28 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                 width: 2,
               ),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.person_rounded,
               color: DoctorTheme.primaryDark,
               size: 36,
             ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Text('Doctor Account', style: DoctorTheme.headingSmall),
-                    const SizedBox(width: 8),
+                    Text(l10n.myProfile, style: DoctorTheme.headingSmall(context)),
+                    SizedBox(width: 8),
                     _buildVerificationBadge(verificationStatus),
                   ],
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Complete your details to improve visibility and booking confidence.',
-                  style: DoctorTheme.bodySmall,
+                SizedBox(height: 4),
+                Text(
+                  l10n.editProfileData,
+                  style: DoctorTheme.bodySmall(context),
                 ),
               ],
             ),
@@ -260,7 +267,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(DoctorTheme.radiusChip),
@@ -270,7 +277,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
+          SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
@@ -284,21 +291,86 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
     );
   }
 
+  // ── Settings Card (Dark Mode + Language) ───────────────────────
+
+  Widget _buildSettingsCard(AppLocalizations l10n) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: DoctorTheme.cardDecoration(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionLabel(l10n.settings),
+          SizedBox(height: 12),
+          // Dark Mode Toggle
+          BlocBuilder<ThemeCubit, ThemeMode>(
+            builder: (context, themeMode) {
+              return SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.darkMode, style: DoctorTheme.titleMedium(context)),
+                subtitle: Text(
+                  themeMode == ThemeMode.dark
+                      ? l10n.darkThemeEnabled
+                      : l10n.lightThemeEnabled,
+                  style: DoctorTheme.caption(context),
+                ),
+                secondary: Icon(
+                  themeMode == ThemeMode.dark
+                      ? Icons.dark_mode_rounded
+                      : Icons.light_mode_rounded,
+                  color: DoctorTheme.primary,
+                ),
+                value: themeMode == ThemeMode.dark,
+                activeColor: DoctorTheme.primary,
+                onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
+              );
+            },
+          ),
+          Divider(color: DoctorTheme.border(context)),
+          // Language Toggle
+          BlocBuilder<LanguageCubit, Locale>(
+            builder: (context, locale) {
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.language_rounded, color: DoctorTheme.primary),
+                title: Text(l10n.language, style: DoctorTheme.titleMedium(context)),
+                subtitle: Text(
+                  locale.languageCode == 'ar' ? 'العربية' : 'English',
+                  style: DoctorTheme.caption(context),
+                ),
+                trailing: TextButton(
+                  onPressed: () => context.read<LanguageCubit>().toggleLanguage(),
+                  child: Text(
+                    locale.languageCode == 'ar' ? 'English' : 'العربية',
+                    style: TextStyle(
+                      color: DoctorTheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── Form Card ──────────────────────────────────────────────────
 
-  Widget _buildFormCard() {
+  Widget _buildFormCard(AppLocalizations l10n) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: DoctorTheme.cardDecoration(),
+      padding: EdgeInsets.all(16),
+      decoration: DoctorTheme.cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _sectionLabel('Medical Details'),
-          const SizedBox(height: 12),
+          _sectionLabel(l10n.professionalDetails),
+          SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _selectedSpecialization,
-            decoration: DoctorTheme.inputDecoration(
-              label: 'Specialization',
+            decoration: DoctorTheme.inputDecoration(context,
+              label: l10n.professionalDetails,
               icon: Icons.medical_services_outlined,
             ),
             items: _specializations
@@ -310,70 +382,69 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
             onChanged: (value) =>
                 setState(() => _selectedSpecialization = value),
             validator: (value) =>
-                value == null ? 'Please select a specialization' : null,
+                value == null ? l10n.somethingWentWrong : null,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           TextFormField(
             controller: _licenseController,
-            decoration: DoctorTheme.inputDecoration(
-              label: 'Medical License Number',
+            decoration: DoctorTheme.inputDecoration(context,
+              label: l10n.credentials,
               icon: Icons.badge_outlined,
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'License number is required';
+                return l10n.somethingWentWrong;
               }
               if (value.trim().length < 5) {
-                return 'Must be at least 5 characters';
+                return l10n.somethingWentWrong;
               }
               return null;
             },
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           TextFormField(
             controller: _experienceController,
             keyboardType: TextInputType.number,
-            decoration: DoctorTheme.inputDecoration(
-              label: 'Years of Experience',
+            decoration: DoctorTheme.inputDecoration(context,
+              label: l10n.personalDetails,
               icon: Icons.timeline_rounded,
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Years of experience is required';
+                return l10n.somethingWentWrong;
               }
               if (int.tryParse(value) == null) {
-                return 'Must be a valid number';
+                return l10n.somethingWentWrong;
               }
               return null;
             },
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _selectedGender,
-            decoration: DoctorTheme.inputDecoration(
-              label: 'Gender',
+            decoration: DoctorTheme.inputDecoration(context,
+              label: l10n.personalDetails,
               icon: Icons.person_outline_rounded,
             ),
-            items: const [
+            items: [
               DropdownMenuItem(value: 'male', child: Text('Male')),
               DropdownMenuItem(value: 'female', child: Text('Female')),
             ],
             onChanged: (value) => setState(() => _selectedGender = value),
             validator: (value) =>
-                value == null ? 'Please select gender' : null,
+                value == null ? l10n.somethingWentWrong : null,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           TextFormField(
             controller: _bioController,
             maxLines: 4,
-            decoration: DoctorTheme.inputDecoration(
-              label: 'Professional Bio',
+            decoration: DoctorTheme.inputDecoration(context,
+              label: l10n.professionalDetails,
               icon: Icons.edit_note_rounded,
-              hint: 'Tell patients about your expertise...',
             ),
             validator: (value) {
               if (value != null && value.length > 500) {
-                return 'Bio is too long';
+                return l10n.somethingWentWrong;
               }
               return null;
             },
@@ -385,12 +456,12 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
 
   // ── Save Button ────────────────────────────────────────────────
 
-  Widget _buildSaveButton(bool isLoading) {
+  Widget _buildSaveButton(bool isLoading, AppLocalizations l10n) {
     return SizedBox(
       height: 52,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: isLoading ? null : DoctorTheme.headerGradient,
+          gradient: isLoading ? null : DoctorTheme.headerGradient(context),
           borderRadius: BorderRadius.circular(14),
           boxShadow: isLoading
               ? null
@@ -398,7 +469,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                   BoxShadow(
                     color: DoctorTheme.primary.withValues(alpha: 0.3),
                     blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    offset: Offset(0, 4),
                   ),
                 ],
         ),
@@ -413,7 +484,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
             ),
           ),
           icon: isLoading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 18,
                   height: 18,
                   child: CircularProgressIndicator(
@@ -421,10 +492,10 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                     color: Colors.white,
                   ),
                 )
-              : const Icon(Icons.save_rounded),
+              : Icon(Icons.save_rounded),
           label: Text(
-            isLoading ? 'Saving...' : 'Save Profile',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            isLoading ? '...' : l10n.save,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
         ),
       ),
@@ -440,12 +511,12 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
           width: 4,
           height: 18,
           decoration: BoxDecoration(
-            gradient: DoctorTheme.headerGradient,
+            gradient: DoctorTheme.headerGradient(context),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
-        const SizedBox(width: 8),
-        Text(text, style: DoctorTheme.titleMedium),
+        SizedBox(width: 8),
+        Text(text, style: DoctorTheme.titleMedium(context)),
       ],
     );
   }
