@@ -24,7 +24,7 @@ class EmptyStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 26),
+        padding: EdgeInsets.symmetric(horizontal: 26),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -42,17 +42,17 @@ class EmptyStateWidget extends StatelessWidget {
               ),
               child: Icon(icon, size: iconSize, color: DoctorTheme.primary),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: DoctorTheme.headingMedium,
+              style: DoctorTheme.headingMedium(context),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: DoctorTheme.bodyMedium.copyWith(height: 1.4),
+              style: DoctorTheme.bodyMedium(context).copyWith(height: 1.4),
             ),
           ],
         ),

@@ -26,12 +26,12 @@ class GlassCard extends StatelessWidget {
     final card = Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: DoctorTheme.surface,
+        color: DoctorTheme.surface(context),
         borderRadius: BorderRadius.circular(DoctorTheme.radiusMD),
         border: hasBorder
-            ? Border.all(color: borderColor ?? DoctorTheme.border)
+            ? Border.all(color: borderColor ?? DoctorTheme.border(context))
             : null,
-        boxShadow: DoctorTheme.cardShadow,
+        boxShadow: DoctorTheme.cardShadow(context),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -30,10 +30,10 @@ dependencies:
   go_router: ^13.0.0
 
   # Forms & Validation
-  flutter_form_builder: ^10.3.0
+  flutter_form_builder: ^10.0.1
 
   # Date & Time
-  intl: ^0.20.2
+  intl: any
   flutter_localizations:
     sdk: flutter
 

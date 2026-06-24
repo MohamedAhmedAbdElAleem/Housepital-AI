@@ -176,7 +176,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
         }
       },
       child: Scaffold(
-        backgroundColor: DoctorTheme.background,
+        backgroundColor: DoctorTheme.background(context),
         body: BackgroundBlobs(
           child: SafeArea(
             child: FadeTransition(
@@ -187,19 +187,19 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                   physics: const BouncingScrollPhysics(),
                   slivers: [
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(18, 10, 18, 16),
+                      padding: EdgeInsets.fromLTRB(18, 10, 18, 16),
                       sliver: SliverToBoxAdapter(
                         child: _buildTopBar(context, doctorName, unreadCount),
                       ),
                     ),
                     SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      padding: EdgeInsets.symmetric(horizontal: 18),
                       sliver: SliverToBoxAdapter(
                         child: _buildHeroCard(doctorName, metrics, isActive),
                       ),
                     ),
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(18, 22, 18, 12),
+                      padding: EdgeInsets.fromLTRB(18, 22, 18, 12),
                       sliver: SliverToBoxAdapter(
                         child: _buildSectionTitle(
                           title: 'Quick Actions',
@@ -208,7 +208,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                       ),
                     ),
                     SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      padding: EdgeInsets.symmetric(horizontal: 18),
                       sliver: SliverGrid(
                         delegate: SliverChildBuilderDelegate((context, index) {
                           final action = _actions[index];
@@ -228,7 +228,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                       ),
                     ),
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(18, 22, 18, 12),
+                      padding: EdgeInsets.fromLTRB(18, 22, 18, 12),
                       sliver: SliverToBoxAdapter(
                         child: _buildSectionTitle(
                           title: 'Today Snapshot',
@@ -237,12 +237,12 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                       ),
                     ),
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 26),
+                      padding: EdgeInsets.fromLTRB(18, 0, 18, 26),
                       sliver: SliverList.separated(
                         itemBuilder:
                             (context, index) => _buildSnapshotItem(index),
                         separatorBuilder:
-                            (context, index) => const SizedBox(height: 12),
+                            (context, index) => SizedBox(height: 12),
                         itemCount: 3,
                       ),
                     ),
@@ -269,19 +269,19 @@ class _DoctorHomePageState extends State<DoctorHomePage>
             children: [
               Text(
                 'Welcome back',
-                style: DoctorTheme.bodyMedium,
+                style: DoctorTheme.bodyMedium(context),
               ),
-              const SizedBox(height: 3),
+              SizedBox(height: 3),
               Text(
                 doctorName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: DoctorTheme.headingLarge,
+                style: DoctorTheme.headingLarge(context),
               ),
             ],
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: 10),
         Stack(
           clipBehavior: Clip.none,
           children: [
@@ -295,21 +295,21 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                 top: -2,
                 right: -2,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 5,
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEF4444),
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: Colors.white, width: 1.2),
+                    border: Border.all(color: DoctorTheme.surface(context), width: 1.2),
                   ),
-                  constraints: const BoxConstraints(minWidth: 18),
+                  constraints: BoxConstraints(minWidth: 18),
                   child: Text(
                     unreadCount > 9 ? '9+' : '$unreadCount',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: DoctorTheme.surface(context),
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                     ),
@@ -318,7 +318,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
               ),
           ],
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: 10),
         _CircleActionButton(
           icon: Icons.logout_rounded,
           tooltip: 'Logout',
@@ -337,18 +337,18 @@ class _DoctorHomePageState extends State<DoctorHomePage>
 
   Widget _buildHeroCard(String doctorName, List<_OverviewMetric> metrics, bool isActive) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 18),
       decoration: BoxDecoration(
-        gradient: DoctorTheme.headerGradient,
+        gradient: DoctorTheme.headerGradient(context),
         borderRadius: BorderRadius.circular(DoctorTheme.radiusXL),
-        boxShadow: DoctorTheme.headerShadow,
+        boxShadow: DoctorTheme.headerShadow(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Today\'s Overview',
                   style: TextStyle(
@@ -365,7 +365,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                   context.read<DoctorCubit>().toggleActive(!isActive);
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 6,
                   ),
@@ -383,21 +383,21 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                             ? const Color(0xFF4ADE80)
                             : const Color(0xFFEF4444),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       Text(
                         isActive ? 'Active' : 'Inactive',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: DoctorTheme.surface(context),
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4),
                       Icon(
                         isActive
                             ? Icons.toggle_on_rounded
                             : Icons.toggle_off_rounded,
-                        color: Colors.white,
+                        color: DoctorTheme.surface(context),
                         size: 22,
                       ),
                     ],
@@ -406,20 +406,20 @@ class _DoctorHomePageState extends State<DoctorHomePage>
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           Text(
             'Dr. $doctorName',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: DoctorTheme.surface(context),
               fontSize: 24,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.2,
             ),
           ),
-          const SizedBox(height: 4),
-          const Text(
+          SizedBox(height: 4),
+          Text(
             'Ready for a productive clinic day',
             style: TextStyle(
               color: Colors.white70,
@@ -427,12 +427,12 @@ class _DoctorHomePageState extends State<DoctorHomePage>
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Row(
             children: [
               for (int i = 0; i < metrics.length; i++) ...[
                 Expanded(child: _buildMetricTile(metrics[i])),
-                if (i < metrics.length - 1) const SizedBox(width: 8),
+                if (i < metrics.length - 1) SizedBox(width: 8),
               ],
             ],
           ),
@@ -443,7 +443,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
 
   Widget _buildMetricTile(_OverviewMetric metric) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(16),
@@ -453,19 +453,19 @@ class _DoctorHomePageState extends State<DoctorHomePage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(metric.icon, color: Colors.white70, size: 18),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             metric.value,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: DoctorTheme.surface(context),
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             metric.label,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white70,
               fontSize: 11,
               fontWeight: FontWeight.w500,
@@ -482,12 +482,12 @@ class _DoctorHomePageState extends State<DoctorHomePage>
       children: [
         Text(
           title,
-          style: DoctorTheme.headingMedium,
+          style: DoctorTheme.headingMedium(context),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(
           subtitle,
-          style: DoctorTheme.bodyMedium,
+          style: DoctorTheme.bodyMedium(context),
         ),
       ],
     );
@@ -516,16 +516,16 @@ class _DoctorHomePageState extends State<DoctorHomePage>
           borderRadius: BorderRadius.circular(24),
           child: Ink(
             decoration: BoxDecoration(
-              color: DoctorTheme.surface,
+              color: DoctorTheme.surface(context),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: action.color.withValues(alpha: 0.16),
                 width: 1.2,
               ),
-              boxShadow: DoctorTheme.softShadow,
+              boxShadow: DoctorTheme.softShadow(context),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(14),
+              padding: EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -550,14 +550,14 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                     action.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: DoctorTheme.titleMedium,
+                    style: DoctorTheme.titleMedium(context),
                   ),
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3),
                   Text(
                     action.subtitle,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: DoctorTheme.bodySmall,
+                    style: DoctorTheme.bodySmall(context),
                   ),
                 ],
               ),
@@ -590,11 +590,11 @@ class _DoctorHomePageState extends State<DoctorHomePage>
     final item = items[index];
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: DoctorTheme.surface,
+        color: DoctorTheme.surface(context),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: DoctorTheme.border),
+        border: Border.all(color: DoctorTheme.border(context)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -608,19 +608,19 @@ class _DoctorHomePageState extends State<DoctorHomePage>
             ),
             child: Icon(item.icon, color: const Color(0xFF1746C0), size: 22),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   item.title,
-                  style: DoctorTheme.titleMedium.copyWith(fontSize: 14.5),
+                  style: DoctorTheme.titleMedium(context).copyWith(fontSize: 14.5),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   item.subtitle,
-                  style: DoctorTheme.bodySmall,
+                  style: DoctorTheme.bodySmall(context),
                 ),
               ],
             ),
@@ -635,7 +635,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
 
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: DoctorTheme.background(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -643,11 +643,11 @@ class _DoctorHomePageState extends State<DoctorHomePage>
         return SizedBox(
           height: 420,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
                     Icon(
                       Icons.notifications_active_outlined,
@@ -664,12 +664,12 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 Expanded(
                   child: BlocBuilder<NotificationCubit, NotificationState>(
                     builder: (context, state) {
                       if (state is NotificationLoading) {
-                        return const Center(
+                        return Center(
                           child: CircularProgressIndicator(
                             color: Color(0xFF2664EC),
                           ),
@@ -690,7 +690,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
 
                       if (state is! NotificationLoaded ||
                           state.notifications.isEmpty) {
-                        return const Center(
+                        return Center(
                           child: Text(
                             'No new notifications right now.',
                             style: TextStyle(
@@ -705,7 +705,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                       return ListView.separated(
                         itemCount: state.notifications.length,
                         separatorBuilder:
-                            (context, index) => const SizedBox(height: 10),
+                            (context, index) => SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           final item = state.notifications[index];
                           return InkWell(
@@ -716,7 +716,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                               );
                             },
                             child: Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color:
                                     item.isRead
@@ -742,13 +742,13 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                                       ).withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.notifications_rounded,
                                       size: 18,
                                       color: Color(0xFF1746C0),
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
+                                  SizedBox(width: 10),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -758,19 +758,19 @@ class _DoctorHomePageState extends State<DoctorHomePage>
                                           item.title,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: Color(0xFF0F172A),
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
-                                        const SizedBox(height: 3),
+                                        SizedBox(height: 3),
                                         Text(
                                           item.body.isEmpty
                                               ? 'Tap to mark as read'
                                               : item.body,
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: Color(0xFF475569),
                                             fontSize: 12.5,
                                             fontWeight: FontWeight.w500,
@@ -813,7 +813,7 @@ class _CircleActionButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: Colors.white,
+        color: DoctorTheme.surface(context),
         elevation: 0,
         borderRadius: BorderRadius.circular(14),
         child: InkWell(

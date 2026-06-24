@@ -26,13 +26,13 @@ class GlassHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      padding: EdgeInsets.fromLTRB(16, 10, 16, 12),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+        padding: EdgeInsets.fromLTRB(16, 16, 16, 14),
         decoration: BoxDecoration(
-          gradient: DoctorTheme.headerGradient,
+          gradient: DoctorTheme.headerGradient(context),
           borderRadius: BorderRadius.circular(DoctorTheme.radiusLG),
-          boxShadow: DoctorTheme.headerShadow,
+          boxShadow: DoctorTheme.headerShadow(context),
         ),
         child: Row(
           children: [
@@ -43,7 +43,7 @@ class GlassHeader extends StatelessWidget {
                 onTap: onBack!,
                 tooltip: 'Back',
               ),
-            if (onBack != null) const SizedBox(width: 12),
+            if (onBack != null) SizedBox(width: 12),
 
             // ── Title & Subtitle ──
             Expanded(
@@ -52,7 +52,7 @@ class GlassHeader extends StatelessWidget {
                 children: [
                   Text(title, style: DoctorTheme.headerTitle),
                   if (subtitle != null) ...[
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(subtitle!, style: DoctorTheme.headerSubtitle),
                   ],
                 ],
@@ -61,7 +61,7 @@ class GlassHeader extends StatelessWidget {
 
             // ── Trailing Action ──
             if (onAction != null && actionIcon != null) ...[
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _GlassIconButton(
                 icon: actionIcon!,
                 onTap: onAction!,
@@ -102,7 +102,7 @@ class _GlassIconButton extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(DoctorTheme.radiusXS),
             ),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(icon, color: DoctorTheme.surface(context), size: 20),
           ),
         ),
       ),

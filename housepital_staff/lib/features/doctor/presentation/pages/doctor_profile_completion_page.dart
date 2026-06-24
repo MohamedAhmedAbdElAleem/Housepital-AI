@@ -167,37 +167,37 @@ class _DoctorProfileCompletionPageState
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
+            padding: EdgeInsets.symmetric(vertical: 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'Upload from',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 ListTile(
-                  leading: const Icon(Icons.camera_alt_outlined, color: DoctorTheme.primary),
-                  title: const Text('Camera'),
+                  leading: Icon(Icons.camera_alt_outlined, color: DoctorTheme.primary),
+                  title: Text('Camera'),
                   onTap: () {
                     Navigator.pop(context);
                     _pickFromSource(type, ImageSource.camera);
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.photo_library_outlined, color: DoctorTheme.primary),
-                  title: const Text('Gallery'),
+                  leading: Icon(Icons.photo_library_outlined, color: DoctorTheme.primary),
+                  title: Text('Gallery'),
                   onTap: () {
                     Navigator.pop(context);
                     _pickFromSource(type, ImageSource.gallery);
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.picture_as_pdf_outlined, color: DoctorTheme.primary),
-                  title: const Text('Document (PDF)'),
+                  leading: Icon(Icons.picture_as_pdf_outlined, color: DoctorTheme.primary),
+                  title: Text('Document (PDF)'),
                   onTap: () {
                     Navigator.pop(context);
                     _pickFile(type);
@@ -403,7 +403,7 @@ class _DoctorProfileCompletionPageState
             if (!didPop) _prevStep();
           },
           child: Scaffold(
-            backgroundColor: DoctorTheme.background,
+            backgroundColor: DoctorTheme.background(context),
             body: BackgroundBlobs(
               child: SafeArea(
                 child: Column(
@@ -444,7 +444,7 @@ class _DoctorProfileCompletionPageState
 
   Widget _buildStepIndicator() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 8, 32, 16),
+      padding: EdgeInsets.fromLTRB(32, 8, 32, 16),
       child: Row(
         children: [
           _buildStepDot(0, 'Personal'),
@@ -479,7 +479,7 @@ class _DoctorProfileCompletionPageState
           ),
           child: Center(
             child: isDone
-                ? const Icon(Icons.check, color: Colors.white, size: 18)
+                ? Icon(Icons.check, color: DoctorTheme.surface(context), size: 18)
                 : Text(
                     '${index + 1}',
                     style: TextStyle(
@@ -490,7 +490,7 @@ class _DoctorProfileCompletionPageState
                   ),
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(
@@ -506,7 +506,7 @@ class _DoctorProfileCompletionPageState
   Widget _buildStepLine(int index) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 18),
+        padding: EdgeInsets.only(bottom: 18),
         child: Container(
           height: 2,
           color: _currentStep > index ? Colors.green : Colors.grey[300],
@@ -518,12 +518,12 @@ class _DoctorProfileCompletionPageState
   // ─── Step 1: Personal Info ──────────────────────────────────────────
   Widget _buildStep1PersonalInfo() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionTitle('Professional Information'),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildTextField(
             _licenseController,
             'Medical License Number',
@@ -534,9 +534,9 @@ class _DoctorProfileCompletionPageState
               return null;
             },
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildDropdown(),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildTextField(
             _experienceController,
             'Years of Experience',
@@ -549,9 +549,9 @@ class _DoctorProfileCompletionPageState
               return null;
             },
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildGenderSelector(),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildTextField(
             _bioController,
             'Short Bio (optional)',
@@ -559,7 +559,7 @@ class _DoctorProfileCompletionPageState
             maxLines: 3,
             required: false,
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: 32),
         ],
       ),
     );
@@ -568,17 +568,17 @@ class _DoctorProfileCompletionPageState
   // ─── Step 2: Documents ──────────────────────────────────────────────
   Widget _buildStep2Documents() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionTitle('Verification Documents'),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             'Upload clear photos of the following documents',
             style: TextStyle(fontSize: 13, color: Colors.grey[600]),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           _buildDocCard(
             'National ID',
             Icons.credit_card_rounded,
@@ -586,7 +586,7 @@ class _DoctorProfileCompletionPageState
             _existingNationalIdUrl,
             () => _pickDocument('nationalId'),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           _buildDocCard(
             'Medical License',
             Icons.verified_rounded,
@@ -594,7 +594,7 @@ class _DoctorProfileCompletionPageState
             _existingLicenseUrl,
             () => _pickDocument('license'),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           _buildDocCard(
             'Degree Certificate',
             Icons.school_rounded,
@@ -602,7 +602,7 @@ class _DoctorProfileCompletionPageState
             _existingDegreeCertUrl,
             () => _pickDocument('degree'),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           _buildDocCard(
             'Syndicate Card',
             Icons.card_membership_rounded,
@@ -610,7 +610,7 @@ class _DoctorProfileCompletionPageState
             _existingSyndicateUrl,
             () => _pickDocument('syndicate'),
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: 32),
         ],
       ),
     );
@@ -619,28 +619,28 @@ class _DoctorProfileCompletionPageState
   // ─── Step 3: Review ─────────────────────────────────────────────────
   Widget _buildStep3Review() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionTitle('Review Your Profile'),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _reviewRow('License Number', _licenseController.text),
           _reviewRow('Specialization', _selectedSpecialization ?? '--'),
           _reviewRow('Experience', '${_experienceController.text} years'),
           _reviewRow('Gender', _selectedGender ?? 'Not specified'),
           if (_bioController.text.isNotEmpty)
             _reviewRow('Bio', _bioController.text),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           _sectionTitle('Documents'),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           _docStatus('National ID', _nationalIdFile != null || _existingNationalIdUrl != null),
           _docStatus('Medical License', _licenseFile != null || _existingLicenseUrl != null),
           _docStatus('Degree Certificate', _degreeCertificateFile != null || _existingDegreeCertUrl != null),
           _docStatus('Syndicate Card', _syndicateCardFile != null || _existingSyndicateUrl != null),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(12),
@@ -649,7 +649,7 @@ class _DoctorProfileCompletionPageState
             child: Row(
               children: [
                 Icon(Icons.info_outline, color: DoctorTheme.primary, size: 20),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'After submission, your account will be reviewed by our team. You will receive an email notification.',
@@ -659,7 +659,7 @@ class _DoctorProfileCompletionPageState
               ],
             ),
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: 32),
         ],
       ),
     );
@@ -695,8 +695,8 @@ class _DoctorProfileCompletionPageState
         labelText: label,
         prefixIcon: Icon(icon, color: DoctorTheme.primary),
         filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        fillColor: DoctorTheme.surface(context),
+        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -707,7 +707,7 @@ class _DoctorProfileCompletionPageState
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: DoctorTheme.primary, width: 2),
+          borderSide: BorderSide(color: DoctorTheme.primary, width: 2),
         ),
       ),
       validator: validator ??
@@ -722,9 +722,9 @@ class _DoctorProfileCompletionPageState
       value: _selectedSpecialization,
       decoration: InputDecoration(
         labelText: 'Specialization',
-        prefixIcon: const Icon(Icons.local_hospital_outlined, color: DoctorTheme.primary),
+        prefixIcon: Icon(Icons.local_hospital_outlined, color: DoctorTheme.primary),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: DoctorTheme.surface(context),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -747,11 +747,11 @@ class _DoctorProfileCompletionPageState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Gender', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey[700])),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Row(
           children: [
             Expanded(child: _genderChip('Male', 'male', Icons.male)),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(child: _genderChip('Female', 'female', Icons.female)),
           ],
         ),
@@ -765,7 +765,7 @@ class _DoctorProfileCompletionPageState
       onTap: () => setState(() => _selectedGender = value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: selected ? DoctorTheme.primary.withValues(alpha: 0.1) : Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -778,7 +778,7 @@ class _DoctorProfileCompletionPageState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: selected ? DoctorTheme.primary : Colors.grey[500], size: 22),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
@@ -803,9 +803,9 @@ class _DoctorProfileCompletionPageState
     return GestureDetector(
       onTap: onPick,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: DoctorTheme.surface(context),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: hasFile ? Colors.green[300]! : Colors.grey[300]!,
@@ -813,7 +813,7 @@ class _DoctorProfileCompletionPageState
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: DoctorTheme.textPrimary(context).withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -836,19 +836,19 @@ class _DoctorProfileCompletionPageState
                 size: 24,
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     hasFile
                         ? (file != null ? 'New file selected' : 'Previously uploaded')
@@ -873,7 +873,7 @@ class _DoctorProfileCompletionPageState
 
   Widget _reviewRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -891,7 +891,7 @@ class _DoctorProfileCompletionPageState
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
+              style: TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
             ),
           ),
         ],
@@ -901,7 +901,7 @@ class _DoctorProfileCompletionPageState
 
   Widget _docStatus(String label, bool uploaded) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
           Icon(
@@ -909,8 +909,8 @@ class _DoctorProfileCompletionPageState
             size: 20,
             color: uploaded ? Colors.green : Colors.red[300],
           ),
-          const SizedBox(width: 10),
-          Text(label, style: const TextStyle(fontSize: 14)),
+          SizedBox(width: 10),
+          Text(label, style: TextStyle(fontSize: 14)),
         ],
       ),
     );
@@ -918,12 +918,12 @@ class _DoctorProfileCompletionPageState
 
   Widget _buildBottomBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+      padding: EdgeInsets.fromLTRB(24, 12, 24, 24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: DoctorTheme.surface(context),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: DoctorTheme.textPrimary(context).withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -936,16 +936,16 @@ class _DoctorProfileCompletionPageState
               child: OutlinedButton(
                 onPressed: _prevStep,
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: 16),
                   side: BorderSide(color: Colors.grey[300]!),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text('Back'),
+                child: Text('Back'),
               ),
             ),
-          if (_currentStep > 0) const SizedBox(width: 12),
+          if (_currentStep > 0) SizedBox(width: 12),
           Expanded(
             flex: 2,
             child: ElevatedButton(
@@ -953,7 +953,7 @@ class _DoctorProfileCompletionPageState
               style: ElevatedButton.styleFrom(
                 backgroundColor: _currentStep == 2 ? Colors.green : DoctorTheme.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -961,7 +961,7 @@ class _DoctorProfileCompletionPageState
               ),
               child: Text(
                 _currentStep == 2 ? 'Submit for Review' : 'Continue',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -978,17 +978,17 @@ class _DoctorProfileCompletionPageState
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: Container(
-          color: Colors.black.withValues(alpha: 0.4),
+          color: DoctorTheme.textPrimary(context).withValues(alpha: 0.4),
           child: Center(
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 32),
-              padding: const EdgeInsets.all(32),
+              margin: EdgeInsets.symmetric(horizontal: 32),
+              padding: EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: DoctorTheme.surface(context),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
+                    color: DoctorTheme.textPrimary(context).withValues(alpha: 0.15),
                     blurRadius: 30,
                     offset: const Offset(0, 10),
                   ),
@@ -1009,19 +1009,19 @@ class _DoctorProfileCompletionPageState
                           : DoctorTheme.primary,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   Text(
                     _uploadProgressValue >= 1.0
                         ? 'Submitted!'
                         : 'Uploading...',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       decoration: TextDecoration.none,
                       color: Color(0xFF0F172A),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     _uploadProgressText,
                     textAlign: TextAlign.center,
