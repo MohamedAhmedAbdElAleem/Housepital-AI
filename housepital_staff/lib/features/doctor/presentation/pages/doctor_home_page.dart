@@ -615,7 +615,7 @@ class _DoctorHomePageState extends State<DoctorHomePage>
               children: [
                 Text(
                   item.title,
-                  style: DoctorTheme.titleMedium.copyWith(fontSize: 14.5),
+                  style: DoctorTheme.titleMedium(context).copyWith(fontSize: 14.5),
                 ),
                 SizedBox(height: 4),
                 Text(

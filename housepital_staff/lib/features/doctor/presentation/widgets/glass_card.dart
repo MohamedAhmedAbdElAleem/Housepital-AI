@@ -8,7 +8,7 @@ class GlassCard extends StatelessWidget {
     super.key,
     required this.child,
     this.accentColor,
-    this.padding = EdgeInsets.all(16),
+    this.padding = const EdgeInsets.all(16),
     this.hasBorder = true,
     this.borderColor,
     this.onTap,

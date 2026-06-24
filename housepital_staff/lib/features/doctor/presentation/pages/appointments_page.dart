@@ -626,7 +626,7 @@ class _AppointmentsPageState extends State<AppointmentsPage>
         duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: outlined ? DoctorTheme.surface : color,
+          color: outlined ? DoctorTheme.surface(context) : color,
           borderRadius: BorderRadius.circular(DoctorTheme.radiusXS),
           border: outlined ? Border.all(color: color) : null,
           boxShadow: outlined

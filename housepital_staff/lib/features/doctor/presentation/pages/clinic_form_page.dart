@@ -997,7 +997,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
-            if (!isSelected) DoctorTheme.cardShadow.first,
+            if (!isSelected && DoctorTheme.cardShadow(context).isNotEmpty) DoctorTheme.cardShadow(context).first,
           ],
         ),
         child: Column(

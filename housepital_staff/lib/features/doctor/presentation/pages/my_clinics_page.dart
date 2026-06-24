@@ -258,7 +258,7 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
                         ),
                         SizedBox(width: 8),
                         Icon(Icons.arrow_forward_ios_rounded, size: 14,
-                          color: DoctorTheme.textSecondary.withValues(alpha: 0.7)),
+                          color: DoctorTheme.textSecondary(context).withValues(alpha: 0.7)),
                       ],
                     ),
                     SizedBox(height: 10),
@@ -330,7 +330,7 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
   Widget _buildIconText(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: DoctorTheme.textSecondary.withValues(alpha: 0.75)),
+        Icon(icon, size: 16, color: DoctorTheme.textSecondary(context).withValues(alpha: 0.75)),
         SizedBox(width: 8),
         Expanded(
           child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: DoctorTheme.bodySmall(context)),

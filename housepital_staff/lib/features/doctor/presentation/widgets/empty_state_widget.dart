@@ -52,7 +52,7 @@ class EmptyStateWidget extends StatelessWidget {
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: DoctorTheme.bodyMedium.copyWith(height: 1.4),
+              style: DoctorTheme.bodyMedium(context).copyWith(height: 1.4),
             ),
           ],
         ),
