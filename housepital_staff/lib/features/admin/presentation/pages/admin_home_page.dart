@@ -123,9 +123,6 @@ class _AdminHomePageState extends State<AdminHomePage>
       case 3:
         Navigator.pushNamed(context, AppRoutes.adminReceipts);
         break;
-      case 4:
-        Navigator.pushNamed(context, AppRoutes.adminDeviceManagement);
-        break;
     }
   }
 
@@ -2134,53 +2131,42 @@ class _AdminHomePageState extends State<AdminHomePage>
         'color': const Color(0xFF8B5CF6),
         'badge': 0,
       },
-      {
-        'icon': Icons.devices_rounded,
-        'label': 'Devices',
-        'color': const Color(0xFF0EA5E9),
-        'badge': 0,
-      },
     ];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        clipBehavior: Clip.none,
-        child: Row(
-          children: List.generate(actions.length, (index) {
-            final action = actions[index];
-            final isSelected = _selectedQuickAction == index;
-            final badge = action['badge'] as int;
+      child: Row(
+        children: List.generate(actions.length, (index) {
+          final action = actions[index];
+          final isSelected = _selectedQuickAction == index;
+          final badge = action['badge'] as int;
 
-            return Padding(
+          return Expanded(
+            child: Padding(
               padding: EdgeInsets.only(
                 right: index < actions.length - 1 ? 10 : 0,
               ),
-              child: SizedBox(
-                width: 85,
-                child: GestureDetector(
-                  onTapDown: (_) => setState(() => _selectedQuickAction = index),
-                  onTapUp: (_) {
-                    setState(() => _selectedQuickAction = -1);
-                    _handleQuickAction(index);
-                  },
-                  onTapCancel: () => setState(() => _selectedQuickAction = -1),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
+              child: GestureDetector(
+                onTapDown: (_) => setState(() => _selectedQuickAction = index),
+                onTapUp: (_) {
+                  setState(() => _selectedQuickAction = -1);
+                  _handleQuickAction(index);
+                },
+                onTapCancel: () => setState(() => _selectedQuickAction = -1),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color:
+                        isSelected
+                            ? (action['color'] as Color).withAlpha(25)
+                            : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
                       color:
                           isSelected
-                              ? (action['color'] as Color).withAlpha(25)
-                              : Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color:
-                            isSelected
-                                ? action['color'] as Color
-                                : Colors.transparent,
+                              ? action['color'] as Color
+                              : Colors.transparent,
                       width: 2,
                     ),
                     boxShadow: [
@@ -2240,9 +2226,8 @@ class _AdminHomePageState extends State<AdminHomePage>
           );
         }),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildAlertBanner() {
     final pending = _dashboardData['pendingVerifications'] ?? {};

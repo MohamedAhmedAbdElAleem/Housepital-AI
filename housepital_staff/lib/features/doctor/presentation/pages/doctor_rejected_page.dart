@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -14,11 +13,11 @@ class DoctorRejectedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DoctorTheme.background(context),
+      backgroundColor: DoctorTheme.background,
       body: BackgroundBlobs(
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 28),
+            padding: const EdgeInsets.symmetric(horizontal: 28),
             child: BlocBuilder<DoctorCubit, DoctorState>(
               builder: (context, state) {
                 String? rejectionReason;
@@ -52,37 +51,37 @@ class DoctorRejectedPage extends StatelessWidget {
                         ],
                       ),
                       child: Container(
-                        margin: EdgeInsets.all(12),
+                        margin: const EdgeInsets.all(12),
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           color: DoctorTheme.dangerLight,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.block_rounded,
                           color: DoctorTheme.danger,
                           size: 44,
                         ),
                       ),
                     ),
-                    SizedBox(height: 32),
+                    const SizedBox(height: 32),
 
                     // ── Title ──
-                    Text(
-                      'verification_unsuccessful'.tr(),
+                    const Text(
+                      'Verification Unsuccessful',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: DoctorTheme.textPrimary(context),
+                        color: DoctorTheme.textPrimary,
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.2,
                       ),
                     ),
-                    SizedBox(height: 12),
-                    Text(
-                      'your_profile_could_not_be_verified_at_this_time_please_review_the_feedback_below_and_resubmit'.tr(),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Your profile could not be verified at this time. Please review the feedback below and resubmit.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: DoctorTheme.textSecondary(context),
+                        color: DoctorTheme.textSecondary,
                         fontSize: 15,
                         height: 1.5,
                       ),
@@ -91,12 +90,12 @@ class DoctorRejectedPage extends StatelessWidget {
                     // ── Rejection Reason Card ──
                     if (rejectionReason != null &&
                         rejectionReason.isNotEmpty) ...[
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Container(
                         width: double.infinity,
                         clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
-                          color: DoctorTheme.surface(context),
+                          color: DoctorTheme.surface,
                           borderRadius:
                               BorderRadius.circular(DoctorTheme.radiusSM),
                           border: Border.all(
@@ -121,19 +120,19 @@ class DoctorRejectedPage extends StatelessWidget {
                               ),
                               Expanded(
                                 child: Padding(
-                                  padding: EdgeInsets.all(14),
+                                  padding: const EdgeInsets.all(14),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Row(
+                                      const Row(
                                         children: [
                                           Icon(Icons.feedback_rounded,
                                               size: 18,
                                               color: DoctorTheme.danger),
                                           SizedBox(width: 8),
                                           Text(
-                                            'reason'.tr(),
+                                            'Reason',
                                             style: TextStyle(
                                               color: DoctorTheme.danger,
                                               fontWeight: FontWeight.w700,
@@ -142,11 +141,11 @@ class DoctorRejectedPage extends StatelessWidget {
                                           ),
                                         ],
                                       ),
-                                      SizedBox(height: 8),
+                                      const SizedBox(height: 8),
                                       Text(
                                         rejectionReason,
-                                        style: TextStyle(
-                                          color: DoctorTheme.textSecondary(context),
+                                        style: const TextStyle(
+                                          color: DoctorTheme.textSecondary,
                                           fontSize: 14,
                                           height: 1.5,
                                         ),
@@ -161,7 +160,7 @@ class DoctorRejectedPage extends StatelessWidget {
                       ),
                     ],
 
-                    SizedBox(height: 28),
+                    const SizedBox(height: 28),
 
                     // ── Update Profile Button ──
                     SizedBox(
@@ -169,7 +168,7 @@ class DoctorRejectedPage extends StatelessWidget {
                       height: 52,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          gradient: DoctorTheme.headerGradient(context),
+                          gradient: DoctorTheme.headerGradient,
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
@@ -195,9 +194,9 @@ class DoctorRejectedPage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          icon: Icon(Icons.edit_document),
-                          label: Text(
-                            'update_resubmit'.tr(),
+                          icon: const Icon(Icons.edit_document),
+                          label: const Text(
+                            'Update & Resubmit',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -219,16 +218,16 @@ class DoctorRejectedPage extends StatelessWidget {
                           (route) => false,
                         );
                       },
-                      child: Text(
-                        'sign_out'.tr(),
+                      child: const Text(
+                        'Sign out',
                         style: TextStyle(
-                          color: DoctorTheme.textSecondary(context),
+                          color: DoctorTheme.textSecondary,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                   ],
                 );
               },

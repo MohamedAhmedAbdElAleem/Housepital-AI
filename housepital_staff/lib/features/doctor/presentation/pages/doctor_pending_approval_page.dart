@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -70,7 +69,7 @@ class _DoctorPendingApprovalPageState extends State<DoctorPendingApprovalPage>
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('still_under_review_we_ll_notify_you_soon'.tr()),
+                content: const Text('Still under review — we\'ll notify you soon.'),
                 backgroundColor: DoctorTheme.warning,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -88,11 +87,11 @@ class _DoctorPendingApprovalPageState extends State<DoctorPendingApprovalPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DoctorTheme.background(context),
+      backgroundColor: DoctorTheme.background,
       body: BackgroundBlobs(
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 28),
+            padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -126,12 +125,12 @@ class _DoctorPendingApprovalPageState extends State<DoctorPendingApprovalPage>
                           ],
                         ),
                         child: Container(
-                          margin: EdgeInsets.all(12),
+                          margin: const EdgeInsets.all(12),
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                             color: DoctorTheme.warningLight,
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.hourglass_top_rounded,
                             color: DoctorTheme.warning,
                             size: 44,
@@ -141,50 +140,50 @@ class _DoctorPendingApprovalPageState extends State<DoctorPendingApprovalPage>
                     );
                   },
                 ),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
 
                 // ── Title ──
-                Text(
-                  'profile_under_review'.tr(),
+                const Text(
+                  'Profile Under Review',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: DoctorTheme.textPrimary(context),
+                    color: DoctorTheme.textPrimary,
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,
                   ),
                 ),
-                SizedBox(height: 12),
-                Text(
-                  'our_verification_team_is_reviewing_your_documents_and_credentials_this_usually_takes_1_2_business_days'.tr(),
+                const SizedBox(height: 12),
+                const Text(
+                  'Our verification team is reviewing your documents and credentials. This usually takes 1-2 business days.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: DoctorTheme.textSecondary(context),
+                    color: DoctorTheme.textSecondary,
                     fontSize: 15,
                     height: 1.5,
                   ),
                 ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
 
                 // ── Info Card ──
                 Container(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: DoctorTheme.surfaceDim(context),
+                    color: DoctorTheme.surfaceDim,
                     borderRadius: BorderRadius.circular(DoctorTheme.radiusSM),
-                    border: Border.all(color: DoctorTheme.border(context)),
+                    border: Border.all(color: DoctorTheme.border),
                   ),
                   child: Column(
                     children: [
-                      _infoRow(Icons.timer_outlined, 'review_typically_takes_1_2_business_days'.tr()),
-                      SizedBox(height: 10),
+                      _infoRow(Icons.timer_outlined, 'Review typically takes 1-2 business days'),
+                      const SizedBox(height: 10),
                       _infoRow(Icons.notifications_none_rounded, 'You\'ll be notified when a decision is made'),
-                      SizedBox(height: 10),
-                      _infoRow(Icons.support_agent_rounded, 'contact_support_if_it_takes_longer_than_expected'.tr()),
+                      const SizedBox(height: 10),
+                      _infoRow(Icons.support_agent_rounded, 'Contact support if it takes longer than expected'),
                     ],
                   ),
                 ),
-                SizedBox(height: 28),
+                const SizedBox(height: 28),
 
                 // ── Check Status Button ──
                 SizedBox(
@@ -192,7 +191,7 @@ class _DoctorPendingApprovalPageState extends State<DoctorPendingApprovalPage>
                   height: 52,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: _isChecking ? null : DoctorTheme.headerGradient(context),
+                      gradient: _isChecking ? null : DoctorTheme.headerGradient,
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: _isChecking
                           ? null
@@ -215,14 +214,14 @@ class _DoctorPendingApprovalPageState extends State<DoctorPendingApprovalPage>
                         ),
                       ),
                       icon: _isChecking
-                          ? SizedBox(
+                          ? const SizedBox(
                               width: 18, height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: DoctorTheme.surface(context)),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : Icon(Icons.refresh_rounded),
+                          : const Icon(Icons.refresh_rounded),
                       label: Text(
-                        _isChecking ? 'Checking...' : 'check_my_status'.tr(),
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                        _isChecking ? 'Checking...' : 'Check My Status',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -240,16 +239,16 @@ class _DoctorPendingApprovalPageState extends State<DoctorPendingApprovalPage>
                       (route) => false,
                     );
                   },
-                  child: Text(
-                    'sign_out'.tr(),
+                  child: const Text(
+                    'Sign out',
                     style: TextStyle(
-                      color: DoctorTheme.textSecondary(context),
+                      color: DoctorTheme.textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -262,9 +261,9 @@ class _DoctorPendingApprovalPageState extends State<DoctorPendingApprovalPage>
     return Row(
       children: [
         Icon(icon, size: 18, color: DoctorTheme.primary),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Expanded(
-          child: Text(text, style: DoctorTheme.bodySmall(context)),
+          child: Text(text, style: DoctorTheme.bodySmall),
         ),
       ],
     );

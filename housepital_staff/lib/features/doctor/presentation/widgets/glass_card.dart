@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/doctor_theme.dart';
 
@@ -27,12 +26,12 @@ class GlassCard extends StatelessWidget {
     final card = Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: DoctorTheme.surface(context),
+        color: DoctorTheme.surface,
         borderRadius: BorderRadius.circular(DoctorTheme.radiusMD),
         border: hasBorder
-            ? Border.all(color: borderColor ?? DoctorTheme.border(context))
+            ? Border.all(color: borderColor ?? DoctorTheme.border)
             : null,
-        boxShadow: DoctorTheme.cardShadow(context),
+        boxShadow: DoctorTheme.cardShadow,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,

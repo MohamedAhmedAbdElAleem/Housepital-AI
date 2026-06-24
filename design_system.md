@@ -27,18 +27,14 @@
 | Text Primary | #232323 | High contrast dark grey (dark500) |
 
 ### Colors (Dark Mode)
+For the full specification, color mappings, and implementation guidelines, see [DARK_MODE_SPECIFICATION.md](./DARK_MODE_SPECIFICATION.md).
+
 | Role | Hex | Description |
 |------|-----|-------------|
-| Primary | #2ECC71 | Healing Green (primary500) - Kept for brand consistency |
-| Secondary | #3498BB | Trust Blue (secondary500) |
-| Success / CTA | #43A048 | Actionable Medical Green (success500) |
-| Warning | #FB8A00 | Alert Orange (warning500) |
+| Primary | #2ECC71 | Healing Green (primary500) |
 | Background | #0F0F0F | Deep dark background (dark900) |
 | Surface | #191919 | Elevated dark surface (dark700) |
 | Text Primary | #FDFDFD | High contrast light text (light50) |
-| Text Secondary | #A7A7A7 | Muted light text (light700) |
-
-*Notes: Gradients and glassmorphic overlays adapt to Dark Mode by adjusting shadow opacities and alpha channels, ensuring the UI remains rich but not blinding.*
 
 ### Typography
 - **Heading (Primary):** Poppins

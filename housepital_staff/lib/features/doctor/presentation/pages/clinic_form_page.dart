@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -54,7 +53,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
   ];
   final Map<String, WorkingHour> _workingHoursMap = {};
   String _bookingMode = 'slots';
-  final _slotDurationController = TextEditingController(text: '30'.tr());
+  final _slotDurationController = TextEditingController(text: '30');
   int _maxPatients = 1;
 
   final List<String> _existingDocs = []; // URLs
@@ -193,17 +192,17 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_clinicImages.isEmpty && _existingClinicImages.isEmpty) {
-      _showError('please_add_at_least_one_clinic_image'.tr());
+      _showError('Please add at least one clinic image');
       return;
     }
     if (_ownershipDocs.isEmpty && _existingDocs.isEmpty) {
-      _showError('please_upload_ownership_proof_documents'.tr());
+      _showError('Please upload ownership proof documents');
       return;
     }
 
     setState(() {
       _isSubmitting = true;
-      _uploadProgressText = 'preparing_files'.tr();
+      _uploadProgressText = 'Preparing files...';
       _uploadProgressValue = 0.05;
     });
 
@@ -316,8 +315,8 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
           SnackBar(
             content: Text(
               widget.clinicToEdit != null
-                  ? 'clinic_updated_successfully'.tr()
-                  : 'clinic_created_successfully'.tr(),
+                  ? 'Clinic updated successfully!'
+                  : 'Clinic created successfully!',
             ),
             backgroundColor: Colors.green,
           ),
@@ -340,14 +339,14 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
     return Stack(
       children: [
         Scaffold(
-          backgroundColor: DoctorTheme.background(context),
+          backgroundColor: DoctorTheme.background,
           body: BackgroundBlobs(
             child: SafeArea(
               child: Column(
                 children: [
                   GlassHeader(
-                    title: widget.clinicToEdit != null ? 'edit_clinic_setup'.tr() : 'new_clinic_setup'.tr(),
-                    subtitle: widget.clinicToEdit != null ? 'update_your_clinic_parameters'.tr() : 'setup_your_new_clinic_location'.tr(),
+                    title: widget.clinicToEdit != null ? 'Edit Clinic Setup' : 'New Clinic Setup',
+                    subtitle: widget.clinicToEdit != null ? 'Update your clinic parameters' : 'Setup your new clinic location',
                     onBack: _prevStep,
                   ),
                   _buildStepWizard(),
@@ -360,27 +359,27 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                         children: [
                           _buildStepContainer(
                             _buildStep1BasicInfo(),
-                            'basic_information'.tr(),
+                            'Basic Information',
                             widget.clinicToEdit != null
-                                ? 'update_your_clinic_basic_details'.tr()
-                                : 'tell_us_about_your_clinic'.tr(),
+                                ? 'Update your clinic basic details'
+                                : 'Tell us about your clinic',
                           ),
                           _buildStepContainer(
                             _buildStep2Location(),
                             'Location',
-                            'where_can_patients_find_you'.tr(),
+                            'Where can patients find you?',
                           ),
                           _buildStepContainer(
                             _buildStep3Config(),
                             'Configuration',
-                            'set_up_schedules_booking'.tr(),
+                            'Set up schedules & booking',
                           ),
                           _buildStepContainer(
                             _buildStep4Docs(),
                             'Verification',
                             widget.clinicToEdit != null
-                                ? 'update_legal_documents_if_needed'.tr()
-                                : 'upload_legal_documents'.tr(),
+                                ? 'Update legal documents if needed'
+                                : 'Upload legal documents',
                           ),
                         ],
                       ),
@@ -399,10 +398,10 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                color: DoctorTheme.textPrimary(context).withValues(
+                color: Colors.black.withValues(
                   alpha: 0.4,
                 ), // Slightly darker for contrast
-                padding: EdgeInsets.symmetric(horizontal: 32),
+                padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Center(
                   child: TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0.9, end: 1.0),
@@ -414,16 +413,16 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                         child: Material(
                           color: Colors.transparent,
                           child: Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               vertical: 32,
                               horizontal: 24,
                             ),
                             decoration: BoxDecoration(
-                              color: DoctorTheme.surface(context),
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
-                                  color: DoctorTheme.textPrimary(context).withValues(alpha: 0.15),
+                                  color: Colors.black.withValues(alpha: 0.15),
                                   blurRadius: 30,
                                   offset: const Offset(0, 10),
                                 ),
@@ -504,7 +503,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                                 ? Container(
                                                   key: const ValueKey('done'),
                                                   decoration:
-                                                      BoxDecoration(
+                                                      const BoxDecoration(
                                                         color: Colors.green,
                                                         shape: BoxShape.circle,
                                                         boxShadow: [
@@ -517,13 +516,13 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                                           ),
                                                         ],
                                                       ),
-                                                  padding: EdgeInsets.all(
+                                                  padding: const EdgeInsets.all(
                                                     12,
                                                   ),
-                                                  child: Icon(
+                                                  child: const Icon(
                                                     Icons.check,
                                                     size: 40,
-                                                    color: DoctorTheme.surface(context),
+                                                    color: Colors.white,
                                                   ),
                                                 )
                                                 : Icon(
@@ -536,16 +535,16 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                     ],
                                   ),
                                 ),
-                                SizedBox(height: 24),
+                                const SizedBox(height: 24),
 
                                 // Main Title
                                 Text(
                                   _uploadProgressValue >= 1.0
                                       ? (widget.clinicToEdit != null
-                                          ? 'update_completed'.tr()
+                                          ? 'Update Completed!'
                                           : 'Completed!')
                                       : 'Processing...',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w700,
                                     color: Colors.black87,
@@ -556,7 +555,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                   ),
                                 ),
 
-                                SizedBox(height: 12),
+                                const SizedBox(height: 12),
 
                                 // Detail Text (Improved Typography)
                                 AnimatedSwitcher(
@@ -580,7 +579,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                                 ),
 
                                 /* 
-                              SizedBox(height: 16),
+                              const SizedBox(height: 16),
                               // Optional: Percentage Text if needed
                               Text(
                                 '${(_uploadProgressValue * 100).toInt()}%',
@@ -604,7 +603,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
 
   Widget _buildStepWizard() {
     return Padding(
-      padding: EdgeInsets.only(top: 16, bottom: 24, left: 24, right: 24),
+      padding: const EdgeInsets.only(top: 16, bottom: 24, left: 24, right: 24),
       child: Row(
         children: [
           _buildStepCircle(0, Icons.info_outline),
@@ -631,13 +630,13 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
         color:
             isCompleted
                 ? DoctorTheme.success
-                : (isActive ? DoctorTheme.primary : DoctorTheme.surfaceDim(context)),
+                : (isActive ? DoctorTheme.primary : DoctorTheme.surfaceDim),
         shape: BoxShape.circle,
         border: Border.all(
           color:
               isCompleted
                   ? DoctorTheme.success
-                  : (isActive ? DoctorTheme.primary : DoctorTheme.border(context)),
+                  : (isActive ? DoctorTheme.primary : DoctorTheme.border),
           width: 2,
         ),
         boxShadow:
@@ -653,7 +652,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
       child: Center(
         child: Icon(
           isCompleted ? Icons.check : icon,
-          color: isCompleted || isActive ? Colors.white : DoctorTheme.textHint(context),
+          color: isCompleted || isActive ? Colors.white : DoctorTheme.textHint,
           size: 20,
         ),
       ),
@@ -666,27 +665,27 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         height: 2,
-        color: isCompleted ? DoctorTheme.success : DoctorTheme.border(context),
+        color: isCompleted ? DoctorTheme.success : DoctorTheme.border,
       ),
     );
   }
 
   Widget _buildStepContainer(Widget content, String title, String subtitle) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: DoctorTheme.headingLarge(context),
+            style: DoctorTheme.headingLarge,
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             subtitle,
-            style: DoctorTheme.bodyMedium(context),
+            style: DoctorTheme.bodyMedium,
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           content,
         ],
       ),
@@ -699,13 +698,13 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
       children: [
         _buildCustomTextField(
           _nameController,
-          'clinic_name'.tr(),
+          'Clinic Name',
           Icons.local_hospital,
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         _buildCustomTextField(
           _phoneController,
-          'phone_number'.tr(),
+          'Phone Number',
           Icons.phone,
           inputType: TextInputType.phone,
           validator: (val) {
@@ -716,21 +715,21 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             if (p.startsWith('0020')) p = '0${p.substring(4)}';
             final reg = RegExp(r'^01[0125][0-9]{8}$');
             if (!reg.hasMatch(p)) {
-              return 'enter_a_valid_egyptian_number_e_g_01012345678'.tr();
+              return 'Enter a valid Egyptian number (e.g. 01012345678)';
             }
             return null;
           },
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         _buildCustomTextField(
           _descriptionController,
           'Description',
           Icons.notes,
           maxLines: 3,
         ),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
         _buildImageUploadCard(
-          'clinic_photos'.tr(),
+          'Clinic Photos',
           _clinicImages,
           _pickClinicImages,
           existingImages: _existingClinicImages,
@@ -747,10 +746,10 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
       children: [
         _buildCustomTextField(
           _streetController,
-          'street_address'.tr(),
+          'Street Address',
           Icons.location_on,
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
@@ -760,7 +759,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                 Icons.location_city,
               ),
             ),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Expanded(
               child: _buildCustomTextField(
                 _stateController,
@@ -770,10 +769,10 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             ),
           ],
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         _buildCustomTextField(
           _zipController,
-          'zip_code'.tr(),
+          'Zip Code',
           Icons.pin_drop,
           isRequired: false,
         ),
@@ -786,26 +785,26 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'booking_mode'.tr(),
+        const Text(
+          'Booking Mode',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
               child: _buildSelectableCard(
-                'time_slots'.tr(),
-                'defined_periods'.tr(),
+                'Time Slots',
+                'Defined periods',
                 Icons.calendar_today,
                 'slots',
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(
               child: _buildSelectableCard(
                 'Queue',
-                'first_come_first_served'.tr(),
+                'First come first served',
                 Icons.people_outline,
                 'queue',
               ),
@@ -813,9 +812,9 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
           ],
         ),
         if (_bookingMode == 'slots') ...[
-          SizedBox(height: 24),
-          Text('slot_duration_minutes'.tr(), style: DoctorTheme.titleMedium(context)),
-          SizedBox(height: 12),
+          const SizedBox(height: 24),
+          const Text('Slot Duration (Minutes)', style: DoctorTheme.titleMedium),
+          const SizedBox(height: 12),
           _buildCustomTextField(
             _slotDurationController,
             'Duration',
@@ -823,7 +822,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
             inputType: TextInputType.number,
             suffix: 'min',
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children:
@@ -840,9 +839,9 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                 }).toList(),
           ),
         ],
-        SizedBox(height: 24),
-        Text('working_hours'.tr(), style: DoctorTheme.titleMedium(context)),
-        SizedBox(height: 12),
+        const SizedBox(height: 24),
+        const Text('Working Hours', style: DoctorTheme.titleMedium),
+        const SizedBox(height: 12),
         ..._days.map((day) => _buildDayTile(day)),
       ],
     );
@@ -853,10 +852,10 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
     return Column(
       children: [
         _buildImageUploadCard(
-          'ownership_proof_rent_contract'.tr(),
+          'Ownership Proof / Rent Contract',
           _ownershipDocs,
           _pickOwnershipDocs,
-          subtitle: 'please_upload_a_valid_contract_or_utility_bill'.tr(),
+          subtitle: 'Please upload a valid contract or utility bill.',
           existingImages: _existingDocs,
           onRemoveExisting:
               (index) => setState(() => _existingDocs.removeAt(index)),
@@ -869,10 +868,10 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
 
   Widget _buildBottomBar() {
     return Container(
-      padding: EdgeInsets.all(24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: DoctorTheme.surface(context),
-        boxShadow: DoctorTheme.softShadow(context),
+        color: DoctorTheme.surface,
+        boxShadow: DoctorTheme.softShadow,
       ),
       child: Row(
         children: [
@@ -881,15 +880,15 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: DoctorTheme.border(context)),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: const BorderSide(color: DoctorTheme.border),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
-                  'cancel'.tr(),
-                  style: TextStyle(color: DoctorTheme.textSecondary(context)),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: DoctorTheme.textSecondary),
                 ),
               ),
             ),
@@ -898,23 +897,23 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
               child: OutlinedButton(
                 onPressed: _prevStep,
                 style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: DoctorTheme.primary),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: const BorderSide(color: DoctorTheme.primary),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text('back'.tr(), style: TextStyle(color: DoctorTheme.primary)),
+                child: const Text('Back', style: TextStyle(color: DoctorTheme.primary)),
               ),
             ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: ElevatedButton(
               onPressed: _isSubmitting ? null : _nextStep,
               style: ElevatedButton.styleFrom(
                 backgroundColor: DoctorTheme.primary,
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -923,10 +922,10 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
               child: Text(
                 _currentStep == 3
                     ? (widget.clinicToEdit != null
-                        ? 'update_clinic'.tr()
-                        : 'submit_clinic'.tr())
+                        ? 'Update Clinic'
+                        : 'Submit Clinic')
                     : 'Continue',
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -950,11 +949,11 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: DoctorTheme.surface(context),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: DoctorTheme.textPrimary(context).withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -964,7 +963,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
         controller: controller,
         keyboardType: inputType,
         maxLines: maxLines,
-        decoration: DoctorTheme.inputDecoration(context, 
+        decoration: DoctorTheme.inputDecoration(
           label: label,
           icon: icon,
           hint: suffix, // Use hint for suffix occasionally or ignore
@@ -989,33 +988,33 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
       onTap: () => setState(() => _bookingMode = value),
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? DoctorTheme.primary.withValues(alpha: 0.05) : DoctorTheme.surface(context),
+          color: isSelected ? DoctorTheme.primary.withValues(alpha: 0.05) : DoctorTheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? DoctorTheme.primary : DoctorTheme.border(context),
+            color: isSelected ? DoctorTheme.primary : DoctorTheme.border,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
-            if (!isSelected) DoctorTheme.cardShadow(context).first,
+            if (!isSelected) DoctorTheme.cardShadow.first,
           ],
         ),
         child: Column(
           children: [
-            Icon(icon, color: isSelected ? DoctorTheme.primary : DoctorTheme.textHint(context), size: 32),
-            SizedBox(height: 12),
+            Icon(icon, color: isSelected ? DoctorTheme.primary : DoctorTheme.textHint, size: 32),
+            const SizedBox(height: 12),
             Text(
               title,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: isSelected ? DoctorTheme.primaryDark : DoctorTheme.textPrimary(context),
+                color: isSelected ? DoctorTheme.primaryDark : DoctorTheme.textPrimary,
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               subtitle,
-              style: DoctorTheme.caption(context),
+              style: DoctorTheme.caption,
               textAlign: TextAlign.center,
             ),
           ],
@@ -1033,24 +1032,24 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
     Function(int)? onRemoveExisting,
   }) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: DoctorTheme.surface(context),
+        color: DoctorTheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DoctorTheme.border(context)),
+        border: Border.all(color: DoctorTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
           if (subtitle != null) ...[
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               subtitle,
-              style: DoctorTheme.caption(context),
+              style: DoctorTheme.caption,
             ),
           ],
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -1061,7 +1060,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                     return Stack(
                       children: [
                         Container(
-                          margin: EdgeInsets.only(right: 12),
+                          margin: const EdgeInsets.only(right: 12),
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
@@ -1082,12 +1081,12 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                             child: GestureDetector(
                               onTap: () => onRemoveExisting(entry.key),
                               child: Container(
-                                padding: EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: DoctorTheme.surface(context),
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(
+                                child: const Icon(
                                   Icons.close,
                                   size: 14,
                                   color: DoctorTheme.danger,
@@ -1104,7 +1103,7 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                   return Stack(
                     children: [
                       Container(
-                        margin: EdgeInsets.only(right: 12),
+                        margin: const EdgeInsets.only(right: 12),
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
@@ -1121,12 +1120,12 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                         child: GestureDetector(
                           onTap: () => _removeImage(newImages, entry.key),
                           child: Container(
-                            padding: EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: DoctorTheme.surface(context),
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.close,
                               size: 14,
                               color: Colors.red,
@@ -1145,14 +1144,14 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: DoctorTheme.surfaceDim(context),
+                      color: DoctorTheme.surfaceDim,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: DoctorTheme.border(context),
+                        color: DoctorTheme.border,
                         style: BorderStyle.solid,
                       ),
                     ),
-                    child: Icon(Icons.add_a_photo, color: DoctorTheme.textHint(context)),
+                    child: const Icon(Icons.add_a_photo, color: DoctorTheme.textHint),
                   ),
                 ),
               ],
@@ -1167,13 +1166,13 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
   Widget _buildDayTile(String day) {
     final wh = _workingHoursMap[day]!;
     return Container(
-      margin: EdgeInsets.only(bottom: 8),
-      padding: EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: DoctorTheme.surface(context),
+        color: DoctorTheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: wh.isOpen ? DoctorTheme.primary.withValues(alpha: 0.2) : DoctorTheme.border(context),
+          color: wh.isOpen ? DoctorTheme.primary.withValues(alpha: 0.2) : DoctorTheme.border,
         ),
       ),
       child: Column(
@@ -1198,33 +1197,33 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                 day,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: wh.isOpen ? DoctorTheme.primaryDark : DoctorTheme.textHint(context),
+                  color: wh.isOpen ? DoctorTheme.primaryDark : DoctorTheme.textHint,
                 ),
               ),
               const Spacer(),
               if (!wh.isOpen)
-                Text('closed'.tr(), style: TextStyle(color: DoctorTheme.textHint(context))),
+                const Text('Closed', style: TextStyle(color: DoctorTheme.textHint)),
             ],
           ),
           if (wh.isOpen) ...[
             const Divider(height: 16),
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.wb_sunny_outlined,
                   size: 16,
                   color: Colors.orange,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: InkWell(
                     onTap: () => _pickTime(context, day, isStart: true),
                     child: Container(
-                      padding: EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: DoctorTheme.surfaceDim(context),
+                        color: DoctorTheme.surfaceDim,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: DoctorTheme.border(context)),
+                        border: Border.all(color: DoctorTheme.border),
                       ),
                       child: Text(
                         wh.openTime ?? '09:00',
@@ -1233,19 +1232,19 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                     ),
                   ),
                 ),
-                Padding(
+                const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text('to'.tr()),
+                  child: Text('to'),
                 ),
                 Expanded(
                   child: InkWell(
                     onTap: () => _pickTime(context, day, isStart: false),
                     child: Container(
-                      padding: EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: DoctorTheme.surfaceDim(context),
+                        color: DoctorTheme.surfaceDim,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: DoctorTheme.border(context)),
+                        border: Border.all(color: DoctorTheme.border),
                       ),
                       child: Text(
                         wh.closeTime ?? '17:00',
@@ -1254,8 +1253,8 @@ class _ClinicFormPageState extends State<ClinicFormPage> {
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
-                Icon(
+                const SizedBox(width: 8),
+                const Icon(
                   Icons.nightlight_round_outlined,
                   size: 16,
                   color: Colors.indigo,

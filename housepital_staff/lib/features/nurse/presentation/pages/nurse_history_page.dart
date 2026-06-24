@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../data/models/booking_model.dart';
 import '../cubit/nurse_booking_cubit.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class NurseHistoryPage extends StatefulWidget {
   const NurseHistoryPage({super.key});
@@ -28,46 +29,57 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
   }
 
   String _formatDuration(DateTime? start, DateTime? end) {
-    if (start == null || end == null) return '—';
+    if (start == null || end == null) return '--:--';
     final diff = end.difference(start);
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min';
-    return '${diff.inHours}h ${diff.inMinutes % 60}m';
+    final hours = diff.inHours;
+    final minutes = diff.inMinutes.remainder(60);
+    return '${hours > 0 ? '$hours h ' : ''}$minutes m';
+  }
+
+  String _translateService(String service) {
+    // Basic mapping for common services
+    switch (service.toLowerCase().replaceAll(' ', '_')) {
+      case 'wound_care': return 'العناية بالجروح';
+      case 'iv_insertion': return 'تركيب الكانيولا';
+      case 'injections': 
+      case 'injection': return 'الحقن';
+      case 'blood_draw': return 'سحب الدم';
+      case 'elderly_care': return 'رعاية المسنين';
+      case 'patient_monitoring': return 'مراقبة المريض';
+      case 'physiotherapy_support': return 'دعم العلاج الطبيعي';
+      case 'baby_care': return 'رعاية الأطفال';
+      case 'emergency_response': return 'الاستجابة للطوارئ';
+      default: return service;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F8FF),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Session History',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: AppColors.textPrimary,
-          ),
+        title: Text(
+          l10n.history,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
         ),
+        foregroundColor: theme.colorScheme.onSurface,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 18,
-            color: AppColors.textPrimary,
-          ),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.refresh_rounded,
-              color: AppColors.primary500,
-            ),
+            icon: const Icon(Icons.refresh_rounded),
+            color: theme.colorScheme.primary,
             tooltip: 'Refresh',
-            onPressed: () =>
-                context.read<NurseBookingCubit>().fetchHistory(),
+            onPressed: () => context.read<NurseBookingCubit>().fetchHistory(),
           ),
         ],
       ),
@@ -81,29 +93,24 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
               _isLoading = false;
             });
           }
-          // All other states (Idle, Active, etc. from polling) are ignored here.
         },
         builder: (context, state) {
           if (_isLoading && _cachedHistory.isEmpty) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primary500),
-            );
+            return Center(child: CircularProgressIndicator(color: theme.colorScheme.primary));
           }
 
           if (_cachedHistory.isEmpty) {
-            return _buildEmpty();
+            return _buildEmpty(l10n);
           }
 
           return RefreshIndicator(
-            color: AppColors.primary500,
-            onRefresh: () =>
-                context.read<NurseBookingCubit>().fetchHistory(),
+            color: theme.colorScheme.primary,
+            onRefresh: () => context.read<NurseBookingCubit>().fetchHistory(),
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               itemCount: _cachedHistory.length,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) =>
-                  _buildHistoryCard(_cachedHistory[index], index),
+              itemBuilder: (context, index) => _buildHistoryCard(_cachedHistory[index], index, l10n),
             ),
           );
         },
@@ -111,7 +118,8 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(AppLocalizations l10n) {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -123,28 +131,27 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
               height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary50,
+                color: theme.colorScheme.primary.withAlpha(40),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.history_rounded,
                 size: 50,
-                color: AppColors.primary500,
+                color: theme.colorScheme.primary,
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'No sessions yet',
-              style: TextStyle(
+            Text(
+              l10n.noSessionsYet,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Your completed and cancelled visits will appear here.',
+            Text(
+              l10n.historyEmptyDesc,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+              style: TextStyle(color: theme.colorScheme.onSurface.withAlpha(150), height: 1.5),
             ),
           ],
         ),
@@ -152,24 +159,24 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
     );
   }
 
-  Widget _buildHistoryCard(NurseBooking booking, int index) {
+  Widget _buildHistoryCard(NurseBooking booking, int index, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final isCompleted = booking.status == 'completed';
 
-    final Color accentColor =
-        isCompleted ? AppColors.success500 : Colors.red.shade400;
-    final Color bgColor =
-        isCompleted ? AppColors.success50 : Colors.red.shade50;
-    final IconData statusIcon =
-        isCompleted ? Icons.task_alt_rounded : Icons.cancel_rounded;
-    final String statusLabel = isCompleted ? 'Completed' : 'Cancelled';
+    final Color accentColor = isCompleted ? Colors.green : Colors.red;
+    final Color bgColor = accentColor.withAlpha(isDark ? 40 : 25);
+    final IconData statusIcon = isCompleted ? Icons.task_alt_rounded : Icons.cancel_rounded;
+    final String statusLabel = isCompleted ? l10n.completedStatus : l10n.cancelledStatus;
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: theme.colorScheme.outline.withAlpha(isDark ? 50 : 100)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withAlpha(isDark ? 40 : 10),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -177,14 +184,11 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
       ),
       child: Column(
         children: [
-          // Header strip
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               color: bgColor,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(18),
-              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
             ),
             child: Row(
               children: [
@@ -203,7 +207,7 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
                 Text(
                   _formatDate(booking.visitEndedAt ?? booking.createdAt),
                   style: TextStyle(
-                    color: accentColor.withValues(alpha: 0.8),
+                    color: accentColor.withAlpha(200),
                     fontSize: 11,
                   ),
                 ),
@@ -211,7 +215,6 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
             ),
           ),
 
-          // Body
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -223,12 +226,12 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: AppColors.primary50,
+                        color: theme.colorScheme.primary.withAlpha(isDark ? 40 : 25),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.medical_services_rounded,
-                        color: AppColors.primary500,
+                        color: theme.colorScheme.primary,
                         size: 22,
                       ),
                     ),
@@ -238,40 +241,36 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            booking.serviceName,
-                            style: const TextStyle(
+                            _translateService(booking.serviceName),
+                            style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
-                              color: AppColors.textPrimary,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             booking.patientName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.textSecondary,
+                              color: theme.colorScheme.onSurface.withAlpha(150),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    // Price chip
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: AppColors.primary50,
+                        color: theme.colorScheme.primary.withAlpha(isDark ? 40 : 25),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         'EGP ${booking.servicePrice.toStringAsFixed(0)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 13,
-                          color: AppColors.primary500,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                     ),
@@ -279,21 +278,21 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
                 ),
 
                 if (booking.address != null) ...[
-                  const Divider(height: 20),
+                  Divider(height: 20, color: theme.colorScheme.outline.withAlpha(50)),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.location_on_outlined,
                         size: 14,
-                        color: AppColors.textSecondary,
+                        color: theme.colorScheme.onSurface.withAlpha(150),
                       ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           booking.address!.fullAddress,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            color: theme.colorScheme.onSurface.withAlpha(150),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -309,17 +308,17 @@ class _NurseHistoryPageState extends State<NurseHistoryPage> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.timer_outlined,
                         size: 14,
-                        color: AppColors.textSecondary,
+                        color: theme.colorScheme.onSurface.withAlpha(150),
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Duration: ${_formatDuration(booking.visitStartedAt, booking.visitEndedAt)}',
-                        style: const TextStyle(
+                        '${l10n.durationLabel}: ${_formatDuration(booking.visitStartedAt, booking.visitEndedAt)}',
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSecondary,
+                          color: theme.colorScheme.onSurface.withAlpha(150),
                         ),
                       ),
                     ],

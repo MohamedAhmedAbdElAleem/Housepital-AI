@@ -24,7 +24,6 @@ const {
 	getVisitReport,
 	getPatientVisitReports,
 	getLastVisitReport,
-	getDeviceVitalsPrefill,
 } = require("../controllers/visitReportController");
 
 // All booking routes require authentication
@@ -194,9 +193,6 @@ router.get("/patients/:patientId/visit-reports", authenticateToken, getPatientVi
 
 // Get last visit report for a patient (prefill)
 router.get("/patients/:patientId/last-visit-report", authenticateToken, getLastVisitReport);
-
-// Get device vitals prefill for a booking (auto-fill visit report from ESP32 data)
-router.get("/:id/device-vitals-prefill", authenticateToken, getDeviceVitalsPrefill);
 
 /**
  * @openapi

@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -27,15 +26,15 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DoctorTheme.background(context),
+      backgroundColor: DoctorTheme.background,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.pushNamed(context, AppRoutes.addClinic),
         backgroundColor: DoctorTheme.primary,
         foregroundColor: Colors.white,
         elevation: 4,
-        icon: Icon(Icons.add_location_alt_outlined),
-        label: Text(
-          'add_clinic'.tr(),
+        icon: const Icon(Icons.add_location_alt_outlined),
+        label: const Text(
+          'Add Clinic',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
@@ -44,8 +43,8 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
           child: Column(
             children: [
               GlassHeader(
-                title: 'my_clinics'.tr(),
-                subtitle: 'manage_locations_and_availability'.tr(),
+                title: 'My Clinics',
+                subtitle: 'Manage locations and availability',
                 onBack: () => Navigator.maybePop(context),
                 actionIcon: Icons.refresh_rounded,
                 actionTooltip: 'Refresh',
@@ -56,7 +55,7 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
                 child: BlocBuilder<ClinicCubit, ClinicState>(
                   builder: (context, state) {
                     if (state is ClinicLoading) {
-                      return Center(
+                      return const Center(
                         child: CircularProgressIndicator(
                           color: DoctorTheme.primary,
                         ),
@@ -72,11 +71,11 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
                     }
 
                     if (state.clinics.isEmpty) {
-                      return EmptyStateWidget(
+                      return const EmptyStateWidget(
                         icon: Icons.add_business_outlined,
-                        title: 'no_clinics_yet'.tr(),
+                        title: 'No clinics yet',
                         subtitle:
-                            'add_your_first_clinic_to_start_receiving_appointments_and_managing_your_schedule'.tr(),
+                            'Add your first clinic to start receiving appointments and managing your schedule.',
                       );
                     }
 
@@ -87,7 +86,7 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
                       color: DoctorTheme.primary,
                       child: ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.fromLTRB(16, 8, 16, 90),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
                         itemCount: state.clinics.length,
                         itemBuilder: (context, index) {
                           return _buildClinicCard(state.clinics[index]);
@@ -109,17 +108,17 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
   Widget _buildErrorState(String message) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.error_outline_rounded, size: 64,
               color: DoctorTheme.danger.withValues(alpha: 0.7)),
-            SizedBox(height: 16),
-            Text('could_not_load_clinics'.tr(), style: DoctorTheme.headingSmall(context)),
-            SizedBox(height: 8),
-            Text(message, textAlign: TextAlign.center, style: DoctorTheme.bodyMedium(context)),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
+            const Text('Could not load clinics', style: DoctorTheme.headingSmall),
+            const SizedBox(height: 8),
+            Text(message, textAlign: TextAlign.center, style: DoctorTheme.bodyMedium),
+            const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () => context.read<ClinicCubit>().fetchClinics(),
               style: ElevatedButton.styleFrom(
@@ -127,8 +126,8 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              icon: Icon(Icons.refresh_rounded),
-              label: Text('retry'.tr()),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Retry'),
             ),
           ],
         ),
@@ -143,12 +142,12 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
     final bookingMode = clinic.bookingMode == 'slots' ? 'Appointments' : 'Queue';
 
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: DoctorTheme.surface(context),
+        color: DoctorTheme.surface,
         borderRadius: BorderRadius.circular(DoctorTheme.radiusMD),
-        border: Border.all(color: DoctorTheme.border(context)),
-        boxShadow: DoctorTheme.cardShadow(context),
+        border: Border.all(color: DoctorTheme.border),
+        boxShadow: DoctorTheme.cardShadow,
       ),
       child: Material(
         color: Colors.transparent,
@@ -183,7 +182,7 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
                           : null,
                     ),
                     child: clinic.images.isEmpty
-                        ? Center(
+                        ? const Center(
                             child: Icon(Icons.local_hospital_outlined, size: 56, color: Color(0xFF93B4F7)),
                           )
                         : null,
@@ -221,19 +220,19 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
                       bottom: 12,
                       right: 12,
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                         decoration: BoxDecoration(
-                          color: DoctorTheme.textPrimary(context).withValues(alpha: 0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.photo_library_rounded, size: 13, color: DoctorTheme.surface(context)),
-                            SizedBox(width: 4),
+                            const Icon(Icons.photo_library_rounded, size: 13, color: Colors.white),
+                            const SizedBox(width: 4),
                             Text(
                               '${clinic.images.length}',
-                              style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
@@ -243,7 +242,7 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
               ),
               // ── Details ──
               Padding(
-                padding: EdgeInsets.fromLTRB(14, 14, 14, 14),
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -254,19 +253,19 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
                             clinic.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: DoctorTheme.headingSmall(context),
+                            style: DoctorTheme.headingSmall,
                           ),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Icon(Icons.arrow_forward_ios_rounded, size: 14,
-                          color: DoctorTheme.textSecondary(context).withValues(alpha: 0.7)),
+                          color: DoctorTheme.textSecondary.withValues(alpha: 0.7)),
                       ],
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     _buildIconText(Icons.location_on_outlined, location),
-                    SizedBox(height: 6),
-                    _buildIconText(Icons.phone_in_talk_outlined, clinic.phone ?? 'no_contact_info'.tr()),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 6),
+                    _buildIconText(Icons.phone_in_talk_outlined, clinic.phone ?? 'No contact info'),
+                    const SizedBox(height: 12),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -309,7 +308,7 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(999),
@@ -320,9 +319,9 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: DoctorTheme.surface(context)),
-          SizedBox(width: 4),
-          Text(text, style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+          Icon(icon, size: 14, color: Colors.white),
+          const SizedBox(width: 4),
+          Text(text, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -331,10 +330,10 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
   Widget _buildIconText(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: DoctorTheme.textSecondary(context).withValues(alpha: 0.75)),
-        SizedBox(width: 8),
+        Icon(icon, size: 16, color: DoctorTheme.textSecondary.withValues(alpha: 0.75)),
+        const SizedBox(width: 8),
         Expanded(
-          child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: DoctorTheme.bodySmall(context)),
+          child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: DoctorTheme.bodySmall),
         ),
       ],
     );
@@ -342,7 +341,7 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
 
   Widget _buildInfoChip({required IconData icon, required String text}) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: DoctorTheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(DoctorTheme.radiusChip),
@@ -351,8 +350,8 @@ class _MyClinicsPageState extends State<MyClinicsPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: DoctorTheme.primaryDark),
-          SizedBox(width: 6),
-          Text(text, style: TextStyle(color: DoctorTheme.primaryDark, fontSize: 12, fontWeight: FontWeight.w700)),
+          const SizedBox(width: 6),
+          Text(text, style: const TextStyle(color: DoctorTheme.primaryDark, fontSize: 12, fontWeight: FontWeight.w700)),
         ],
       ),
     );

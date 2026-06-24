@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -58,10 +57,10 @@ class _DoctorProfileCompletionPageState
   DoctorModel? _existingProfile;
   final ImagePicker _picker = ImagePicker();
 
-  List<String> get _specializations => [
-    'general_practice'.tr(),
+  final List<String> _specializations = [
+    'General Practice',
     'Pediatrics',
-    'internal_medicine'.tr(),
+    'Internal Medicine',
     'Cardiology',
     'Dermatology',
     'Orthopedics',
@@ -125,7 +124,7 @@ class _DoctorProfileCompletionPageState
     if (_currentStep == 0) {
       if (!_formKey.currentState!.validate()) return;
       if (_selectedSpecialization == null) {
-        _showError('please_select_a_specialization'.tr());
+        _showError('Please select a specialization');
         return;
       }
     }
@@ -168,37 +167,37 @@ class _DoctorProfileCompletionPageState
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'upload_from'.tr(),
+                const Text(
+                  'Upload from',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 ListTile(
-                  leading: Icon(Icons.camera_alt_outlined, color: DoctorTheme.primary),
-                  title: Text('camera'.tr()),
+                  leading: const Icon(Icons.camera_alt_outlined, color: DoctorTheme.primary),
+                  title: const Text('Camera'),
                   onTap: () {
                     Navigator.pop(context);
                     _pickFromSource(type, ImageSource.camera);
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.photo_library_outlined, color: DoctorTheme.primary),
-                  title: Text('gallery'.tr()),
+                  leading: const Icon(Icons.photo_library_outlined, color: DoctorTheme.primary),
+                  title: const Text('Gallery'),
                   onTap: () {
                     Navigator.pop(context);
                     _pickFromSource(type, ImageSource.gallery);
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.picture_as_pdf_outlined, color: DoctorTheme.primary),
-                  title: Text('document_pdf'.tr()),
+                  leading: const Icon(Icons.picture_as_pdf_outlined, color: DoctorTheme.primary),
+                  title: const Text('Document (PDF)'),
                   onTap: () {
                     Navigator.pop(context);
                     _pickFile(type);
@@ -270,7 +269,7 @@ class _DoctorProfileCompletionPageState
     final hasSyndicate = _syndicateCardFile != null || _existingSyndicateUrl != null;
 
     if (!hasNationalId || !hasLicense || !hasDegree || !hasSyndicate) {
-      _showError('please_upload_all_required_documents'.tr());
+      _showError('Please upload all required documents');
       return;
     }
 
@@ -309,20 +308,20 @@ class _DoctorProfileCompletionPageState
       }
 
       if (_nationalIdFile != null) {
-        nationalIdUrl = await uploadWithProgress(_nationalIdFile!, 'national_id'.tr());
+        nationalIdUrl = await uploadWithProgress(_nationalIdFile!, 'National ID');
       }
       if (_licenseFile != null) {
-        licenseUrl = await uploadWithProgress(_licenseFile!, 'medical_license'.tr());
+        licenseUrl = await uploadWithProgress(_licenseFile!, 'Medical License');
       }
       if (_degreeCertificateFile != null) {
-        degreeCertUrl = await uploadWithProgress(_degreeCertificateFile!, 'degree_certificate'.tr());
+        degreeCertUrl = await uploadWithProgress(_degreeCertificateFile!, 'Degree Certificate');
       }
       if (_syndicateCardFile != null) {
-        syndicateUrl = await uploadWithProgress(_syndicateCardFile!, 'syndicate_card'.tr());
+        syndicateUrl = await uploadWithProgress(_syndicateCardFile!, 'Syndicate Card');
       }
 
       setState(() {
-        _uploadProgressText = 'saving_profile'.tr();
+        _uploadProgressText = 'Saving profile...';
         _uploadProgressValue = 0.9;
       });
 
@@ -367,8 +366,8 @@ class _DoctorProfileCompletionPageState
         context.read<AuthCubit>().logout();
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('profile_submitted_successfully_please_login_to_check_your_status'.tr()),
+          const SnackBar(
+            content: Text('Profile submitted successfully! Please login to check your status.'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 4),
           ),
@@ -404,16 +403,16 @@ class _DoctorProfileCompletionPageState
             if (!didPop) _prevStep();
           },
           child: Scaffold(
-            backgroundColor: DoctorTheme.background(context),
+            backgroundColor: DoctorTheme.background,
             body: BackgroundBlobs(
               child: SafeArea(
                 child: Column(
                   children: [
                     GlassHeader(
                       title: _existingProfile != null
-                          ? 'update_profile'.tr()
-                          : 'complete_profile'.tr(),
-                      subtitle: 'provide_your_professional_details'.tr(),
+                          ? 'Update Profile'
+                          : 'Complete Profile',
+                      subtitle: 'Provide your professional details',
                       onBack: _prevStep,
                     ),
               _buildStepIndicator(),
@@ -445,7 +444,7 @@ class _DoctorProfileCompletionPageState
 
   Widget _buildStepIndicator() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(32, 8, 32, 16),
+      padding: const EdgeInsets.fromLTRB(32, 8, 32, 16),
       child: Row(
         children: [
           _buildStepDot(0, 'Personal'),
@@ -480,7 +479,7 @@ class _DoctorProfileCompletionPageState
           ),
           child: Center(
             child: isDone
-                ? Icon(Icons.check, color: Colors.white, size: 18)
+                ? const Icon(Icons.check, color: Colors.white, size: 18)
                 : Text(
                     '${index + 1}',
                     style: TextStyle(
@@ -491,7 +490,7 @@ class _DoctorProfileCompletionPageState
                   ),
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(
@@ -507,7 +506,7 @@ class _DoctorProfileCompletionPageState
   Widget _buildStepLine(int index) {
     return Expanded(
       child: Padding(
-        padding: EdgeInsets.only(bottom: 18),
+        padding: const EdgeInsets.only(bottom: 18),
         child: Container(
           height: 2,
           color: _currentStep > index ? Colors.green : Colors.grey[300],
@@ -519,25 +518,25 @@ class _DoctorProfileCompletionPageState
   // ─── Step 1: Personal Info ──────────────────────────────────────────
   Widget _buildStep1PersonalInfo() {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('professional_information'.tr()),
-          SizedBox(height: 16),
+          _sectionTitle('Professional Information'),
+          const SizedBox(height: 16),
           _buildTextField(
             _licenseController,
             'Medical License Number',
             Icons.badge_outlined,
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Required';
-              if (v.trim().length < 5) return 'minimum_5_characters_required'.tr();
+              if (v.trim().length < 5) return 'Minimum 5 characters required';
               return null;
             },
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           _buildDropdown(),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           _buildTextField(
             _experienceController,
             'Years of Experience',
@@ -550,17 +549,17 @@ class _DoctorProfileCompletionPageState
               return null;
             },
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           _buildGenderSelector(),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           _buildTextField(
             _bioController,
-            'short_bio_optional'.tr(),
+            'Short Bio (optional)',
             Icons.edit_note_rounded,
             maxLines: 3,
             required: false,
           ),
-          SizedBox(height: 32),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -569,49 +568,49 @@ class _DoctorProfileCompletionPageState
   // ─── Step 2: Documents ──────────────────────────────────────────────
   Widget _buildStep2Documents() {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('verification_documents'.tr()),
-          SizedBox(height: 8),
+          _sectionTitle('Verification Documents'),
+          const SizedBox(height: 8),
           Text(
-            'upload_clear_photos_of_the_following_documents'.tr(),
+            'Upload clear photos of the following documents',
             style: TextStyle(fontSize: 13, color: Colors.grey[600]),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           _buildDocCard(
-            'national_id'.tr(),
+            'National ID',
             Icons.credit_card_rounded,
             _nationalIdFile,
             _existingNationalIdUrl,
             () => _pickDocument('nationalId'),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           _buildDocCard(
-            'medical_license'.tr(),
+            'Medical License',
             Icons.verified_rounded,
             _licenseFile,
             _existingLicenseUrl,
             () => _pickDocument('license'),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           _buildDocCard(
-            'degree_certificate'.tr(),
+            'Degree Certificate',
             Icons.school_rounded,
             _degreeCertificateFile,
             _existingDegreeCertUrl,
             () => _pickDocument('degree'),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           _buildDocCard(
-            'syndicate_card'.tr(),
+            'Syndicate Card',
             Icons.card_membership_rounded,
             _syndicateCardFile,
             _existingSyndicateUrl,
             () => _pickDocument('syndicate'),
           ),
-          SizedBox(height: 32),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -620,28 +619,28 @@ class _DoctorProfileCompletionPageState
   // ─── Step 3: Review ─────────────────────────────────────────────────
   Widget _buildStep3Review() {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('review_your_profile'.tr()),
-          SizedBox(height: 16),
-          _reviewRow('license_number'.tr(), _licenseController.text),
+          _sectionTitle('Review Your Profile'),
+          const SizedBox(height: 16),
+          _reviewRow('License Number', _licenseController.text),
           _reviewRow('Specialization', _selectedSpecialization ?? '--'),
           _reviewRow('Experience', '${_experienceController.text} years'),
-          _reviewRow('gender'.tr(), _selectedGender ?? 'not_specified'.tr()),
+          _reviewRow('Gender', _selectedGender ?? 'Not specified'),
           if (_bioController.text.isNotEmpty)
             _reviewRow('Bio', _bioController.text),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           _sectionTitle('Documents'),
-          SizedBox(height: 12),
-          _docStatus('national_id'.tr(), _nationalIdFile != null || _existingNationalIdUrl != null),
-          _docStatus('medical_license'.tr(), _licenseFile != null || _existingLicenseUrl != null),
-          _docStatus('degree_certificate'.tr(), _degreeCertificateFile != null || _existingDegreeCertUrl != null),
-          _docStatus('syndicate_card'.tr(), _syndicateCardFile != null || _existingSyndicateUrl != null),
-          SizedBox(height: 24),
+          const SizedBox(height: 12),
+          _docStatus('National ID', _nationalIdFile != null || _existingNationalIdUrl != null),
+          _docStatus('Medical License', _licenseFile != null || _existingLicenseUrl != null),
+          _docStatus('Degree Certificate', _degreeCertificateFile != null || _existingDegreeCertUrl != null),
+          _docStatus('Syndicate Card', _syndicateCardFile != null || _existingSyndicateUrl != null),
+          const SizedBox(height: 24),
           Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(12),
@@ -650,17 +649,17 @@ class _DoctorProfileCompletionPageState
             child: Row(
               children: [
                 Icon(Icons.info_outline, color: DoctorTheme.primary, size: 20),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'after_submission_your_account_will_be_reviewed_by_our_team_you_will_receive_an_email_notification'.tr(),
+                    'After submission, your account will be reviewed by our team. You will receive an email notification.',
                     style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4),
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 32),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -696,8 +695,8 @@ class _DoctorProfileCompletionPageState
         labelText: label,
         prefixIcon: Icon(icon, color: DoctorTheme.primary),
         filled: true,
-        fillColor: DoctorTheme.surface(context),
-        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -708,7 +707,7 @@ class _DoctorProfileCompletionPageState
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: DoctorTheme.primary, width: 2),
+          borderSide: const BorderSide(color: DoctorTheme.primary, width: 2),
         ),
       ),
       validator: validator ??
@@ -723,9 +722,9 @@ class _DoctorProfileCompletionPageState
       value: _selectedSpecialization,
       decoration: InputDecoration(
         labelText: 'Specialization',
-        prefixIcon: Icon(Icons.local_hospital_outlined, color: DoctorTheme.primary),
+        prefixIcon: const Icon(Icons.local_hospital_outlined, color: DoctorTheme.primary),
         filled: true,
-        fillColor: DoctorTheme.surface(context),
+        fillColor: Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -739,7 +738,7 @@ class _DoctorProfileCompletionPageState
           .map((s) => DropdownMenuItem(value: s, child: Text(s)))
           .toList(),
       onChanged: (v) => setState(() => _selectedSpecialization = v),
-      validator: (v) => v == null ? 'please_select_a_specialization'.tr() : null,
+      validator: (v) => v == null ? 'Please select a specialization' : null,
     );
   }
 
@@ -747,12 +746,12 @@ class _DoctorProfileCompletionPageState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('gender'.tr(), style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey[700])),
-        SizedBox(height: 8),
+        Text('Gender', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey[700])),
+        const SizedBox(height: 8),
         Row(
           children: [
             Expanded(child: _genderChip('Male', 'male', Icons.male)),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(child: _genderChip('Female', 'female', Icons.female)),
           ],
         ),
@@ -766,7 +765,7 @@ class _DoctorProfileCompletionPageState
       onTap: () => setState(() => _selectedGender = value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: selected ? DoctorTheme.primary.withValues(alpha: 0.1) : Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -779,7 +778,7 @@ class _DoctorProfileCompletionPageState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: selected ? DoctorTheme.primary : Colors.grey[500], size: 22),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
@@ -804,9 +803,9 @@ class _DoctorProfileCompletionPageState
     return GestureDetector(
       onTap: onPick,
       child: Container(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: DoctorTheme.surface(context),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: hasFile ? Colors.green[300]! : Colors.grey[300]!,
@@ -814,7 +813,7 @@ class _DoctorProfileCompletionPageState
           ),
           boxShadow: [
             BoxShadow(
-              color: DoctorTheme.textPrimary(context).withValues(alpha: 0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -837,23 +836,23 @@ class _DoctorProfileCompletionPageState
                 size: 24,
               ),
             ),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     hasFile
-                        ? (file != null ? 'new_file_selected'.tr() : 'previously_uploaded'.tr())
-                        : 'tap_to_upload'.tr(),
+                        ? (file != null ? 'New file selected' : 'Previously uploaded')
+                        : 'Tap to upload',
                     style: TextStyle(
                       fontSize: 12,
                       color: hasFile ? Colors.green[700] : Colors.grey[500],
@@ -874,7 +873,7 @@ class _DoctorProfileCompletionPageState
 
   Widget _reviewRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -892,7 +891,7 @@ class _DoctorProfileCompletionPageState
           Expanded(
             child: Text(
               value,
-              style: TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
+              style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
             ),
           ),
         ],
@@ -902,7 +901,7 @@ class _DoctorProfileCompletionPageState
 
   Widget _docStatus(String label, bool uploaded) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
           Icon(
@@ -910,8 +909,8 @@ class _DoctorProfileCompletionPageState
             size: 20,
             color: uploaded ? Colors.green : Colors.red[300],
           ),
-          SizedBox(width: 10),
-          Text(label, style: TextStyle(fontSize: 14)),
+          const SizedBox(width: 10),
+          Text(label, style: const TextStyle(fontSize: 14)),
         ],
       ),
     );
@@ -919,12 +918,12 @@ class _DoctorProfileCompletionPageState
 
   Widget _buildBottomBar() {
     return Container(
-      padding: EdgeInsets.fromLTRB(24, 12, 24, 24),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
       decoration: BoxDecoration(
-        color: DoctorTheme.surface(context),
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: DoctorTheme.textPrimary(context).withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -937,16 +936,16 @@ class _DoctorProfileCompletionPageState
               child: OutlinedButton(
                 onPressed: _prevStep,
                 style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   side: BorderSide(color: Colors.grey[300]!),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: Text('back'.tr()),
+                child: const Text('Back'),
               ),
             ),
-          if (_currentStep > 0) SizedBox(width: 12),
+          if (_currentStep > 0) const SizedBox(width: 12),
           Expanded(
             flex: 2,
             child: ElevatedButton(
@@ -954,15 +953,15 @@ class _DoctorProfileCompletionPageState
               style: ElevatedButton.styleFrom(
                 backgroundColor: _currentStep == 2 ? Colors.green : DoctorTheme.primary,
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
                 elevation: 2,
               ),
               child: Text(
-                _currentStep == 2 ? 'submit_for_review'.tr() : 'Continue',
-                style: TextStyle(
+                _currentStep == 2 ? 'Submit for Review' : 'Continue',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -979,17 +978,17 @@ class _DoctorProfileCompletionPageState
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: Container(
-          color: DoctorTheme.textPrimary(context).withValues(alpha: 0.4),
+          color: Colors.black.withValues(alpha: 0.4),
           child: Center(
             child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 32),
-              padding: EdgeInsets.all(32),
+              margin: const EdgeInsets.symmetric(horizontal: 32),
+              padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: DoctorTheme.surface(context),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: DoctorTheme.textPrimary(context).withValues(alpha: 0.15),
+                    color: Colors.black.withValues(alpha: 0.15),
                     blurRadius: 30,
                     offset: const Offset(0, 10),
                   ),
@@ -1010,19 +1009,19 @@ class _DoctorProfileCompletionPageState
                           : DoctorTheme.primary,
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Text(
                     _uploadProgressValue >= 1.0
                         ? 'Submitted!'
                         : 'Uploading...',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       decoration: TextDecoration.none,
                       color: Color(0xFF0F172A),
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     _uploadProgressText,
                     textAlign: TextAlign.center,

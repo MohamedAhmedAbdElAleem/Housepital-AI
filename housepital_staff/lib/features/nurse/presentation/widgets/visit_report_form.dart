@@ -3,25 +3,10 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../data/models/visit_report_data.dart';
+import '../../../../l10n/app_localizations.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VisitReportForm
-//
-// A full-featured, card-based visit report form for the nurse to fill after
-// a home visit.  Divided into 5 collapsible sections:
-//   A – Patient Status
-//   B – Vitals         (required before submission)
-//   C – Care Provided  (required before submission)
-//   D – Notes & Observations
-//   E – Follow-up / Alerts
-//
-// Usage:
-//   VisitReportForm(
-//     initialService: booking.serviceName,
-//     prefill: prefillData,          // from last visit (optional)
-//     onChanged: (data) { ... },
-//     onSubmit: (data) { ... },
-//   )
 // ─────────────────────────────────────────────────────────────────────────────
 
 class VisitReportForm extends StatefulWidget {
@@ -79,7 +64,6 @@ class _VisitReportFormState extends State<VisitReportForm> {
       servicesPerformed: [widget.initialService],
     );
 
-    // Prefill text fields
     _bpSysCtrl.text = _data.bpSystolic?.toString() ?? '';
     _bpDiaCtrl.text = _data.bpDiastolic?.toString() ?? '';
     _hrCtrl.text = _data.heartRate?.toString() ?? '';
@@ -121,40 +105,40 @@ class _VisitReportFormState extends State<VisitReportForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionA(),
+        _sectionA(l10n),
         const SizedBox(height: 16),
-        _sectionB(),
+        _sectionB(l10n),
         const SizedBox(height: 16),
-        _sectionC(),
+        _sectionC(l10n),
         const SizedBox(height: 16),
-        _sectionD(),
+        _sectionD(l10n),
         const SizedBox(height: 16),
-        _sectionE(),
+        _sectionE(l10n),
         const SizedBox(height: 16),
-        if (!_data.isReadyToSubmit) _validationBanner(),
+        if (!_data.isReadyToSubmit) _validationBanner(l10n),
       ],
     );
   }
 
   // ─── Section A: Patient Status ────────────────────────────────────────────
 
-  Widget _sectionA() {
+  Widget _sectionA(AppLocalizations l10n) {
     return _ReportSection(
       icon: Icons.person_rounded,
       iconColor: AppColors.primary500,
       iconBg: AppColors.primary50,
-      title: 'Patient Status',
-      subtitle: 'Assess overall condition',
+      title: l10n.patientStatus,
+      subtitle: l10n.assessCondition,
       isExpanded: _secAExpanded,
       onToggle: () => setState(() => _secAExpanded = !_secAExpanded),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Overall Condition
-          _FieldLabel('Overall Condition *'),
+          _FieldLabel(l10n.overallCondition),
           const SizedBox(height: 8),
           _SingleSelectChips(
             options: const [
@@ -173,8 +157,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 16),
 
-          // Consciousness
-          _FieldLabel('Consciousness Level *'),
+          _FieldLabel(l10n.consciousnessLevel),
           const SizedBox(height: 8),
           _SingleSelectChips(
             options: const [
@@ -192,8 +175,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 16),
 
-          // Pain Slider
-          _FieldLabel('Pain Level: ${_data.painLevel}/10 — ${_painLabel(_data.painLevel)}'),
+          _FieldLabel('${l10n.painLevel}: ${_data.painLevel}/10 — ${_painLabel(_data.painLevel)}'),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -203,7 +185,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
                   data: SliderTheme.of(context).copyWith(
                     activeTrackColor: _painColor(_data.painLevel),
                     thumbColor: _painColor(_data.painLevel),
-                    inactiveTrackColor: AppColors.light400,
+                    inactiveTrackColor: Theme.of(context).brightness == Brightness.dark ? AppColors.dark400 : AppColors.light400,
                     overlayColor:
                         _painColor(_data.painLevel).withOpacity(0.15),
                     trackHeight: 6,
@@ -226,8 +208,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 16),
 
-          // Mobility
-          _FieldLabel('Mobility'),
+          _FieldLabel(l10n.mobility),
           const SizedBox(height: 8),
           _MultiSelectChips(
             options: const [
@@ -243,8 +224,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 16),
 
-          // Wound Site
-          _FieldLabel('Wound / IV Site Condition'),
+          _FieldLabel(l10n.woundCondition),
           const SizedBox(height: 8),
           _SingleSelectChips(
             options: const [
@@ -268,20 +248,19 @@ class _VisitReportFormState extends State<VisitReportForm> {
 
   // ─── Section B: Vitals ────────────────────────────────────────────────────
 
-  Widget _sectionB() {
+  Widget _sectionB(AppLocalizations l10n) {
     return _ReportSection(
       icon: Icons.monitor_heart_rounded,
       iconColor: AppColors.error500,
       iconBg: AppColors.error50,
-      title: 'Vital Signs',
-      subtitle: 'Required before completing',
+      title: l10n.vitalSigns,
+      subtitle: l10n.requiredBeforeComplete,
       isExpanded: _secBExpanded,
       onToggle: () => setState(() => _secBExpanded = !_secBExpanded),
       child: Column(
         children: [
-          // Blood Pressure
           _VitalRow(
-            label: 'Blood Pressure',
+            label: l10n.bloodPressure,
             unit: 'mmHg',
             status: _data.bpStatus,
             child: Row(
@@ -324,9 +303,8 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 12),
 
-          // Heart Rate
           _VitalRow(
-            label: 'Heart Rate',
+            label: l10n.heartRate,
             unit: 'bpm',
             status: _data.heartRateStatus,
             child: _VitalTextField(
@@ -339,9 +317,8 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 12),
 
-          // Temperature
           _VitalRow(
-            label: 'Temperature',
+            label: l10n.temperature,
             unit: '°C',
             status: _data.temperatureStatus,
             child: _VitalTextField(
@@ -355,9 +332,8 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 12),
 
-          // SpO2
           _VitalRow(
-            label: 'Oxygen Saturation (SpO₂)',
+            label: l10n.oxygenSaturation,
             unit: '%',
             status: _data.spo2Status,
             child: _VitalTextField(
@@ -369,7 +345,6 @@ class _VisitReportFormState extends State<VisitReportForm> {
             ),
           ),
 
-          // Optional vitals (collapsed by default)
           const SizedBox(height: 12),
           _OptionalVitalsSection(
             rrCtrl: _rrCtrl,
@@ -378,7 +353,6 @@ class _VisitReportFormState extends State<VisitReportForm> {
             onChanged: () => setState(_updateVitals),
           ),
 
-          // Abnormal alert
           if (_data.hasAbnormalVitals) ...[
             const SizedBox(height: 12),
             _AbnormalVitalsBanner(data: _data),
@@ -390,19 +364,19 @@ class _VisitReportFormState extends State<VisitReportForm> {
 
   // ─── Section C: Care Provided ─────────────────────────────────────────────
 
-  Widget _sectionC() {
+  Widget _sectionC(AppLocalizations l10n) {
     return _ReportSection(
       icon: Icons.medical_services_rounded,
       iconColor: AppColors.secondary500,
       iconBg: AppColors.secondary50,
-      title: 'Care Provided',
-      subtitle: 'What was done during the visit',
+      title: l10n.careProvided,
+      subtitle: l10n.whatWasDone,
       isExpanded: _secCExpanded,
       onToggle: () => setState(() => _secCExpanded = !_secCExpanded),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _FieldLabel('Services Performed *'),
+          _FieldLabel(l10n.servicesPerformed),
           const SizedBox(height: 8),
           _ServicesChecklist(
             initialService: widget.initialService,
@@ -414,8 +388,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 16),
 
-          // Medications
-          _FieldLabel('Medications Given'),
+          _FieldLabel(l10n.medicationsGiven),
           const SizedBox(height: 8),
           ..._medRows.asMap().entries.map((e) => _MedRowWidget(
                 row: e.value,
@@ -431,7 +404,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
               setState(() => _medRows.add(_MedRow()));
             },
             icon: const Icon(Icons.add_rounded, size: 18),
-            label: const Text('Add Medication'),
+            label: Text(l10n.addMedication),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.primary500,
               padding:
@@ -444,8 +417,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 16),
 
-          // Procedures
-          _FieldLabel('Procedures Performed'),
+          _FieldLabel(l10n.proceduresPerformed),
           const SizedBox(height: 8),
           _MultiSelectChips(
             options: const [
@@ -468,8 +440,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 16),
 
-          // Cooperation
-          _FieldLabel('Patient Cooperation'),
+          _FieldLabel(l10n.patientCooperation),
           const SizedBox(height: 8),
           _SingleSelectChips(
             options: const [
@@ -484,7 +455,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
               _notify();
             },
             getColor: (v) => v == 'cooperative'
-                ? AppColors.success500
+                ? AppColors.primary600
                 : v == 'resistant'
                     ? AppColors.warning500
                     : AppColors.error500,
@@ -509,19 +480,20 @@ class _VisitReportFormState extends State<VisitReportForm> {
 
   // ─── Section D: Notes ────────────────────────────────────────────────────
 
-  Widget _sectionD() {
+  Widget _sectionD(AppLocalizations l10n) {
+    final theme = Theme.of(context);
     return _ReportSection(
       icon: Icons.description_rounded,
       iconColor: AppColors.warning600,
       iconBg: AppColors.warning50,
-      title: 'Notes & Observations',
-      subtitle: 'Optional — clinical details',
+      title: l10n.notesObservations,
+      subtitle: l10n.assessCondition,
       isExpanded: _secDExpanded,
       onToggle: () => setState(() => _secDExpanded = !_secDExpanded),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _FieldLabel('Clinical Observations'),
+          _FieldLabel(l10n.clinicalObservations),
           const SizedBox(height: 8),
           _NotesField(
             controller: _obsCtrl,
@@ -535,18 +507,17 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 16),
 
-          // Family present
           Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _FieldLabel('Family / Caregiver Present'),
+                    _FieldLabel(l10n.familyPresent),
                     Text(
                       'Was someone with the patient?',
                       style: TextStyle(
-                          fontSize: 12, color: Colors.grey[500]),
+                          fontSize: 12, color: theme.colorScheme.onSurface.withAlpha(150)),
                     ),
                   ],
                 ),
@@ -557,14 +528,13 @@ class _VisitReportFormState extends State<VisitReportForm> {
                   setState(() => _data = _data.copyWith(familyPresent: v));
                   _notify();
                 },
-                activeColor: AppColors.success500,
+                activeColor: AppColors.primary500,
               ),
             ],
           ),
           const SizedBox(height: 16),
 
-          // Home environment
-          _FieldLabel('Home Environment'),
+          _FieldLabel(l10n.homeEnvironment),
           const SizedBox(height: 8),
           _MultiSelectChips(
             options: const [
@@ -581,8 +551,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
           ),
           const SizedBox(height: 16),
 
-          // Concerns
-          _FieldLabel('Patient / Family Concerns'),
+          _FieldLabel(l10n.familyConcerns),
           const SizedBox(height: 8),
           _NotesField(
             controller: _concernsCtrl,
@@ -601,30 +570,30 @@ class _VisitReportFormState extends State<VisitReportForm> {
 
   // ─── Section E: Follow-up ─────────────────────────────────────────────────
 
-  Widget _sectionE() {
+  Widget _sectionE(AppLocalizations l10n) {
+    final theme = Theme.of(context);
     return _ReportSection(
       icon: Icons.notifications_active_rounded,
       iconColor: AppColors.error500,
       iconBg: AppColors.error50,
-      title: 'Follow-up & Alerts',
-      subtitle: 'Next steps for this patient',
+      title: l10n.followUpAlerts,
+      subtitle: l10n.nextSteps,
       isExpanded: _secEExpanded,
       onToggle: () => setState(() => _secEExpanded = !_secEExpanded),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Follow-up toggle
           Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _FieldLabel('Follow-up Required?'),
+                    _FieldLabel(l10n.followUpRequired),
                     Text(
                       'Should this patient be seen again soon?',
                       style: TextStyle(
-                          fontSize: 12, color: Colors.grey[500]),
+                          fontSize: 12, color: theme.colorScheme.onSurface.withAlpha(150)),
                     ),
                   ],
                 ),
@@ -643,8 +612,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
           if (_data.followUpRequired) ...[
             const SizedBox(height: 16),
 
-            // Urgency
-            _FieldLabel('Urgency Level'),
+            _FieldLabel(l10n.urgencyLevel),
             const SizedBox(height: 8),
             _SingleSelectChips(
               options: const [
@@ -667,14 +635,13 @@ class _VisitReportFormState extends State<VisitReportForm> {
                   case 'within_48h':
                     return AppColors.secondary500;
                   default:
-                    return AppColors.success500;
+                    return AppColors.primary500;
                 }
               },
             ),
             const SizedBox(height: 16),
 
-            // Recommended actions
-            _FieldLabel('Recommended Actions'),
+            _FieldLabel(l10n.recommendedActions),
             const SizedBox(height: 8),
             _MultiSelectChips(
               options: const [
@@ -694,8 +661,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
             ),
             const SizedBox(height: 16),
 
-            // Alert message
-            _FieldLabel('Alert for Care Team'),
+            _FieldLabel(l10n.alertCareTeam),
             const SizedBox(height: 8),
             _NotesField(
               controller: _alertCtrl,
@@ -715,49 +681,51 @@ class _VisitReportFormState extends State<VisitReportForm> {
 
   // ─── Validation ────────────────────────────────────────────────────────────
 
-  Widget _validationBanner() {
+  Widget _validationBanner(AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final missing = <String>[];
     if (_data.bpSystolic == null || _data.bpDiastolic == null) {
-      missing.add('Blood Pressure');
+      missing.add(l10n.bloodPressure);
     }
-    if (_data.heartRate == null) missing.add('Heart Rate');
-    if (_data.temperature == null) missing.add('Temperature');
-    if (_data.oxygenSaturation == null) missing.add('SpO₂');
-    if (_data.servicesPerformed.isEmpty) missing.add('Services Performed');
+    if (_data.heartRate == null) missing.add(l10n.heartRate);
+    if (_data.temperature == null) missing.add(l10n.temperature);
+    if (_data.oxygenSaturation == null) missing.add(l10n.oxygenSaturation);
+    if (_data.servicesPerformed.isEmpty) missing.add(l10n.servicesPerformed);
 
     if (missing.isEmpty) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.warning50,
+        color: AppColors.warning50.withAlpha(isDark ? 40 : 255),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.warning300),
+        border: Border.all(color: AppColors.warning300.withAlpha(100)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.warning_rounded,
-              color: AppColors.warning600, size: 20),
+          Icon(Icons.warning_rounded,
+              color: isDark ? AppColors.warning300 : AppColors.warning600, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Complete required fields to submit:',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.warning700,
+                    color: isDark ? AppColors.warning200 : AppColors.warning700,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   missing.join(', '),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.warning700,
+                    color: isDark ? AppColors.warning200.withAlpha(200) : AppColors.warning700,
                   ),
                 ),
               ],
@@ -768,14 +736,12 @@ class _VisitReportFormState extends State<VisitReportForm> {
     );
   }
 
-  // ─── Helpers ───────────────────────────────────────────────────────────────
-
   Color _conditionColor(String v) {
     switch (v) {
       case 'excellent':
-        return AppColors.success500;
+        return AppColors.primary600;
       case 'stable':
-        return AppColors.success400;
+        return AppColors.primary400;
       case 'fair':
         return AppColors.warning500;
       case 'poor':
@@ -790,7 +756,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
   Color _consciousnessColor(String v) {
     switch (v) {
       case 'alert':
-        return AppColors.success500;
+        return AppColors.primary600;
       case 'confused':
         return AppColors.warning500;
       case 'lethargic':
@@ -805,7 +771,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
   Color _woundColor(String v) {
     switch (v) {
       case 'clean':
-        return AppColors.success500;
+        return AppColors.primary500;
       case 'redness':
         return AppColors.warning500;
       case 'swelling':
@@ -827,7 +793,7 @@ class _VisitReportFormState extends State<VisitReportForm> {
   }
 
   Color _painColor(int v) {
-    if (v <= 2) return AppColors.success500;
+    if (v <= 2) return AppColors.primary500;
     if (v <= 5) return AppColors.warning500;
     if (v <= 7) return AppColors.warning600;
     return AppColors.error500;
@@ -837,8 +803,6 @@ class _VisitReportFormState extends State<VisitReportForm> {
 // ═════════════════════════════════════════════════════════════════════════════
 // Sub-widgets
 // ═════════════════════════════════════════════════════════════════════════════
-
-// ─── Section card ────────────────────────────────────────────────────────────
 
 class _ReportSection extends StatelessWidget {
   final IconData icon;
@@ -863,54 +827,60 @@ class _ReportSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: theme.colorScheme.outline.withAlpha(isDark ? 50 : 100)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
+            color: Colors.black.withAlpha(isDark ? 40 : 10),
+            blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         children: [
-          // Header
           InkWell(
             onTap: onToggle,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(24),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: iconBg,
-                      borderRadius: BorderRadius.circular(10),
+                      color: iconBg.withAlpha(isDark ? 30 : 255),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(icon, color: iconColor, size: 20),
+                    child: Icon(icon, color: isDark ? AppColors.primary300 : iconColor, size: 22),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(
-                            fontSize: 15,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                         Text(
                           subtitle,
                           style: TextStyle(
+                            fontFamily: 'Inter',
                             fontSize: 12,
-                            color: Colors.grey[500],
+                            color: theme.colorScheme.onSurface.withAlpha(150),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -919,9 +889,9 @@ class _ReportSection extends StatelessWidget {
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: const Icon(
+                    child: Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.textSecondary,
+                      color: theme.colorScheme.onSurface.withAlpha(100),
                     ),
                   ),
                 ],
@@ -929,15 +899,14 @@ class _ReportSection extends StatelessWidget {
             ),
           ),
 
-          // Content
           AnimatedCrossFade(
             firstChild: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Divider(color: AppColors.light400, height: 1),
-                  const SizedBox(height: 16),
+                  Divider(color: theme.colorScheme.outline.withAlpha(50), height: 1),
+                  const SizedBox(height: 20),
                   child,
                 ],
               ),
@@ -954,8 +923,6 @@ class _ReportSection extends StatelessWidget {
   }
 }
 
-// ─── Field label ─────────────────────────────────────────────────────────────
-
 class _FieldLabel extends StatelessWidget {
   final String text;
   const _FieldLabel(this.text);
@@ -967,13 +934,11 @@ class _FieldLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: Colors.grey[700],
+        color: Theme.of(context).colorScheme.onSurface.withAlpha(200),
       ),
     );
   }
 }
-
-// ─── Single-select chips ──────────────────────────────────────────────────────
 
 class _SingleSelectChips extends StatelessWidget {
   final List<(String label, String value)> options;
@@ -990,6 +955,9 @@ class _SingleSelectChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -1003,10 +971,10 @@ class _SingleSelectChips extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? color : Colors.white,
+              color: isSelected ? color : theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isSelected ? color : AppColors.light500,
+                color: isSelected ? color : theme.colorScheme.outline.withAlpha(isDark ? 50 : 100),
                 width: isSelected ? 1.5 : 1,
               ),
               boxShadow: isSelected
@@ -1024,7 +992,7 @@ class _SingleSelectChips extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : Colors.grey[700],
+                color: isSelected ? Colors.white : theme.colorScheme.onSurface.withAlpha(200),
               ),
             ),
           ),
@@ -1033,8 +1001,6 @@ class _SingleSelectChips extends StatelessWidget {
     );
   }
 }
-
-// ─── Multi-select chips ───────────────────────────────────────────────────────
 
 class _MultiSelectChips extends StatelessWidget {
   final List<(String label, String value)> options;
@@ -1049,6 +1015,9 @@ class _MultiSelectChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -1069,10 +1038,10 @@ class _MultiSelectChips extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary500 : Colors.white,
+              color: isSelected ? AppColors.primary500 : theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isSelected ? AppColors.primary500 : AppColors.light500,
+                color: isSelected ? AppColors.primary500 : theme.colorScheme.outline.withAlpha(isDark ? 50 : 100),
               ),
             ),
             child: Row(
@@ -1088,7 +1057,7 @@ class _MultiSelectChips extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : Colors.grey[700],
+                    color: isSelected ? Colors.white : theme.colorScheme.onSurface.withAlpha(200),
                   ),
                 ),
               ],
@@ -1099,8 +1068,6 @@ class _MultiSelectChips extends StatelessWidget {
     );
   }
 }
-
-// ─── Vital row with status badge ──────────────────────────────────────────────
 
 class _VitalRow extends StatelessWidget {
   final String label;
@@ -1117,10 +1084,13 @@ class _VitalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.light100,
+        color: theme.colorScheme.surfaceContainerHighest.withAlpha(isDark ? 80 : 255),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: _borderColor,
@@ -1137,7 +1107,7 @@ class _VitalRow extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey[600],
+                  color: theme.colorScheme.onSurface.withAlpha(150),
                 ),
               ),
               const Spacer(),
@@ -1160,9 +1130,9 @@ class _VitalRow extends StatelessWidget {
       case VitalStatus.low:
         return AppColors.warning500;
       case VitalStatus.normal:
-        return AppColors.success500;
+        return AppColors.primary500;
       case VitalStatus.unknown:
-        return AppColors.light500;
+        return Colors.grey.withAlpha(100);
     }
   }
 }
@@ -1174,8 +1144,11 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final (label, color, bg) = switch (status) {
-      VitalStatus.normal => ('✅ Normal', AppColors.success700, AppColors.success50),
+      VitalStatus.normal => ('✅ Normal', AppColors.primary700, AppColors.primary50),
       VitalStatus.high => ('⚠️ High', AppColors.warning700, AppColors.warning50),
       VitalStatus.low => ('⬇️ Low', AppColors.info700, AppColors.info50),
       VitalStatus.critical => ('🚨 Critical', AppColors.error700, AppColors.error50),
@@ -1185,7 +1158,7 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: bg,
+        color: bg.withAlpha(isDark ? 40 : 255),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
@@ -1193,14 +1166,12 @@ class _StatusBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: color,
+          color: isDark ? color.withAlpha(200) : color,
         ),
       ),
     );
   }
 }
-
-// ─── Vital text field ─────────────────────────────────────────────────────────
 
 class _VitalTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -1221,6 +1192,8 @@ class _VitalTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return TextField(
       controller: controller,
       keyboardType:
@@ -1231,22 +1204,22 @@ class _VitalTextField extends StatelessWidget {
         LengthLimitingTextInputFormatter(maxLength),
       ],
       textAlign: TextAlign.center,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
+        color: theme.colorScheme.onSurface,
       ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(fontSize: 11, color: Colors.grey[500]),
+        labelStyle: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withAlpha(100)),
         hintText: hint,
         hintStyle: TextStyle(
           fontSize: 22,
           fontWeight: FontWeight.w300,
-          color: Colors.grey[300],
+          color: theme.colorScheme.onSurface.withAlpha(50),
         ),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: theme.colorScheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,
@@ -1257,8 +1230,6 @@ class _VitalTextField extends StatelessWidget {
     );
   }
 }
-
-// ─── Optional vitals section ──────────────────────────────────────────────────
 
 class _OptionalVitalsSection extends StatefulWidget {
   final TextEditingController rrCtrl;
@@ -1282,6 +1253,7 @@ class _OptionalVitalsSectionState extends State<_OptionalVitalsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         GestureDetector(
@@ -1295,7 +1267,7 @@ class _OptionalVitalsSectionState extends State<_OptionalVitalsSection> {
               ),
               const SizedBox(width: 6),
               Text(
-                _expanded ? 'Hide Optional Vitals' : '+ Respiratory Rate, Blood Sugar, Weight',
+                _expanded ? l10n.hideOptional : l10n.showOptional,
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.primary500,
@@ -1323,7 +1295,7 @@ class _OptionalVitalsSectionState extends State<_OptionalVitalsSection> {
                 child: _VitalTextField(
                   controller: widget.bgCtrl,
                   hint: '105',
-                  label: 'Blood Sugar mg/dL',
+                  label: 'mg/dL',
                   maxLength: 4,
                   onChanged: (_) => widget.onChanged(),
                 ),
@@ -1333,7 +1305,7 @@ class _OptionalVitalsSectionState extends State<_OptionalVitalsSection> {
                 child: _VitalTextField(
                   controller: widget.weightCtrl,
                   hint: '70',
-                  label: 'Weight kg',
+                  label: 'kg',
                   maxLength: 5,
                   allowDecimal: true,
                   onChanged: (_) => widget.onChanged(),
@@ -1347,14 +1319,14 @@ class _OptionalVitalsSectionState extends State<_OptionalVitalsSection> {
   }
 }
 
-// ─── Abnormal vitals banner ───────────────────────────────────────────────────
-
 class _AbnormalVitalsBanner extends StatelessWidget {
   final VisitReportData data;
   const _AbnormalVitalsBanner({required this.data});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final abnormal = <String>[];
     if (data.bpStatus == VitalStatus.critical ||
         data.bpStatus == VitalStatus.high ||
@@ -1383,10 +1355,10 @@ class _AbnormalVitalsBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isCritical ? AppColors.error50 : AppColors.warning50,
+        color: (isCritical ? AppColors.error50 : AppColors.warning50).withAlpha(isDark ? 40 : 255),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: isCritical ? AppColors.error300 : AppColors.warning300,
+          color: (isCritical ? AppColors.error300 : AppColors.warning300).withAlpha(100),
         ),
       ),
       child: Row(
@@ -1404,14 +1376,14 @@ class _AbnormalVitalsBanner extends StatelessWidget {
               children: [
                 Text(
                   isCritical
-                      ? '🚨 Critical vitals detected — alert will be sent'
-                      : '⚠️ Abnormal vitals — consider follow-up',
+                      ? '🚨 Critical vitals detected'
+                      : '⚠️ Abnormal vitals detected',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: isCritical
-                        ? AppColors.error700
-                        : AppColors.warning700,
+                        ? (isDark ? AppColors.error200 : AppColors.error700)
+                        : (isDark ? AppColors.warning200 : AppColors.warning700),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -1420,8 +1392,8 @@ class _AbnormalVitalsBanner extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     color: isCritical
-                        ? AppColors.error600
-                        : AppColors.warning700,
+                        ? (isDark ? AppColors.error200.withAlpha(200) : AppColors.error600)
+                        : (isDark ? AppColors.warning200.withAlpha(200) : AppColors.warning700),
                   ),
                 ),
               ],
@@ -1432,8 +1404,6 @@ class _AbnormalVitalsBanner extends StatelessWidget {
     );
   }
 }
-
-// ─── Services checklist ───────────────────────────────────────────────────────
 
 class _ServicesChecklist extends StatefulWidget {
   final String initialService;
@@ -1462,13 +1432,13 @@ class _ServicesChecklistState extends State<_ServicesChecklist> {
   List<String> _defaultServices(String primaryService) {
     final base = <String>[primaryService];
     final extras = [
-      'Vital Signs Measurement',
-      'Wound Care',
-      'Medication Administration',
-      'IV Care',
-      'Patient Education',
-      'Pain Assessment',
-      'Mobility Assistance',
+      'قياس العلامات الحيوية',
+      'العناية بالجروح',
+      'إعطاء الأدوية',
+      'العناية بالوريد',
+      'تثقيف المريض',
+      'تقييم الألم',
+      'المساعدة في الحركة',
     ];
     for (final s in extras) {
       if (!base.contains(s)) base.add(s);
@@ -1478,6 +1448,9 @@ class _ServicesChecklistState extends State<_ServicesChecklist> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       children: [
         ..._allServices.map((service) {
@@ -1498,13 +1471,13 @@ class _ServicesChecklistState extends State<_ServicesChecklist> {
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.success50
-                    : AppColors.light100,
+                    ? AppColors.primary50.withAlpha(isDark ? 40 : 255)
+                    : theme.colorScheme.surfaceContainerHighest.withAlpha(isDark ? 80 : 255),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: isSelected
-                      ? AppColors.success500
-                      : AppColors.light500,
+                      ? AppColors.primary500
+                      : theme.colorScheme.outline.withAlpha(isDark ? 50 : 100),
                   width: isSelected ? 1.5 : 1,
                 ),
               ),
@@ -1515,8 +1488,8 @@ class _ServicesChecklistState extends State<_ServicesChecklist> {
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
                     color: isSelected
-                        ? AppColors.success500
-                        : Colors.grey[400],
+                        ? AppColors.primary500
+                        : theme.colorScheme.onSurface.withAlpha(100),
                     size: 20,
                   ),
                   const SizedBox(width: 10),
@@ -1529,8 +1502,8 @@ class _ServicesChecklistState extends State<_ServicesChecklist> {
                             ? FontWeight.w600
                             : FontWeight.w500,
                         color: isSelected
-                            ? AppColors.success700
-                            : AppColors.textPrimary,
+                            ? (isDark ? AppColors.primary300 : AppColors.primary700)
+                            : theme.colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -1543,8 +1516,6 @@ class _ServicesChecklistState extends State<_ServicesChecklist> {
     );
   }
 }
-
-// ─── Notes text field ─────────────────────────────────────────────────────────
 
 class _NotesField extends StatelessWidget {
   final TextEditingController controller;
@@ -1563,29 +1534,32 @@ class _NotesField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return TextField(
       controller: controller,
       maxLines: maxLines,
       minLines: 2,
       maxLength: maxLength,
       textCapitalization: TextCapitalization.sentences,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
-        color: AppColors.textPrimary,
+        color: theme.colorScheme.onSurface,
         height: 1.5,
       ),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+        hintStyle: TextStyle(color: theme.colorScheme.onSurface.withAlpha(100), fontSize: 13),
         filled: true,
-        fillColor: AppColors.light100,
+        fillColor: theme.colorScheme.surfaceContainerHighest.withAlpha(isDark ? 80 : 255),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.light400),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withAlpha(50)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -1593,14 +1567,12 @@ class _NotesField extends StatelessWidget {
               const BorderSide(color: AppColors.primary500, width: 2),
         ),
         contentPadding: const EdgeInsets.all(14),
-        counterStyle: TextStyle(fontSize: 11, color: Colors.grey[400]),
+        counterStyle: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withAlpha(100)),
       ),
       onChanged: onChanged,
     );
   }
 }
-
-// ─── Medication row state ─────────────────────────────────────────────────────
 
 class _MedRow {
   final nameCtrl = TextEditingController();
@@ -1626,13 +1598,16 @@ class _MedRowWidget extends StatefulWidget {
 class _MedRowWidgetState extends State<_MedRowWidget> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.light100,
+        color: theme.colorScheme.surfaceContainerHighest.withAlpha(isDark ? 80 : 255),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.light400),
+        border: Border.all(color: theme.colorScheme.outline.withAlpha(50)),
       ),
       child: Column(
         children: [
@@ -1641,6 +1616,7 @@ class _MedRowWidgetState extends State<_MedRowWidget> {
               Expanded(
                 flex: 2,
                 child: _miniField(
+                  context,
                   widget.row.nameCtrl,
                   'Medication name',
                   widget.onChanged,
@@ -1649,6 +1625,7 @@ class _MedRowWidgetState extends State<_MedRowWidget> {
               const SizedBox(width: 8),
               Expanded(
                 child: _miniField(
+                  context,
                   widget.row.doseCtrl,
                   'Dose',
                   widget.onChanged,
@@ -1658,7 +1635,7 @@ class _MedRowWidgetState extends State<_MedRowWidget> {
               IconButton(
                 onPressed: widget.onRemove,
                 icon: const Icon(Icons.close_rounded, size: 18),
-                color: Colors.grey[400],
+                color: theme.colorScheme.onSurface.withAlpha(100),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -1667,12 +1644,13 @@ class _MedRowWidgetState extends State<_MedRowWidget> {
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
             value: widget.row.route,
+            dropdownColor: theme.colorScheme.surface,
             decoration: InputDecoration(
               labelText: 'Route',
               labelStyle:
-                  TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withAlpha(100)),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: theme.colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
@@ -1700,15 +1678,16 @@ class _MedRowWidgetState extends State<_MedRowWidget> {
   }
 
   Widget _miniField(
-      TextEditingController ctrl, String hint, VoidCallback onChange) {
+      BuildContext context, TextEditingController ctrl, String hint, VoidCallback onChange) {
+    final theme = Theme.of(context);
     return TextField(
       controller: ctrl,
-      style: const TextStyle(fontSize: 13),
+      style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
+        hintStyle: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withAlpha(100)),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: theme.colorScheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,

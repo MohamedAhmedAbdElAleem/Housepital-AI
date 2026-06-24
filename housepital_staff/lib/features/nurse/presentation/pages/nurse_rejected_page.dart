@@ -8,8 +8,11 @@ class NurseRejectedPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF2F2),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -17,129 +20,71 @@ class NurseRejectedPage extends StatelessWidget {
             children: [
               const Spacer(flex: 2),
               Container(
-                width: 120,
-                height: 120,
+                width: 120, height: 120,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEE2E2),
+                  color: Colors.red.withAlpha(isDark ? 40 : 15),
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFFECACA), width: 4),
+                  border: Border.all(color: Colors.red.withAlpha(isDark ? 80 : 30), width: 4),
                 ),
-                child: const Icon(
-                  Icons.error_outline_rounded,
-                  size: 60,
-                  color: Color(0xFFEF4444),
-                ),
+                child: const Icon(Icons.error_outline_rounded, size: 60, color: Colors.red),
               ),
               const SizedBox(height: 32),
-              const Text(
+              Text(
                 'Application Rejected',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF991B1B),
-                ),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: isDark ? Colors.red[200] : Colors.red[900]),
               ),
               const SizedBox(height: 16),
               Text(
-                'Unfortunately, your nurse application was not approved at this time. '
-                'Please review the reason below and update your profile to try again.',
+                'Unfortunately, your nurse application was not approved at this time. Please review the reason below and update your profile to try again.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.red[900]?.withValues(alpha: 0.7),
-                  height: 1.6,
-                ),
+                style: TextStyle(fontSize: 15, color: theme.colorScheme.onSurface.withAlpha(150), height: 1.6),
               ),
               const SizedBox(height: 32),
-              // Rejection Reason Card
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                width: double.infinity, padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFFECACA)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  color: theme.colorScheme.surface, borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.red.withAlpha(isDark ? 80 : 30)),
+                  boxShadow: [BoxShadow(color: Colors.red.withAlpha(isDark ? 20 : 5), blurRadius: 10, offset: const Offset(0, 4))],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.info_outline_rounded,
-                            size: 18, color: Color(0xFFEF4444)),
-                        SizedBox(width: 8),
-                        Text(
-                          'Reason for Rejection',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF991B1B),
-                          ),
-                        ),
-                      ],
-                    ),
+                    Row(children: [
+                      const Icon(Icons.info_outline_rounded, size: 18, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Text('Reason for Rejection', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.red[200] : Colors.red[900])),
+                    ]),
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       'Your medical license document was not clear enough to verify. Please upload a high-quality scan or photo of your official nursing license.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF4B5563),
-                        height: 1.5,
-                      ),
+                      style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface.withAlpha(200), height: 1.5),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 48),
-              // Update Profile Button
               SizedBox(
-                width: double.infinity,
-                height: 56,
+                width: double.infinity, height: 56,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      AppRoutes.nurseProfileCompletion,
-                      (route) => false,
-                    );
-                  },
+                  onPressed: () => Navigator.pushNamedAndRemoveUntil(context, AppRoutes.nurseProfileCompletion, (route) => false),
                   icon: const Icon(Icons.edit_document),
-                  label: const Text(
-                    'Update Application',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                  label: const Text('Update Application', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFEF4444),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
+                    backgroundColor: Colors.red, foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0,
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              // Logout button
               TextButton.icon(
                 onPressed: () {
                   context.read<AuthCubit>().logout();
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    AppRoutes.login,
-                    (route) => false,
-                  );
+                  Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
                 },
                 icon: const Icon(Icons.logout_rounded, size: 20),
                 label: const Text('Logout'),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.red[400],
-                ),
+                style: TextButton.styleFrom(foregroundColor: theme.colorScheme.onSurface.withAlpha(150)),
               ),
               const Spacer(flex: 3),
             ],

@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/doctor_theme.dart';
 
@@ -47,13 +46,13 @@ class EmptyStateWidget extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: DoctorTheme.headingMedium(context),
+              style: DoctorTheme.headingMedium,
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: DoctorTheme.bodyMedium(context).copyWith(height: 1.4),
+              style: DoctorTheme.bodyMedium.copyWith(height: 1.4),
             ),
           ],
         ),

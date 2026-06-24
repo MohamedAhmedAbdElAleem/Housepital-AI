@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'core/theme/theme_cubit.dart';
 import 'config/routes/app_router.dart';
 import 'config/theme/app_theme.dart';
 import 'core/constants/app_strings.dart';
@@ -24,11 +22,14 @@ import 'features/nurse/presentation/cubit/wallet_cubit.dart';
 import 'features/doctor/presentation/cubit/wallet_cubit.dart';
 import 'features/doctor/presentation/cubit/notification_cubit.dart';
 import 'features/admin/presentation/cubit/admin_cubit.dart';
+import 'config/theme/theme_cubit.dart';
+import 'config/language/language_cubit.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 
-Future<void> main() async {
+void main() {
   // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
-  await EasyLocalization.ensureInitialized();
 
   // Initialize Core Dependencies
   final apiClient = ApiClient();
@@ -48,29 +49,25 @@ Future<void> main() async {
   );
 
   runApp(
-    EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('ar')],
-      path: 'assets/translations',
-      fallbackLocale: const Locale('en'),
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (_) => ThemeCubit()),
-          BlocProvider(create: (_) => AuthCubit(repository: authRepository)),
-          BlocProvider(create: (_) => DoctorCubit(repository: doctorRepository)),
-          BlocProvider(create: (_) => ClinicCubit(repository: doctorRepository)),
-          BlocProvider(create: (_) => ServiceCubit(repository: doctorRepository)),
-          BlocProvider(create: (_) => AppointmentCubit()),
-          BlocProvider(
-            create: (_) => NurseProfileCubit(repository: nurseRepository),
-          ),
-          BlocProvider(create: (_) => NurseBookingCubit(apiClient)),
-          BlocProvider(create: (_) => NurseWalletCubit(apiClient)),
-          BlocProvider(create: (_) => DoctorWalletCubit(apiClient)),
-          BlocProvider(create: (_) => NotificationCubit(apiClient: apiClient)),
-          BlocProvider(create: (_) => AdminCubit(apiClient: apiClient)),
-        ],
-        child: const HousepitalStaffApp(),
-      ),
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => ThemeCubit()),
+        BlocProvider(create: (_) => LanguageCubit()),
+        BlocProvider(create: (_) => AuthCubit(repository: authRepository)),
+        BlocProvider(create: (_) => DoctorCubit(repository: doctorRepository)),
+        BlocProvider(create: (_) => ClinicCubit(repository: doctorRepository)),
+        BlocProvider(create: (_) => ServiceCubit(repository: doctorRepository)),
+        BlocProvider(create: (_) => AppointmentCubit()),
+        BlocProvider(
+          create: (_) => NurseProfileCubit(repository: nurseRepository),
+        ),
+        BlocProvider(create: (_) => NurseBookingCubit(apiClient)),
+        BlocProvider(create: (_) => NurseWalletCubit(apiClient)),
+        BlocProvider(create: (_) => DoctorWalletCubit(apiClient)),
+        BlocProvider(create: (_) => NotificationCubit(apiClient: apiClient)),
+        BlocProvider(create: (_) => AdminCubit(apiClient: apiClient)),
+      ],
+      child: const HousepitalStaffApp(),
     ),
   );
 }
@@ -82,17 +79,29 @@ class HousepitalStaffApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeCubit, ThemeMode>(
       builder: (context, themeMode) {
-        return MaterialApp(
-          title: AppStrings.appName,
-          debugShowCheckedModeBanner: false,
-          localizationsDelegates: context.localizationDelegates,
-          supportedLocales: context.supportedLocales,
-          locale: context.locale,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeMode,
-          initialRoute: AppRoutes.splash,
-          onGenerateRoute: AppRouter.generateRoute,
+        return BlocBuilder<LanguageCubit, Locale>(
+          builder: (context, locale) {
+            return MaterialApp(
+              title: AppStrings.appName,
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeMode,
+              locale: locale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en'),
+                Locale('ar'),
+              ],
+              initialRoute: AppRoutes.splash,
+              onGenerateRoute: AppRouter.generateRoute,
+            );
+          },
         );
       },
     );

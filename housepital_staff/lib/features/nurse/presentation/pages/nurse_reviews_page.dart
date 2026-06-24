@@ -3,39 +3,36 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../cubit/nurse_profile_cubit.dart';
 import '../../data/models/nurse_profile_model.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class NurseReviewsPage extends StatelessWidget {
   const NurseReviewsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          'Performance & Reviews',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+        title: Text(
+          l10n.performanceReviews,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
+        foregroundColor: theme.colorScheme.onSurface,
       ),
       body: BlocBuilder<NurseProfileCubit, NurseProfileState>(
         builder: (context, state) {
-          NurseProfile? profile;
-          if (state is NurseProfileLoaded) {
-            profile = state.profile;
-          } else {
-            profile = context.read<NurseProfileCubit>().currentProfile;
-          }
+          NurseProfile? profile = state is NurseProfileLoaded 
+              ? state.profile 
+              : context.read<NurseProfileCubit>().currentProfile;
 
           if (profile == null) {
-            return const Center(child: Text('No performance data available'));
+            return Center(child: Text(l10n.noPerformanceData));
           }
 
           return SingleChildScrollView(
@@ -43,11 +40,11 @@ class NurseReviewsPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionTitle('My Performance'),
-                _buildPerformanceOverview(profile),
+                _buildSectionTitle(context, l10n.myPerformance),
+                _buildPerformanceOverview(context, profile, l10n),
                 const SizedBox(height: 32),
-                _buildSectionTitle('Patient Reviews'),
-                _buildEmptyReviewsState(),
+                _buildSectionTitle(context, l10n.patientReviewsTitle),
+                _buildEmptyReviewsState(context, l10n),
               ],
             ),
           );
@@ -56,29 +53,29 @@ class NurseReviewsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 8, bottom: 12),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
       ),
     );
   }
 
-  Widget _buildPerformanceOverview(NurseProfile profile) {
+  Widget _buildPerformanceOverview(BuildContext context, NurseProfile profile, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outline.withAlpha(isDark ? 50 : 100)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withAlpha(isDark ? 40 : 10),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -91,11 +88,7 @@ class NurseReviewsPage extends StatelessWidget {
               children: [
                 Text(
                   profile.rating.toStringAsFixed(1),
-                  style: const TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                  style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -109,11 +102,8 @@ class NurseReviewsPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${profile.totalRatings} Reviews',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
+                  '${profile.totalRatings} ${l10n.reviewsCountText}',
+                  style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface.withAlpha(150)),
                 ),
               ],
             ),
@@ -121,15 +111,15 @@ class NurseReviewsPage extends StatelessWidget {
           Container(
             width: 1,
             height: 80,
-            color: Colors.grey[200],
+            color: theme.colorScheme.outline.withAlpha(50),
             margin: const EdgeInsets.symmetric(horizontal: 20),
           ),
           Expanded(
             child: Column(
               children: [
-                _buildStatRow('Visits', profile.completedVisits.toString(), Icons.check_circle, Colors.green),
+                _buildStatRow(context, l10n.visitsStat, profile.completedVisits.toString(), Icons.check_circle, Colors.green),
                 const SizedBox(height: 16),
-                _buildStatRow('Rate', '${profile.completionRate.toStringAsFixed(0)}%', Icons.speed, AppColors.primary500),
+                _buildStatRow(context, l10n.rateStat, '${profile.completionRate.toStringAsFixed(0)}%', Icons.speed, AppColors.primary500),
               ],
             ),
           ),
@@ -138,7 +128,8 @@ class NurseReviewsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(String label, String value, IconData icon, Color color) {
+  Widget _buildStatRow(BuildContext context, String label, String value, IconData icon, Color color) {
+    final theme = Theme.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -149,18 +140,11 @@ class NurseReviewsPage extends StatelessWidget {
           children: [
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
             ),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withAlpha(150)),
             ),
           ],
         ),
@@ -168,16 +152,20 @@ class NurseReviewsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyReviewsState() {
+  Widget _buildEmptyReviewsState(BuildContext context, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outline.withAlpha(isDark ? 50 : 100)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withAlpha(isDark ? 40 : 10),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -185,29 +173,17 @@ class NurseReviewsPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 64,
-            color: Colors.grey[300],
-          ),
+          Icon(Icons.chat_bubble_outline, size: 64, color: theme.colorScheme.onSurface.withAlpha(50)),
           const SizedBox(height: 16),
-          const Text(
-            'No Reviews Yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+          Text(
+            l10n.noReviewsYet,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Patient feedback will appear here once you start completing visits.',
+          Text(
+            l10n.patientFeedbackDesc,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
+            style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface.withAlpha(150), height: 1.5),
           ),
         ],
       ),

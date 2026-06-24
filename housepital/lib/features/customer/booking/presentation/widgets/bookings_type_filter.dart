@@ -12,9 +12,6 @@ class BookingsTypeFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     const types = [
       ('الكل', Icons.apps_rounded),
       ('تمريض', Icons.medical_services_rounded),
@@ -52,11 +49,11 @@ class BookingsTypeFilter extends StatelessWidget {
                           colors: gradientColors,
                         )
                       : null,
-                  color: selected ? null : (isDark ? const Color(0xFF1E1C24) : Colors.white),
+                  color: selected ? null : Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   border: selected
                       ? null
-                      : Border.all(color: isDark ? Colors.white.withAlpha(15) : const Color(0xFFE2E8F0)),
+                      : Border.all(color: const Color(0xFFE2E8F0)),
                   boxShadow: selected
                       ? [
                           BoxShadow(
@@ -72,7 +69,7 @@ class BookingsTypeFilter extends StatelessWidget {
                   children: [
                     Icon(
                       icon,
-                      color: selected ? Colors.white : (isDark ? const Color(0xFFA19EAB) : const Color(0xFF94A3B8)),
+                      color: selected ? Colors.white : const Color(0xFF94A3B8),
                       size: 16,
                     ),
                     const SizedBox(width: 6),
@@ -83,7 +80,7 @@ class BookingsTypeFilter extends StatelessWidget {
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color:
-                            selected ? Colors.white : (isDark ? const Color(0xFFA19EAB) : const Color(0xFF64748B)),
+                            selected ? Colors.white : const Color(0xFF64748B),
                       ),
                     ),
                   ],
