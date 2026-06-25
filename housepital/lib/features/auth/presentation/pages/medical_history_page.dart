@@ -7,6 +7,7 @@ import '../../../../core/network/api_service.dart';
 import '../../../../core/widgets/custom_popup.dart';
 import '../../data/datasources/profile_remote_datasource.dart';
 import '../../data/repositories/profile_repository_impl.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class MedicalHistoryPage extends StatefulWidget {
   final String email;
@@ -45,30 +46,30 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
   ];
   String? _selectedBloodType;
 
-  // Chronic diseases
+  // Chronic diseases keys
   final Map<String, bool> _chronicDiseases = {
-    'Diabetes': false,
-    'High Blood Pressure': false,
-    'Heart Disease': false,
-    'Asthma': false,
-    'Kidney Disease': false,
-    'Liver Disease': false,
-    'Cancer': false,
-    'Thyroid Disorder': false,
-    'Arthritis': false,
-    'Epilepsy': false,
+    'diabetes': false,
+    'highBloodPressure': false,
+    'heartDisease': false,
+    'asthma': false,
+    'kidneyDisease': false,
+    'liverDisease': false,
+    'cancer': false,
+    'thyroidDisorder': false,
+    'arthritis': false,
+    'epilepsy': false,
   };
 
-  // Allergies
+  // Allergies keys
   final Map<String, bool> _allergies = {
-    'Penicillin': false,
-    'Sulfa Drugs': false,
-    'Aspirin': false,
-    'Ibuprofen': false,
-    'Latex': false,
-    'Peanuts': false,
-    'Shellfish': false,
-    'Eggs': false,
+    'penicillin': false,
+    'sulfaDrugs': false,
+    'aspirin': false,
+    'ibuprofen': false,
+    'latex': false,
+    'peanuts': false,
+    'shellfish': false,
+    'eggs': false,
   };
 
   // Other fields
@@ -144,7 +145,38 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
     super.dispose();
   }
 
+  String _getLocalizedDisease(String key, AppLocalizations l10n) {
+    switch (key) {
+      case 'diabetes': return l10n.diabetes;
+      case 'highBloodPressure': return l10n.highBloodPressure;
+      case 'heartDisease': return l10n.heartDisease;
+      case 'asthma': return l10n.asthma;
+      case 'kidneyDisease': return l10n.kidneyDisease;
+      case 'liverDisease': return l10n.liverDisease;
+      case 'cancer': return l10n.cancer;
+      case 'thyroidDisorder': return l10n.thyroidDisorder;
+      case 'arthritis': return l10n.arthritis;
+      case 'epilepsy': return l10n.epilepsy;
+      default: return key;
+    }
+  }
+
+  String _getLocalizedAllergy(String key, AppLocalizations l10n) {
+    switch (key) {
+      case 'penicillin': return l10n.penicillin;
+      case 'sulfaDrugs': return l10n.sulfaDrugs;
+      case 'aspirin': return l10n.aspirin;
+      case 'ibuprofen': return l10n.ibuprofen;
+      case 'latex': return l10n.latex;
+      case 'peanuts': return l10n.peanuts;
+      case 'shellfish': return l10n.shellfish;
+      case 'eggs': return l10n.eggs;
+      default: return key;
+    }
+  }
+
   Future<void> _handleContinue() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isLoading = true);
 
     try {
@@ -179,7 +211,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
         // Still navigate even if save fails (data is optional)
         CustomPopup.warning(
           context,
-          'Could not save medical info. You can update it later.',
+          l10n.saveMedicalInfoError,
         );
         Navigator.pushNamed(
           context,
@@ -193,6 +225,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -213,10 +246,10 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
                     child: Column(
                       children: [
                         // Custom App Bar
-                        _buildAppBar(),
+                        _buildAppBar(l10n),
 
                         // Progress Indicator
-                        _buildProgressIndicator(),
+                        _buildProgressIndicator(l10n),
 
                         // Scrollable Content
                         Expanded(
@@ -229,32 +262,32 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
                                 const SizedBox(height: 24),
 
                                 // Header
-                                _buildHeader(),
+                                _buildHeader(l10n),
 
                                 const SizedBox(height: 32),
 
                                 // Blood Type Section
-                                _buildBloodTypeSection(),
+                                _buildBloodTypeSection(l10n),
 
                                 const SizedBox(height: 32),
 
                                 // Chronic Diseases Section
-                                _buildChronicDiseasesSection(),
+                                _buildChronicDiseasesSection(l10n),
 
                                 const SizedBox(height: 32),
 
                                 // Allergies Section
-                                _buildAllergiesSection(),
+                                _buildAllergiesSection(l10n),
 
                                 const SizedBox(height: 32),
 
                                 // Other Conditions
-                                _buildOtherConditionsSection(),
+                                _buildOtherConditionsSection(l10n),
 
                                 const SizedBox(height: 32),
 
                                 // Current Medications
-                                _buildCurrentMedicationsSection(),
+                                _buildCurrentMedicationsSection(l10n),
 
                                 const SizedBox(height: 100),
                               ],
@@ -270,7 +303,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
           ),
 
           // Bottom Button
-          _buildBottomButton(),
+          _buildBottomButton(l10n),
         ],
       ),
     );
@@ -352,7 +385,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
     });
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -373,11 +406,11 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
             ),
           ),
 
-          const Expanded(
+          Expanded(
             child: Text(
-              'Medical History',
+              l10n.medicalHistoryTitle,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -389,7 +422,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
           TextButton(
             onPressed: _handleContinue,
             child: Text(
-              'Skip',
+              l10n.skip,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.9),
                 fontWeight: FontWeight.w600,
@@ -401,7 +434,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
     );
   }
 
-  Widget _buildProgressIndicator() {
+  Widget _buildProgressIndicator(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
@@ -409,11 +442,11 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
           // Step indicators
           Row(
             children: [
-              _buildStepDot(1, true, 'Info'),
+              _buildStepDot(1, true, l10n.stepInfo),
               _buildStepLine(true),
-              _buildStepDot(2, true, 'Medical'),
+              _buildStepDot(2, true, l10n.stepMedical),
               _buildStepLine(false),
-              _buildStepDot(3, false, 'ID'),
+              _buildStepDot(3, false, l10n.stepId),
             ],
           ),
         ],
@@ -504,7 +537,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -523,22 +556,22 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
               ),
             ),
             const SizedBox(width: 16),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Health Information',
-                    style: TextStyle(
+                    l10n.healthInfoTitle,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'Help us provide better care for you',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    l10n.healthInfoSubtitle,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
               ),
@@ -570,7 +603,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'This information helps our medical team prepare better for your visits and ensures your safety.',
+                  l10n.healthInfoSafetyDesc,
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.info700,
@@ -585,11 +618,11 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
     );
   }
 
-  Widget _buildBloodTypeSection() {
+  Widget _buildBloodTypeSection(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Blood Type', Icons.bloodtype_rounded),
+        _buildSectionTitle(l10n.bloodTypeTitle, Icons.bloodtype_rounded, l10n),
         const SizedBox(height: 16),
         Wrap(
           spacing: 12,
@@ -656,16 +689,16 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
     );
   }
 
-  Widget _buildChronicDiseasesSection() {
+  Widget _buildChronicDiseasesSection(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Chronic Diseases', Icons.healing_rounded),
+        _buildSectionTitle(l10n.chronicDiseasesTitle, Icons.healing_rounded, l10n),
         const SizedBox(height: 16),
 
         // No chronic diseases checkbox
         _buildCheckboxTile(
-          'I don\'t have any chronic diseases',
+          l10n.noChronicDiseases,
           _hasNoChronicDiseases,
           (value) {
             setState(() {
@@ -691,7 +724,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
               runSpacing: 10,
               children:
                   _chronicDiseases.entries.map((entry) {
-                    return _buildSelectableChip(entry.key, entry.value, (
+                    return _buildSelectableChip(_getLocalizedDisease(entry.key, l10n), entry.value, (
                       selected,
                     ) {
                       setState(() {
@@ -707,16 +740,16 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
     );
   }
 
-  Widget _buildAllergiesSection() {
+  Widget _buildAllergiesSection(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Allergies', Icons.warning_amber_rounded),
+        _buildSectionTitle(l10n.allergiesTitle, Icons.warning_amber_rounded, l10n),
         const SizedBox(height: 16),
 
         // No allergies checkbox
         _buildCheckboxTile(
-          'I don\'t have any known allergies',
+          l10n.noAllergies,
           _hasNoAllergies,
           (value) {
             setState(() {
@@ -742,7 +775,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
               runSpacing: 10,
               children:
                   _allergies.entries.map((entry) {
-                    return _buildSelectableChip(entry.key, entry.value, (
+                    return _buildSelectableChip(_getLocalizedAllergy(entry.key, l10n), entry.value, (
                       selected,
                     ) {
                       setState(() {
@@ -758,11 +791,11 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
     );
   }
 
-  Widget _buildOtherConditionsSection() {
+  Widget _buildOtherConditionsSection(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Other Medical Conditions', Icons.edit_note_rounded),
+        _buildSectionTitle(l10n.otherConditionsTitle, Icons.edit_note_rounded, l10n),
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
@@ -774,7 +807,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
             controller: _otherConditionsController,
             maxLines: 3,
             decoration: InputDecoration(
-              hintText: 'Describe any other medical conditions...',
+              hintText: l10n.otherConditionsHint,
               hintStyle: TextStyle(color: Colors.grey.shade400),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.all(16),
@@ -785,11 +818,11 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
     );
   }
 
-  Widget _buildCurrentMedicationsSection() {
+  Widget _buildCurrentMedicationsSection(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Current Medications', Icons.medication_rounded),
+        _buildSectionTitle(l10n.currentMedicationsTitle, Icons.medication_rounded, l10n),
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
@@ -801,7 +834,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
             controller: _currentMedicationsController,
             maxLines: 3,
             decoration: InputDecoration(
-              hintText: 'List any medications you are currently taking...',
+              hintText: l10n.currentMedicationsHint,
               hintStyle: TextStyle(color: Colors.grey.shade400),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.all(16),
@@ -812,7 +845,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon) {
+  Widget _buildSectionTitle(String title, IconData icon, AppLocalizations l10n) {
     return Row(
       children: [
         Container(
@@ -834,7 +867,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
         ),
         const SizedBox(width: 8),
         Text(
-          '(Optional)',
+          l10n.optionalLabel,
           style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
         ),
       ],
@@ -968,34 +1001,34 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
     );
   }
 
-  IconData _getDiseaseIcon(String disease) {
-    switch (disease) {
-      case 'Diabetes':
+  IconData _getDiseaseIcon(String diseaseKey) {
+    switch (diseaseKey) {
+      case 'diabetes':
         return Icons.bloodtype_rounded;
-      case 'High Blood Pressure':
+      case 'highBloodPressure':
         return Icons.monitor_heart_rounded;
-      case 'Heart Disease':
+      case 'heartDisease':
         return Icons.favorite_rounded;
-      case 'Asthma':
+      case 'asthma':
         return Icons.air_rounded;
-      case 'Kidney Disease':
+      case 'kidneyDisease':
         return Icons.water_drop_rounded;
-      case 'Liver Disease':
+      case 'liverDisease':
         return Icons.medical_services_rounded;
-      case 'Cancer':
+      case 'cancer':
         return Icons.coronavirus_rounded;
-      case 'Thyroid Disorder':
+      case 'thyroidDisorder':
         return Icons.waves_rounded;
-      case 'Arthritis':
+      case 'arthritis':
         return Icons.accessibility_new_rounded;
-      case 'Epilepsy':
+      case 'epilepsy':
         return Icons.psychology_rounded;
       default:
         return Icons.local_hospital_rounded;
     }
   }
 
-  Widget _buildBottomButton() {
+  Widget _buildBottomButton(AppLocalizations l10n) {
     return Positioned(
       bottom: 0,
       left: 0,
@@ -1029,10 +1062,10 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
             ),
             child:
                 _isLoading
-                    ? const Row(
+                    ? Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           width: 22,
                           height: 22,
                           child: CircularProgressIndicator(
@@ -1040,28 +1073,28 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage>
                             strokeWidth: 2.5,
                           ),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Text(
-                          'Saving...',
-                          style: TextStyle(
+                          l10n.saving,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     )
-                    : const Row(
+                    : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Continue',
-                          style: TextStyle(
+                          l10n.continueButton,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(width: 8),
-                        Icon(Icons.arrow_forward_rounded, size: 22),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_rounded, size: 22),
                       ],
                     ),
           ),

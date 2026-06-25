@@ -7,6 +7,7 @@ import '../../../../core/network/api_service.dart';
 import '../../../../core/network/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/widgets/custom_popup.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -134,16 +135,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
   }
 
   Future<void> _handleSendOTP() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_emailController.text.trim().isEmpty) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please enter your email address');
+      CustomPopup.warning(context, l10n.warningEmptyEmail);
       return;
     }
 
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(_emailController.text.trim())) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please enter a valid email address');
+      CustomPopup.warning(context, l10n.warningInvalidEmail);
       return;
     }
 
@@ -168,7 +170,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
 
         if (response['success'] == true) {
           _successController.forward();
-          CustomPopup.success(context, 'Verification code sent to your email');
+          CustomPopup.success(context, l10n.otpSentSuccess);
           Future.delayed(const Duration(milliseconds: 800), () {
             if (mounted) {
               Navigator.pushNamed(
@@ -183,7 +185,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
           setState(() => _emailSent = false);
           CustomPopup.error(
             context,
-            response['message'] ?? 'Failed to send code',
+            response['message'] ?? l10n.otpSendFailed,
           );
         }
       }
@@ -191,7 +193,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
       if (mounted) {
         setState(() => _isLoading = false);
         _triggerShake();
-        CustomPopup.error(context, 'No internet connection');
+        CustomPopup.error(context, l10n.noInternet);
       }
     } on ServerException catch (e) {
       if (mounted) {
@@ -203,7 +205,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
       if (mounted) {
         setState(() => _isLoading = false);
         _triggerShake();
-        CustomPopup.error(context, 'Something went wrong');
+        CustomPopup.error(context, l10n.somethingWentWrong);
       }
     }
   }
@@ -211,6 +213,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Stack(
@@ -238,13 +241,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
-                      _buildHeader(),
+                      _buildHeader(l10n),
                       const SizedBox(height: 40),
-                      _buildCard(),
+                      _buildCard(l10n),
                       const SizedBox(height: 24),
-                      _buildSecurityTips(),
+                      _buildSecurityTips(l10n),
                       const SizedBox(height: 20),
-                      _buildBackToLogin(),
+                      _buildBackToLogin(l10n),
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -357,7 +360,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Column(
       children: [
         // Back Button Row
@@ -414,9 +417,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
         const SizedBox(height: 28),
 
         // Title with shadow
-        const Text(
-          'Forgot Password?',
-          style: TextStyle(
+        Text(
+          l10n.forgotPasswordTitle,
+          style: const TextStyle(
             fontSize: 34,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -441,7 +444,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            "🔐 Don't worry! We'll help you reset it",
+            l10n.forgotPasswordSubtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
@@ -476,7 +479,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
     );
   }
 
-  Widget _buildCard() {
+  Widget _buildCard(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _shakeController,
       builder: (context, child) {
@@ -526,7 +529,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Reset via Email',
+                          l10n.resetViaEmail,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -535,7 +538,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          "We'll send a verification code",
+                          l10n.sendVerificationCodeDesc,
                           style: TextStyle(
                             fontSize: 13,
                             color: AppColors.primary600.withValues(alpha: 0.8),
@@ -555,7 +558,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Email Address',
+                  l10n.emailLabel,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -606,7 +609,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
                       fontWeight: FontWeight.w500,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Enter your registered email',
+                      hintText: l10n.emailHintForgot,
                       hintStyle: TextStyle(
                         color: Colors.grey[400],
                         fontSize: 15,
@@ -682,8 +685,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
                               const SizedBox(width: 10),
                               Text(
                                 _emailSent
-                                    ? 'Resend Code'
-                                    : 'Send Verification Code',
+                                    ? l10n.resendCode
+                                    : l10n.sendCodeButton,
                                 style: const TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w600,
@@ -701,7 +704,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
     );
   }
 
-  Widget _buildSecurityTips() {
+  Widget _buildSecurityTips(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -719,7 +722,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
               Icon(Icons.lightbulb_rounded, color: Colors.amber[300], size: 22),
               const SizedBox(width: 10),
               Text(
-                'Security Tips',
+                l10n.securityTips,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -731,17 +734,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
           const SizedBox(height: 14),
           _buildTipItem(
             Icons.check_circle_outline,
-            'Check your spam folder if you don\'t see the email',
+            l10n.tipSpamFolder,
           ),
           const SizedBox(height: 8),
           _buildTipItem(
             Icons.check_circle_outline,
-            'Code expires in 10 minutes',
+            l10n.tipCodeExpiry,
           ),
           const SizedBox(height: 8),
           _buildTipItem(
             Icons.check_circle_outline,
-            'Never share your code with anyone',
+            l10n.tipNeverShare,
           ),
         ],
       ),
@@ -768,7 +771,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
     );
   }
 
-  Widget _buildBackToLogin() {
+  Widget _buildBackToLogin(AppLocalizations l10n) {
     return GestureDetector(
       onTap: () => Navigator.pop(context),
       child: Container(
@@ -797,9 +800,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage>
               ),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'Back to Login',
-              style: TextStyle(
+            Text(
+              l10n.backToLogin,
+              style: const TextStyle(
                 fontSize: 16,
                 color: Colors.white,
                 fontWeight: FontWeight.w600,

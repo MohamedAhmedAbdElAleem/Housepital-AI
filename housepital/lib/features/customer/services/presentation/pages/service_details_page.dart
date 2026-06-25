@@ -9,7 +9,7 @@ import '../../../../../core/network/api_service.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _ServiceDesign {
-  static const surface = Color(0xFFF8FAFC);
+  static Color surface(bool isDark) => isDark ? const Color(0xFF0D0C11) : const Color(0xFFF8FAFC);
   static const cardBg = Colors.white;
   static const textPrimary = Color(0xFF1E293B);
   static const textSecondary = Color(0xFF64748B);
@@ -22,7 +22,7 @@ class _ServiceDesign {
   static BoxShadow get cardShadow => BoxShadow(
     color: Colors.black.withOpacity(0.06),
     blurRadius: 20,
-    offset: const Offset(0, 8),
+    offset: Offset(0, 8),
   );
 }
 
@@ -60,6 +60,7 @@ class ServiceDetailsPage extends StatefulWidget {
 
 class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     with SingleTickerProviderStateMixin {
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -79,7 +80,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
       curve: Curves.easeOut,
     );
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
+      begin: Offset(0, 0.1),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
@@ -157,7 +158,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
 
     return Scaffold(
-      backgroundColor: _ServiceDesign.surface,
+      backgroundColor: _ServiceDesign.surface(isDark),
       body: Stack(
         children: [
           // Animated Background gradient
@@ -238,6 +239,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildAppBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SliverAppBar(
       expandedHeight: 220,
       pinned: true,
@@ -255,7 +257,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.white.withOpacity(0.1)),
           ),
-          child: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+          child: Icon(Icons.arrow_back_rounded, color: isDark ? const Color(0xFF16151A) : Colors.white),
         ),
       ),
       actions: [
@@ -264,9 +266,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
             HapticFeedback.lightImpact();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Row(
+                content: Row(
                   children: [
-                    Icon(Icons.share_rounded, color: Colors.white),
+                    Icon(Icons.share_rounded, color: isDark ? const Color(0xFF16151A) : Colors.white),
                     SizedBox(width: 12),
                     Text('Share feature coming soon!'),
                   ],
@@ -287,9 +289,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.share_rounded,
-              color: Colors.white,
+              color: isDark ? const Color(0xFF16151A) : Colors.white,
               size: 22,
             ),
           ),
@@ -318,7 +320,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                         BoxShadow(
                           color: Colors.white.withOpacity(0.3),
                           blurRadius: 12,
-                          offset: const Offset(0, 4),
+                          offset: Offset(0, 4),
                         ),
                       ]
                       : null,
@@ -372,20 +374,20 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                         BoxShadow(
                           color: Colors.black.withOpacity(0.15),
                           blurRadius: 30,
-                          offset: const Offset(0, 15),
+                          offset: Offset(0, 15),
                         ),
                       ],
                     ),
-                    child: Icon(widget.icon, size: 40, color: Colors.white),
+                    child: Icon(widget.icon, size: 40, color: isDark ? const Color(0xFF16151A) : Colors.white),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   widget.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF16151A) : Colors.white,
                     letterSpacing: 0.3,
                   ),
                   textAlign: TextAlign.center,
@@ -403,9 +405,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.verified_rounded,
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF16151A) : Colors.white,
                         size: 14,
                       ),
                       const SizedBox(width: 5),
@@ -429,17 +431,18 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildHeroCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
             blurRadius: 30,
-            offset: const Offset(0, 10),
+            offset: Offset(0, 10),
           ),
         ],
       ),
@@ -458,7 +461,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                   color: const Color(0xFFFEF3C7),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
                     Icon(
                       Icons.star_rounded,
@@ -504,9 +507,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
           Text(
             widget.description,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
-              color: Color(0xFF64748B),
+              color: isDark ? const Color(0xFFA19EAB) : const Color(0xFF64748B),
               height: 1.6,
             ),
           ),
@@ -516,6 +519,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildQuickStats() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Row(
@@ -557,16 +561,17 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     required String value,
     required Color color,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: color.withOpacity(0.08),
             blurRadius: 15,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -605,6 +610,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildServiceHighlights() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final highlights = [
       {
         'icon': Icons.verified_user_rounded,
@@ -643,13 +649,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF16151A) : Colors.white,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.04),
                         blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        offset: Offset(0, 4),
                       ),
                     ],
                   ),
@@ -663,7 +669,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                       const SizedBox(height: 8),
                       Text(
                         item['title'] as String,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: _ServiceDesign.textPrimary,
@@ -672,7 +678,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                       const SizedBox(height: 2),
                       Text(
                         item['subtitle'] as String,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
                           color: _ServiceDesign.textMuted,
                         ),
@@ -687,6 +693,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildTabSelector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       padding: const EdgeInsets.all(4),
@@ -706,6 +713,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildTab(int index, String label, IconData icon) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedTab == index;
 
     return Expanded(
@@ -726,7 +734,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                       BoxShadow(
                         color: widget.iconColor.withOpacity(0.15),
                         blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        offset: Offset(0, 4),
                       ),
                     ]
                     : null,
@@ -757,6 +765,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildTabContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     switch (_selectedTab) {
       case 0:
         return _buildIncludesContent();
@@ -770,17 +779,18 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildIncludesContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 15,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -802,12 +812,12 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'What\'s Included',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                 ),
               ),
             ],
@@ -841,9 +851,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.check,
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF16151A) : Colors.white,
                         size: 14,
                       ),
                     ),
@@ -851,7 +861,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                     Expanded(
                       child: Text(
                         entry.value,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           color: Color(0xFF475569),
                         ),
@@ -868,6 +878,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildReviewsContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final reviews = [
       {
         'name': 'Ahmed M.',
@@ -898,13 +909,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF16151A) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.03),
                       blurRadius: 10,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
@@ -938,10 +949,10 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                             children: [
                               Text(
                                 review['name'] as String,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF1E293B),
+                                  color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                                 ),
                               ),
                               Row(
@@ -985,6 +996,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildFAQContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final faqs = [
       {
         'q': 'How do I prepare for the service?',
@@ -1011,13 +1023,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF16151A) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.03),
                       blurRadius: 10,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
@@ -1044,10 +1056,10 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                   ),
                   title: Text(
                     entry.value['q']!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
+                      color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                     ),
                   ),
                   children: [
@@ -1068,6 +1080,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildNursePreview() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       padding: const EdgeInsets.all(18),
@@ -1088,13 +1101,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF16151A) : Colors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
                   color: widget.iconColor.withOpacity(0.2),
                   blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
@@ -1109,7 +1122,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Verified Nurses Only',
                   style: TextStyle(
                     fontSize: 16,
@@ -1140,18 +1153,19 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildGuaranteeCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _ServiceDesign.divider),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -1165,14 +1179,14 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.shield_rounded,
                   color: Color(0xFF16A34A),
                   size: 24,
                 ),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1213,11 +1227,12 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildGuaranteeItem(IconData icon, String label) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: _ServiceDesign.surface,
+          color: _ServiceDesign.surface(isDark),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -1226,7 +1241,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
             const SizedBox(height: 6),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: _ServiceDesign.textSecondary,
@@ -1240,10 +1255,12 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildBottomSpacing() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return const SizedBox(height: 140);
   }
 
   Widget _buildFloatingBookButton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Positioned(
       left: 0,
       right: 0,
@@ -1251,13 +1268,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF16151A) : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
               blurRadius: 25,
-              offset: const Offset(0, -8),
+              offset: Offset(0, -8),
             ),
           ],
         ),
@@ -1336,7 +1353,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                         BoxShadow(
                           color: widget.iconColor.withOpacity(0.4),
                           blurRadius: 20,
-                          offset: const Offset(0, 8),
+                          offset: Offset(0, 8),
                         ),
                       ],
                     ),
@@ -1349,9 +1366,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                             color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.calendar_today_rounded,
-                            color: Colors.white,
+                            color: isDark ? const Color(0xFF16151A) : Colors.white,
                             size: 18,
                           ),
                         ),
@@ -1367,12 +1384,12 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                                 ),
                               ),
                             )
-                            : const Text(
+                            : Text(
                               'Book Now',
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: isDark ? const Color(0xFF16151A) : Colors.white,
                                 letterSpacing: 0.3,
                               ),
                             ),
@@ -1434,7 +1451,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
         transitionsBuilder: (_, animation, __, child) {
           return SlideTransition(
             position: Tween<Offset>(
-              begin: const Offset(0.0, 1.0),
+              begin: Offset(0.0, 1.0),
               end: Offset.zero,
             ).animate(
               CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),

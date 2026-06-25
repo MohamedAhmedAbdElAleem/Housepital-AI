@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/network/api_service.dart';
@@ -39,6 +40,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   UserModel? _user;
   bool _isLoading = true;
+  bool _isPremium = false;
 
   @override
   void initState() {
@@ -49,6 +51,17 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _loadUserData({bool isRefresh = false}) async {
     if (isRefresh) {
       HapticFeedback.lightImpact();
+    }
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (mounted) {
+        setState(() {
+          _isPremium = (prefs.getString('subscription_plan') ?? 'basic') == 'premium';
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Prefs Error: $e');
     }
     
     try {
@@ -203,14 +216,30 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _signOut() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign Out', style: TextStyle(color: Colors.red))),
-        ],
-      ),
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF16151A) : null,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Sign Out',
+            style: TextStyle(
+              color: isDark ? const Color(0xFFF2F2F5) : null,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to sign out?',
+            style: TextStyle(
+              color: isDark ? const Color(0xFFA19EAB) : null,
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign Out', style: TextStyle(color: Colors.red))),
+          ],
+        );
+      },
     );
 
     if (confirmed == true && mounted) {
@@ -298,6 +327,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 initials: _user != null && _user!.name.isNotEmpty ? _user!.name[0] : 'U',
                 greeting: _getGreeting(),
                 isVerified: _user?.isVerified ?? false,
+                isPremium: _isPremium,
                 unreadNotifications: notificationProvider.unreadCount,
                 onNotificationTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsPage())),
                 onQRTap: _showQRCodeBottomSheet,
@@ -357,7 +387,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       subtitle: 'Special benefits',
                       isPremium: true,
                       gradient: [const Color(0xFFF59E0B), const Color(0xFFD97706)],
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SubscriptionPage(user: _user))),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SubscriptionPage(user: _user))).then((_) => _loadUserData()),
                     ),
                   ],
                 ),
@@ -405,8 +435,9 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : Colors.black.withValues(alpha: 0.03),
+          color: isDark ? const Color(0xFF1E1C24) : Colors.black.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(16),
+          border: isDark ? Border.all(color: Colors.white.withAlpha(10)) : null,
         ),
         child: Row(
           children: [

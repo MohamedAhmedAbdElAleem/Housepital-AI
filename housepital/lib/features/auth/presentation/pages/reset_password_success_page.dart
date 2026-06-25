@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class ResetPasswordSuccessPage extends StatefulWidget {
   const ResetPasswordSuccessPage({super.key});
@@ -148,6 +149,7 @@ class _ResetPasswordSuccessPageState extends State<ResetPasswordSuccessPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -181,17 +183,17 @@ class _ResetPasswordSuccessPageState extends State<ResetPasswordSuccessPage>
                     const SizedBox(height: 40),
 
                     // Success Message
-                    _buildSuccessMessage(),
+                    _buildSuccessMessage(l10n),
 
                     const SizedBox(height: 30),
 
                     // Security tips card
-                    _buildSecurityTips(),
+                    _buildSecurityTips(l10n),
 
                     const Spacer(flex: 2),
 
                     // Back to Login Button
-                    _buildLoginButton(),
+                    _buildLoginButton(l10n),
 
                     const SizedBox(height: 40),
                   ],
@@ -414,7 +416,7 @@ class _ResetPasswordSuccessPageState extends State<ResetPasswordSuccessPage>
     );
   }
 
-  Widget _buildSuccessMessage() {
+  Widget _buildSuccessMessage(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _mainController,
       builder: (context, child) {
@@ -425,10 +427,10 @@ class _ResetPasswordSuccessPageState extends State<ResetPasswordSuccessPage>
       },
       child: Column(
         children: [
-          const Text(
-            'Password Reset\nSuccessful! 🎉',
+          Text(
+            l10n.resetSuccessTitle,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -445,7 +447,7 @@ class _ResetPasswordSuccessPageState extends State<ResetPasswordSuccessPage>
           ),
           const SizedBox(height: 16),
           Text(
-            'Your password has been changed successfully.\nYou can now login with your new password.',
+            l10n.resetSuccessSubtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
@@ -458,7 +460,7 @@ class _ResetPasswordSuccessPageState extends State<ResetPasswordSuccessPage>
     );
   }
 
-  Widget _buildSecurityTips() {
+  Widget _buildSecurityTips(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _mainController,
       builder: (context, child) {
@@ -491,9 +493,9 @@ class _ResetPasswordSuccessPageState extends State<ResetPasswordSuccessPage>
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'Security Tips',
-                  style: TextStyle(
+                Text(
+                  l10n.securityTips,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -504,17 +506,17 @@ class _ResetPasswordSuccessPageState extends State<ResetPasswordSuccessPage>
             const SizedBox(height: 14),
             _buildTipItem(
               Icons.lock_outline_rounded,
-              'Keep your password private',
+              l10n.tipPrivatePassword,
             ),
             const SizedBox(height: 8),
             _buildTipItem(
               Icons.sync_lock_rounded,
-              'Change it every 3-6 months',
+              l10n.tipChangeRegularly,
             ),
             const SizedBox(height: 8),
             _buildTipItem(
               Icons.devices_rounded,
-              'Sign out from unknown devices',
+              l10n.tipSignOutUnknown,
             ),
           ],
         ),
@@ -538,7 +540,7 @@ class _ResetPasswordSuccessPageState extends State<ResetPasswordSuccessPage>
     );
   }
 
-  Widget _buildLoginButton() {
+  Widget _buildLoginButton(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _mainController,
       builder: (context, child) {
@@ -585,9 +587,9 @@ class _ResetPasswordSuccessPageState extends State<ResetPasswordSuccessPage>
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
-                    'Back to Login',
-                    style: TextStyle(
+                  Text(
+                    l10n.backToLogin,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.3,

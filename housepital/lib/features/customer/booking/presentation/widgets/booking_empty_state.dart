@@ -7,6 +7,7 @@ class BookingEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -17,22 +18,22 @@ class BookingEmptyState extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: isDark ? Colors.white.withAlpha(10) : Colors.grey[100],
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isHistory ? Icons.history : Icons.calendar_today,
                 size: 48,
-                color: Colors.grey[400],
+                color: isDark ? Colors.white.withAlpha(50) : Colors.grey[400],
               ),
             ),
             const SizedBox(height: 24),
             Text(
               isHistory ? 'No Booking History' : 'No Active Bookings',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
               ),
             ),
             const SizedBox(height: 12),
@@ -43,7 +44,7 @@ class BookingEmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: isDark ? const Color(0xFFA19EAB) : Colors.grey[600],
                 height: 1.5,
               ),
             ),

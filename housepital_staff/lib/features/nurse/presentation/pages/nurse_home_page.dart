@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
@@ -38,6 +40,43 @@ class _NurseHomePageState extends State<NurseHomePage>
   static const Duration _presenceSyncInterval = Duration(seconds: 15);
 
   bool _isNavigatingToPin = false;
+
+  void _navigateToTrackingPage(NurseBooking booking) {
+    if (_isNavigatingToPin) return;
+    setState(() => _isNavigatingToPin = true);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => NurseTrackingPage(booking: booking),
+      ),
+    ).then((_) {
+      if (mounted) {
+        setState(() => _isNavigatingToPin = false);
+        final bookingCubit = context.read<NurseBookingCubit>();
+        if (bookingCubit.state is NurseBookingInProgress) {
+          final inProgressBooking = (bookingCubit.state as NurseBookingInProgress).booking;
+          _navigateToInProgressPage(inProgressBooking);
+        }
+      }
+    });
+  }
+
+  void _navigateToInProgressPage(NurseBooking booking) {
+    if (_isNavigatingToPin) return;
+    setState(() => _isNavigatingToPin = true);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VisitInProgressPage(booking: booking),
+      ),
+    ).then((_) {
+      if (mounted) {
+        setState(() => _isNavigatingToPin = false);
+        context.read<NurseBookingCubit>().fetchBookings();
+      }
+    });
+  }
+
   LatLng? _currentLocation;
   final MapController _mapController = MapController();
   IO.Socket? _socket;
@@ -293,36 +332,9 @@ class _NurseHomePageState extends State<NurseHomePage>
                   );
                 }
               } else if (bookingState is NurseBookingActive) {
-                if (!_isNavigatingToPin) {
-                  _isNavigatingToPin = true;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) =>
-                              NurseTrackingPage(booking: bookingState.booking),
-                    ),
-                  ).then((_) {
-                    if (mounted) setState(() => _isNavigatingToPin = false);
-                  });
-                }
+                _navigateToTrackingPage(bookingState.booking);
               } else if (bookingState is NurseBookingInProgress) {
-                if (!_isNavigatingToPin) {
-                  _isNavigatingToPin = true;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => VisitInProgressPage(
-                            booking: bookingState.booking,
-                          ),
-                    ),
-                  ).then((_) {
-                    if (!mounted) return;
-                    setState(() => _isNavigatingToPin = false);
-                    context.read<NurseBookingCubit>().fetchBookings();
-                  });
-                }
+                _navigateToInProgressPage(bookingState.booking);
               } else if (bookingState is NurseBookingCompleted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -674,19 +686,7 @@ class _NurseHomePageState extends State<NurseHomePage>
   Widget _buildActiveBookingBanner(BuildContext context, NurseBooking booking) {
     final bool isOnTheWay = booking.status == 'on-the-way';
     return GestureDetector(
-      onTap: () {
-        if (!_isNavigatingToPin) {
-          _isNavigatingToPin = true;
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => NurseTrackingPage(booking: booking),
-            ),
-          ).then((_) {
-            if (mounted) setState(() => _isNavigatingToPin = false);
-          });
-        }
-      },
+      onTap: () => _navigateToTrackingPage(booking),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
@@ -994,6 +994,22 @@ class _NurseHomePageState extends State<NurseHomePage>
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
 
+    final double? patientLat = booking.address?.lat;
+    final double? patientLng = booking.address?.lng;
+    String? distanceText;
+
+    if (patientLat != null && patientLng != null && _currentLocation != null) {
+      final double distanceMeters = Geolocator.distanceBetween(
+        _currentLocation!.latitude,
+        _currentLocation!.longitude,
+        patientLat,
+        patientLng,
+      );
+      distanceText = distanceMeters < 1000
+          ? '${distanceMeters.round()} m'
+          : '${(distanceMeters / 1000).toStringAsFixed(1)} km';
+    }
+
     return Container(
       color: theme.scaffoldBackgroundColor,
       child: Stack(
@@ -1025,6 +1041,7 @@ class _NurseHomePageState extends State<NurseHomePage>
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                  
                   const Spacer(),
                   
                   // Concise Card
@@ -1199,7 +1216,10 @@ class _NurseHomePageState extends State<NurseHomePage>
                       ),
                     ),
                   ),
-                  const Spacer(),
+                  if (patientLat != null && patientLng != null)
+                    const SizedBox(height: 12)
+                  else
+                    const Spacer(),
                 ],
               ),
             ),
@@ -1268,6 +1288,11 @@ class _NurseHomePageState extends State<NurseHomePage>
                 l10n.location,
                 booking.address!.fullAddress,
                 AppColors.secondary500,
+              ),
+              const SizedBox(height: 16),
+              _MiniRouteMapWidget(
+                booking: booking,
+                nurseLocation: _currentLocation,
               ),
             ],
             if (booking.notes != null && booking.notes!.isNotEmpty) ...[
@@ -1701,6 +1726,244 @@ class _NurseHomePageState extends State<NurseHomePage>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MiniRouteMapWidget extends StatefulWidget {
+  final NurseBooking booking;
+  final LatLng? nurseLocation;
+
+  const _MiniRouteMapWidget({
+    required this.booking,
+    required this.nurseLocation,
+  });
+
+  @override
+  State<_MiniRouteMapWidget> createState() => _MiniRouteMapWidgetState();
+}
+
+class _MiniRouteMapWidgetState extends State<_MiniRouteMapWidget> {
+  List<LatLng> _routePoints = [];
+  double? _distanceKm;
+  double? _durationMin;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRoute();
+  }
+
+  Future<void> _fetchRoute() async {
+    final patientLat = widget.booking.address?.lat;
+    final patientLng = widget.booking.address?.lng;
+    final nurseLoc = widget.nurseLocation;
+
+    if (patientLat == null || patientLng == null || nurseLoc == null) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      return;
+    }
+
+    final url = 'https://router.project-osrm.org/route/v1/driving/${nurseLoc.longitude},${nurseLoc.latitude};${patientLng},${patientLat}?geometries=geojson';
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['routes'] != null && data['routes'].isNotEmpty) {
+          final route = data['routes'][0];
+          final geometry = route['geometry'];
+          final coords = geometry['coordinates'] as List;
+
+          if (mounted) {
+            setState(() {
+              _routePoints = coords.map((c) => LatLng(c[1] as double, c[0] as double)).toList();
+              _distanceKm = (route['distance'] as num?)?.toDouble() != null
+                  ? (route['distance'] as num).toDouble() / 1000.0
+                  : null;
+              _durationMin = (route['duration'] as num?)?.toDouble() != null
+                  ? (route['duration'] as num).toDouble() / 60.0
+                  : null;
+              _isLoading = false;
+            });
+          }
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching route for mini map: $e');
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final patientLat = widget.booking.address?.lat;
+    final patientLng = widget.booking.address?.lng;
+    final nurseLoc = widget.nurseLocation;
+
+    if (patientLat == null || patientLng == null) {
+      return const SizedBox.shrink();
+    }
+
+    final patientPoint = LatLng(patientLat, patientLng);
+
+    // Calculate straight line fallback distance
+    double fallbackDistanceMeters = 0;
+    if (nurseLoc != null) {
+      fallbackDistanceMeters = Geolocator.distanceBetween(
+        nurseLoc.latitude,
+        nurseLoc.longitude,
+        patientLat,
+        patientLng,
+      );
+    }
+    final fallbackDistanceKm = fallbackDistanceMeters / 1000.0;
+    final fallbackDurationMin = fallbackDistanceKm * 2.5;
+
+    final displayDistanceStr = _distanceKm != null
+        ? '${_distanceKm!.toStringAsFixed(1)} km'
+        : '${fallbackDistanceKm.toStringAsFixed(1)} km';
+
+    final displayDurationStr = _durationMin != null
+        ? '${_durationMin!.round()} mins'
+        : '${fallbackDurationMin.round()} mins';
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: SizedBox(
+        height: 180,
+        width: double.infinity,
+        child: Stack(
+          children: [
+            FlutterMap(
+              options: MapOptions(
+                initialCameraFit: nurseLoc != null
+                    ? CameraFit.bounds(
+                        bounds: LatLngBounds.fromPoints([nurseLoc, patientPoint]),
+                        padding: const EdgeInsets.only(
+                          top: 40,
+                          bottom: 40,
+                          left: 40,
+                          right: 40,
+                        ),
+                      )
+                    : null,
+                initialCenter: patientPoint,
+                initialZoom: 14.0,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: theme.brightness == Brightness.dark
+                      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+                      : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.housepital.staff',
+                ),
+                if (_routePoints.isNotEmpty)
+                  PolylineLayer(
+                    polylines: <Polyline<Object>>[
+                      Polyline(
+                        points: _routePoints,
+                        color: AppColors.primary,
+                        strokeWidth: 4.5,
+                        strokeJoin: StrokeJoin.round,
+                      ),
+                    ],
+                  ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: patientPoint,
+                      width: 40,
+                      height: 40,
+                      child: const Icon(
+                        Icons.location_on,
+                        color: AppColors.error,
+                        size: 40,
+                      ),
+                    ),
+                    if (nurseLoc != null)
+                      Marker(
+                        point: nurseLoc,
+                        width: 40,
+                        height: 40,
+                        child: const Icon(
+                          Icons.my_location,
+                          color: AppColors.primary500,
+                          size: 30,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+            if (_isLoading)
+              Container(
+                color: theme.colorScheme.surface.withAlpha(150),
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+            if (nurseLoc != null)
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface.withAlpha(220),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(20),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: theme.colorScheme.outline.withAlpha(50),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.directions_car_rounded,
+                        color: AppColors.primary500,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$displayDistanceStr ($displayDurationStr)',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

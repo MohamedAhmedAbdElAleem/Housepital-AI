@@ -596,42 +596,6 @@ class _BookingInvoicePageState extends State<BookingInvoicePage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-
-                  // Submit rating button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _isSubmittingRating ? null : _submitRating,
-                      icon: _isSubmittingRating
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.star_rounded, size: 20),
-                      label: Text(
-                        _isSubmittingRating
-                            ? l10n.submitting
-                            : l10n.submitRating,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.warning500,
-                        foregroundColor: AppColors.dark500,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
 
                 // Already rated show
@@ -730,9 +694,21 @@ class _BookingInvoicePageState extends State<BookingInvoicePage> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                  },
+                  onPressed: _isSubmittingRating
+                      ? null
+                      : () async {
+                          if (_rating > 0 && !_ratingSubmitted && !_alreadyRated) {
+                            try {
+                              await _submitRating();
+                            } catch (_) {
+                              // Error is handled inside _submitRating
+                              return;
+                            }
+                          }
+                          if (mounted) {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
@@ -753,13 +729,22 @@ class _BookingInvoicePageState extends State<BookingInvoicePage> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       alignment: Alignment.center,
-                      child: Text(
-                        l10n.backToHome,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                      child: _isSubmittingRating
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              l10n.backToHome,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                     ),
                   ),
                 ),

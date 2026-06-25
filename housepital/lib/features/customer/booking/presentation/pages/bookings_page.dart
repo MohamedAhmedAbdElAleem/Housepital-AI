@@ -290,13 +290,11 @@ class _BookingsPageState extends State<BookingsPage>
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           // ── 1. The Canopy (Background Header) ──
           BookingsCanopyHeader(
-            activeCount: _activeBookings.length,
-            historyCount: _historyBookings.length,
             onRefresh: _fetchBookings,
           ),
 

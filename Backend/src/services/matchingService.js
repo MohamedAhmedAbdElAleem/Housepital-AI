@@ -948,7 +948,10 @@ async function getNursePendingOffers(nurseUserId) {
                 name: offer.matchingRequestId?.serviceName || "",
                 category: offer.matchingRequestId?.serviceCategory || "",
             },
-            location: offer.matchingRequestId?.address || {},
+            location: {
+                ...(offer.matchingRequestId?.address || {}),
+                coordinates: offer.matchingRequestId?.location || null
+            },
             pricing: {
                 totalPrice: offer.totalPrice,
                 nurseEarnings: offer.nurseEarnings,

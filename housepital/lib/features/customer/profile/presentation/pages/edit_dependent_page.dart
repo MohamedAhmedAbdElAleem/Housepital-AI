@@ -61,12 +61,15 @@ class _EditDependentPageState extends State<EditDependentPage>
   late Animation<Offset> _slideAnimation;
 
   final List<String> _relationships = [
-    'Parent',
-    'Child',
-    'Spouse',
-    'Sibling',
+    'Father',
+    'Mother',
+    'Son',
+    'Daughter',
+    'Brother',
+    'Sister',
     'Grandparent',
     'Grandchild',
+    'Spouse',
     'Other',
   ];
 
@@ -126,7 +129,11 @@ class _EditDependentPageState extends State<EditDependentPage>
 
     final rel = dep['relationship'] as String?;
     if (rel != null && rel.isNotEmpty) {
-      _selectedRelationship = _capitalizeFirst(rel);
+      final formattedRel = _capitalizeFirst(rel);
+      if (!_relationships.contains(formattedRel)) {
+        _relationships.add(formattedRel);
+      }
+      _selectedRelationship = formattedRel;
     }
 
     final dob = dep['dateOfBirth'];
@@ -1123,7 +1130,7 @@ class _EditDependentPageState extends State<EditDependentPage>
 
   Widget _buildDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedRelationship,
+      initialValue: _selectedRelationship,
       decoration: InputDecoration(
         labelText: 'Relationship',
         labelStyle: const TextStyle(color: _DependentDesign.textSecondary),

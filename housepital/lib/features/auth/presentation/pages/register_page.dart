@@ -10,6 +10,7 @@ import '../../../../core/utils/token_manager.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/models/register_request.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -172,6 +173,7 @@ class _RegisterPageState extends State<RegisterPage>
   }
 
   void _checkPasswordStrength() {
+    final l10n = AppLocalizations.of(context)!;
     final password = _passwordController.text;
     double strength = 0;
     String text = '';
@@ -183,7 +185,7 @@ class _RegisterPageState extends State<RegisterPage>
       color = Colors.grey;
     } else if (password.length < 6) {
       strength = 0.2;
-      text = 'Too Short';
+      text = l10n.passwordTooShort;
       color = Colors.red;
     } else {
       strength = 0.3;
@@ -193,16 +195,16 @@ class _RegisterPageState extends State<RegisterPage>
       if (password.length >= 10) strength += 0.1;
 
       if (strength < 0.5) {
-        text = 'Weak';
+        text = l10n.passwordWeak;
         color = Colors.orange;
       } else if (strength < 0.7) {
-        text = 'Medium';
+        text = l10n.passwordMedium;
         color = Colors.amber;
       } else if (strength < 0.9) {
-        text = 'Strong';
+        text = l10n.passwordStrong;
         color = AppColors.primary500;
       } else {
-        text = 'Very Strong';
+        text = l10n.passwordVeryStrong;
         color = AppColors.success500;
       }
     }
@@ -238,31 +240,32 @@ class _RegisterPageState extends State<RegisterPage>
   }
 
   Future<void> _handleRegister() async {
+    final l10n = AppLocalizations.of(context)!;
     // Validation
     if (_fullNameController.text.trim().isEmpty) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please enter your full name');
+      CustomPopup.warning(context, l10n.warningEmptyName);
       return;
     }
     if (_fullNameController.text.trim().length < 3) {
       _triggerShake();
-      CustomPopup.warning(context, 'Name must be at least 3 characters');
+      CustomPopup.warning(context, l10n.warningShortName);
       return;
     }
     if (_emailController.text.trim().isEmpty) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please enter your email');
+      CustomPopup.warning(context, l10n.warningEmptyEmail);
       return;
     }
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(_emailController.text.trim())) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please enter a valid email');
+      CustomPopup.warning(context, l10n.warningInvalidEmail);
       return;
     }
     if (_mobileController.text.trim().isEmpty) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please enter your mobile number');
+      CustomPopup.warning(context, l10n.warningEmptyMobile);
       return;
     }
     final phoneRegex = RegExp(r'^01[0125][0-9]{8}$');
@@ -270,33 +273,33 @@ class _RegisterPageState extends State<RegisterPage>
       _triggerShake();
       CustomPopup.warning(
         context,
-        'Please enter a valid Egyptian mobile number',
+        l10n.warningInvalidMobile,
       );
       return;
     }
     if (_passwordController.text.isEmpty) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please enter your password');
+      CustomPopup.warning(context, l10n.warningEmptyPassword);
       return;
     }
     if (_passwordController.text.length < 6) {
       _triggerShake();
-      CustomPopup.warning(context, 'Password must be at least 6 characters');
+      CustomPopup.warning(context, l10n.min6Chars);
       return;
     }
     if (_confirmPasswordController.text.isEmpty) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please confirm your password');
+      CustomPopup.warning(context, l10n.warningEmptyConfirmPassword);
       return;
     }
     if (_confirmPasswordController.text != _passwordController.text) {
       _triggerShake();
-      CustomPopup.warning(context, 'Passwords do not match');
+      CustomPopup.warning(context, l10n.warningPasswordMismatch);
       return;
     }
     if (!_agreeToTerms) {
       _triggerShake();
-      CustomPopup.warning(context, 'Please agree to Terms of Service');
+      CustomPopup.warning(context, l10n.warningAgreeTerms);
       return;
     }
 
@@ -327,7 +330,7 @@ class _RegisterPageState extends State<RegisterPage>
           _successController.forward();
           CustomPopup.success(
             context,
-            'Registration successful! Complete your profile',
+            l10n.registrationSuccess,
           );
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted) {
@@ -352,19 +355,19 @@ class _RegisterPageState extends State<RegisterPage>
       if (mounted) {
         setState(() => _isLoading = false);
         _triggerShake();
-        CustomPopup.error(context, 'No internet connection');
+        CustomPopup.error(context, l10n.noInternet);
       }
     } on ServerException {
       if (mounted) {
         setState(() => _isLoading = false);
         _triggerShake();
-        CustomPopup.error(context, 'Server error. Please try again');
+        CustomPopup.error(context, l10n.serverError);
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
         _triggerShake();
-        CustomPopup.error(context, 'Something went wrong');
+        CustomPopup.error(context, l10n.somethingWentWrong);
       }
     }
   }
@@ -372,6 +375,7 @@ class _RegisterPageState extends State<RegisterPage>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Stack(
@@ -399,13 +403,13 @@ class _RegisterPageState extends State<RegisterPage>
                   child: Column(
                     children: [
                       const SizedBox(height: 16),
-                      _buildHeader(),
+                      _buildHeader(l10n),
                       const SizedBox(height: 20),
-                      _buildProgressIndicator(),
+                      _buildProgressIndicator(l10n),
                       const SizedBox(height: 20),
-                      _buildRegisterCard(),
+                      _buildRegisterCard(l10n),
                       const SizedBox(height: 20),
-                      _buildLoginLink(),
+                      _buildLoginLink(l10n),
                       const SizedBox(height: 30),
                     ],
                   ),
@@ -510,7 +514,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Column(
       children: [
         // Back Button + Logo Row
@@ -525,9 +529,9 @@ class _RegisterPageState extends State<RegisterPage>
         ),
         const SizedBox(height: 16),
         // Title
-        const Text(
-          'Create Account',
-          style: TextStyle(
+        Text(
+          l10n.createAccountTitle,
+          style: const TextStyle(
             fontSize: 34,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -548,9 +552,9 @@ class _RegisterPageState extends State<RegisterPage>
             color: Colors.white.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Text(
-            '🏥 Join us for better healthcare',
-            style: TextStyle(
+          child: Text(
+            l10n.registerSubtitle,
+            style: const TextStyle(
               fontSize: 14,
               color: Colors.white,
               fontWeight: FontWeight.w500,
@@ -601,7 +605,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
-  Widget _buildProgressIndicator() {
+  Widget _buildProgressIndicator(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
@@ -611,7 +615,7 @@ class _RegisterPageState extends State<RegisterPage>
       child: Row(
         children: [
           Text(
-            'Step ${_currentStep + 1} of 5',
+            l10n.registrationStep(_currentStep + 1, 5),
             style: TextStyle(
               fontSize: 13,
               color: Colors.white.withValues(alpha: 0.9),
@@ -641,7 +645,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
-  Widget _buildRegisterCard() {
+  Widget _buildRegisterCard(AppLocalizations l10n) {
     return AnimatedBuilder(
       animation: _shakeController,
       builder: (context, child) {
@@ -667,8 +671,8 @@ class _RegisterPageState extends State<RegisterPage>
             children: [
               // Full Name
               _buildAnimatedInputField(
-                label: 'Full Name',
-                hint: 'Enter your full name',
+                label: l10n.fullNameLabel,
+                hint: l10n.fullNameHint,
                 controller: _fullNameController,
                 focusNode: _nameFocusNode,
                 icon: Icons.person_rounded,
@@ -678,7 +682,7 @@ class _RegisterPageState extends State<RegisterPage>
 
               // Email
               _buildAnimatedInputField(
-                label: 'Email Address',
+                label: l10n.emailLabel,
                 hint: 'you@example.com',
                 controller: _emailController,
                 focusNode: _emailFocusNode,
@@ -689,23 +693,23 @@ class _RegisterPageState extends State<RegisterPage>
               const SizedBox(height: 16),
 
               // Mobile Number
-              _buildMobileField(),
+              _buildMobileField(l10n),
               const SizedBox(height: 16),
 
               // Password with strength indicator
-              _buildPasswordFieldWithStrength(),
+              _buildPasswordFieldWithStrength(l10n),
               const SizedBox(height: 16),
 
               // Confirm Password
-              _buildConfirmPasswordField(),
+              _buildConfirmPasswordField(l10n),
               const SizedBox(height: 20),
 
               // Terms Checkbox
-              _buildTermsCheckbox(),
+              _buildTermsCheckbox(l10n),
               const SizedBox(height: 24),
 
               // Register Button
-              _buildRegisterButton(),
+              _buildRegisterButton(l10n),
             ],
           ),
         ),
@@ -784,12 +788,12 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
-  Widget _buildMobileField() {
+  Widget _buildMobileField(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Mobile Number',
+          l10n.mobileLabel,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -841,7 +845,7 @@ class _RegisterPageState extends State<RegisterPage>
               fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
-              hintText: '01012345678',
+              hintText: l10n.mobileHint,
               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
               prefixIcon: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -901,12 +905,12 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
-  Widget _buildPasswordFieldWithStrength() {
+  Widget _buildPasswordFieldWithStrength(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Password',
+          l10n.passwordLabel,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -944,7 +948,7 @@ class _RegisterPageState extends State<RegisterPage>
               fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
-              hintText: 'Create a strong password',
+              hintText: l10n.passwordHintRegister,
               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
               prefixIcon: Icon(
                 Icons.lock_rounded,
@@ -1010,7 +1014,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
-  Widget _buildConfirmPasswordField() {
+  Widget _buildConfirmPasswordField(AppLocalizations l10n) {
     final passwordsMatch =
         _confirmPasswordController.text.isNotEmpty &&
         _confirmPasswordController.text == _passwordController.text;
@@ -1019,7 +1023,7 @@ class _RegisterPageState extends State<RegisterPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Confirm Password',
+          l10n.confirmPasswordLabel,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -1062,7 +1066,7 @@ class _RegisterPageState extends State<RegisterPage>
               fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
-              hintText: 'Re-enter your password',
+              hintText: l10n.confirmPasswordHint,
               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
               prefixIcon: Icon(
                 Icons.lock_rounded,
@@ -1118,7 +1122,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
-  Widget _buildTermsCheckbox() {
+  Widget _buildTermsCheckbox(AppLocalizations l10n) {
     return GestureDetector(
       onTap: () => setState(() => _agreeToTerms = !_agreeToTerms),
       child: Row(
@@ -1155,17 +1159,17 @@ class _RegisterPageState extends State<RegisterPage>
                   height: 1.4,
                 ),
                 children: [
-                  const TextSpan(text: 'I agree to the '),
+                  TextSpan(text: l10n.agreeTo),
                   TextSpan(
-                    text: 'Terms of Service',
+                    text: l10n.termsOfService,
                     style: TextStyle(
                       color: AppColors.primary500,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const TextSpan(text: ' and '),
+                  TextSpan(text: l10n.and),
                   TextSpan(
-                    text: 'Privacy Policy',
+                    text: l10n.privacyPolicy,
                     style: TextStyle(
                       color: AppColors.primary500,
                       fontWeight: FontWeight.w600,
@@ -1180,7 +1184,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
-  Widget _buildRegisterButton() {
+  Widget _buildRegisterButton(AppLocalizations l10n) {
     return SizedBox(
       width: double.infinity,
       height: 58,
@@ -1210,12 +1214,12 @@ class _RegisterPageState extends State<RegisterPage>
                   : Row(
                     key: const ValueKey('button'),
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.person_add_rounded, size: 22),
-                      SizedBox(width: 10),
+                    children: [
+                      const Icon(Icons.person_add_rounded, size: 22),
+                      const SizedBox(width: 10),
                       Text(
-                        'Create Account',
-                        style: TextStyle(
+                        l10n.createAccountTitle,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.5,
@@ -1228,7 +1232,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
-  Widget _buildLoginLink() {
+  Widget _buildLoginLink(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
       decoration: BoxDecoration(
@@ -1243,7 +1247,7 @@ class _RegisterPageState extends State<RegisterPage>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'Already have an account?',
+            l10n.alreadyHaveAccount,
             style: TextStyle(
               fontSize: 15,
               color: Colors.white.withValues(alpha: 0.9),
@@ -1256,9 +1260,9 @@ class _RegisterPageState extends State<RegisterPage>
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: const Text(
-              'Sign In',
-              style: TextStyle(
+            child: Text(
+              l10n.signIn,
+              style: const TextStyle(
                 fontSize: 16,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,

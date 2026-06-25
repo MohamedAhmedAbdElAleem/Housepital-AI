@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/utils/token_manager.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -14,20 +15,20 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<OnboardingData> _pages = [
-    OnboardingData(
-      image: 'assets/images/IntroOne.png',
-      title: 'Professional Care\nAt Your Doorstep',
-      description:
-          'Get certified nurses and healthcare professionals\ndelivered to your home, on-demand or scheduled',
-    ),
-    OnboardingData(
-      image: 'assets/images/IntroTwo.png',
-      title: 'AI-Powered\nHealthcare Assistant',
-      description:
-          'Smart recommendations and 24/7 support with\nour intelligent healthcare companion',
-    ),
-  ];
+  List<OnboardingData> _getPages(BuildContext context) {
+    return [
+      OnboardingData(
+        image: 'assets/images/IntroOne.png',
+        title: AppLocalizations.of(context)!.onboarding1Title,
+        description: AppLocalizations.of(context)!.onboarding1Desc,
+      ),
+      OnboardingData(
+        image: 'assets/images/IntroTwo.png',
+        title: AppLocalizations.of(context)!.onboarding2Title,
+        description: AppLocalizations.of(context)!.onboarding2Desc,
+      ),
+    ];
+  }
 
   @override
   void dispose() {
@@ -35,8 +36,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
     super.dispose();
   }
 
-  void _onNextPressed() {
-    if (_currentPage < _pages.length - 1) {
+  void _onNextPressed(int pagesLength) {
+    if (_currentPage < pagesLength - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -56,6 +57,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final pages = _getPages(context);
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -70,9 +72,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     _currentPage = index;
                   });
                 },
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 itemBuilder: (context, index) {
-                  return _buildPage(_pages[index]);
+                  return _buildPage(pages[index], index);
                 },
               ),
             ),
@@ -86,7 +88,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      _pages.length,
+                      pages.length,
                       (index) => _buildDot(index),
                     ),
                   ),
@@ -98,7 +100,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: _onNextPressed,
+                      onPressed: () => _onNextPressed(pages.length),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary500,
                         foregroundColor: Colors.white,
@@ -108,9 +110,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         ),
                       ),
                       child: Text(
-                        _currentPage == _pages.length - 1
-                            ? 'Get Started'
-                            : 'Next',
+                        _currentPage == pages.length - 1
+                            ? AppLocalizations.of(context)!.getStarted
+                            : AppLocalizations.of(context)!.next,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -125,7 +127,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   TextButton(
                     onPressed: _navigateToLogin,
                     child: Text(
-                      'Skip Intro',
+                      AppLocalizations.of(context)!.skipIntro,
                       style: TextStyle(
                         fontSize: 16,
                         color: AppColors.textSecondary,
@@ -144,8 +146,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  Widget _buildPage(OnboardingData data) {
-    final int index = _pages.indexOf(data);
+  Widget _buildPage(OnboardingData data, int index) {
     final double imageHeight = index == 0 ? 460 : 550;
     final double topPadding = index == 0 ? 40 : 0;
 

@@ -14,16 +14,17 @@ class BookingCardNurseEmergency extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF16151A) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFEF4444), width: 2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -32,7 +33,7 @@ class BookingCardNurseEmergency extends StatelessWidget {
           // Red Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Color(0xFFFEF2F2),
               borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
               border: Border(bottom: BorderSide(color: Color(0xFFFECACA))),
@@ -45,10 +46,10 @@ class BookingCardNurseEmergency extends StatelessWidget {
                     color: const Color(0xFFEF4444),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.warning_amber_rounded,
                     size: 16,
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF16151A) : Colors.white,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -93,7 +94,7 @@ class BookingCardNurseEmergency extends StatelessWidget {
                         color: const Color(0xFFFEE2E2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.medical_services,
                         color: Color(0xFFDC2626),
                         size: 24,
@@ -106,10 +107,10 @@ class BookingCardNurseEmergency extends StatelessWidget {
                         children: [
                           Text(
                             serviceName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -146,7 +147,7 @@ class BookingCardNurseEmergency extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.access_time,
                         size: 16,
                         color: Color(0xFFD97706),
@@ -155,7 +156,7 @@ class BookingCardNurseEmergency extends StatelessWidget {
                       Expanded(
                         child: Text(
                           'We\'re finding you a new nurse. Please wait...',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             color: Color(0xFFB45309),
                           ),

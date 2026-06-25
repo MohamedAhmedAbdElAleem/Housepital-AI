@@ -20,12 +20,26 @@ class _NotificationsPageState extends State<NotificationsPage>
   // Design system (Glass & Grid Engine - Green)
   static const _primary = Color(0xFF2ECC71);
   static const _primaryDark = Color(0xFF27AE60);
-  static const _surface = Color(0xFFF0F4F8);
-  static const _card = Colors.white;
-  static const _textPrimary = Color(0xFF1A202C);
-  static const _textSecondary = Color(0xFF718096);
-  static const _textMuted = Color(0xFFA0AEC0);
-  static const _unreadBg = Color(0xFFE8F8F5);
+
+  // Context-aware helpers
+  Color get _surface => Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF0D0C11)
+      : const Color(0xFFF0F4F8);
+  Color get _card => Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF16151A)
+      : Colors.white;
+  Color get _textPrimary => Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFFF2F2F5)
+      : const Color(0xFF1A202C);
+  Color get _textSecondary => Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFFA19EAB)
+      : const Color(0xFF718096);
+  Color get _textMuted => Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF5F5C68)
+      : const Color(0xFFA0AEC0);
+  Color get _unreadBg => Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF1E1C24)
+      : const Color(0xFFE8F8F5);
 
   @override
   void initState() {
@@ -269,7 +283,7 @@ class _NotificationsPageState extends State<NotificationsPage>
                         ),
                       ),
                       offset: const Offset(0, 50),
-                      color: Colors.white,
+                      color: _card,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -346,7 +360,7 @@ class _NotificationsPageState extends State<NotificationsPage>
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'All caught up!',
             style: TextStyle(
               fontFamily: 'Poppins',
@@ -500,7 +514,7 @@ class _NotificationsPageState extends State<NotificationsPage>
                               const SizedBox(width: 4),
                               Text(
                                 notification.timeAgo,
-                                style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: _textMuted),
+                                style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: _textMuted),
                               ),
                             ],
                           ),
@@ -590,7 +604,7 @@ class _NotificationsPageState extends State<NotificationsPage>
             const SizedBox(height: 16),
             Text(
               notification.timeAgo,
-              style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: _textMuted),
+              style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: _textMuted),
             ),
           ],
         ),
@@ -626,7 +640,7 @@ class _NotificationsPageState extends State<NotificationsPage>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text(
+                child: Text(
                   'Cancel',
                   style: TextStyle(color: _textSecondary, fontFamily: 'Inter', fontWeight: FontWeight.w600),
                 ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/constants/app_colors.dart';
 
 class MedicalRecordHeader extends StatelessWidget {
   final String title;

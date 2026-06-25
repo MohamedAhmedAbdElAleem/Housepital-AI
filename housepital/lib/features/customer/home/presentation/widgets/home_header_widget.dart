@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../../../auth/data/models/user_model.dart';
-import '../../../../../core/providers/notification_provider.dart';
 import '../../../../notifications/presentation/pages/notifications_page.dart';
-import '../../../profile/presentation/pages/profile_page.dart';
+import '../../../../../core/providers/notification_provider.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 import '../../../../../core/constants/app_colors.dart';
 
 class HomeHeaderWidget extends StatelessWidget {
@@ -20,24 +20,27 @@ class HomeHeaderWidget extends StatelessWidget {
     this.onProfileTap,
   });
 
-  String get _greeting {
+  String _getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  }
-
-  String get _greetingIcon {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return '☀️';
-    if (hour < 17) return '🌤️';
-    return '🌙';
+    final l10n = AppLocalizations.of(context)!;
+    final String baseGreeting;
+    if (hour < 12) {
+      baseGreeting = l10n.goodMorning;
+    } else if (hour < 17) {
+      baseGreeting = l10n.goodAfternoon;
+    } else {
+      baseGreeting = l10n.goodEvening;
+    }
+    
+    final icon = hour < 12 ? '☀️' : (hour < 17 ? '🌤️' : '🌙');
+    return '$baseGreeting $icon';
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -97,7 +100,7 @@ class HomeHeaderWidget extends StatelessWidget {
                                   ),
                                 ),
                                 errorWidget: (context, url, error) => Text(
-                                  user!.name[0].toUpperCase(),
+                                  user!.name.isNotEmpty ? user!.name[0].toUpperCase() : 'U',
                                   style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
@@ -108,7 +111,7 @@ class HomeHeaderWidget extends StatelessWidget {
                             )
                           : user?.name != null
                               ? Text(
-                                  user!.name[0].toUpperCase(),
+                                  user!.name.isNotEmpty ? user!.name[0].toUpperCase() : 'U',
                                   style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
@@ -132,25 +135,18 @@ class HomeHeaderWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _greeting,
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 14,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(_greetingIcon, style: const TextStyle(fontSize: 16)),
-                  ],
+                Text(
+                  _getGreeting(context),
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  user?.name.split(' ').first ?? 'Welcome',
+                  user?.name.split(' ').first ?? l10n.welcomeBack,
                   style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 24,

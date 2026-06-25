@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:housepital/core/services/socket_notification_service.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../widgets/booking_cancellation_modal.dart';
+
 
 class BookingMatchingScreen extends StatefulWidget {
   final String matchingRequestId;
@@ -17,14 +19,14 @@ class BookingMatchingScreen extends StatefulWidget {
   final Map<String, dynamic>? retryRequestPayload;
 
   const BookingMatchingScreen({
-    Key? key,
+    super.key,
     required this.matchingRequestId,
     required this.serviceName,
     required this.patientName,
     required this.patientLatitude,
     required this.patientLongitude,
     this.retryRequestPayload,
-  }) : super(key: key);
+  });
 
   @override
   State<BookingMatchingScreen> createState() => _BookingMatchingScreenState();
@@ -32,6 +34,7 @@ class BookingMatchingScreen extends StatefulWidget {
 
 class _BookingMatchingScreenState extends State<BookingMatchingScreen>
     with TickerProviderStateMixin {
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
   static const double _searchZoomLevel = 14;
   static const double _terminalZoomLevel = 13;
 
@@ -43,6 +46,9 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   double? _requestLatitude;
   double? _requestLongitude;
   Timer? _pollTimer;
+  Timer? _countdownTimer;
+  bool _hideOverlayCards = false;
+  Map<String, dynamic>? _retryRequestPayload;
 
   bool _isSubmitting = false;
   bool _isCancelling = false;
@@ -64,6 +70,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
     _activeMatchingRequestId = widget.matchingRequestId;
     _requestLatitude = widget.patientLatitude;
     _requestLongitude = widget.patientLongitude;
+    _retryRequestPayload = widget.retryRequestPayload;
 
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -297,6 +304,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   void dispose() {
     _removeSocketListeners();
     _pollTimer?.cancel();
+    _countdownTimer?.cancel();
     _pulseController.dispose();
     _bottomSheetController.dispose();
     super.dispose();
@@ -304,8 +312,21 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
 
   void _startPolling() {
     _pollTimer?.cancel();
+    _countdownTimer?.cancel();
     _pollOnce();
     _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) => _pollOnce());
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {});
+        if (_expiresAt != null && DateTime.now().isAfter(_expiresAt!) && _terminalError == null) {
+          _pollTimer?.cancel();
+          setState(() {
+            _terminalError = 'This matching request has expired.';
+          });
+          _scheduleMapMove(zoom: _terminalZoomLevel, force: true);
+        }
+      }
+    });
   }
 
   Future<void> _pollOnce() async {
@@ -319,6 +340,21 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
       final status = request['status']?.toString() ?? 'searching';
       final expiresRaw = request['expiresAt']?.toString();
       final parsedExpiry = (expiresRaw != null && expiresRaw.isNotEmpty) ? DateTime.tryParse(expiresRaw) : null;
+      if (_retryRequestPayload == null || _retryRequestPayload!.isEmpty) {
+        final serviceIdVal = request['serviceId'];
+        final serviceId = serviceIdVal is Map ? serviceIdVal['_id'] ?? serviceIdVal['id'] : serviceIdVal;
+        _retryRequestPayload = {
+          'serviceId': serviceId,
+          'latitude': latestLocation != null ? latestLocation['latitude'] : _requestLatitude,
+          'longitude': latestLocation != null ? latestLocation['longitude'] : _requestLongitude,
+          'address': request['address'],
+          'timeOption': request['timeOption'] ?? 'asap',
+          'scheduledDate': request['scheduledDate'],
+          'scheduledTime': request['scheduledTime'],
+          'nurseGenderPreference': request['nurseGenderPreference'] ?? 'any',
+          'notes': request['notes'] ?? '',
+        };
+      }
 
       if (mounted) {
         setState(() {
@@ -421,35 +457,38 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
     if (_isCancelling || _isSubmitting || _isRetrying) return;
     final shouldCancel = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel request?'),
-        content: const Text('This will stop matching and notify available nurses.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep waiting', style: TextStyle(color: AppColors.textPrimary)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: AppColors.light50,
-            ),
-            child: const Text('Cancel request'),
-          ),
-        ],
+      builder: (ctx) => BookingCancellationModal(
+        isLateCancel: false,
+        onConfirm: () => Navigator.pop(ctx, true),
+        onCancel: () => Navigator.pop(ctx, false),
       ),
     ) ?? false;
 
     if (!shouldCancel || !mounted) return;
     setState(() => _isCancelling = true);
     _pollTimer?.cancel();
+    _countdownTimer?.cancel();
 
     try {
       final api = ApiService();
-      await api.put('/api/matching/request/$_activeMatchingRequestId/cancel');
+      await api.put('/api/matching/request/$_activeMatchingRequestId/cancel', body: {});
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Matching request cancelled')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: const [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 12),
+              Text('Matching request cancelled'),
+            ],
+          ),
+          backgroundColor: const Color(0xFF2ECC71),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
@@ -489,7 +528,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
 
   Future<void> _retryMatchingRequest() async {
     if (_isRetrying || _isSubmitting || _isCancelling || _isBackgrounding) return;
-    final payload = widget.retryRequestPayload;
+    final payload = _retryRequestPayload;
     if (payload == null || payload.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Retry data is missing. Please book again.')));
       return;
@@ -545,15 +584,17 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.light200,
+      backgroundColor: isDark ? const Color(0xFF0D0C11) : AppColors.light200,
       body: Stack(
         children: [
           // 1. Map Layer
           _buildMap(),
 
           // 2. Top Gradient for readability
-          Positioned(
-            top: 0,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            top: _hideOverlayCards ? -150 : 0,
             left: 0,
             right: 0,
             height: 120,
@@ -572,8 +613,10 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
           ),
 
           // 3. Top Navigation & Status
-          Positioned(
-            top: 0,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            top: _hideOverlayCards ? -150 : 0,
             left: 0,
             right: 0,
             child: SafeArea(
@@ -604,15 +647,19 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
           ),
 
           // 4. Recenter Button
-          Positioned(
-            right: 16,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            right: _hideOverlayCards ? -100 : 16,
             bottom: MediaQuery.of(context).size.height * 0.45,
             child: _buildRecenterButton(),
           ),
 
           // 5. Bottom Panel
-          Positioned(
-            bottom: 0,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            bottom: _hideOverlayCards ? -600 : 0,
             left: 0,
             right: 0,
             child: _buildAnimatedBottomSheet(),
@@ -623,6 +670,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   }
 
   Widget _buildMap() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Stack(
       children: [
         FlutterMap(
@@ -630,10 +678,15 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
           options: MapOptions(
             initialCenter: _mapCenter,
             initialZoom: _searchZoomLevel,
+            onTap: (tapPosition, point) {
+              setState(() {
+                _hideOverlayCards = !_hideOverlayCards;
+              });
+            },
           ),
           children: [
             TileLayer(
-              urlTemplate:
+              urlTemplate: isDark ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png':
                   'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.housepital.staff',
             ),
@@ -654,6 +707,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   }
 
   Widget _buildPulsingLocationMarker() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnimatedBuilder(
       animation: _pulseController,
       builder: (context, child) {
@@ -690,7 +744,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
               height: 72,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.light50,
+                color: isDark ? const Color(0xFF16151A) : AppColors.light50,
                 boxShadow: [
                   BoxShadow(
                     color: color.withOpacity(0.25),
@@ -712,17 +766,18 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   }
 
   Widget _buildGlassButton({required IconData icon, required VoidCallback onTap}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Material(
-          color: AppColors.light50.withOpacity(0.85),
+          color: isDark ? const Color(0xFF16151A) : AppColors.light50.withOpacity(0.85),
           child: InkWell(
             onTap: onTap,
             child: Container(
               padding: const EdgeInsets.all(12),
-              child: Icon(icon, color: AppColors.dark700, size: 22),
+              child: Icon(icon, color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700, size: 22),
             ),
           ),
         ),
@@ -731,6 +786,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   }
 
   Widget _buildGlassStatusChip() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool errorMode = _terminalError != null;
     final bool offersMode = _offers.isNotEmpty;
     final Color color = errorMode ? AppColors.error : (offersMode ? AppColors.success : AppColors.primary500);
@@ -742,7 +798,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: AppColors.light50.withOpacity(0.85),
+          color: isDark ? const Color(0xFF16151A) : AppColors.light50.withOpacity(0.85),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -782,24 +838,26 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   }
 
   Widget _buildRecenterButton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return FloatingActionButton(
       heroTag: 'recenter_btn',
-      backgroundColor: AppColors.light50,
+      backgroundColor: isDark ? const Color(0xFF16151A) : AppColors.light50,
       mini: true,
       elevation: 4,
       onPressed: _recenterMap,
-      child: const Icon(
+      child: Icon(
         Icons.my_location_rounded,
-        color: AppColors.dark300,
+        color: isDark ? Colors.white : AppColors.dark300,
         size: 22,
       ),
     );
   }
 
   Widget _buildAnimatedBottomSheet() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SlideTransition(
       position: Tween<Offset>(
-        begin: const Offset(0, 1),
+        begin: Offset(0, 1),
         end: Offset.zero,
       ).animate(CurvedAnimation(
         parent: _bottomSheetController,
@@ -808,14 +866,14 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
       child: Container(
         margin: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.light50,
+          color: isDark ? const Color(0xFF16151A) : AppColors.light50,
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
               blurRadius: 24,
               spreadRadius: 0,
-              offset: const Offset(0, 8),
+              offset: Offset(0, 8),
             ),
           ],
         ),
@@ -830,7 +888,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
                 width: 48,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: AppColors.light400,
+                  color: isDark ?  AppColors.light400 : const Color(0xFF16151A),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
@@ -846,6 +904,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   }
 
   Widget _buildBottomSheetContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_terminalError != null) {
       return _buildErrorStateContent();
     }
@@ -856,6 +915,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   }
 
   Widget _buildErrorStateContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final message = _terminalError ?? 'Matching failed';
     final lowerMessage = message.toLowerCase();
     final isNoNursesState = lowerMessage.contains('no nurses');
@@ -880,10 +940,10 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.light50,
+                  color: isDark ? const Color(0xFF16151A) : AppColors.light50,
                   shape: BoxShape.circle,
                   boxShadow: [
-                    BoxShadow(color: accentColor.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4)),
+                    BoxShadow(color: accentColor.withOpacity(0.15), blurRadius: 10, offset: Offset(0, 4)),
                   ],
                 ),
                 child: Icon(icon, color: accentColor, size: 24),
@@ -895,7 +955,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
                   children: [
                     Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: accentColor)),
                     const SizedBox(height: 4),
-                    Text(subtitle, style: const TextStyle(fontSize: 13, color: AppColors.dark200, height: 1.4)),
+                    Text(subtitle, style: TextStyle(fontSize: 13, color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200, height: 1.4)),
                   ],
                 ),
               ),
@@ -913,7 +973,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   side: const BorderSide(color: AppColors.light400),
                 ),
-                child: const Text('Back Home', style: TextStyle(color: AppColors.dark600, fontWeight: FontWeight.w600)),
+                child: Text('Back Home', style: TextStyle(color: AppColors.dark600, fontWeight: FontWeight.w600)),
               ),
             ),
             if (isNoNursesState) ...[
@@ -929,7 +989,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
                   ),
                   child: _isRetrying
                       ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(AppColors.light50)))
-                      : const Text('Try Again', style: TextStyle(fontWeight: FontWeight.bold)),
+                      : Text('Try Again', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -940,6 +1000,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   }
 
   Widget _buildSearchingContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         Container(
@@ -954,20 +1015,20 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.light50,
+                  color: isDark ? const Color(0xFF16151A) : AppColors.light50,
                   shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: AppColors.primary500.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4))],
+                  boxShadow: [BoxShadow(color: AppColors.primary500.withOpacity(0.15), blurRadius: 10, offset: Offset(0, 4))],
                 ),
-                child: const Icon(Icons.search_rounded, color: AppColors.primary500, size: 24),
+                child: Icon(Icons.search_rounded, color: AppColors.primary500, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_statusText, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary500)),
+                    Text(_statusText, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary500)),
                     const SizedBox(height: 4),
-                    Text('Scanning within ${_searchRadiusKm.toStringAsFixed(0)} km for ${widget.serviceName}', style: const TextStyle(fontSize: 13, color: AppColors.dark200, height: 1.4)),
+                    Text('Scanning within ${_searchRadiusKm.toStringAsFixed(0)} km for ${widget.serviceName}', style: TextStyle(fontSize: 13, color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200, height: 1.4)),
                   ],
                 ),
               ),
@@ -987,25 +1048,27 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   }
 
   Widget _buildMetricCard({required String label, required String value, required IconData icon, bool isHighlight = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isHighlight ? AppColors.warning : AppColors.dark600;
+    final darkColor = isHighlight ? AppColors.warning : AppColors.dark50;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.light100,
+        color: isDark ? const Color(0xFF16151A) : AppColors.light100,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.light400),
+        border: Border.all(color: isDark ? AppColors.dark400 : AppColors.light400),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: color),
+              Icon(icon, size: 16, color: isDark ? darkColor : color),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.dark200),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? darkColor : color),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1013,20 +1076,21 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
             ],
           ),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color)),
+          Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? darkColor : color)),
         ],
       ),
     );
   }
 
   Widget _buildOffersListContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Available Nurses', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.dark700)),
+        Text('Available Nurses', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700)),
         const SizedBox(height: 4),
-        Text(_statusText, style: const TextStyle(fontSize: 13, color: AppColors.dark200)),
+        Text(_statusText, style: TextStyle(fontSize: 13, color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200)),
         const SizedBox(height: 16),
         ConstrainedBox(
           constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
@@ -1042,6 +1106,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
   }
 
   Widget _buildOfferCard(Map<String, dynamic> offer) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final nurse = (offer['nurse'] as Map<String, dynamic>?) ?? {};
     final pricing = (offer['pricing'] as Map<String, dynamic>?) ?? {};
     final offerId = offer['offerId']?.toString() ?? '';
@@ -1057,11 +1122,11 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.light50,
+        color: isDark ? const Color(0xFF16151A) : AppColors.light50,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.light400),
+        border: Border.all(color: isDark ? AppColors.dark400 : AppColors.light400),
         boxShadow: [
-          BoxShadow(color: AppColors.dark700.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: isDark ? AppColors.dark700.withOpacity(0.04) : AppColors.light100.withOpacity(0.04), blurRadius: 10, offset: Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -1077,24 +1142,24 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: AppColors.primary100),
                 ),
-                child: const Icon(Icons.person_rounded, color: AppColors.primary500, size: 24),
+                child: Icon(Icons.person_rounded, color: AppColors.primary500, size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(nurseName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.dark700)),
+                    Text(nurseName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? AppColors.light100 : AppColors.dark700)),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.star_rounded, size: 14, color: AppColors.warning),
+                        Icon(Icons.star_rounded, size: 14, color: AppColors.warning),
                         const SizedBox(width: 4),
-                        Text(rating, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.dark300)),
+                        Text(rating, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.dark300)),
                         const SizedBox(width: 8),
-                        Container(width: 4, height: 4, decoration: const BoxDecoration(color: AppColors.light600, shape: BoxShape.circle)),
+                        Container(width: 4, height: 4, decoration: BoxDecoration(color: AppColors.light600, shape: BoxShape.circle)),
                         const SizedBox(width: 8),
-                        Text('$years yrs exp', style: const TextStyle(fontSize: 12, color: AppColors.dark200)),
+                        Text('$years yrs exp', style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200)),
                       ],
                     ),
                   ],
@@ -1103,23 +1168,23 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(color: AppColors.success50, borderRadius: BorderRadius.circular(10)),
-                child: Text('EGP $totalPrice', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.success800, fontSize: 14)),
+                child: Text('EGP $totalPrice', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.success800, fontSize: 14)),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(color: AppColors.light100, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: isDark ? AppColors.dark800 : AppColors.light100, borderRadius: BorderRadius.circular(12)),
             child: Row(
               children: [
-                const Icon(Icons.directions_car_rounded, size: 14, color: AppColors.dark300),
+                Icon(Icons.directions_car_rounded, size: 14, color: isDark ? AppColors.light100 : AppColors.dark300),
                 const SizedBox(width: 6),
-                Text('ETA $eta min', style: const TextStyle(color: AppColors.dark600, fontSize: 13, fontWeight: FontWeight.w600)),
+                Text('ETA $eta min', style: TextStyle(color: isDark ? AppColors.light100 : AppColors.dark600, fontSize: 13, fontWeight: FontWeight.w600)),
                 const Spacer(),
-                const Icon(Icons.location_on_rounded, size: 14, color: AppColors.dark300),
+                Icon(Icons.location_on_rounded, size: 14, color: isDark ? AppColors.light100 : AppColors.dark300),
                 const SizedBox(width: 6),
-                Text('$distance km away', style: const TextStyle(color: AppColors.dark600, fontSize: 13, fontWeight: FontWeight.w600)),
+                Text('$distance km away', style: TextStyle(color: isDark ? AppColors.light100 : AppColors.dark600, fontSize: 13, fontWeight: FontWeight.w600)),
               ],
             ),
           ),
@@ -1134,7 +1199,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     side: const BorderSide(color: AppColors.light400),
                   ),
-                  child: const Text('Decline', style: TextStyle(color: AppColors.dark600, fontWeight: FontWeight.w600)),
+                  child: Text('Decline', style: TextStyle(color: isDark ? AppColors.light100 : AppColors.dark600, fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1148,7 +1213,7 @@ class _BookingMatchingScreenState extends State<BookingMatchingScreen>
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
-                  child: const Text('Accept', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text('Accept', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

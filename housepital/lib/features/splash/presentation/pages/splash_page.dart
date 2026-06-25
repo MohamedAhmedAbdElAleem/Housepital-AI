@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/utils/token_manager.dart';
 import '../../../../core/providers/notification_provider.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -432,9 +433,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
             child: Column(
               children: [
                 // App Name with shadow
-                const Text(
-                  'Housepital',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)?.appName ?? 'Housepital',
+                  style: const TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -475,7 +476,8 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'AI-Powered Home Healthcare',
+                        AppLocalizations.of(context)?.appTagline ??
+                            'AI-Powered Home Healthcare',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.white.withOpacity(0.95),
@@ -543,7 +545,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
 
               // Loading text
               Text(
-                'Loading...',
+                AppLocalizations.of(context)?.loading ?? 'Loading...',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.white.withOpacity(0.7),
@@ -561,13 +563,14 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   // 📱 VERSION INFO
   // ═══════════════════════════════════════════════════════════════════
   Widget _buildVersionInfo() {
+    final l10n = AppLocalizations.of(context)!;
     return AnimatedBuilder(
       animation: _mainController,
       builder: (context, child) {
         return Opacity(
           opacity: _fadeAnimation.value * 0.6,
           child: Text(
-            'Version 1.0.0',
+            l10n.version,
             style: TextStyle(
               fontSize: 12,
               color: Colors.white.withOpacity(0.5),
