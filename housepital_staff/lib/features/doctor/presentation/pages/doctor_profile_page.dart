@@ -338,13 +338,24 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                   locale.languageCode == 'ar' ? 'العربية' : 'English',
                   style: DoctorTheme.caption(context),
                 ),
-                trailing: TextButton(
-                  onPressed: () => context.read<LanguageCubit>().toggleLanguage(),
-                  child: Text(
-                    locale.languageCode == 'ar' ? 'English' : 'العربية',
-                    style: TextStyle(
-                      color: DoctorTheme.primary,
-                      fontWeight: FontWeight.w700,
+                trailing: SizedBox(
+                  width: 90,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: InkWell(
+                      onTap: () => context.read<LanguageCubit>().toggleLanguage(),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        child: Text(
+                          locale.languageCode == 'ar' ? 'English' : 'العربية',
+                          style: TextStyle(
+                            color: DoctorTheme.primary,
+                            fontWeight: FontWeight.w700,
+                            inherit: true,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
