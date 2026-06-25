@@ -79,6 +79,7 @@ dependencies:
   share_plus: ^13.1.0
   local_auth: ^3.0.1
   flutter_secure_storage: ^8.1.0
+  flutter_blue_plus: ^2.3.9
 
 dev_dependencies:
   flutter_test:

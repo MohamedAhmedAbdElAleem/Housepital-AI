@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../chatbot/presentation/pages/chatbot_page.dart';
-import '../../../../../../generated/l10n/app_localizations.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 
 class HomeAICard extends StatefulWidget {
   const HomeAICard({super.key});
@@ -18,7 +18,7 @@ class _HomeAICardState extends State<HomeAICard> with SingleTickerProviderStateM
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 4),
+      duration: const Duration(seconds: 8),
     )..repeat();
   }
 
@@ -34,7 +34,7 @@ class _HomeAICardState extends State<HomeAICard> with SingleTickerProviderStateM
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       child: GestureDetector(
         onTap: () {
           HapticFeedback.heavyImpact();
@@ -44,56 +44,65 @@ class _HomeAICardState extends State<HomeAICard> with SingleTickerProviderStateM
           );
         },
         child: Container(
-          height: 120,
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
             borderRadius: BorderRadius.circular(28),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [
+                      const Color(0xFF2A1B4E), // Deep Cyber Violet
+                      const Color(0xFF130B26),
+                    ]
+                  : [
+                      const Color(0xFF7C3AED), // Premium Violet
+                      const Color(0xFF5B21B6),
+                    ],
+            ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF667eea).withOpacity(0.08),
-                blurRadius: 30,
+                color: (isDark ? const Color(0xFF7C3AED) : const Color(0xFF5B21B6))
+                    .withAlpha(isDark ? 30 : 70),
+                blurRadius: 24,
+                spreadRadius: 1,
                 offset: const Offset(0, 10),
               ),
             ],
             border: Border.all(
-              color: isDark ? Colors.white10 : Colors.grey.withOpacity(0.1),
+              color: Colors.white.withAlpha(isDark ? 10 : 20),
+              width: 1,
             ),
           ),
           child: Stack(
             children: [
-              // Background Pattern
+              // Rotating psychology background watermark
               Positioned(
-                right: -20,
-                top: -20,
+                right: -30,
+                top: -30,
                 child: RotationTransition(
                   turns: _controller,
                   child: Icon(
                     Icons.psychology_rounded,
-                    size: 160,
-                    color: const Color(0xFF667eea).withOpacity(0.05),
+                    size: 170,
+                    color: Colors.white.withAlpha(isDark ? 4 : 8),
                   ),
                 ),
               ),
-
               Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(22),
                 child: Row(
                   children: [
-                    // Icon with Animation
+                    // Icon Container
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                        ),
+                        color: Colors.white.withAlpha(isDark ? 12 : 20),
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF667eea).withOpacity(0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        border: Border.all(
+                          color: Colors.white.withAlpha(isDark ? 15 : 30),
+                          width: 1,
+                        ),
                       ),
                       child: const Icon(
                         Icons.psychology_rounded,
@@ -101,34 +110,34 @@ class _HomeAICardState extends State<HomeAICard> with SingleTickerProviderStateM
                         size: 32,
                       ),
                     ),
-
-                    const SizedBox(width: 20),
-
-                    // Content
+                    const SizedBox(width: 16),
+                    // Text details
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Row(
                             children: [
                               Text(
                                 l10n.aiHealthAssistant,
-                                style: TextStyle(
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  color: Colors.white,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : const Color(0xFF1A1A2E),
+                                  letterSpacing: -0.3,
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
+                                  horizontal: 8,
+                                  vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFF4B2B),
-                                  borderRadius: BorderRadius.circular(6),
+                                  color: const Color(0xFFEF4444), // Vibrant Red
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   l10n.newLabel,
@@ -145,26 +154,30 @@ class _HomeAICardState extends State<HomeAICard> with SingleTickerProviderStateM
                           Text(
                             l10n.aiAdviceSubtitle,
                             style: TextStyle(
+                              fontFamily: 'Inter',
+                              color: Colors.white.withAlpha(180),
                               fontSize: 13,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
                     ),
-
-                    // Action Arrow
+                    // Action arrow button
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF667eea).withOpacity(0.1),
+                        color: Colors.white.withAlpha(isDark ? 10 : 20),
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withAlpha(isDark ? 8 : 15),
+                          width: 1,
+                        ),
                       ),
                       child: const Icon(
                         Icons.arrow_forward_ios_rounded,
-                        size: 14,
-                        color: Color(0xFF667eea),
+                        size: 12,
+                        color: Colors.white,
                       ),
                     ),
                   ],

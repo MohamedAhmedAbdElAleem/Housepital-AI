@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../auth/data/models/user_model.dart';
 
 class _SubscriptionDesign {
   static const primaryGreen = Color(0xFF00C853);
-  static const surface = Color(0xFFF8FAFC);
-  static const textPrimary = Color(0xFF1E293B);
-  static const textSecondary = Color(0xFF64748B);
-  static const cardBg = Colors.white;
+  static Color surface(bool isDark) => isDark ? const Color(0xFF0D0C11) : const Color(0xFFF8FAFC);
+  static Color textPrimary(bool isDark) => isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B);
+  static Color textSecondary(bool isDark) => isDark ? const Color(0xFFA19EAB) : const Color(0xFF64748B);
+  static Color textMuted(bool isDark) => isDark ? const Color(0xFF5F5C68) : const Color(0xFF94A3B8);
+  static Color cardBg(bool isDark) => isDark ? const Color(0xFF16151A) : Colors.white;
+  static Color divider(bool isDark) => isDark ? const Color(0xFF2A2831) : const Color(0xFFE2E8F0);
+  static Color bottomSheetBg(bool isDark) => isDark ? const Color(0xFF16151A) : Colors.white;
 
   static const headerGradient = LinearGradient(
     begin: Alignment.topLeft,
@@ -27,14 +31,14 @@ class _SubscriptionDesign {
     colors: [Color(0xFF00C853), Color(0xFF00E676)],
   );
 
-  static BoxShadow get cardShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.06),
+  static BoxShadow cardShadow(bool isDark) => BoxShadow(
+    color: Colors.black.withOpacity(isDark ? 0.3 : 0.06),
     blurRadius: 16,
     offset: const Offset(0, 4),
   );
 
-  static BoxShadow get softShadow => BoxShadow(
-    color: const Color(0xFFFFB300).withOpacity(0.25),
+  static BoxShadow softShadow(bool isDark) => BoxShadow(
+    color: const Color(0xFFFFB300).withOpacity(isDark ? 0.4 : 0.25),
     blurRadius: 20,
     offset: const Offset(0, 8),
   );
@@ -55,8 +59,11 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  final String _currentPlan = 'free';
+  String _currentPlan = 'basic';
   int _selectedPlanIndex = -1;
+  bool _isProcessingPayment = false;
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
 
   final List<Map<String, dynamic>> _plans = [
     {
@@ -102,6 +109,26 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   void initState() {
     super.initState();
     _setupAnimations();
+    _loadCurrentPlan();
+  }
+
+  Future<void> _loadCurrentPlan() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _currentPlan = prefs.getString('subscription_plan') ?? 'basic';
+      });
+    }
+  }
+
+  Future<void> _savePlan(String plan) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('subscription_plan', plan);
+    if (mounted) {
+      setState(() {
+        _currentPlan = plan;
+      });
+    }
   }
 
   void _setupAnimations() {
@@ -130,82 +157,386 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     super.dispose();
   }
 
-  void _showUpgradeDialog() {
+  void _showUpgradeDialog(Map<String, dynamic> plan) {
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: BoxDecoration(
+                color: _SubscriptionDesign.bottomSheetBg(_isDark),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: _SubscriptionDesign.divider(_isDark),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Secure Checkout',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: _SubscriptionDesign.textPrimary(_isDark),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: Icon(Icons.close, color: _SubscriptionDesign.textSecondary(_isDark)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _isDark ? const Color(0xFF222029) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: _SubscriptionDesign.premiumGradient,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.diamond_rounded, color: Colors.white, size: 24),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Housepital Premium Plan',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: _SubscriptionDesign.textPrimary(_isDark),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'All features unlocked, no booking fees',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: _SubscriptionDesign.textSecondary(_isDark),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          'EGP ${plan['price']}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFFB300),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Select Payment Method',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: _SubscriptionDesign.textSecondary(_isDark),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPaymentMethodOption(
+                    title: 'Credit / Debit Card',
+                    subtitle: 'Visa / MasterCard ending in 4242',
+                    icon: Icons.credit_card_rounded,
+                    isSelected: true,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPaymentMethodOption(
+                    title: 'Vodafone Cash',
+                    subtitle: '+20 101 **** 592',
+                    icon: Icons.phone_android_rounded,
+                    isSelected: false,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton(
+                      onPressed: _isProcessingPayment
+                          ? null
+                          : () async {
+                              setModalState(() {
+                                _isProcessingPayment = true;
+                              });
+                              setState(() {
+                                _isProcessingPayment = true;
+                              });
+                              
+                              await Future.delayed(const Duration(seconds: 2));
+                              
+                              if (mounted) {
+                                await _savePlan('premium');
+                                setState(() {
+                                  _isProcessingPayment = false;
+                                });
+                                Navigator.pop(context);
+                                _showSuccessDialog();
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFB300),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isProcessingPayment
+                          ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.lock_outline_rounded, size: 20),
+                                SizedBox(width: 10),
+                                Text(
+                                  'Confirm & Pay EGP 199.00',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) {
+      setState(() {
+        _isProcessingPayment = false;
+      });
+    });
+  }
+
+  void _showDowngradeDialog() {
     HapticFeedback.mediumImpact();
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
+      builder: (context) => AlertDialog(
+        backgroundColor: _SubscriptionDesign.cardBg(_isDark),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        title: Text(
+          'Downgrade Plan',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: _SubscriptionDesign.textPrimary(_isDark),
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to switch back to the Basic plan? You will lose access to premium features immediately.',
+          style: TextStyle(
+            color: _SubscriptionDesign.textSecondary(_isDark),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Keep Premium',
+              style: TextStyle(color: Color(0xFFFFB300), fontWeight: FontWeight.bold),
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
+          ),
+          TextButton(
+            onPressed: () async {
+              await _savePlan('basic');
+              if (mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Successfully switched to Basic plan.'),
+                    backgroundColor: _SubscriptionDesign.textSecondary(_isDark),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: const Text(
+              'Yes, Downgrade',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuccessDialog() {
+    HapticFeedback.heavyImpact();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: _SubscriptionDesign.cardBg(_isDark),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: _SubscriptionDesign.premiumGradient,
+                shape: BoxShape.circle,
+                boxShadow: [_SubscriptionDesign.softShadow(_isDark)],
+              ),
+              child: const Icon(
+                Icons.auto_awesome_rounded,
+                color: Colors.white,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Premium Unlocked!',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: _SubscriptionDesign.textPrimary(_isDark),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Congratulations! You are now a Housepital Premium Member.\nEnjoy priority bookings, zero service fees, and exclusive discounts!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: _SubscriptionDesign.textSecondary(_isDark),
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFB300),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Explore Benefits',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethodOption({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool isSelected,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _isDark ? const Color(0xFF1E1C24) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSelected
+              ? const Color(0xFFFFB300)
+              : _SubscriptionDesign.divider(_isDark),
+          width: isSelected ? 2 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: isSelected ? const Color(0xFFFFB300) : _SubscriptionDesign.textSecondary(_isDark)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    gradient: _SubscriptionDesign.premiumGradient,
-                    shape: BoxShape.circle,
-                    boxShadow: [_SubscriptionDesign.softShadow],
-                  ),
-                  child: const Icon(
-                    Icons.diamond_rounded,
-                    color: Colors.white,
-                    size: 44,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Upgrade to Premium',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: _SubscriptionDesign.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
                 Text(
-                  'This feature will be available soon.\nStay tuned for updates!',
-                  textAlign: TextAlign.center,
+                  title,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
-                    height: 1.5,
+                    fontWeight: FontWeight.bold,
+                    color: _SubscriptionDesign.textPrimary(_isDark),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: _SubscriptionDesign.textSecondary(_isDark),
                   ),
                 ),
               ],
             ),
-            actions: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFB300),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Got it!',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
           ),
+          if (isSelected)
+            const Icon(Icons.check_circle_rounded, color: Color(0xFFFFB300))
+          else
+            Icon(Icons.circle_outlined, color: _SubscriptionDesign.divider(_isDark)),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _SubscriptionDesign.surface,
+      backgroundColor: _SubscriptionDesign.surface(_isDark),
       body: Column(
         children: [
           _buildHeader(),
@@ -244,7 +575,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
-        boxShadow: [_SubscriptionDesign.softShadow],
+        boxShadow: [_SubscriptionDesign.softShadow(_isDark)],
       ),
       child: SafeArea(
         bottom: false,
@@ -381,8 +712,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFFFFB300).withOpacity(0.1),
-            const Color(0xFFFFC107).withOpacity(0.05),
+            const Color(0xFFFFB300).withOpacity(_isDark ? 0.15 : 0.1),
+            const Color(0xFFFFC107).withOpacity(_isDark ? 0.08 : 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -407,25 +738,25 @@ class _SubscriptionPageState extends State<SubscriptionPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Upgrade to Premium',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _SubscriptionDesign.textPrimary,
+                    color: _SubscriptionDesign.textPrimary(_isDark),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Save up to 20% on all bookings',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 13, color: _SubscriptionDesign.textSecondary(_isDark)),
                 ),
               ],
             ),
           ),
           Icon(
             Icons.arrow_forward_ios_rounded,
-            color: Colors.grey[400],
+            color: _SubscriptionDesign.textMuted(_isDark),
             size: 18,
           ),
         ],
@@ -452,12 +783,12 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               ),
             ),
             const SizedBox(width: 14),
-            const Text(
+            Text(
               'Available Plans',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: _SubscriptionDesign.textPrimary,
+                color: _SubscriptionDesign.textPrimary(_isDark),
               ),
             ),
           ],
@@ -502,24 +833,23 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: _SubscriptionDesign.cardBg,
+          color: _SubscriptionDesign.cardBg(_isDark),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color:
-                isSelected || isPremium
-                    ? gradient.colors.first
-                    : const Color(0xFFE2E8F0),
+            color: isSelected || isPremium
+                ? gradient.colors.first
+                : _SubscriptionDesign.divider(_isDark),
             width: isSelected || isPremium ? 2 : 1,
           ),
           boxShadow: [
             if (isSelected || isPremium)
               BoxShadow(
-                color: gradient.colors.first.withOpacity(0.2),
+                color: gradient.colors.first.withOpacity(_isDark ? 0.3 : 0.2),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               )
             else
-              _SubscriptionDesign.cardShadow,
+              _SubscriptionDesign.cardShadow(_isDark),
           ],
         ),
         child: Column(
@@ -545,18 +875,20 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 4,
                         children: [
                           Text(
                             plan['name'] as String,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: _SubscriptionDesign.textPrimary,
+                              color: _SubscriptionDesign.textPrimary(_isDark),
                             ),
                           ),
-                          if (plan['badge'] != null) ...[
-                            const SizedBox(width: 10),
+                          if (plan['badge'] != null)
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
@@ -575,9 +907,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                                 ),
                               ),
                             ),
-                          ],
-                          if (isCurrent) ...[
-                            const SizedBox(width: 10),
+                          if (isCurrent)
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
@@ -596,7 +926,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                                 ),
                               ),
                             ),
-                          ],
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -604,10 +933,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text:
-                                  plan['price'] == 0
-                                      ? 'Free'
-                                      : 'EGP ${plan['price']}',
+                              text: plan['price'] == 0 ? 'Free' : 'EGP ${plan['price']}',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -619,7 +945,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                                 text: '/${plan['period']}',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey[500],
+                                  color: _SubscriptionDesign.textSecondary(_isDark),
                                 ),
                               ),
                           ],
@@ -631,7 +957,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               ],
             ),
             const SizedBox(height: 20),
-            Container(height: 1, color: const Color(0xFFE2E8F0)),
+            Container(height: 1, color: _SubscriptionDesign.divider(_isDark)),
             const SizedBox(height: 16),
             ...(plan['features'] as List).map((feature) {
               return Padding(
@@ -653,9 +979,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     const SizedBox(width: 12),
                     Text(
                       feature['text'] as String,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: _SubscriptionDesign.textSecondary,
+                        color: _SubscriptionDesign.textSecondary(_isDark),
                       ),
                     ),
                   ],
@@ -668,7 +994,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _showUpgradeDialog,
+                  onPressed: () => _showUpgradeDialog(plan),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: gradient.colors.first,
                     foregroundColor: Colors.white,
@@ -694,6 +1020,30 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 ),
               ),
             ],
+            if (plan['id'] == 'basic' && _currentPlan == 'premium') ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton(
+                  onPressed: _showDowngradeDialog,
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: _SubscriptionDesign.divider(_isDark)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    'Switch to Basic',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: _SubscriptionDesign.textPrimary(_isDark),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -712,9 +1062,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: _SubscriptionDesign.cardBg,
+        color: _SubscriptionDesign.cardBg(_isDark),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [_SubscriptionDesign.cardShadow],
+        boxShadow: [_SubscriptionDesign.cardShadow(_isDark)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -734,12 +1084,12 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 ),
               ),
               const SizedBox(width: 14),
-              const Text(
+              Text(
                 'Plan Comparison',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: _SubscriptionDesign.textPrimary,
+                  color: _SubscriptionDesign.textPrimary(_isDark),
                 ),
               ),
             ],
@@ -755,7 +1105,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey[600],
+                      color: _SubscriptionDesign.textSecondary(_isDark),
                     ),
                   ),
                 ),
@@ -789,7 +1139,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
             return Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+                border: Border(bottom: BorderSide(color: _SubscriptionDesign.divider(_isDark))),
               ),
               child: Row(
                 children: [
@@ -797,9 +1147,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     flex: 2,
                     child: Text(
                       feature['name']!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: _SubscriptionDesign.textSecondary,
+                        color: _SubscriptionDesign.textSecondary(_isDark),
                       ),
                     ),
                   ),
@@ -807,7 +1157,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     child: Center(
                       child: Text(
                         feature['free']!,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                        style: TextStyle(fontSize: 13, color: _SubscriptionDesign.textSecondary(_isDark)),
                       ),
                     ),
                   ),
@@ -815,10 +1165,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     child: Center(
                       child: Text(
                         feature['premium']!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFFFFB300),
+                          color: _isDark ? const Color(0xFFFFC107) : const Color(0xFFFFB300),
                         ),
                       ),
                     ),

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 
 class BookingsGlassTabBar extends StatelessWidget {
   final int selectedTab;
@@ -15,6 +16,9 @@ class BookingsGlassTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: ClipRRect(
@@ -24,15 +28,15 @@ class BookingsGlassTabBar extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(220),
+              color: isDark ? Colors.black.withAlpha(60) : Colors.white.withAlpha(160),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: Colors.white.withAlpha(180),
+                color: isDark ? Colors.white.withAlpha(10) : Colors.white.withAlpha(200),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withAlpha(15),
+                  color: Colors.black.withAlpha(isDark ? 20 : 10),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -40,8 +44,8 @@ class BookingsGlassTabBar extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _buildTab(0, 'Active', Icons.flash_on_rounded),
-                _buildTab(1, 'History', Icons.history_rounded),
+                _buildTab(context, 0, l10n.tabActive, Icons.flash_on_rounded, isDark),
+                _buildTab(context, 1, l10n.tabHistory, Icons.history_rounded, isDark),
               ],
             ),
           ),
@@ -50,14 +54,15 @@ class BookingsGlassTabBar extends StatelessWidget {
     );
   }
 
-  Widget _buildTab(int index, String label, IconData icon) {
+  Widget _buildTab(BuildContext context, int index, String label, IconData icon, bool isDark) {
     final isSelected = selectedTab == index;
 
-    // Jewel-toned gradient for selected tab
-    const selectedGradient = LinearGradient(
+    final selectedGradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [Color(0xFF2ECC71), Color(0xFF219150)],
+      colors: isDark
+          ? [const Color(0xFF1E3C40), const Color(0xFF112224)]
+          : [const Color(0xFF26B09B), const Color(0xFF1D8F7D)],
     );
 
     return Expanded(
@@ -73,19 +78,28 @@ class BookingsGlassTabBar extends StatelessWidget {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF2ECC71).withAlpha(80),
+                      color: (isDark ? const Color(0xFF1E3C40) : const Color(0xFF26B09B))
+                          .withAlpha(isDark ? 40 : 80),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ]
                 : [],
+            border: isSelected
+                ? Border.all(
+                    color: Colors.white.withAlpha(isDark ? 10 : 25),
+                    width: 1,
+                  )
+                : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 icon,
-                color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white54 : const Color(0xFF94A3B8)),
                 size: 18,
               ),
               const SizedBox(width: 8),
@@ -95,7 +109,9 @@ class BookingsGlassTabBar extends StatelessWidget {
                   fontFamily: 'Inter',
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark ? Colors.white54 : const Color(0xFF94A3B8)),
                 ),
               ),
               if (index == 0 && activeCount > 0) ...[
@@ -105,8 +121,12 @@ class BookingsGlassTabBar extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withAlpha(50)
-                        : const Color(0xFF2ECC71),
+                        : (isDark ? const Color(0xFF1E3C40) : const Color(0xFF26B09B)),
                     borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white.withAlpha(isSelected ? 30 : 0),
+                      width: 1,
+                    ),
                   ),
                   child: Text(
                     '$activeCount',

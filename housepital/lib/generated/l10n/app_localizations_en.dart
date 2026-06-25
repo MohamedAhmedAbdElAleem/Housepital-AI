@@ -860,4 +860,176 @@ class AppLocalizationsEn extends AppLocalizations {
   String offerDetailsSnack(Object title) {
     return 'Offer: $title - Details coming soon';
   }
+
+  @override
+  String get dependents => 'Family & Dependents';
+
+  @override
+  String get dependentsDesc => 'Manage profiles for your family members';
+
+  @override
+  String get securitySection => 'Security';
+
+  @override
+  String get biometricLogin => 'Biometric Login';
+
+  @override
+  String get biometricLoginDesc =>
+      'Use fingerprint or face recognition to unlock';
+
+  @override
+  String get biometricNotSupported => 'Biometrics not supported on this device';
+
+  @override
+  String get twoFactorAuth => 'Two-Factor Authentication';
+
+  @override
+  String get twoFactorAuthDesc =>
+      'Secure your account with an extra verification step';
+
+  @override
+  String get loginActivity => 'Login Activity';
+
+  @override
+  String get loginActivityDesc => 'Monitor active sessions and devices';
+
+  @override
+  String get notificationsSection => 'Notifications';
+
+  @override
+  String get pushNotifications => 'Push Notifications';
+
+  @override
+  String get pushNotificationsDesc =>
+      'Receive real-time updates and alerts on your device';
+
+  @override
+  String get emailNotifications => 'Email Notifications';
+
+  @override
+  String get emailNotificationsDesc =>
+      'Get summaries and receipts sent to your inbox';
+
+  @override
+  String get smsUpdates => 'SMS Updates';
+
+  @override
+  String get smsUpdatesDesc => 'Receive appointment updates via text message';
+
+  @override
+  String get appearanceSection => 'Appearance';
+
+  @override
+  String get dataSection => 'Data & Privacy';
+
+  @override
+  String get clearCache => 'Clear Cache';
+
+  @override
+  String get clearCacheDesc => 'Free up storage space by clearing cached files';
+
+  @override
+  String get clearCacheConfirm =>
+      'Are you sure you want to clear the app cache? This will free up space but keep your personal settings.';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get cacheCleared => 'Cache cleared successfully';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get clearAiHistory => 'Clear AI History';
+
+  @override
+  String get clearAiHistoryDesc =>
+      'Permanently delete your AI chatbot conversations';
+
+  @override
+  String get clearAiHistoryConfirm =>
+      'Are you sure you want to clear your conversation history with the AI Health Assistant? This action cannot be undone.';
+
+  @override
+  String get aiHistoryCleared => 'AI history cleared successfully';
+
+  @override
+  String get downloadMyData => 'Download My Data';
+
+  @override
+  String get downloadMyDataDesc => 'Request a copy of your personal data';
+
+  @override
+  String get about => 'About';
+
+  @override
+  String get helpSupport => 'Help & Support';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get userLabel => 'Patient';
+
+  @override
+  String get signOut => 'Sign Out';
+
+  @override
+  String get signOutConfirmTitle => 'Sign Out';
+
+  @override
+  String get signOutConfirmDesc =>
+      'Are you sure you want to sign out of your account?';
+
+  @override
+  String get accountSection => 'Account';
+
+  @override
+  String get biometricConfirmIdentity =>
+      'Please authenticate to confirm identity';
+
+  @override
+  String get biometricDisabled => 'Biometric login disabled';
+
+  @override
+  String get biometricEnabledSuccess => 'Biometric login enabled successfully!';
+
+  @override
+  String get biometricLoginRequired =>
+      'Biometric authentication is required to enable this feature';
+
+  @override
+  String get myWallet => 'My Wallet';
+
+  @override
+  String get myWalletDesc => 'Manage payments, cards, and transaction history';
+
+  @override
+  String get personalInfo => 'Personal Information';
+
+  @override
+  String get personalInfoDesc => 'View and edit your personal profile details';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterNursing => 'Nursing';
+
+  @override
+  String get filterClinic => 'Clinic';
+
+  @override
+  String get bookingsTitle => 'My Bookings';
+
+  @override
+  String get bookingsSubtitle => 'Track and manage your appointments';
+
+  @override
+  String get tabActive => 'Active';
+
+  @override
+  String get tabHistory => 'History';
 }

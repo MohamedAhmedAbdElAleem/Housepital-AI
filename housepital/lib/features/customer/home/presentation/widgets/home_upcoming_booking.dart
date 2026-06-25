@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../booking/presentation/pages/booking_tracking_page.dart';
-import '../../../../../../generated/l10n/app_localizations.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 
 class HomeUpcomingBooking extends StatefulWidget {
   final bool hasActiveBooking;
+  final Map<String, dynamic>? booking;
 
-  const HomeUpcomingBooking({super.key, this.hasActiveBooking = true});
+  const HomeUpcomingBooking({
+    super.key,
+    this.hasActiveBooking = true,
+    this.booking,
+  });
 
   @override
   State<HomeUpcomingBooking> createState() => _HomeUpcomingBookingState();
@@ -38,151 +43,206 @@ class _HomeUpcomingBookingState extends State<HomeUpcomingBooking>
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final serviceName = widget.booking?['serviceName'] ?? l10n.nursingService;
+    final nurseName = widget.booking?['nurseName'] ?? l10n.assigningNurse;
+    final rawStatus = (widget.booking?['status'] ?? 'IN PROGRESS').toString().toUpperCase();
+    final status = (rawStatus == 'IN_PROGRESS' || rawStatus == 'IN PROGRESS') 
+        ? l10n.activeStatus 
+        : rawStatus;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       child: GestureDetector(
         onTap: () {
           HapticFeedback.mediumImpact();
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const BookingTrackingPage(),
+              builder: (context) => BookingTrackingPage(booking: widget.booking ?? {}),
             ),
           );
         },
         child: Container(
-          padding: const EdgeInsets.all(20),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF3498BB), Color(0xFF1E5B70)], // Trust Blue gradient
+              colors: isDark
+                  ? [
+                      const Color(0xFF1E3C40), // Premium Emerald Deep Pine
+                      const Color(0xFF112224),
+                    ]
+                  : [
+                      const Color(0xFF26B09B), // Teal
+                      const Color(0xFF1D8F7D),
+                    ],
             ),
-            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF3498BB).withAlpha(isDark ? 60 : 80),
-                blurRadius: 20,
+                color: (isDark ? const Color(0xFF1E3C40) : const Color(0xFF26B09B))
+                    .withAlpha(isDark ? 60 : 80),
+                blurRadius: 24,
+                spreadRadius: 1,
                 offset: const Offset(0, 8),
               ),
             ],
+            border: Border.all(
+              color: Colors.white.withAlpha(isDark ? 10 : 25),
+              width: 1,
+            ),
           ),
-          child: Column(
+          child: Stack(
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.medical_services_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.nursingService,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          l10n.assigningNurse,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ScaleTransition(
-                          scale: Tween(begin: 1.0, end: 1.2).animate(
-                            CurvedAnimation(
-                              parent: _pulseController,
-                              curve: Curves.easeInOut,
-                            ),
-                          ),
-                          child: Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF4ADE80),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.activeStatus,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
+              // Large translucent background icon (Watermark style)
+              Positioned(
+                right: -20,
+                bottom: -20,
+                child: Icon(
+                  Icons.local_hospital_rounded,
+                  size: 140,
+                  color: Colors.white.withAlpha(isDark ? 5 : 8),
                 ),
-                child: Row(
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
                   children: [
-                    const Icon(
-                      Icons.access_time_filled_rounded,
-                      color: Colors.white,
-                      size: 16,
+                    Row(
+                      children: [
+                        // Service Icon Container
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(isDark ? 10 : 20),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withAlpha(isDark ? 10 : 30),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.medical_services_outlined,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        // Service Details
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                serviceName,
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                nurseName,
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  color: Colors.white.withAlpha(180),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Status Indicator
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(isDark ? 10 : 20),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withAlpha(isDark ? 10 : 25),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ScaleTransition(
+                                scale: Tween(begin: 1.0, end: 1.3).animate(
+                                  CurvedAnimation(
+                                    parent: _pulseController,
+                                    curve: Curves.easeInOut,
+                                  ),
+                                ),
+                                child: Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF4ADE80), // Vibrant Green
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                status,
+                                style: const TextStyle(
+                                  fontFamily: 'Inter',
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Arriving in 15 mins',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const Spacer(),
+                    const SizedBox(height: 20),
+                    // Glassmorphic ETA Row
                     Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
                       ),
-                      child: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 10,
-                        color: Color(0xFF667eea),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(isDark ? 6 : 12),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withAlpha(isDark ? 8 : 15),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.directions_walk_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            isDark ? 'Nurse en route...' : 'Nurse is on the way',
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Spacer(),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 12,
+                            color: Colors.white70,
+                          ),
+                        ],
                       ),
                     ),
                   ],

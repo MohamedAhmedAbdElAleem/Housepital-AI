@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/network/api_service.dart';
@@ -39,6 +40,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   UserModel? _user;
   bool _isLoading = true;
+  bool _isPremium = false;
 
   @override
   void initState() {
@@ -49,6 +51,17 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _loadUserData({bool isRefresh = false}) async {
     if (isRefresh) {
       HapticFeedback.lightImpact();
+    }
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (mounted) {
+        setState(() {
+          _isPremium = (prefs.getString('subscription_plan') ?? 'basic') == 'premium';
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Prefs Error: $e');
     }
     
     try {
@@ -314,6 +327,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 initials: _user != null && _user!.name.isNotEmpty ? _user!.name[0] : 'U',
                 greeting: _getGreeting(),
                 isVerified: _user?.isVerified ?? false,
+                isPremium: _isPremium,
                 unreadNotifications: notificationProvider.unreadCount,
                 onNotificationTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsPage())),
                 onQRTap: _showQRCodeBottomSheet,
@@ -373,7 +387,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       subtitle: 'Special benefits',
                       isPremium: true,
                       gradient: [const Color(0xFFF59E0B), const Color(0xFFD97706)],
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SubscriptionPage(user: _user))),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SubscriptionPage(user: _user))).then((_) => _loadUserData()),
                     ),
                   ],
                 ),

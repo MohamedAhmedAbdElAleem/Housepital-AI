@@ -8,6 +8,7 @@ class ProfileHeader extends StatelessWidget {
   final String? initials;
   final String greeting;
   final bool isVerified;
+  final bool isPremium;
   final VoidCallback onNotificationTap;
   final VoidCallback onQRTap;
   final VoidCallback onEditPhotoTap;
@@ -21,6 +22,7 @@ class ProfileHeader extends StatelessWidget {
     this.initials,
     required this.greeting,
     this.isVerified = false,
+    this.isPremium = false,
     required this.onNotificationTap,
     required this.onQRTap,
     required this.onEditPhotoTap,
@@ -192,7 +194,40 @@ class ProfileHeader extends StatelessWidget {
                 ),
               ],
             ),
-            if (isVerified) ...[
+            if (isPremium) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFD54F), Color(0xFFFFB300)],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFFB300).withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.diamond_rounded, color: Colors.white, size: 14),
+                    SizedBox(width: 6),
+                    Text(
+                      'Premium Member',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else if (isVerified) ...[
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

@@ -1735,6 +1735,330 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Offer: {title} - Details coming soon'**
   String offerDetailsSnack(Object title);
+
+  /// No description provided for @dependents.
+  ///
+  /// In en, this message translates to:
+  /// **'Family & Dependents'**
+  String get dependents;
+
+  /// No description provided for @dependentsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage profiles for your family members'**
+  String get dependentsDesc;
+
+  /// No description provided for @securitySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get securitySection;
+
+  /// No description provided for @biometricLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric Login'**
+  String get biometricLogin;
+
+  /// No description provided for @biometricLoginDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Use fingerprint or face recognition to unlock'**
+  String get biometricLoginDesc;
+
+  /// No description provided for @biometricNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics not supported on this device'**
+  String get biometricNotSupported;
+
+  /// No description provided for @twoFactorAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-Factor Authentication'**
+  String get twoFactorAuth;
+
+  /// No description provided for @twoFactorAuthDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure your account with an extra verification step'**
+  String get twoFactorAuthDesc;
+
+  /// No description provided for @loginActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Login Activity'**
+  String get loginActivity;
+
+  /// No description provided for @loginActivityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitor active sessions and devices'**
+  String get loginActivityDesc;
+
+  /// No description provided for @notificationsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsSection;
+
+  /// No description provided for @pushNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Push Notifications'**
+  String get pushNotifications;
+
+  /// No description provided for @pushNotificationsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive real-time updates and alerts on your device'**
+  String get pushNotificationsDesc;
+
+  /// No description provided for @emailNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Notifications'**
+  String get emailNotifications;
+
+  /// No description provided for @emailNotificationsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get summaries and receipts sent to your inbox'**
+  String get emailNotificationsDesc;
+
+  /// No description provided for @smsUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS Updates'**
+  String get smsUpdates;
+
+  /// No description provided for @smsUpdatesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive appointment updates via text message'**
+  String get smsUpdatesDesc;
+
+  /// No description provided for @appearanceSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearanceSection;
+
+  /// No description provided for @dataSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Data & Privacy'**
+  String get dataSection;
+
+  /// No description provided for @clearCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Cache'**
+  String get clearCache;
+
+  /// No description provided for @clearCacheDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Free up storage space by clearing cached files'**
+  String get clearCacheDesc;
+
+  /// No description provided for @clearCacheConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to clear the app cache? This will free up space but keep your personal settings.'**
+  String get clearCacheConfirm;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @cacheCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache cleared successfully'**
+  String get cacheCleared;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @clearAiHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear AI History'**
+  String get clearAiHistory;
+
+  /// No description provided for @clearAiHistoryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your AI chatbot conversations'**
+  String get clearAiHistoryDesc;
+
+  /// No description provided for @clearAiHistoryConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to clear your conversation history with the AI Health Assistant? This action cannot be undone.'**
+  String get clearAiHistoryConfirm;
+
+  /// No description provided for @aiHistoryCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'AI history cleared successfully'**
+  String get aiHistoryCleared;
+
+  /// No description provided for @downloadMyData.
+  ///
+  /// In en, this message translates to:
+  /// **'Download My Data'**
+  String get downloadMyData;
+
+  /// No description provided for @downloadMyDataDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a copy of your personal data'**
+  String get downloadMyDataDesc;
+
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// No description provided for @helpSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & Support'**
+  String get helpSupport;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @userLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient'**
+  String get userLabel;
+
+  /// No description provided for @signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOut;
+
+  /// No description provided for @signOutConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOutConfirmTitle;
+
+  /// No description provided for @signOutConfirmDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to sign out of your account?'**
+  String get signOutConfirmDesc;
+
+  /// No description provided for @accountSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountSection;
+
+  /// No description provided for @biometricConfirmIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Please authenticate to confirm identity'**
+  String get biometricConfirmIdentity;
+
+  /// No description provided for @biometricDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric login disabled'**
+  String get biometricDisabled;
+
+  /// No description provided for @biometricEnabledSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric login enabled successfully!'**
+  String get biometricEnabledSuccess;
+
+  /// No description provided for @biometricLoginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication is required to enable this feature'**
+  String get biometricLoginRequired;
+
+  /// No description provided for @myWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'My Wallet'**
+  String get myWallet;
+
+  /// No description provided for @myWalletDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage payments, cards, and transaction history'**
+  String get myWalletDesc;
+
+  /// No description provided for @personalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Information'**
+  String get personalInfo;
+
+  /// No description provided for @personalInfoDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'View and edit your personal profile details'**
+  String get personalInfoDesc;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
+
+  /// No description provided for @filterNursing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nursing'**
+  String get filterNursing;
+
+  /// No description provided for @filterClinic.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinic'**
+  String get filterClinic;
+
+  /// No description provided for @bookingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Bookings'**
+  String get bookingsTitle;
+
+  /// No description provided for @bookingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track and manage your appointments'**
+  String get bookingsSubtitle;
+
+  /// No description provided for @tabActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get tabActive;
+
+  /// No description provided for @tabHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get tabHistory;
 }
 
 class _AppLocalizationsDelegate

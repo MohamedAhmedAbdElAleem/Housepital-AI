@@ -855,4 +855,174 @@ class AppLocalizationsAr extends AppLocalizations {
   String offerDetailsSnack(Object title) {
     return 'العرض: $title - التفاصيل قريباً';
   }
+
+  @override
+  String get dependents => 'العائلة والتابعين';
+
+  @override
+  String get dependentsDesc => 'إدارة الملفات الشخصية لأفراد عائلتك';
+
+  @override
+  String get securitySection => 'الأمان';
+
+  @override
+  String get biometricLogin => 'تسجيل الدخول بالمؤشرات الحيوية';
+
+  @override
+  String get biometricLoginDesc => 'استخدم بصمة الإصبع أو الوجه لإلغاء القفل';
+
+  @override
+  String get biometricNotSupported =>
+      'المؤشرات الحيوية غير مدعومة على هذا الجهاز';
+
+  @override
+  String get twoFactorAuth => 'التحقق بخطوتين';
+
+  @override
+  String get twoFactorAuthDesc => 'تأمين حسابك بخطوة تحقق إضافية';
+
+  @override
+  String get loginActivity => 'نشاط تسجيل الدخول';
+
+  @override
+  String get loginActivityDesc => 'مراقبة الجلسات والأجهزة النشطة';
+
+  @override
+  String get notificationsSection => 'الإشعارات';
+
+  @override
+  String get pushNotifications => 'إشعارات الهاتف';
+
+  @override
+  String get pushNotificationsDesc =>
+      'تلقي التحديثات والتنبيهات في الوقت الفعلي على جهازك';
+
+  @override
+  String get emailNotifications => 'إشعارات البريد الإلكتروني';
+
+  @override
+  String get emailNotificationsDesc =>
+      'الحصول على ملخصات وإيصالات مرسلة إلى بريدك الإلكتروني';
+
+  @override
+  String get smsUpdates => 'تحديثات الرسائل النصية';
+
+  @override
+  String get smsUpdatesDesc => 'تلقي تحديثات المواعيد عبر الرسائل النصية';
+
+  @override
+  String get appearanceSection => 'المظهر';
+
+  @override
+  String get dataSection => 'البيانات والخصوصية';
+
+  @override
+  String get clearCache => 'مسح التخزين المؤقت';
+
+  @override
+  String get clearCacheDesc => 'إخلاء مساحة تخزين عن طريق مسح الملفات المؤقتة';
+
+  @override
+  String get clearCacheConfirm =>
+      'هل أنت متأكد من مسح التخزين المؤقت للتطبيق؟ سيؤدي ذلك إلى إخلاء مساحة مع الاحتفاظ بإعداداتك الشخصية.';
+
+  @override
+  String get cancel => 'إلغاء';
+
+  @override
+  String get cacheCleared => 'تم مسح التخزين المؤقت بنجاح';
+
+  @override
+  String get clear => 'مسح';
+
+  @override
+  String get clearAiHistory => 'مسح سجل الذكاء الاصطناعي';
+
+  @override
+  String get clearAiHistoryDesc => 'حذف محادثات المساعد الذكي نهائياً';
+
+  @override
+  String get clearAiHistoryConfirm =>
+      'هل أنت متأكد من مسح سجل المحادثات مع المساعد الصحي الذكي؟ لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get aiHistoryCleared => 'تم مسح سجل المساعد الذكي بنجاح';
+
+  @override
+  String get downloadMyData => 'تحميل بياناتي';
+
+  @override
+  String get downloadMyDataDesc => 'طلب نسخة من بياناتك الشخصية';
+
+  @override
+  String get about => 'حول التطبيق';
+
+  @override
+  String get helpSupport => 'المساعدة والدعم';
+
+  @override
+  String get settingsTitle => 'الإعدادات';
+
+  @override
+  String get userLabel => 'المريض';
+
+  @override
+  String get signOut => 'تسجيل الخروج';
+
+  @override
+  String get signOutConfirmTitle => 'تسجيل الخروج';
+
+  @override
+  String get signOutConfirmDesc =>
+      'هل أنت متأكد من رغبتك في تسجيل الخروج من حسابك؟';
+
+  @override
+  String get accountSection => 'الحساب';
+
+  @override
+  String get biometricConfirmIdentity => 'يرجى التحقق لتأكيد الهوية';
+
+  @override
+  String get biometricDisabled => 'تم تعطيل تسجيل الدخول البيومتري';
+
+  @override
+  String get biometricEnabledSuccess =>
+      'تم تفعيل تسجيل الدخول البيومتري بنجاح!';
+
+  @override
+  String get biometricLoginRequired =>
+      'المصادقة البيومترية مطلوبة لتفعيل هذه الميزة';
+
+  @override
+  String get myWallet => 'محفظتي';
+
+  @override
+  String get myWalletDesc => 'إدارة المدفوعات والبطاقات وسجل المعاملات';
+
+  @override
+  String get personalInfo => 'المعلومات الشخصية';
+
+  @override
+  String get personalInfoDesc => 'عرض وتعديل تفاصيل ملفك الشخصي';
+
+  @override
+  String get filterAll => 'الكل';
+
+  @override
+  String get filterNursing => 'تمريض';
+
+  @override
+  String get filterClinic => 'عيادة';
+
+  @override
+  String get bookingsTitle => 'حجوزاتي';
+
+  @override
+  String get bookingsSubtitle => 'تتبع وإدارة مواعيدك الطبية';
+
+  @override
+  String get tabActive => 'نشط';
+
+  @override
+  String get tabHistory => 'سجل الحجوزات';
 }

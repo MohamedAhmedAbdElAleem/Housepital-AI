@@ -7,30 +7,37 @@ import '../../../../../core/widgets/custom_popup.dart';
 import 'location_picker_page.dart';
 
 class _AddressDesign {
-  static const primaryGreen = Color(0xFF00C853);
-  static const surface = Color(0xFFF8FAFC);
-  static const textPrimary = Color(0xFF1E293B);
-  static const textSecondary = Color(0xFF64748B);
-  static const cardBg = Colors.white;
-  static const inputBorder = Color(0xFFE2E8F0);
+  final BuildContext context;
+  _AddressDesign(this.context);
 
-  static const headerGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF00C853), Color(0xFF00E676), Color(0xFF69F0AE)],
-  );
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
 
-  static BoxShadow get cardShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.06),
-    blurRadius: 16,
-    offset: const Offset(0, 4),
-  );
+  Color get primaryGreen => isDark ? const Color(0xFF69F0AE) : const Color(0xFF00C853);
+  Color get surface => isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC);
+  Color get textPrimary => isDark ? Colors.white : const Color(0xFF1E293B);
+  Color get textSecondary => isDark ? Colors.white70 : const Color(0xFF64748B);
+  Color get cardBg => isDark ? const Color(0xFF1E1E1E) : Colors.white;
+  Color get inputBorder => isDark ? Colors.white24 : const Color(0xFFE2E8F0);
 
-  static BoxShadow get softShadow => BoxShadow(
-    color: primaryGreen.withOpacity(0.15),
-    blurRadius: 20,
-    offset: const Offset(0, 8),
-  );
+  LinearGradient get headerGradient => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: isDark
+            ? [const Color(0xFF1B5E20), const Color(0xFF2E7D32), const Color(0xFF4CAF50)]
+            : [const Color(0xFF00C853), const Color(0xFF00E676), const Color(0xFF69F0AE)],
+      );
+
+  BoxShadow get cardShadow => BoxShadow(
+        color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.06),
+        blurRadius: 16,
+        offset: const Offset(0, 4),
+      );
+
+  BoxShadow get softShadow => BoxShadow(
+        color: primaryGreen.withOpacity(isDark ? 0.3 : 0.15),
+        blurRadius: 20,
+        offset: const Offset(0, 8),
+      );
 }
 
 class AddAddressPage extends StatefulWidget {
@@ -42,6 +49,8 @@ class AddAddressPage extends StatefulWidget {
 
 class _AddAddressPageState extends State<AddAddressPage>
     with TickerProviderStateMixin {
+  _AddressDesign get design => _AddressDesign(context);
+
   final _formKey = GlobalKey<FormState>();
   final _labelController = TextEditingController();
   final _streetController = TextEditingController();
@@ -163,6 +172,7 @@ class _AddAddressPageState extends State<AddAddressPage>
       barrierDismissible: false,
       builder:
           (context) => AlertDialog(
+            backgroundColor: design.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -173,9 +183,9 @@ class _AddAddressPageState extends State<AddAddressPage>
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    gradient: _AddressDesign.headerGradient,
+                    gradient: design.headerGradient,
                     shape: BoxShape.circle,
-                    boxShadow: [_AddressDesign.softShadow],
+                    boxShadow: [design.softShadow],
                   ),
                   child: const Icon(
                     Icons.location_on_rounded,
@@ -184,19 +194,19 @@ class _AddAddressPageState extends State<AddAddressPage>
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Address Added!',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: _AddressDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Your new address has been saved successfully.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14, color: design.isDark ? Colors.white70 : Colors.grey[600]),
                 ),
               ],
             ),
@@ -209,7 +219,7 @@ class _AddAddressPageState extends State<AddAddressPage>
                     Navigator.pop(context, true);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _AddressDesign.primaryGreen,
+                    backgroundColor: design.primaryGreen,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -231,7 +241,7 @@ class _AddAddressPageState extends State<AddAddressPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _AddressDesign.surface,
+      backgroundColor: design.surface,
       body: Form(
         key: _formKey,
         child: Column(
@@ -271,12 +281,12 @@ class _AddAddressPageState extends State<AddAddressPage>
   Widget _buildHeader() {
     return Container(
       decoration: BoxDecoration(
-        gradient: _AddressDesign.headerGradient,
+        gradient: design.headerGradient,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
-        boxShadow: [_AddressDesign.softShadow],
+        boxShadow: [design.softShadow],
       ),
       child: SafeArea(
         bottom: false,
@@ -385,8 +395,8 @@ class _AddAddressPageState extends State<AddAddressPage>
                 'Home',
                 'home',
                 Icons.home_rounded,
-                _AddressDesign.primaryGreen,
-                [const Color(0xFF00C853), const Color(0xFF00E676)],
+                design.primaryGreen,
+                [design.primaryGreen, design.primaryGreen.withOpacity(0.7)],
               ),
             ),
             const SizedBox(width: 12),
@@ -396,7 +406,7 @@ class _AddAddressPageState extends State<AddAddressPage>
                 'work',
                 Icons.work_rounded,
                 Colors.blue,
-                [const Color(0xFF42A5F5), const Color(0xFF1976D2)],
+                [Colors.blue, Colors.blue.withOpacity(0.7)],
               ),
             ),
             const SizedBox(width: 12),
@@ -406,7 +416,7 @@ class _AddAddressPageState extends State<AddAddressPage>
                 'other',
                 Icons.place_rounded,
                 Colors.purple,
-                [const Color(0xFFAB47BC), const Color(0xFF7B1FA2)],
+                [Colors.purple, Colors.purple.withOpacity(0.7)],
               ),
             ),
           ],
@@ -428,13 +438,13 @@ class _AddAddressPageState extends State<AddAddressPage>
               color:
                   _latitude == null
                       ? Colors.red.withOpacity(0.1)
-                      : _AddressDesign.primaryGreen.withOpacity(0.1),
+                      : design.primaryGreen.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.pin_drop_outlined,
               color:
-                  _latitude == null ? Colors.red : _AddressDesign.primaryGreen,
+                  _latitude == null ? Colors.red : design.primaryGreen,
             ),
           ),
           title: Text(
@@ -449,7 +459,7 @@ class _AddAddressPageState extends State<AddAddressPage>
               color:
                   _latitude == null
                       ? Colors.red[300]
-                      : _AddressDesign.textSecondary,
+                      : design.textSecondary,
               fontSize: 13,
             ),
           ),
@@ -477,7 +487,7 @@ class _AddAddressPageState extends State<AddAddressPage>
             icon: const Icon(Icons.map, size: 18),
             label: Text(_latitude == null ? 'Pin Map' : 'Edit'),
             style: TextButton.styleFrom(
-              foregroundColor: _AddressDesign.primaryGreen,
+              foregroundColor: design.primaryGreen,
             ),
           ),
         ),
@@ -563,14 +573,14 @@ class _AddAddressPageState extends State<AddAddressPage>
             decoration: BoxDecoration(
               color:
                   _isDefault
-                      ? _AddressDesign.primaryGreen.withOpacity(0.1)
-                      : _AddressDesign.surface,
+                      ? design.primaryGreen.withOpacity(0.1)
+                      : design.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color:
                     _isDefault
-                        ? _AddressDesign.primaryGreen
-                        : _AddressDesign.inputBorder,
+                        ? design.primaryGreen
+                        : design.inputBorder,
                 width: _isDefault ? 2 : 1,
               ),
             ),
@@ -581,13 +591,13 @@ class _AddAddressPageState extends State<AddAddressPage>
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    gradient: _isDefault ? _AddressDesign.headerGradient : null,
-                    color: _isDefault ? null : _AddressDesign.surface,
+                    gradient: _isDefault ? design.headerGradient : null,
+                    color: _isDefault ? null : design.surface,
                     borderRadius: BorderRadius.circular(14),
                     border:
                         _isDefault
                             ? null
-                            : Border.all(color: _AddressDesign.inputBorder),
+                            : Border.all(color: design.inputBorder),
                   ),
                   child: Icon(
                     _isDefault
@@ -609,14 +619,14 @@ class _AddAddressPageState extends State<AddAddressPage>
                           fontWeight: FontWeight.w600,
                           color:
                               _isDefault
-                                  ? _AddressDesign.primaryGreen
-                                  : _AddressDesign.textPrimary,
+                                  ? design.primaryGreen
+                                  : design.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Use this address by default for bookings',
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 13, color: design.isDark ? Colors.white70 : Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -628,13 +638,13 @@ class _AddAddressPageState extends State<AddAddressPage>
                   decoration: BoxDecoration(
                     color:
                         _isDefault
-                            ? _AddressDesign.primaryGreen
+                            ? design.primaryGreen
                             : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color:
                           _isDefault
-                              ? _AddressDesign.primaryGreen
+                              ? design.primaryGreen
                               : Colors.grey,
                       width: 2,
                     ),
@@ -664,9 +674,9 @@ class _AddAddressPageState extends State<AddAddressPage>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: _AddressDesign.cardBg,
+        color: design.cardBg,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [_AddressDesign.cardShadow],
+        boxShadow: [design.cardShadow],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -676,7 +686,7 @@ class _AddAddressPageState extends State<AddAddressPage>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  gradient: _AddressDesign.headerGradient,
+                  gradient: design.headerGradient,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: Colors.white, size: 22),
@@ -684,10 +694,10 @@ class _AddAddressPageState extends State<AddAddressPage>
               const SizedBox(width: 14),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: _AddressDesign.textPrimary,
+                  color: design.textPrimary,
                 ),
               ),
             ],
@@ -711,27 +721,27 @@ class _AddAddressPageState extends State<AddAddressPage>
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
-      style: const TextStyle(fontSize: 16, color: _AddressDesign.textPrimary),
+      style: TextStyle(fontSize: 16, color: design.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        labelStyle: const TextStyle(color: _AddressDesign.textSecondary),
-        hintStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Icon(icon, color: _AddressDesign.primaryGreen),
+        labelStyle: TextStyle(color: design.textSecondary),
+        hintStyle: TextStyle(color: design.isDark ? Colors.white38 : Colors.grey[400]),
+        prefixIcon: Icon(icon, color: design.primaryGreen),
         filled: true,
-        fillColor: _AddressDesign.surface,
+        fillColor: design.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _AddressDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _AddressDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: _AddressDesign.primaryGreen,
+          borderSide: BorderSide(
+            color: design.primaryGreen,
             width: 2,
           ),
         ),
@@ -765,10 +775,10 @@ class _AddAddressPageState extends State<AddAddressPage>
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
           gradient: isSelected ? LinearGradient(colors: gradientColors) : null,
-          color: isSelected ? null : _AddressDesign.surface,
+          color: isSelected ? null : design.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? color : _AddressDesign.inputBorder,
+            color: isSelected ? color : design.inputBorder,
             width: isSelected ? 0 : 1,
           ),
           boxShadow:
@@ -794,7 +804,7 @@ class _AddAddressPageState extends State<AddAddressPage>
               label,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : Colors.grey[700],
+                color: isSelected ? Colors.white : (design.isDark ? Colors.white70 : Colors.grey[700]),
                 fontSize: 14,
               ),
             ),
@@ -808,10 +818,10 @@ class _AddAddressPageState extends State<AddAddressPage>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: design.cardBg,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(design.isDark ? 0.3 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -824,9 +834,9 @@ class _AddAddressPageState extends State<AddAddressPage>
           child: ElevatedButton(
             onPressed: _isLoading ? null : _saveAddress,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _AddressDesign.primaryGreen,
+              backgroundColor: design.primaryGreen,
               foregroundColor: Colors.white,
-              disabledBackgroundColor: Colors.grey[300],
+              disabledBackgroundColor: design.isDark ? Colors.grey[800] : Colors.grey[300],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),

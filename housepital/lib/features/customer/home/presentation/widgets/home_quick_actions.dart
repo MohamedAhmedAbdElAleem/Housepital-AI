@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../booking/presentation/pages/clinic_discovery_page.dart';
 import '../pages/all_nursing_services_page.dart';
-import '../../../../../../generated/l10n/app_localizations.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 
 class HomeQuickActions extends StatelessWidget {
   const HomeQuickActions({super.key});

@@ -2,33 +2,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../../core/network/api_service.dart';
 import 'package:housepital/core/widgets/custom_popup.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../../core/utils/token_manager.dart';
 
 class _DependentDesign {
-  static const primaryGreen = Color(0xFF00C853);
-  static const surface = Color(0xFFF8FAFC);
-  static const textPrimary = Color(0xFF1E293B);
-  static const textSecondary = Color(0xFF64748B);
-  static const cardBg = Colors.white;
-  static const inputBorder = Color(0xFFE2E8F0);
+  final BuildContext context;
+  _DependentDesign(this.context);
 
-  static const headerGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF00C853), Color(0xFF00E676), Color(0xFF69F0AE)],
-  );
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
 
-  static BoxShadow get cardShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.06),
-    blurRadius: 16,
-    offset: const Offset(0, 4),
-  );
+  Color get primaryGreen => const Color(0xFF00C853);
+  Color get surface => isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
+  Color get textPrimary => isDark ? Colors.white : const Color(0xFF1E293B);
+  Color get textSecondary => isDark ? Colors.white70 : const Color(0xFF64748B);
+  Color get cardBg => isDark ? const Color(0xFF16151A) : Colors.white;
+  Color get inputBorder => isDark ? Colors.white.withAlpha(20) : const Color(0xFFE2E8F0);
+  Color get scaffoldBg => isDark ? Colors.black : const Color(0xFFF8FAFC);
 
-  static BoxShadow get softShadow => BoxShadow(
-    color: primaryGreen.withOpacity(0.15),
-    blurRadius: 20,
-    offset: const Offset(0, 8),
-  );
+  LinearGradient get headerGradient => isDark
+      ? const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF16151A), Color(0xFF0D0C10)],
+        )
+      : const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF00C853), Color(0xFF00E676), Color(0xFF69F0AE)],
+        );
+
+  BoxShadow get cardShadow => BoxShadow(
+        color: Colors.black.withAlpha(isDark ? 100 : 15),
+        blurRadius: 16,
+        offset: const Offset(0, 4),
+      );
+
+  BoxShadow get softShadow => BoxShadow(
+        color: isDark ? Colors.black.withAlpha(80) : primaryGreen.withAlpha(38),
+        blurRadius: 20,
+        offset: const Offset(0, 8),
+      );
 }
 
 class AddDependentPage extends StatefulWidget {
@@ -59,12 +71,15 @@ class _AddDependentPageState extends State<AddDependentPage>
   late Animation<Offset> _slideAnimation;
 
   final List<String> _relationships = [
-    'Parent',
-    'Child',
-    'Spouse',
-    'Sibling',
+    'Father',
+    'Mother',
+    'Son',
+    'Daughter',
+    'Brother',
+    'Sister',
     'Grandparent',
     'Grandchild',
+    'Spouse',
     'Other',
   ];
 
@@ -96,8 +111,10 @@ class _AddDependentPageState extends State<AddDependentPage>
   }
 
   Future<void> _loadUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() => _userId = prefs.getString('userId'));
+    final userId = await TokenManager.getUserId();
+    if (mounted) {
+      setState(() => _userId = userId);
+    }
   }
 
   @override
@@ -112,6 +129,7 @@ class _AddDependentPageState extends State<AddDependentPage>
 
   Future<void> _pickDate() async {
     HapticFeedback.lightImpact();
+    final design = _DependentDesign(context);
     final picked = await showDatePicker(
       context: context,
       initialDate:
@@ -121,13 +139,13 @@ class _AddDependentPageState extends State<AddDependentPage>
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: _DependentDesign.primaryGreen,
+            colorScheme: ColorScheme.light(
+              primary: design.primaryGreen,
               onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: _DependentDesign.textPrimary,
+              surface: design.cardBg,
+              onSurface: design.textPrimary,
             ),
-            dialogTheme: DialogThemeData(backgroundColor: Colors.white),
+            dialogTheme: DialogThemeData(backgroundColor: design.cardBg),
           ),
           child: child!,
         );
@@ -168,10 +186,12 @@ class _AddDependentPageState extends State<AddDependentPage>
     required Function(String) onAdd,
   }) {
     final controller = TextEditingController();
+    final design = _DependentDesign(context);
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
+            backgroundColor: design.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -188,10 +208,10 @@ class _AddDependentPageState extends State<AddDependentPage>
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: _DependentDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
               ],
@@ -200,11 +220,12 @@ class _AddDependentPageState extends State<AddDependentPage>
               controller: controller,
               autofocus: true,
               textCapitalization: TextCapitalization.words,
+              style: TextStyle(color: design.textPrimary),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: TextStyle(color: Colors.grey[400]),
+                hintStyle: TextStyle(color: design.textSecondary.withOpacity(0.6)),
                 filled: true,
-                fillColor: _DependentDesign.surface,
+                fillColor: design.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide.none,
@@ -220,7 +241,7 @@ class _AddDependentPageState extends State<AddDependentPage>
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Cancel',
-                  style: TextStyle(color: Colors.grey[600]),
+                  style: TextStyle(color: design.textSecondary),
                 ),
               ),
               ElevatedButton(
@@ -270,6 +291,11 @@ class _AddDependentPageState extends State<AddDependentPage>
       return;
     }
 
+    if (_userId == null || _userId!.isEmpty) {
+      CustomPopup.error(context, 'User ID not found. Please log in again.');
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -311,11 +337,13 @@ class _AddDependentPageState extends State<AddDependentPage>
   }
 
   void _showSuccessDialog() {
+    final design = _DependentDesign(context);
     showDialog(
       context: context,
       barrierDismissible: false,
       builder:
           (context) => AlertDialog(
+            backgroundColor: design.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -326,9 +354,9 @@ class _AddDependentPageState extends State<AddDependentPage>
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    gradient: _DependentDesign.headerGradient,
+                    gradient: design.headerGradient,
                     shape: BoxShape.circle,
-                    boxShadow: [_DependentDesign.softShadow],
+                    boxShadow: [design.softShadow],
                   ),
                   child: const Icon(
                     Icons.check_rounded,
@@ -337,19 +365,19 @@ class _AddDependentPageState extends State<AddDependentPage>
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Family Member Added!',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: _DependentDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'The family member has been added successfully.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14, color: design.textSecondary),
                 ),
               ],
             ),
@@ -362,7 +390,7 @@ class _AddDependentPageState extends State<AddDependentPage>
                     Navigator.pop(context, true);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _DependentDesign.primaryGreen,
+                    backgroundColor: design.primaryGreen,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -383,8 +411,9 @@ class _AddDependentPageState extends State<AddDependentPage>
 
   @override
   Widget build(BuildContext context) {
+    final design = _DependentDesign(context);
     return Scaffold(
-      backgroundColor: _DependentDesign.surface,
+      backgroundColor: design.scaffoldBg,
       body: Form(
         key: _formKey,
         child: Column(
@@ -420,14 +449,15 @@ class _AddDependentPageState extends State<AddDependentPage>
   }
 
   Widget _buildHeader() {
+    final design = _DependentDesign(context);
     return Container(
       decoration: BoxDecoration(
-        gradient: _DependentDesign.headerGradient,
+        gradient: design.headerGradient,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
-        boxShadow: [_DependentDesign.softShadow],
+        boxShadow: [design.softShadow],
       ),
       child: SafeArea(
         bottom: false,
@@ -553,6 +583,7 @@ class _AddDependentPageState extends State<AddDependentPage>
   }
 
   Widget _buildIdentificationCard() {
+    final design = _DependentDesign(context);
     return _buildCard(
       title: 'Identification',
       icon: Icons.credit_card_outlined,
@@ -560,20 +591,20 @@ class _AddDependentPageState extends State<AddDependentPage>
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.amber.withOpacity(0.1),
+            color: Colors.amber.withOpacity(design.isDark ? 0.15 : 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.amber.withOpacity(0.3)),
+            border: Border.all(color: Colors.amber.withOpacity(0.5)),
           ),
           child: Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.amber[700], size: 20),
+              Icon(Icons.info_outline, color: design.isDark ? Colors.amber[400] : Colors.amber[800], size: 20),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Provide at least one ID',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.amber[800],
+                    color: design.isDark ? Colors.amber[300] : Colors.amber[800],
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -632,12 +663,13 @@ class _AddDependentPageState extends State<AddDependentPage>
     required IconData icon,
     required List<Widget> children,
   }) {
+    final design = _DependentDesign(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: _DependentDesign.cardBg,
+        color: design.cardBg,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [_DependentDesign.cardShadow],
+        boxShadow: [design.cardShadow],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -647,7 +679,7 @@ class _AddDependentPageState extends State<AddDependentPage>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  gradient: _DependentDesign.headerGradient,
+                  gradient: design.headerGradient,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: Colors.white, size: 22),
@@ -655,10 +687,10 @@ class _AddDependentPageState extends State<AddDependentPage>
               const SizedBox(width: 14),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: _DependentDesign.textPrimary,
+                  color: design.textPrimary,
                 ),
               ),
             ],
@@ -678,31 +710,32 @@ class _AddDependentPageState extends State<AddDependentPage>
     String? Function(String?)? validator,
     int? maxLength,
   }) {
+    final design = _DependentDesign(context);
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       maxLength: maxLength,
       validator: validator,
-      style: const TextStyle(fontSize: 16, color: _DependentDesign.textPrimary),
+      style: TextStyle(fontSize: 16, color: design.textPrimary),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: _DependentDesign.textSecondary),
-        prefixIcon: Icon(icon, color: _DependentDesign.primaryGreen),
+        labelStyle: TextStyle(color: design.textSecondary),
+        prefixIcon: Icon(icon, color: design.primaryGreen),
         filled: true,
-        fillColor: _DependentDesign.surface,
+        fillColor: design.surface,
         counterText: '',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _DependentDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _DependentDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: _DependentDesign.primaryGreen,
+          borderSide: BorderSide(
+            color: design.primaryGreen,
             width: 2,
           ),
         ),
@@ -719,38 +752,42 @@ class _AddDependentPageState extends State<AddDependentPage>
   }
 
   Widget _buildDropdown() {
+    final design = _DependentDesign(context);
     return DropdownButtonFormField<String>(
       initialValue: _selectedRelationship,
       decoration: InputDecoration(
         labelText: 'Relationship',
-        labelStyle: const TextStyle(color: _DependentDesign.textSecondary),
-        prefixIcon: const Icon(
+        labelStyle: TextStyle(color: design.textSecondary),
+        prefixIcon: Icon(
           Icons.family_restroom,
-          color: _DependentDesign.primaryGreen,
+          color: design.primaryGreen,
         ),
         filled: true,
-        fillColor: _DependentDesign.surface,
+        fillColor: design.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _DependentDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _DependentDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: _DependentDesign.primaryGreen,
+          borderSide: BorderSide(
+            color: design.primaryGreen,
             width: 2,
           ),
         ),
       ),
-      dropdownColor: Colors.white,
+      dropdownColor: design.cardBg,
       borderRadius: BorderRadius.circular(14),
       items:
           _relationships
-              .map((rel) => DropdownMenuItem(value: rel, child: Text(rel)))
+              .map((rel) => DropdownMenuItem(
+                    value: rel,
+                    child: Text(rel, style: TextStyle(color: design.textPrimary)),
+                  ))
               .toList(),
       onChanged: (val) {
         HapticFeedback.selectionClick();
@@ -760,15 +797,16 @@ class _AddDependentPageState extends State<AddDependentPage>
   }
 
   Widget _buildGenderSelector() {
+    final design = _DependentDesign(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Gender',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: _DependentDesign.textSecondary,
+            color: design.textSecondary,
           ),
         ),
         const SizedBox(height: 10),
@@ -803,6 +841,7 @@ class _AddDependentPageState extends State<AddDependentPage>
     IconData icon,
     Color color,
   ) {
+    final design = _DependentDesign(context);
     final isSelected = _selectedGender == value;
     return GestureDetector(
       onTap: () {
@@ -819,10 +858,10 @@ class _AddDependentPageState extends State<AddDependentPage>
                     colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
                   )
                   : null,
-          color: isSelected ? null : _DependentDesign.surface,
+          color: isSelected ? null : design.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? color : _DependentDesign.inputBorder,
+            color: isSelected ? color : design.inputBorder,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -831,7 +870,7 @@ class _AddDependentPageState extends State<AddDependentPage>
           children: [
             Icon(
               icon,
-              color: isSelected ? color : _DependentDesign.textSecondary,
+              color: isSelected ? color : design.textSecondary,
               size: 22,
             ),
             const SizedBox(width: 8),
@@ -839,7 +878,7 @@ class _AddDependentPageState extends State<AddDependentPage>
               label,
               style: TextStyle(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? color : _DependentDesign.textSecondary,
+                color: isSelected ? color : design.textSecondary,
                 fontSize: 15,
               ),
             ),
@@ -850,18 +889,19 @@ class _AddDependentPageState extends State<AddDependentPage>
   }
 
   Widget _buildDatePicker() {
+    final design = _DependentDesign(context);
     return GestureDetector(
       onTap: _pickDate,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _DependentDesign.surface,
+          color: design.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color:
                 _selectedDate != null
-                    ? _DependentDesign.primaryGreen
-                    : _DependentDesign.inputBorder,
+                    ? design.primaryGreen
+                    : design.inputBorder,
             width: _selectedDate != null ? 2 : 1,
           ),
         ),
@@ -870,12 +910,12 @@ class _AddDependentPageState extends State<AddDependentPage>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: _DependentDesign.primaryGreen.withOpacity(0.1),
+                color: design.primaryGreen.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.cake_outlined,
-                color: _DependentDesign.primaryGreen,
+                color: design.primaryGreen,
                 size: 22,
               ),
             ),
@@ -886,7 +926,7 @@ class _AddDependentPageState extends State<AddDependentPage>
                 children: [
                   Text(
                     'Date of Birth',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    style: TextStyle(fontSize: 12, color: design.textSecondary),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -898,8 +938,8 @@ class _AddDependentPageState extends State<AddDependentPage>
                       fontWeight: FontWeight.w500,
                       color:
                           _selectedDate == null
-                              ? _DependentDesign.textSecondary
-                              : _DependentDesign.textPrimary,
+                              ? design.textSecondary
+                              : design.textPrimary,
                     ),
                   ),
                 ],
@@ -908,7 +948,7 @@ class _AddDependentPageState extends State<AddDependentPage>
             Icon(
               Icons.calendar_today_rounded,
               size: 20,
-              color: _DependentDesign.primaryGreen.withOpacity(0.7),
+              color: design.primaryGreen.withOpacity(0.7),
             ),
           ],
         ),
@@ -924,6 +964,7 @@ class _AddDependentPageState extends State<AddDependentPage>
     required Color color,
     required IconData icon,
   }) {
+    final design = _DependentDesign(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -936,10 +977,10 @@ class _AddDependentPageState extends State<AddDependentPage>
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: _DependentDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
               ],
@@ -963,64 +1004,65 @@ class _AddDependentPageState extends State<AddDependentPage>
         const SizedBox(height: 10),
         items.isEmpty
             ? Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: color.withOpacity(0.1)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 18, color: color.withOpacity(0.5)),
-                  const SizedBox(width: 8),
-                  Text(
-                    'No $title added',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: color.withOpacity(0.7),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(design.isDark ? 0.15 : 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: color.withOpacity(design.isDark ? 0.3 : 0.1)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, size: 18, color: color.withOpacity(0.5)),
+                    const SizedBox(width: 8),
+                    Text(
+                      'No $title added',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: design.isDark ? color.withOpacity(0.9) : color.withOpacity(0.7),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            )
+                  ],
+                ),
+              )
             : Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children:
-                  items.asMap().entries.map((entry) {
-                    return Chip(
-                      label: Text(entry.value),
-                      deleteIcon: const Icon(Icons.close, size: 16),
-                      onDeleted: () {
-                        HapticFeedback.lightImpact();
-                        onRemove(entry.key);
-                      },
-                      backgroundColor: color.withOpacity(0.1),
-                      labelStyle: TextStyle(
-                        color: color,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      deleteIconColor: color,
-                      side: BorderSide(color: color.withOpacity(0.3)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    );
-                  }).toList(),
-            ),
+                spacing: 8,
+                runSpacing: 8,
+                children:
+                    items.asMap().entries.map((entry) {
+                      return Chip(
+                        label: Text(entry.value),
+                        deleteIcon: const Icon(Icons.close, size: 16),
+                        onDeleted: () {
+                          HapticFeedback.lightImpact();
+                          onRemove(entry.key);
+                        },
+                        backgroundColor: color.withOpacity(design.isDark ? 0.18 : 0.1),
+                        labelStyle: TextStyle(
+                          color: design.isDark ? Colors.white : color,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        deleteIconColor: design.isDark ? Colors.white70 : color,
+                        side: BorderSide(color: color.withOpacity(design.isDark ? 0.4 : 0.3)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      );
+                    }).toList(),
+              ),
       ],
     );
   }
 
   Widget _buildSubmitButton() {
+    final design = _DependentDesign(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: design.cardBg,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(design.isDark ? 0.2 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -1033,9 +1075,9 @@ class _AddDependentPageState extends State<AddDependentPage>
           child: ElevatedButton(
             onPressed: _isLoading ? null : _submit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _DependentDesign.primaryGreen,
+              backgroundColor: design.primaryGreen,
               foregroundColor: Colors.white,
-              disabledBackgroundColor: Colors.grey[300],
+              disabledBackgroundColor: design.isDark ? Colors.grey[800] : Colors.grey[300],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -1044,27 +1086,27 @@ class _AddDependentPageState extends State<AddDependentPage>
             child:
                 _isLoading
                     ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.5,
-                      ),
-                    )
-                    : const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.person_add_rounded, size: 22),
-                        SizedBox(width: 10),
-                        Text(
-                          'Add Family Member',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
                         ),
-                      ],
-                    ),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.person_add_rounded, size: 22),
+                          SizedBox(width: 10),
+                          Text(
+                            'Add Family Member',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
           ),
         ),
       ),

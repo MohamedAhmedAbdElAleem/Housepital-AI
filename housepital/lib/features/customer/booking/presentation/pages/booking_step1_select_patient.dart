@@ -625,7 +625,6 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   }
 
   Widget _buildHeader() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.fromLTRB(
         20,
@@ -650,9 +649,9 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                 color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.arrow_back,
-                color: isDark ? const Color(0xFF16151A) : Colors.white,
+                color: Colors.white,
                 size: 22,
               ),
             ),
@@ -664,10 +663,10 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               children: [
                 Text(
                   widget.serviceName,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFF16151A) : Colors.white,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -687,9 +686,9 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.medical_services_rounded,
-              color: isDark ? const Color(0xFF16151A) : Colors.white,
+              color: Colors.white,
               size: 24,
             ),
           ),
@@ -729,14 +728,14 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                     decoration: BoxDecoration(
                       gradient:
                           isActive || isCompleted
-                              ? LinearGradient(
+                              ? const LinearGradient(
                                 colors: [Color(0xFF00D47F), Color(0xFF00B870)],
                               )
                               : null,
                       color:
                           isActive || isCompleted
                               ? null
-                              : const Color(0xFFE2E8F0),
+                              : (isDark ? const Color(0xFF242329) : const Color(0xFFE2E8F0)),
                       shape: BoxShape.circle,
                       boxShadow:
                           isActive
@@ -746,7 +745,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                                     0xFF00B870,
                                   ).withOpacity(0.3),
                                   blurRadius: 10,
-                                  offset: Offset(0, 4),
+                                  offset: const Offset(0, 4),
                                 ),
                               ]
                               : null,
@@ -756,7 +755,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                       color:
                           isActive || isCompleted
                               ? Colors.white
-                              : const Color(0xFF94A3B8),
+                              : (isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8)),
                       size: 20,
                     ),
                   ),
@@ -771,7 +770,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                         color:
                             isCompleted
                                 ? const Color(0xFF00B870)
-                                : const Color(0xFFE2E8F0),
+                                : (isDark ? const Color(0xFF242329) : const Color(0xFFE2E8F0)),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -918,7 +917,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF00B870)
-                : (isDark ? Colors.white.withAlpha(20) : const Color(0xFFE2E8F0)),
+                : (isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE2E8F0)),
             width: isSelected ? 2 : 1,
           ),
           boxShadow:
@@ -927,14 +926,14 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                     BoxShadow(
                       color: const Color(0xFF00B870).withOpacity(0.15),
                       blurRadius: 15,
-                      offset: Offset(0, 5),
+                      offset: const Offset(0, 5),
                     ),
                   ]
                   : [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.03),
                       blurRadius: 10,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ],
         ),
@@ -950,10 +949,10 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               child: Center(
                 child: Text(
                   avatar,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFF16151A) : Colors.white,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -973,7 +972,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                           color:
                               isSelected
                                   ? const Color(0xFF00B870)
-                                  : const Color(0xFF1E293B),
+                                  : (isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B)),
                         ),
                       ),
                       if (isSelf) ...[
@@ -987,12 +986,12 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                             color: const Color(0xFF00B870),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(
+                          child: const Text(
                             'You',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFF16151A) : Colors.white,
+                              color: Colors.white,
                             ),
                           ),
                         ),
@@ -1002,7 +1001,10 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500],
+                    ),
                   ),
                 ],
               ),
@@ -1014,16 +1016,16 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               decoration: BoxDecoration(
                 gradient:
                     isSelected
-                        ? LinearGradient(
+                        ? const LinearGradient(
                           colors: [Color(0xFF00D47F), Color(0xFF00B870)],
                         )
                         : null,
-                color: isSelected ? null : const Color(0xFFF1F5F9),
+                color: isSelected ? null : (isDark ? const Color(0xFF242329) : const Color(0xFFF1F5F9)),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isSelected ? Icons.check : Icons.circle_outlined,
-                color: isSelected ? Colors.white : const Color(0xFFCBD5E1),
+                color: isSelected ? Colors.white : (isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
                 size: 16,
               ),
             ),
@@ -1037,7 +1039,6 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   // STEP 2: LOCATION SELECTION
   // ====================================================================
   Widget _buildLocationStep() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(20),
@@ -1089,36 +1090,37 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEE2E2),
+        color: isDark ? const Color(0xFF1C1B21) : const Color(0xFFFEE2E2),
         borderRadius: BorderRadius.circular(20),
+        border: isDark ? Border.all(color: const Color(0xFFEF4444).withOpacity(0.2)) : null,
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF16151A) : Colors.white,
+              color: isDark ? const Color(0xFF242329) : Colors.white,
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.location_off_rounded,
               color: Color(0xFFEF4444),
               size: 40,
             ),
           ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'No saved addresses',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFFDC2626),
+              color: Color(0xFFEF4444),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Add an address to continue',
-            style: TextStyle(fontSize: 14, color: Colors.red[400]),
+            style: TextStyle(fontSize: 14, color: isDark ? const Color(0xFFFCA5A5) : Colors.red[400]),
           ),
         ],
       ),
@@ -1163,11 +1165,11 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           color:
               isSelected
                   ? (data['color'] as Color).withOpacity(0.08)
-                  : Colors.white,
+                  : (isDark ? const Color(0xFF16151A) : Colors.white),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color:
-                isSelected ? data['color'] as Color : const Color(0xFFE2E8F0),
+                isSelected ? data['color'] as Color : (isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE2E8F0)),
             width: isSelected ? 2 : 1,
           ),
           boxShadow:
@@ -1176,7 +1178,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                     BoxShadow(
                       color: (data['color'] as Color).withOpacity(0.15),
                       blurRadius: 15,
-                      offset: Offset(0, 5),
+                      offset: const Offset(0, 5),
                     ),
                   ]
                   : null,
@@ -1211,13 +1213,16 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                       color:
                           isSelected
                               ? data['color'] as Color
-                              : const Color(0xFF1E293B),
+                              : (isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B)),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     [street, city].where((s) => s.isNotEmpty).join(', '),
-                    style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1231,7 +1236,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   color: data['color'] as Color,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.check, color: isDark ? const Color(0xFF16151A) : Colors.white, size: 14),
+                child: const Icon(Icons.check, color: Colors.white, size: 14),
               ),
           ],
         ),
@@ -1333,17 +1338,17 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               isSelected
                   ? LinearGradient(colors: [color, color.withOpacity(0.8)])
                   : null,
-          color: isSelected ? null : Colors.white,
+          color: isSelected ? null : (isDark ? const Color(0xFF16151A) : Colors.white),
           borderRadius: BorderRadius.circular(20),
           border:
-              isSelected ? null : Border.all(color: const Color(0xFFE2E8F0)),
+              isSelected ? null : Border.all(color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE2E8F0)),
           boxShadow:
               isSelected
                   ? [
                     BoxShadow(
                       color: color.withOpacity(0.4),
                       blurRadius: 15,
-                      offset: Offset(0, 6),
+                      offset: const Offset(0, 6),
                     ),
                   ]
                   : null,
@@ -1357,7 +1362,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : const Color(0xFF1E293B),
+                color: isSelected ? Colors.white : (isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B)),
               ),
             ),
             const SizedBox(height: 4),
@@ -1365,7 +1370,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               subtitle,
               style: TextStyle(
                 fontSize: 12,
-                color: isSelected ? Colors.white70 : Colors.grey[500],
+                color: isSelected ? Colors.white70 : (isDark ? const Color(0xFF94A3B8) : Colors.grey[500]),
               ),
             ),
           ],
@@ -1400,16 +1405,16 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               decoration: BoxDecoration(
                 gradient:
                     isSelected
-                        ? LinearGradient(
+                        ? const LinearGradient(
                           colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
                         )
                         : null,
-                color: isSelected ? null : Colors.white,
+                color: isSelected ? null : (isDark ? const Color(0xFF16151A) : Colors.white),
                 borderRadius: BorderRadius.circular(16),
                 border:
                     isSelected
                         ? null
-                        : Border.all(color: const Color(0xFFE2E8F0)),
+                        : Border.all(color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE2E8F0)),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1419,7 +1424,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: isSelected ? Colors.white70 : Colors.grey[500],
+                      color: isSelected ? Colors.white70 : (isDark ? const Color(0xFF94A3B8) : Colors.grey[500]),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -1429,7 +1434,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color:
-                          isSelected ? Colors.white : const Color(0xFF1E293B),
+                          isSelected ? Colors.white : (isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B)),
                     ),
                   ),
                   if (isToday)
@@ -1443,7 +1448,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                         color:
                             isSelected
                                 ? Colors.white24
-                                : const Color(0xFF3B82F6).withOpacity(0.1),
+                                : const Color(0xFF3B82F6).withOpacity(0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -1491,23 +1496,23 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                 decoration: BoxDecoration(
                   gradient:
                       isSelected
-                          ? LinearGradient(
+                          ? const LinearGradient(
                             colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
                           )
                           : null,
-                  color: isSelected ? null : Colors.white,
+                  color: isSelected ? null : (isDark ? const Color(0xFF16151A) : Colors.white),
                   borderRadius: BorderRadius.circular(12),
                   border:
                       isSelected
                           ? null
-                          : Border.all(color: const Color(0xFFE2E8F0)),
+                          : Border.all(color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE2E8F0)),
                 ),
                 child: Text(
                   displayTime,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : const Color(0xFF64748B),
+                    color: isSelected ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                   ),
                 ),
               ),
@@ -1520,7 +1525,6 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
   // STEP 4: CONFIRMATION
   // ====================================================================
   Widget _buildConfirmStep() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(20),
@@ -1559,7 +1563,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 15,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -1574,7 +1578,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   color: const Color(0xFF00B870).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.summarize_rounded,
                   color: Color(0xFF00B870),
                   size: 22,
@@ -1614,7 +1618,10 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                 ? 'ASAP'
                 : '${DateFormat('MMM d').format(_selectedDate)}, ${_selectedTimeSlot ?? '-'}',
           ),
-          const Divider(height: 24),
+          Divider(
+            height: 24,
+            color: isDark ? Colors.white.withOpacity(0.08) : Colors.grey[200],
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1631,7 +1638,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF00B870),
+                  color: const Color(0xFF00B870),
                 ),
               ),
             ],
@@ -1647,9 +1654,19 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.grey[400]),
+          Icon(
+            icon,
+            size: 18,
+            color: isDark ? const Color(0xFF64748B) : Colors.grey[400],
+          ),
           const SizedBox(width: 10),
-          Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[500])),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500],
+            ),
+          ),
           const Spacer(),
           Text(
             value,
@@ -1675,7 +1692,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 15,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -1690,7 +1707,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   color: const Color(0xFF8B5CF6).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.tune_rounded,
                   color: Color(0xFF8B5CF6),
                   size: 22,
@@ -1718,7 +1735,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.medical_services_rounded,
                   color: Color(0xFF00B870),
                   size: 22,
@@ -1733,11 +1750,15 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
+                          color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
                         ),
                       ),
                       Text(
                         '+50 EGP',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500],
+                        ),
                       ),
                     ],
                   ),
@@ -1755,7 +1776,11 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           // Gender preference
           Text(
             'Nurse Preference',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
+            ),
           ),
           const SizedBox(height: 10),
           Row(
@@ -1786,13 +1811,13 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
             color:
                 isSelected
                     ? const Color(0xFF8B5CF6).withOpacity(0.1)
-                    : isDark ? const Color(0xFF242329) : const Color(0xFFF8FAFC),
+                    : (isDark ? const Color(0xFF242329) : const Color(0xFFF8FAFC)),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color:
                   isSelected
                       ? const Color(0xFF8B5CF6)
-                      : const Color(0xFFE2E8F0),
+                      : (isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE2E8F0)),
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -1803,7 +1828,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                 color:
                     isSelected
                         ? const Color(0xFF8B5CF6)
-                        : const Color(0xFF64748B),
+                        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                 size: 24,
               ),
               const SizedBox(height: 6),
@@ -1815,7 +1840,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   color:
                       isSelected
                           ? const Color(0xFF8B5CF6)
-                          : const Color(0xFF64748B),
+                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                 ),
               ),
             ],
@@ -1836,7 +1861,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 15,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -1851,7 +1876,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   color: const Color(0xFFF59E0B).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.edit_note_rounded,
                   color: Color(0xFFF59E0B),
                   size: 22,
@@ -1869,7 +1894,10 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
               const Spacer(),
               Text(
                 'Optional',
-                style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? const Color(0xFF64748B) : Colors.grey[400],
+                ),
               ),
             ],
           ),
@@ -1882,9 +1910,14 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
             child: TextField(
               controller: _notesController,
               maxLines: 3,
+              style: TextStyle(
+                color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
+              ),
               decoration: InputDecoration(
                 hintText: 'Any special instructions for the nurse...',
-                hintStyle: TextStyle(color: Colors.grey[400]),
+                hintStyle: TextStyle(
+                  color: isDark ? const Color(0xFF64748B) : Colors.grey[400],
+                ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.all(16),
               ),
@@ -1912,7 +1945,13 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           ),
         ),
         const SizedBox(height: 6),
-        Text(subtitle, style: TextStyle(fontSize: 15, color: Colors.grey[500])),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 15,
+            color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500],
+          ),
+        ),
       ],
     );
   }
@@ -1929,6 +1968,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
+          color: isDark ? color.withOpacity(0.05) : Colors.transparent,
           border: Border.all(color: color.withOpacity(0.3)),
           borderRadius: BorderRadius.circular(14),
         ),
@@ -1963,7 +2003,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 20,
-            offset: Offset(0, -4),
+            offset: const Offset(0, -4),
           ),
         ],
       ),
@@ -1978,11 +2018,14 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                 children: [
                   Text(
                     'Total',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500],
+                    ),
                   ),
                   Text(
                     '${_totalPrice.toStringAsFixed(0)} EGP',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF00B870),
@@ -2011,11 +2054,11 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                   decoration: BoxDecoration(
                     gradient:
                         _canProceed()
-                            ? LinearGradient(
+                            ? const LinearGradient(
                               colors: [Color(0xFF00D47F), Color(0xFF00B870)],
                             )
                             : null,
-                    color: _canProceed() ? null : const Color(0xFFE2E8F0),
+                    color: _canProceed() ? null : (isDark ? const Color(0xFF242329) : const Color(0xFFE2E8F0)),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow:
                         _canProceed()
@@ -2023,19 +2066,19 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                               BoxShadow(
                                 color: const Color(0xFF00B870).withOpacity(0.4),
                                 blurRadius: 15,
-                                offset: Offset(0, 6),
+                                offset: const Offset(0, 6),
                               ),
                             ]
                             : null,
                   ),
                   child:
                       _isSubmitting
-                          ? Center(
+                          ? const Center(
                             child: SizedBox(
                               height: 22,
                               width: 22,
                               child: CircularProgressIndicator(
-                                color: isDark ? const Color(0xFF16151A) : Colors.white,
+                                color: Colors.white,
                                 strokeWidth: 2.5,
                               ),
                             ),
@@ -2051,7 +2094,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                                   color:
                                       _canProceed()
                                           ? Colors.white
-                                          : const Color(0xFF94A3B8),
+                                          : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -2062,7 +2105,7 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
                                 color:
                                     _canProceed()
                                         ? Colors.white
-                                        : const Color(0xFF94A3B8),
+                                        : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
                                 size: 20,
                               ),
                             ],

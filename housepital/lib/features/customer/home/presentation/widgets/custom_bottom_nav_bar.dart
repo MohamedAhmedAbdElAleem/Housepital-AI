@@ -1,8 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:housepital/generated/l10n/app_localizations.dart';
 import 'package:housepital/core/constants/app_colors.dart';
+import 'package:housepital/core/providers/notification_provider.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -18,6 +20,7 @@ class CustomBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final unreadCount = context.watch<NotificationProvider>().unreadCount;
     
     return Container(
       height: 75,
@@ -67,7 +70,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 Expanded(child: _buildNavItem(context, 0, Icons.home_rounded, l10n.navHome)),
                 Expanded(child: _buildNavItem(context, 1, Icons.calendar_today_rounded, l10n.navBookings)),
                 const SizedBox(width: 70), // Space for center button
-                Expanded(child: _buildNavItem(context, 3, Icons.notifications_rounded, l10n.navAlerts, badge: 2)),
+                Expanded(child: _buildNavItem(context, 3, Icons.notifications_rounded, l10n.navAlerts, badge: unreadCount)),
                 Expanded(child: _buildNavItem(context, 4, Icons.person_rounded, l10n.navProfile)),
               ],
             ),

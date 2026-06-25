@@ -49,14 +49,16 @@ class BookingsHistoryCard extends StatelessWidget {
     final scheduledDate = booking['scheduledDate'];
     final rating = booking['nurseRating'] ?? 0.0;
 
-    final providerName = isClinic
-        ? (_doctorName(booking) ?? _clinicName(booking))
-        : (booking['nurseName'] ?? 'Nurse');
-    final providerSub = isClinic
-        ? (_clinicName(booking).isNotEmpty
-            ? _clinicName(booking)
-            : _doctorSpec(booking))
-        : null;
+    final providerName =
+        isClinic
+            ? (_doctorName(booking) ?? _clinicName(booking))
+            : (booking['nurseName'] ?? 'Nurse');
+    final providerSub =
+        isClinic
+            ? (_clinicName(booking).isNotEmpty
+                ? _clinicName(booking)
+                : _doctorSpec(booking))
+            : null;
 
     // History status styling
     List<Color> statusGradient;
@@ -115,7 +117,10 @@ class BookingsHistoryCard extends StatelessWidget {
                 color: isDark ? const Color(0xFF16151A) : Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isDark ? statusGradient[0].withAlpha(40) : statusGradient[0].withAlpha(30),
+                  color:
+                      isDark
+                          ? statusGradient[0].withAlpha(40)
+                          : statusGradient[0].withAlpha(30),
                   width: isDark ? 1.5 : 1,
                 ),
                 boxShadow: [
@@ -136,214 +141,221 @@ class BookingsHistoryCard extends StatelessWidget {
                       watermarkIcon,
                       size: 80,
                       color: statusGradient[0].withAlpha(15),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  // ── Status icon with gradient background ──
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: statusGradient,
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: statusGradient[0].withAlpha(60),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      historyStatusIcon,
-                      color: Colors.white,
-                      size: 26,
                     ),
                   ),
-                  const SizedBox(width: 14),
 
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
                       children: [
-                        Text(
-                          serviceName,
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
+                        // ── Status icon with gradient background ──
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: statusGradient,
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: statusGradient[0].withAlpha(60),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            historyStatusIcon,
+                            color: Colors.white,
+                            size: 26,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                dateLabel,
-                                style: const TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 12,
-                                  color: Color(0xFF94A3B8),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Icon(
-                              isClinic
-                                  ? Icons.local_hospital_rounded
-                                  : Icons.person_outline,
-                              size: 12,
-                              color: const Color(0xFF94A3B8),
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                providerName,
-                                style: const TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 12,
-                                  color: Color(0xFF94A3B8),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (isClinic &&
-                            providerSub != null &&
-                            providerSub.isNotEmpty) ...[
-                          const SizedBox(height: 3),
-                          Row(
+                        const SizedBox(width: 14),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.local_hospital_rounded,
-                                  size: 12, color: Color(0xFF3498BB)),
-                              const SizedBox(width: 4),
                               Text(
-                                providerSub,
+                                serviceName,
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      dateLabel,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 12,
+                                        color: Color(0xFF94A3B8),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Icon(
+                                    isClinic
+                                        ? Icons.local_hospital_rounded
+                                        : Icons.person_outline,
+                                    size: 12,
+                                    color: const Color(0xFF94A3B8),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      providerName,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 12,
+                                        color: Color(0xFF94A3B8),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (isClinic &&
+                                  providerSub != null &&
+                                  providerSub.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.local_hospital_rounded,
+                                      size: 12,
+                                      color: Color(0xFF3498BB),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      providerSub,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 11,
+                                        color: Color(0xFF3498BB),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                              if (!isClinic && rating > 0) ...[
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: List.generate(5, (i) {
+                                    return Icon(
+                                      i < (rating as num).round()
+                                          ? Icons.star
+                                          : Icons.star_border,
+                                      color: const Color(0xFFF59E0B),
+                                      size: 14,
+                                    );
+                                  }),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '${price.toStringAsFixed(0)} EGP',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: statusGradient,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: statusGradient[0].withAlpha(40),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                historyStatusLabel,
                                 style: const TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 11,
-                                  color: Color(0xFF3498BB),
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
                                 ),
                               ),
-                            ],
-                          ),
-                        ],
-                        if (!isClinic && rating > 0) ...[
-                          const SizedBox(height: 6),
-                          Row(
-                            children: List.generate(5, (i) {
-                              return Icon(
-                                i < (rating as num).round()
-                                    ? Icons.star
-                                    : Icons.star_border,
-                                color: const Color(0xFFF59E0B),
-                                size: 14,
-                              );
-                            }),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${price.toStringAsFixed(0)} EGP',
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: statusGradient,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: statusGradient[0].withAlpha(40),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                            ),
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () {},
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF2ECC71),
+                                      Color(0xFF219150),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF2ECC71,
+                                      ).withAlpha(40),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Text(
+                                  'Rebook',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        child: Text(
-                          historyStatusLabel,
-                          style: const TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () {},
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF2ECC71),
-                                Color(0xFF219150),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    const Color(0xFF2ECC71).withAlpha(40),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Text(
-                            'Rebook',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

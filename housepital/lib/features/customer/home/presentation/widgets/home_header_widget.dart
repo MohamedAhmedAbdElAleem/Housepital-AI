@@ -4,163 +4,227 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../../../../notifications/presentation/pages/notifications_page.dart';
-import '../../../../../../generated/l10n/app_localizations.dart';
+import '../../../../../core/providers/notification_provider.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
+import '../../../../../core/constants/app_colors.dart';
 
 class HomeHeaderWidget extends StatelessWidget {
   final UserModel? user;
+  final bool isLoading;
+  final VoidCallback? onProfileTap;
 
-  const HomeHeaderWidget({super.key, this.user});
+  const HomeHeaderWidget({
+    super.key,
+    required this.user,
+    required this.isLoading,
+    this.onProfileTap,
+  });
 
   String _getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
     final l10n = AppLocalizations.of(context)!;
-    if (hour < 12) return l10n.goodMorning;
-    if (hour < 17) return l10n.goodAfternoon;
-    return l10n.goodEvening;
+    final String baseGreeting;
+    if (hour < 12) {
+      baseGreeting = l10n.goodMorning;
+    } else if (hour < 17) {
+      baseGreeting = l10n.goodAfternoon;
+    } else {
+      baseGreeting = l10n.goodEvening;
+    }
+    
+    final icon = hour < 12 ? '☀️' : (hour < 17 ? '🌤️' : '🌙');
+    return '$baseGreeting $icon';
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 60, 24, 20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+    
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        MediaQuery.of(context).padding.top + 20,
+        20,
+        16,
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              // 1. Profile Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _getGreeting(context),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      user?.name ?? l10n.welcomeBack,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A2E),
-                        letterSpacing: -0.5,
-                      ),
+          // Avatar
+          GestureDetector(
+            onTap: onProfileTap,
+            child: Hero(
+              tag: 'user_avatar',
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withAlpha(80),
+                    width: 2.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(40),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
+                child: CircleAvatar(
+                  radius: 26,
+                  backgroundColor: theme.colorScheme.surface,
+                  child: isLoading
+                      ? SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: theme.colorScheme.primary,
+                          ),
+                        )
+                      : user?.profileImage != null && user!.profileImage!.isNotEmpty
+                          ? ClipOval(
+                              child: CachedNetworkImage(
+                                imageUrl: user!.profileImage!,
+                                width: 52,
+                                height: 52,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Text(
+                                  user!.name.isNotEmpty ? user!.name[0].toUpperCase() : 'U',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : user?.name != null
+                              ? Text(
+                                  user!.name.isNotEmpty ? user!.name[0].toUpperCase() : 'U',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.person_rounded,
+                                  color: theme.colorScheme.primary,
+                                  size: 28,
+                                ),
+                ),
               ),
-
-              // 2. Notification Bell
-              _buildNotificationBell(context),
-
-              const SizedBox(width: 12),
-
-              // 3. Avatar
-              _buildAvatar(context),
-            ],
+            ),
           ),
-        ],
-      ),
-    );
-  }
+          const SizedBox(width: 14),
 
-  Widget _buildNotificationBell(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+          // Greeting
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _getGreeting(context),
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  user?.name.split(' ').first ?? l10n.welcomeBack,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: -0.3,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          IconButton(
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NotificationsPage(),
+
+          // Notification Bell
+          Consumer<NotificationProvider>(
+            builder: (context, provider, _) {
+              final count = provider.unreadCount;
+              return GestureDetector(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChangeNotifierProvider.value(
+                        value: provider,
+                        child: const NotificationsPage(),
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(isDark ? 20 : 30),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: Colors.white.withAlpha(40),
+                      width: 1,
+                    ),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      const Icon(
+                        Icons.notifications_outlined,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                      if (count > 0)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: AppColors.error500,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              count > 9 ? '9+' : count.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               );
             },
-            icon: Icon(Icons.notifications_none_rounded, color: Colors.grey[800]),
-          ),
-          Positioned(
-            right: 12,
-            top: 12,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: Colors.redAccent,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.5),
-              ),
-            ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildAvatar(BuildContext context) {
-    return Hero(
-      tag: 'home_avatar',
-      child: Container(
-        padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF667eea).withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: CircleAvatar(
-          radius: 22,
-          backgroundColor: Colors.white,
-          child: ClipOval(
-            child:
-                user?.profileImage != null && user!.profileImage!.isNotEmpty
-                    ? CachedNetworkImage(
-                      imageUrl: user!.profileImage!,
-                      width: 44,
-                      height: 44,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => _buildAvatarPlaceholder(),
-                      errorWidget:
-                          (context, url, error) => _buildAvatarPlaceholder(),
-                    )
-                    : _buildAvatarPlaceholder(),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAvatarPlaceholder() {
-    return Container(
-      color: Colors.grey[100],
-      child: Icon(Icons.person_rounded, color: Colors.grey[400], size: 24),
     );
   }
 }

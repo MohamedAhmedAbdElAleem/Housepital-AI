@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 
 class BookingsTypeFilter extends StatelessWidget {
   final int selectedType;
@@ -12,10 +13,13 @@ class BookingsTypeFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const types = [
-      ('الكل', Icons.apps_rounded),
-      ('تمريض', Icons.medical_services_rounded),
-      ('عيادة', Icons.local_hospital_rounded),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+
+    final types = [
+      (l10n.filterAll, Icons.apps_rounded),
+      (l10n.filterNursing, Icons.medical_services_rounded),
+      (l10n.filterClinic, Icons.local_hospital_rounded),
     ];
 
     // Jewel-toned gradient definitions for each filter
@@ -26,7 +30,7 @@ class BookingsTypeFilter extends StatelessWidget {
     ];
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Row(
         children: List.generate(types.length, (i) {
           final selected = selectedType == i;
@@ -39,7 +43,7 @@ class BookingsTypeFilter extends StatelessWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 curve: Curves.easeOutCubic,
-                margin: EdgeInsets.only(right: i < 2 ? 8 : 0),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
                   gradient: selected
@@ -49,17 +53,19 @@ class BookingsTypeFilter extends StatelessWidget {
                           colors: gradientColors,
                         )
                       : null,
-                  color: selected ? null : Colors.white,
+                  color: selected ? null : (isDark ? Colors.white.withAlpha(15) : Colors.white),
                   borderRadius: BorderRadius.circular(14),
                   border: selected
                       ? null
-                      : Border.all(color: const Color(0xFFE2E8F0)),
+                      : Border.all(
+                          color: isDark ? Colors.white.withAlpha(15) : const Color(0xFFE2E8F0),
+                        ),
                   boxShadow: selected
                       ? [
                           BoxShadow(
-                            color: gradientColors[0].withAlpha(80),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
+                             color: gradientColors[0].withAlpha(isDark ? 40 : 80),
+                             blurRadius: 16,
+                             offset: const Offset(0, 6),
                           ),
                         ]
                       : [],
@@ -69,7 +75,7 @@ class BookingsTypeFilter extends StatelessWidget {
                   children: [
                     Icon(
                       icon,
-                      color: selected ? Colors.white : const Color(0xFF94A3B8),
+                      color: selected ? Colors.white : (isDark ? Colors.white54 : const Color(0xFF94A3B8)),
                       size: 16,
                     ),
                     const SizedBox(width: 6),
@@ -79,8 +85,9 @@ class BookingsTypeFilter extends StatelessWidget {
                         fontFamily: 'Inter',
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color:
-                            selected ? Colors.white : const Color(0xFF64748B),
+                        color: selected
+                            ? Colors.white
+                            : (isDark ? Colors.white70 : const Color(0xFF64748B)),
                       ),
                     ),
                   ],

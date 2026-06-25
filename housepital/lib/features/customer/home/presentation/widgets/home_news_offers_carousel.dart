@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../../../../generated/l10n/app_localizations.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 
 class HomeNewsOffersCarousel extends StatelessWidget {
   const HomeNewsOffersCarousel({super.key});

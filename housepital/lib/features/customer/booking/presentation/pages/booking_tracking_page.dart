@@ -44,13 +44,16 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   double? _routeDuration; // seconds
   LatLng? _patientLocation;
 
+  bool _userHasInteracted = false;
+  bool _hideOverlayCards = false;
+
   @override
   void initState() {
     super.initState();
     _booking = Map<String, dynamic>.from(widget.booking);
 
     _mapController = MapController();
-    
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
@@ -101,7 +104,9 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             (coords[1] as num).toDouble(),
             (coords[0] as num).toDouble(),
           );
-          debugPrint('🗺️ ROUTE DEBUG: Patient location parsed: $_patientLocation');
+          debugPrint(
+            '🗺️ ROUTE DEBUG: Patient location parsed: $_patientLocation',
+          );
         }
       }
     } catch (e) {
@@ -115,7 +120,9 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   void _parseNurseLocation(Map<String, dynamic> booking) {
     try {
       final nurseLoc = booking['nurseLocation'];
-      debugPrint('🗺️ ROUTE DEBUG: _parseNurseLocation called, nurseLoc = $nurseLoc');
+      debugPrint(
+        '🗺️ ROUTE DEBUG: _parseNurseLocation called, nurseLoc = $nurseLoc',
+      );
       if (nurseLoc != null &&
           nurseLoc['latitude'] != null &&
           nurseLoc['longitude'] != null) {
@@ -146,7 +153,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
         final lat = data['latitude'] ?? data['lat'];
         final lng = data['longitude'] ?? data['lng'];
         if (lat != null && lng != null) {
-          final newLoc = LatLng((lat as num).toDouble(), (lng as num).toDouble());
+          final newLoc = LatLng(
+            (lat as num).toDouble(),
+            (lng as num).toDouble(),
+          );
           setState(() {
             _nurseLocation = newLoc;
           });
@@ -200,15 +210,26 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
 
   void _animatedMapMove(LatLng destLocation, double destZoom) {
     final latTween = Tween<double>(
-        begin: _mapController.camera.center.latitude, end: destLocation.latitude);
+      begin: _mapController.camera.center.latitude,
+      end: destLocation.latitude,
+    );
     final lngTween = Tween<double>(
-        begin: _mapController.camera.center.longitude, end: destLocation.longitude);
-    final zoomTween = Tween<double>(begin: _mapController.camera.zoom, end: destZoom);
+      begin: _mapController.camera.center.longitude,
+      end: destLocation.longitude,
+    );
+    final zoomTween = Tween<double>(
+      begin: _mapController.camera.zoom,
+      end: destZoom,
+    );
 
     final controller = AnimationController(
-        duration: const Duration(milliseconds: 1000), vsync: this);
-    final Animation<double> animation =
-        CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn);
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    final Animation<double> animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.fastOutSlowIn,
+    );
 
     controller.addListener(() {
       if (mounted) {
@@ -232,9 +253,13 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   // --- Route Fetching ---
   Future<void> _fetchRoute() async {
     debugPrint('🗺️ ROUTE DEBUG: _fetchRoute called');
-    debugPrint('🗺️ ROUTE DEBUG: nurseLocation=$_nurseLocation, patientLocation=$_patientLocation');
+    debugPrint(
+      '🗺️ ROUTE DEBUG: nurseLocation=$_nurseLocation, patientLocation=$_patientLocation',
+    );
     if (_nurseLocation == null || _patientLocation == null) {
-      debugPrint('🗺️ ROUTE DEBUG: SKIPPING - nurse or patient location is null');
+      debugPrint(
+        '🗺️ ROUTE DEBUG: SKIPPING - nurse or patient location is null',
+      );
       return;
     }
     try {
@@ -245,13 +270,17 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
           '?geometries=geojson';
       debugPrint('🗺️ ROUTE DEBUG: OSRM URL = $url');
       final response = await http.get(Uri.parse(url));
-      debugPrint('🗺️ ROUTE DEBUG: OSRM response status = ${response.statusCode}');
+      debugPrint(
+        '🗺️ ROUTE DEBUG: OSRM response status = ${response.statusCode}',
+      );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['routes'] != null && (data['routes'] as List).isNotEmpty) {
           final route = data['routes'][0];
           final coords = route['geometry']['coordinates'] as List;
-          debugPrint('🗺️ ROUTE DEBUG: Got ${coords.length} route points, distance=${route['distance']}, duration=${route['duration']}');
+          debugPrint(
+            '🗺️ ROUTE DEBUG: Got ${coords.length} route points, distance=${route['distance']}, duration=${route['duration']}',
+          );
           if (mounted) {
             setState(() {
               _routePoints =
@@ -262,10 +291,14 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             _fitBounds();
           }
         } else {
-          debugPrint('🗺️ ROUTE DEBUG: No routes in OSRM response: ${response.body.substring(0, 200)}');
+          debugPrint(
+            '🗺️ ROUTE DEBUG: No routes in OSRM response: ${response.body.substring(0, 200)}',
+          );
         }
       } else {
-        debugPrint('🗺️ ROUTE DEBUG: OSRM error response: ${response.body.substring(0, 200)}');
+        debugPrint(
+          '🗺️ ROUTE DEBUG: OSRM error response: ${response.body.substring(0, 200)}',
+        );
       }
     } catch (e) {
       debugPrint('🗺️ ROUTE DEBUG ERROR: $e');
@@ -273,6 +306,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   void _fitBounds() {
+    if (_userHasInteracted) return;
     if (_nurseLocation != null && _patientLocation != null) {
       final bounds = LatLngBounds.fromPoints([
         _nurseLocation!,
@@ -312,6 +346,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
     final s = _booking['status'] ?? 'confirmed';
     return s == 'in_progress' ? 'in-progress' : s;
   }
+
   String get _nurseName => _booking['nurseName'] ?? 'Nurse';
   double get _nurseRating => (_booking['nurseRating'] ?? 0.0).toDouble();
   String? get _nursePhone => _booking['nursePhone'];
@@ -379,10 +414,14 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   void _recenterMap() {
+    setState(() {
+      _userHasInteracted = false;
+    });
     if (_nurseLocation != null && _patientLocation != null) {
       _fitBounds();
     } else {
-      final center = _nurseLocation ?? _patientLocation ?? const LatLng(30.0444, 31.2357);
+      final center =
+          _nurseLocation ?? _patientLocation ?? const LatLng(30.0444, 31.2357);
       _animatedMapMove(center, 15.0);
     }
   }
@@ -390,15 +429,18 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0D0C11) : AppColors.light200, // Slate 50
+      backgroundColor:
+          isDark ? const Color(0xFF0D0C11) : AppColors.light200, // Slate 50
       body: Stack(
         children: [
           // 1. Map Layer
           _buildMap(),
 
           // 2. Top Gradient for readability
-          Positioned(
-            top: 0,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            top: _hideOverlayCards ? -150 : 0,
             left: 0,
             right: 0,
             height: 120,
@@ -407,23 +449,25 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.4),
-                    Colors.transparent,
-                  ],
+                  colors: [Colors.black.withOpacity(0.4), Colors.transparent],
                 ),
               ),
             ),
           ),
 
           // 3. Top Navigation & Status
-          Positioned(
-            top: 0,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            top: _hideOverlayCards ? -150 : 0,
             left: 0,
             right: 0,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -443,15 +487,19 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
           ),
 
           // 4. Recenter Button
-          Positioned(
-            right: 16,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            right: _hideOverlayCards ? -100 : 16,
             bottom: 340, // Above the bottom sheet
             child: _buildRecenterButton(),
           ),
 
           // 5. Bottom Tracking Panel
-          Positioned(
-            bottom: 0,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            bottom: _hideOverlayCards ? -600 : 0,
             left: 0,
             right: 0,
             child: _buildAnimatedBottomSheet(),
@@ -463,7 +511,8 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
 
   Widget _buildMap() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final center = _nurseLocation ?? _patientLocation ?? const LatLng(30.0444, 31.2357);
+    final center =
+        _nurseLocation ?? _patientLocation ?? const LatLng(30.0444, 31.2357);
 
     return Stack(
       children: [
@@ -472,11 +521,24 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
           options: MapOptions(
             initialCenter: center,
             initialZoom: 15,
+            onTap: (tapPosition, point) {
+              setState(() {
+                _hideOverlayCards = !_hideOverlayCards;
+              });
+            },
+            onPositionChanged: (position, hasGesture) {
+              if (hasGesture && !_userHasInteracted) {
+                setState(() {
+                  _userHasInteracted = true;
+                });
+              }
+            },
           ),
           children: [
             TileLayer(
-              urlTemplate:
-                  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+              urlTemplate: isDark
+                  ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+                  : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.housepital.app',
             ),
             // Route polyline
@@ -515,13 +577,18 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
           ],
         ),
         // Trip stats overlay
-        if (_routeDistance != null && _routeDuration != null && _status == 'on-the-way')
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 60,
-            left: 16,
-            right: 16,
-            child: _buildTripStats(),
-          ),
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          top: (_hideOverlayCards || _routeDistance == null || _routeDuration == null || _status != 'on-the-way')
+              ? -150
+              : MediaQuery.of(context).padding.top + 60,
+          left: 16,
+          right: 16,
+          child: (_routeDistance != null && _routeDuration != null)
+              ? _buildTripStats()
+              : const SizedBox.shrink(),
+        ),
       ],
     );
   }
@@ -549,8 +616,11 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
           child: Row(
             children: [
               // ETA
-              Icon(Icons.access_time_filled_rounded,
-                  color: _statusColor, size: 22),
+              Icon(
+                Icons.access_time_filled_rounded,
+                color: _statusColor,
+                size: 22,
+              ),
               const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -576,15 +646,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               ),
               const Spacer(),
               // Divider
-              Container(
-                width: 1,
-                height: 36,
-                color: AppColors.light400,
-              ),
+              Container(width: 1, height: 36, color: AppColors.light400),
               const Spacer(),
               // Distance
-              Icon(Icons.route_rounded,
-                  color: _statusColor, size: 22),
+              Icon(Icons.route_rounded, color: _statusColor, size: 22),
               const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -633,7 +698,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                 offset: Offset(0, 4),
               ),
             ],
-            border: Border.all(color: isDark ? const Color(0xFF16151A) : Colors.white, width: 2),
+            border: Border.all(
+              color: isDark ? const Color(0xFF16151A) : Colors.white,
+              width: 2,
+            ),
           ),
           child: Icon(
             Icons.home_rounded,
@@ -698,7 +766,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               decoration: BoxDecoration(
                 color: _statusColor,
                 shape: BoxShape.circle,
-                border: Border.all(color: isDark ? const Color(0xFF16151A) : Colors.white, width: 3),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF16151A) : Colors.white,
+                  width: 3,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: _statusColor.withOpacity(0.4),
@@ -720,19 +791,26 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
     );
   }
 
-  Widget _buildGlassButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _buildGlassButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Material(
-          color: Colors.white.withOpacity(0.85),
+          color: isDark ? AppColors.dark700 : Colors.white.withOpacity(0.85),
           child: InkWell(
             onTap: onTap,
             child: Container(
               padding: const EdgeInsets.all(12),
-              child: Icon(icon, color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700, size: 22),
+              child: Icon(
+                icon,
+                color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700,
+                size: 22,
+              ),
             ),
           ),
         ),
@@ -748,28 +826,32 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: Colors.white.withOpacity(0.85),
+          color:
+              isDark ? AppColors.dark700 : Colors.white.withOpacity(0.85),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               AnimatedBuilder(
                 animation: _pulseController,
-                builder: (context, _) => Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _statusColor.withOpacity(
-                        0.4 + (1 - _pulseController.value) * 0.6),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _statusColor.withOpacity(0.4),
-                        blurRadius: 6,
-                        spreadRadius: 1,
-                      )
-                    ],
-                  ),
-                ),
+                builder:
+                    (context, _) => Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color:
+                            _statusColor.withOpacity(
+                                  0.4 + (1 - _pulseController.value) * 0.6,
+                                ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _statusColor.withOpacity(0.4),
+                            blurRadius: 6,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
               ),
               const SizedBox(width: 8),
               Text(
@@ -792,7 +874,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return FloatingActionButton(
       heroTag: 'recenter_btn',
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? AppColors.customerColor : Colors.white,
       mini: true,
       elevation: 4,
       onPressed: _recenterMap,
@@ -807,13 +889,12 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   Widget _buildAnimatedBottomSheet() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return SlideTransition(
-      position: Tween<Offset>(
-        begin: Offset(0, 1),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(
-        parent: _bottomSheetController,
-        curve: Curves.easeOutQuart,
-      )),
+      position: Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(
+        CurvedAnimation(
+          parent: _bottomSheetController,
+          curve: Curves.easeOutQuart,
+        ),
+      ),
       child: Container(
         margin: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -893,9 +974,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
       decoration: BoxDecoration(
         color: _statusColor.withOpacity(0.06),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: _statusColor.withOpacity(0.1),
-        ),
+        border: Border.all(color: _statusColor.withOpacity(0.1)),
       ),
       child: Row(
         children: [
@@ -932,7 +1011,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   _statusSubtext,
                   style: TextStyle(
                     fontSize: 13,
-                    color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200, // Slate 500
+                    color:
+                        isDark
+                            ? const Color(0xFFA19EAB)
+                            : AppColors.dark200, // Slate 500
                     height: 1.4,
                   ),
                 ),
@@ -949,9 +1031,13 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: AppColors.light100, // Slate 50
+        color:
+            isDark ? const Color(0xFF16151A) : AppColors.light100, // Slate 50
         border: Border.all(
-          color: AppColors.light400, // Slate 200
+          color:
+              isDark
+                  ? const Color(0xFF27272A)
+                  : AppColors.light400, // Slate 200
         ),
         borderRadius: BorderRadius.circular(20),
       ),
@@ -963,15 +1049,21 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             children: [
               Row(
                 children: [
-                  Icon(Icons.security_rounded,
-                      size: 16, color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700),
+                  Icon(
+                    Icons.security_rounded,
+                    size: 16,
+                    color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     'VISIT START CODE',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700, // Slate 900
+                      color:
+                          isDark
+                              ? const Color(0xFFF2F2F5)
+                              : AppColors.dark700, // Slate 900
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -989,20 +1081,24 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             ],
           ),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.dark700, AppColors.dark600],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              // gradient: LinearGradient(
+              //   colors: [
+              //     isDark ? AppColors.light100 : AppColors.light100,
+              //     AppColors.light100  ,
+              //   ],
+              //   begin: Alignment.topLeft,
+              //   end: Alignment.bottomRight,
+              // ),
+              color: AppColors.customerColor,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700.withOpacity(0.2),
+                  color:
+                      isDark
+                          ? AppColors.customerColor
+                          : AppColors.dark700.withOpacity(0.2),
                   blurRadius: 10,
                   offset: Offset(0, 4),
                 ),
@@ -1013,7 +1109,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: isDark ? const Color(0xFF16151A) : Colors.white,
+                color: isDark ? Colors.white : Colors.black,
                 fontFamily: 'monospace',
                 letterSpacing: 6,
               ),
@@ -1049,8 +1145,11 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   color: isDark ? const Color(0xFF16151A) : Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.favorite_rounded,
-                    color: AppColors.success500, size: 24),
+                child: Icon(
+                  Icons.favorite_rounded,
+                  color: AppColors.success500,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -1063,22 +1162,24 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: isDark ? const Color(0xFF16151A) : Colors.white,
-                  ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'The nurse is providing $_serviceName. The visit will be marked complete soon.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.9),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'The nurse is providing $_serviceName. The visit will be marked complete soon.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.white.withOpacity(0.9),
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1092,10 +1193,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
           height: 56,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                _statusColor,
-                _statusColor.withOpacity(0.6),
-              ],
+              colors: [_statusColor, _statusColor.withOpacity(0.6)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -1114,7 +1212,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: isDark ? const Color(0xFF16151A) : Colors.white,
+                color: isDark ? Colors.white : const Color(0xFF16151A),
               ),
             ),
           ),
@@ -1130,7 +1228,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700, // Slate 900
+                  color:
+                      isDark
+                          ? const Color(0xFFF2F2F5)
+                          : AppColors.dark700, // Slate 900
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -1156,7 +1257,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   ],
                   if (_nurseRating == 0)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.light400,
                         borderRadius: BorderRadius.circular(6),
@@ -1184,7 +1288,8 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                     'Registered Nurse',
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200,
+                      color:
+                          isDark ? const Color(0xFFA19EAB) : AppColors.dark200,
                     ),
                   ),
                 ],
@@ -1196,7 +1301,8 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
         if (_nursePhone != null && _nursePhone!.isNotEmpty) ...[
           const SizedBox(width: 12),
           Material(
-            color: AppColors.light100, // Slate 50
+            color:
+                isDark ? AppColors.doctorColor : AppColors.light100, // Slate 50
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               onTap: () {
@@ -1209,12 +1315,13 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.light400),
+                  border: Border.all(color: AppColors.doctorColor),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
                   Icons.phone_rounded,
-                  color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700,
+                  color:
+                      isDark ? const Color(0xFFF2F2F5) : AppColors.doctorColor,
                   size: 22,
                 ),
               ),
@@ -1235,7 +1342,9 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               child: ElevatedButton.icon(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Calling Emergency Services...')),
+                    const SnackBar(
+                      content: Text('Calling Emergency Services...'),
+                    ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -1253,7 +1362,6 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),
-              elevation: 0,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1278,14 +1386,8 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),
-              elevation: 0,
             ),
-            icon: const Icon(Icons.flag, size: 20, color: AppColors.warning500),
-            label: const Text(
-              'Report',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            ),
-          ),
+          ],
         ),
       ],
     );

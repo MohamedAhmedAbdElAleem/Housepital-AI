@@ -107,6 +107,7 @@ class NurseBookingCubit extends Cubit<NurseBookingState> {
         'area': location['area'],
         'city': location['city'],
         'state': location['state'],
+        'coordinates': location['coordinates'],
       },
       'createdAt': offer['createdAt'] ?? DateTime.now().toIso8601String(),
     });
