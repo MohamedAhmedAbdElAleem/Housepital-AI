@@ -3,7 +3,7 @@ uvicorn
 torch
 Pillow
 numpy
-opencv-python
+opencv-python-headless
 ultralytics
 timm
 torchvision
