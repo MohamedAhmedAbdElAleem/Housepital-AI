@@ -214,6 +214,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         // Name Input
                                         TextFormField(
                                           controller: _nameController,
+                                          style: const TextStyle(color: Colors.black87),
                                           decoration: _buildInputDecoration(
                                             'Full Name',
                                             Icons.person_outline,
@@ -229,6 +230,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         // Email Input
                                         TextFormField(
                                           controller: _emailController,
+                                          style: const TextStyle(color: Colors.black87),
                                           decoration: _buildInputDecoration(
                                             'Email Address',
                                             Icons.email_outlined,
@@ -245,6 +247,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         // Mobile Number Input
                                         TextFormField(
                                           controller: _mobileController,
+                                          style: const TextStyle(color: Colors.black87),
                                           keyboardType: TextInputType.phone,
                                           decoration: _buildInputDecoration(
                                             'Mobile Number',
@@ -268,6 +271,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         // Password Input
                                         TextFormField(
                                           controller: _passwordController,
+                                          style: const TextStyle(color: Colors.black87),
                                           obscureText: !_isPasswordVisible,
                                           decoration: _buildInputDecoration(
                                             'Password',
@@ -301,6 +305,7 @@ class _RegisterPageState extends State<RegisterPage>
                                         TextFormField(
                                           controller:
                                               _confirmPasswordController,
+                                          style: const TextStyle(color: Colors.black87),
                                           obscureText:
                                               !_isConfirmPasswordVisible,
                                           decoration: _buildInputDecoration(
@@ -490,6 +495,13 @@ class _RegisterPageState extends State<RegisterPage>
   InputDecoration _buildInputDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
+      labelStyle: const TextStyle(
+        color: Colors.black87,
+        fontWeight: FontWeight.w500,
+      ),
+      hintStyle: TextStyle(
+        color: Colors.grey[400],
+      ),
       prefixIcon: Icon(icon, color: AppColors.primary500),
       filled: true,
       fillColor: Colors.grey[50],
