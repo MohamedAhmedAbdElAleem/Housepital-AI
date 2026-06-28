@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const Dependent = require("../models/dependent");
+const Dependent = require("../models/Dependent");
 const { logEvents } = require("../middleware/logger");
 const jwt = require("jsonwebtoken");
 const { createRedisClient } = require("../caching/redis");

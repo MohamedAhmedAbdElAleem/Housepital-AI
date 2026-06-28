@@ -552,7 +552,7 @@ router.delete("/addresses/:addressId", authenticateToken, async (req, res) => {
 router.put("/dependent/:dependentId", authenticateToken, async (req, res) => {
 	try {
 		const User = require("../models/User");
-		const Dependent = require("../models/dependent");
+		const Dependent = require("../models/Dependent");
 		const {
 			fullName,
 			relationship,
@@ -635,7 +635,7 @@ router.delete(
 	authenticateToken,
 	async (req, res) => {
 		try {
-			const Dependent = require("../models/dependent");
+			const Dependent = require("../models/Dependent");
 
 			const dependent = await Dependent.findByIdAndDelete(
 				req.params.dependentId,
