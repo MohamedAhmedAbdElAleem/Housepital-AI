@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import '../widgets/booking_ticket_modal.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../../../profile/presentation/pages/add_dependent_page.dart';
@@ -30,12 +31,34 @@ class ClinicBookingPage extends StatefulWidget {
 class _ClinicBookingPageState extends State<ClinicBookingPage>
     with SingleTickerProviderStateMixin {
   bool get isDark => Theme.of(context).brightness == Brightness.dark;
+  bool get isAr => Localizations.localeOf(context).languageCode == 'ar';
+
+  String t(String ar, String en) => isAr ? ar : en;
+
+  String _formatAddress(dynamic address) {
+    if (address == null) return '';
+    if (address is String) return address;
+    if (address is Map) {
+      final street = address['street'] ?? '';
+      final area = address['area'] ?? '';
+      final city = address['city'] ?? '';
+      final state = address['state'] ?? '';
+      return [street, area, city, state]
+          .map((e) => e.toString().trim())
+          .where((s) => s.isNotEmpty)
+          .join(', ');
+    }
+    return address.toString();
+  }
+
   // Glass & Grid Theme (Medical Blue)
   static const _primary = Color(0xFF3B82F6);
   static const _primaryDark = Color(0xFF1D4ED8);
-  static const _surface = Color(0xFFF0F4F8);
-  static const _textPrimary = Color(0xFF1A202C);
-  static const _textMuted = Color(0xFFA0AEC0);
+
+  Color get surfaceColor => isDark ? const Color(0xFF0D0C11) : const Color(0xFFF0F4F8);
+  Color get cardColor => isDark ? const Color(0xFF16151A) : Colors.white;
+  Color get textPrimaryColor => isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1A202C);
+  Color get textMutedColor => isDark ? const Color(0xFFA19EAB) : const Color(0xFFA0AEC0);
 
   late PageController _pageController;
   late AnimationController _animationController;
@@ -237,20 +260,21 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
         'notes': _notesController.text.trim(),
         'status': 'pending',
       };
-      await api.post('/api/bookings/create', body: body);
+      final response = await api.post('/api/bookings/create', body: body);
       if (mounted) {
         setState(() => _isSubmitting = false);
-        _showSuccessSheet();
+        final createdBooking = response is Map ? response['booking'] : null;
+        _showSuccessSheet(createdBooking);
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSubmitting = false);
-        _showError('حدث خطأ أثناء الحجز. حاول مرة أخرى.');
+        _showError(t('حدث خطأ أثناء الحجز. حاول مرة أخرى.', 'An error occurred during booking. Please try again.'));
       }
     }
   }
 
-  void _showSuccessSheet() {
+  void _showSuccessSheet(Map<String, dynamic>? bookingData) {
     showModalBottomSheet(
       context: context,
       isDismissible: false,
@@ -260,8 +284,8 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
           (_) => Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF16151A) : Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+              color: cardColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -273,7 +297,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                     color: _primary.withAlpha(20),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.check_circle_rounded,
                     size: 48,
                     color: _primary,
@@ -281,46 +305,94 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'تم الحجز بنجاح!',
+                  t('تم الحجز بنجاح!', 'Booking Successful!'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
+                    color: textPrimaryColor,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   _bookingMode == 'queue'
-                      ? 'تم تسجيلك في طابور ${widget.clinicName} ليوم ${DateFormat('EEE, d MMM').format(_selectedDate)}'
-                      : 'موعدك في ${widget.clinicName} يوم ${DateFormat('EEE, d MMM').format(_selectedDate)} الساعة $_selectedTimeSlot',
+                      ? t(
+                          'تم تسجيلك في طابور ${widget.clinicName} ليوم ${DateFormat('EEE, d MMM').format(_selectedDate)}',
+                          'You have been registered in ${widget.clinicName} queue for ${DateFormat('EEE, d MMM').format(_selectedDate)}',
+                        )
+                      : t(
+                          'موعدك في ${widget.clinicName} يوم ${DateFormat('EEE, d MMM').format(_selectedDate)} الساعة $_selectedTimeSlot',
+                          'Your appointment at ${widget.clinicName} is on ${DateFormat('EEE, d MMM').format(_selectedDate)} at $_selectedTimeSlot',
+                        ),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Inter',
-                    color: isDark ? const Color(0xFFA19EAB) : const Color(0xFF64748B),
+                    color: textMutedColor,
                     fontSize: 15,
                     height: 1.5,
                   ),
                 ),
                 const SizedBox(height: 32),
+                if (bookingData != null) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // pop sheet
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        // Show ticket modal
+                        final rootContext = Navigator.of(context).context;
+                        showDialog(
+                          context: rootContext,
+                          builder: (ctx) => BookingTicketModal(
+                            serviceName: bookingData['serviceName'] ?? _selectedService?['name'] ?? '',
+                            patientName: bookingData['patientName'] ?? _selectedPatientName ?? '',
+                            clinicName: widget.clinicName,
+                            clinicAddress: _formatAddress(widget.clinicData?['address']),
+                            doctorName: widget.doctorName,
+                            scheduledTime: _bookingMode == 'queue'
+                                ? DateFormat('d MMM').format(_selectedDate)
+                                : '${DateFormat('d MMM').format(_selectedDate)} · $_selectedTimeSlot',
+                            checkInPin: bookingData['visitPin'] ?? '----',
+                            onClose: () => Navigator.pop(ctx),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        t('عرض التذكرة / رمز PIN', 'View Ticket / PIN'),
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
+                  child: TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
                       Navigator.of(context).popUntil((route) => route.isFirst);
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: textPrimaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      elevation: 0,
                     ),
                     child: Text(
-                      'حسناً',
-                      style: TextStyle(
+                      t('حسناً', 'OK'),
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -340,7 +412,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
       SnackBar(
         content: Text(
           msg,
-          style: TextStyle(
+          style: const TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.w600,
           ),
@@ -362,7 +434,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
     );
 
     return Scaffold(
-      backgroundColor: _surface,
+      backgroundColor: surfaceColor,
       body: Column(
         children: [
           _buildHeader(),
@@ -386,7 +458,6 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
   }
 
   Widget _buildHeader() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.fromLTRB(
         20,
@@ -394,7 +465,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
         20,
         20,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -414,8 +485,8 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                 border: Border.all(color: Colors.white.withAlpha(50)),
               ),
               child: Icon(
-                Icons.arrow_back,
-                color: isDark ? const Color(0xFF16151A) : Colors.white,
+                isAr ? Icons.arrow_forward : Icons.arrow_back,
+                color: Colors.white,
                 size: 22,
               ),
             ),
@@ -427,11 +498,11 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
               children: [
                 Text(
                   widget.clinicName,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFF16151A) : Colors.white,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -452,9 +523,9 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
               color: Colors.white.withAlpha(40),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.local_hospital_rounded,
-              color: isDark ? const Color(0xFF16151A) : Colors.white,
+              color: Colors.white,
               size: 24,
             ),
           ),
@@ -464,12 +535,11 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
   }
 
   Widget _buildStepIndicator() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final labels = [
-      'الخدمة',
-      _bookingMode == 'queue' ? 'اليوم' : 'الوقت',
-      'المريض',
-      'تأكيد',
+      t('الخدمة', 'Service'),
+      _bookingMode == 'queue' ? t('اليوم', 'Day') : t('الوقت', 'Time'),
+      t('المريض', 'Patient'),
+      t('تأكيد', 'Confirm'),
     ];
     const icons = [
       Icons.medical_services_rounded,
@@ -480,7 +550,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-      color: _surface,
+      color: surfaceColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: List.generate(_totalSteps, (i) {
@@ -495,11 +565,11 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                 decoration: BoxDecoration(
                   gradient:
                       active || done
-                          ? LinearGradient(
+                          ? const LinearGradient(
                             colors: [_primary, _primaryDark],
                           )
                           : null,
-                  color: active || done ? null : Colors.white,
+                  color: active || done ? null : cardColor,
                   shape: BoxShape.circle,
                   boxShadow:
                       active
@@ -507,19 +577,19 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                             BoxShadow(
                               color: _primary.withAlpha(60),
                               blurRadius: 12,
-                              offset: Offset(0, 4),
+                              offset: const Offset(0, 4),
                             ),
                           ]
                           : [],
                   border:
                       active || done
                           ? null
-                          : Border.all(color: _textMuted.withAlpha(40)),
+                          : Border.all(color: textMutedColor.withAlpha(40)),
                 ),
                 child: Icon(
                   icons[i],
                   size: 20,
-                  color: active || done ? Colors.white : _textMuted,
+                  color: active || done ? Colors.white : textMutedColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -529,7 +599,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                   fontFamily: 'Inter',
                   fontSize: 11,
                   fontWeight: active ? FontWeight.bold : FontWeight.w500,
-                  color: active ? _primary : _textMuted,
+                  color: active ? _primary : textMutedColor,
                 ),
               ),
             ],
@@ -540,7 +610,6 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
   }
 
   Widget _buildStep1Services() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_isLoadingServices) {
       return const Center(child: CircularProgressIndicator(color: _primary));
     }
@@ -556,12 +625,12 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
             ),
             const SizedBox(height: 16),
             Text(
-              'لا توجد خدمات متاحة',
+              t('لا توجد خدمات متاحة', 'No services available'),
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: _textPrimary,
+                color: textPrimaryColor,
               ),
             ),
           ],
@@ -585,7 +654,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF16151A) : Colors.white,
+              color: cardColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isSelected ? _primary : Colors.transparent,
@@ -597,14 +666,14 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                         BoxShadow(
                           color: _primary.withAlpha(40),
                           blurRadius: 16,
-                          offset: Offset(0, 6),
+                          offset: const Offset(0, 6),
                         ),
                       ]
                       : [
                         BoxShadow(
                           color: Colors.black.withAlpha(10),
                           blurRadius: 10,
-                          offset: Offset(0, 4),
+                          offset: const Offset(0, 4),
                         ),
                       ],
             ),
@@ -614,12 +683,12 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: isSelected ? _primary.withAlpha(20) : _surface,
+                    color: isSelected ? _primary.withAlpha(20) : surfaceColor,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
                     Icons.medical_services_rounded,
-                    color: isSelected ? _primary : _textMuted,
+                    color: isSelected ? _primary : textMutedColor,
                     size: 24,
                   ),
                 ),
@@ -634,7 +703,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                           fontFamily: 'Poppins',
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: _textPrimary,
+                          color: textPrimaryColor,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -643,15 +712,15 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                           Icon(
                             Icons.schedule_rounded,
                             size: 14,
-                            color: _textMuted,
+                            color: textMutedColor,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${s['durationMinutes'] ?? 30} دقيقة',
+                            '${s['durationMinutes'] ?? 30} ${t('دقيقة', 'min')}',
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 12,
-                              color: _textMuted,
+                              color: textMutedColor,
                             ),
                           ),
                         ],
@@ -660,12 +729,12 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                   ),
                 ),
                 Text(
-                  '${s['price']} جنيه',
+                  '${s['price']} ${t('جنيه', 'EGP')}',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? _primary : _textPrimary,
+                    color: isSelected ? _primary : textPrimaryColor,
                   ),
                 ),
               ],
@@ -677,29 +746,29 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
   }
 
   Widget _buildStep2DateTime() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isQueue = _bookingMode == 'queue';
+    final localeStr = isAr ? 'ar' : 'en';
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
       physics: const BouncingScrollPhysics(),
       children: [
         Text(
-          isQueue ? 'اختر يوم الزيارة' : 'اختر الموعد',
+          isQueue ? t('اختر يوم الزيارة', 'Select Visit Day') : t('اختر الموعد', 'Select Appointment'),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: _textPrimary,
+            color: textPrimaryColor,
           ),
         ),
         const SizedBox(height: 20),
         Text(
-          'التاريخ',
+          t('التاريخ', 'Date'),
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: _textPrimary,
+            color: textPrimaryColor,
           ),
         ),
         const SizedBox(height: 12),
@@ -727,11 +796,11 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                   decoration: BoxDecoration(
                     gradient:
                         selected
-                            ? LinearGradient(
+                            ? const LinearGradient(
                               colors: [_primary, _primaryDark],
                             )
                             : null,
-                    color: selected ? null : Colors.white,
+                    color: selected ? null : cardColor,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow:
                         selected
@@ -739,7 +808,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                               BoxShadow(
                                 color: _primary.withAlpha(60),
                                 blurRadius: 10,
-                                offset: Offset(0, 4),
+                                offset: const Offset(0, 4),
                               ),
                             ]
                             : [
@@ -753,24 +822,24 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        DateFormat('EEE').format(d),
+                        DateFormat('EEE', localeStr).format(d),
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 12,
                           color:
                               selected
                                   ? Colors.white.withAlpha(200)
-                                  : _textMuted,
+                                  : textMutedColor,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        DateFormat('d').format(d),
+                        DateFormat('d', localeStr).format(d),
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: selected ? Colors.white : _textPrimary,
+                          color: selected ? Colors.white : textPrimaryColor,
                         ),
                       ),
                     ],
@@ -785,7 +854,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: _primary.withAlpha(15),
+              color: _primary.withAlpha(isDark ? 25 : 15),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: _primary.withAlpha(30)),
             ),
@@ -794,10 +863,10 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF16151A) : Colors.white,
+                    color: cardColor,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.people_rounded, color: _primary),
+                  child: const Icon(Icons.people_rounded, color: _primary),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -805,21 +874,24 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'نظام الطابور',
+                        t('نظام الطابور', 'Queue System'),
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: _textPrimary,
+                          color: textPrimaryColor,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'سيُخصَّص لك رقم طابور بعد تأكيد الحجز ليوم ${DateFormat('EEEE, d MMMM').format(_selectedDate)}',
+                        t(
+                          'سيُخصَّص لك رقم طابور بعد تأكيد الحجز ليوم ${DateFormat('EEEE, d MMMM', 'ar').format(_selectedDate)}',
+                          'You will be assigned a queue number after booking confirmation for ${DateFormat('EEEE, d MMMM', 'en').format(_selectedDate)}',
+                        ),
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 13,
-                          color: _textMuted,
+                          color: textMutedColor,
                           height: 1.5,
                         ),
                       ),
@@ -832,12 +904,12 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
         ] else ...[
           const SizedBox(height: 32),
           Text(
-            'الوقت',
+            t('الوقت', 'Time'),
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: _textPrimary,
+              color: textPrimaryColor,
             ),
           ),
           const SizedBox(height: 12),
@@ -845,12 +917,12 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
             spacing: 12,
             runSpacing: 12,
             children:
-                _timeSlots.map((t) {
-                  final selected = _selectedTimeSlot == t;
+                _timeSlots.map((tSlot) {
+                  final selected = _selectedTimeSlot == tSlot;
                   return GestureDetector(
                     onTap: () {
                       HapticFeedback.selectionClick();
-                      setState(() => _selectedTimeSlot = t);
+                      setState(() => _selectedTimeSlot = tSlot);
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
@@ -859,7 +931,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                         vertical: 14,
                       ),
                       decoration: BoxDecoration(
-                        color: selected ? _primary : Colors.white,
+                        color: selected ? _primary : cardColor,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow:
                             selected
@@ -867,7 +939,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                                   BoxShadow(
                                     color: _primary.withAlpha(60),
                                     blurRadius: 10,
-                                    offset: Offset(0, 4),
+                                    offset: const Offset(0, 4),
                                   ),
                                 ]
                                 : [
@@ -878,12 +950,12 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                                 ],
                       ),
                       child: Text(
-                        t,
+                        tSlot,
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontWeight:
                               selected ? FontWeight.bold : FontWeight.w600,
-                          color: selected ? Colors.white : _textPrimary,
+                          color: selected ? Colors.white : textPrimaryColor,
                           fontSize: 15,
                         ),
                       ),
@@ -897,18 +969,17 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
   }
 
   Widget _buildStep3Patient() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
       physics: const BouncingScrollPhysics(),
       children: [
         Text(
-          'من المريض؟',
+          t('من المريض؟', 'Who is the patient?'),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: _textPrimary,
+            color: textPrimaryColor,
           ),
         ),
         const SizedBox(height: 20),
@@ -916,21 +987,21 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
           _buildPatientCard(
             id: _userId!,
             name: _userName!,
-            subtitle: 'أنت',
+            subtitle: t('أنت', 'You'),
             icon: Icons.person_rounded,
             isForSelf: true,
           ),
         if (_isLoadingDependents)
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Center(child: CircularProgressIndicator(color: _primary)),
           )
         else
           ..._dependents.map(
             (dep) => _buildPatientCard(
               id: dep['_id'] ?? dep['id'] ?? '',
-              name: dep['name'] ?? 'مريض',
-              subtitle: dep['relation'] ?? '',
+              name: dep['fullName'] ?? dep['name'] ?? t('مريض', 'Patient'),
+              subtitle: dep['relationship'] ?? dep['relation'] ?? '',
               icon: Icons.people_rounded,
               isForSelf: false,
             ),
@@ -948,7 +1019,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF16151A) : Colors.white,
+              color: cardColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: _primary.withAlpha(40),
@@ -958,11 +1029,11 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.add_rounded, color: _primary),
-                SizedBox(width: 8),
+                const Icon(Icons.add_rounded, color: _primary),
+                const SizedBox(width: 8),
                 Text(
-                  'إضافة شخص آخر',
-                  style: TextStyle(
+                  t('إضافة شخص آخر', 'Add someone else'),
+                  style: const TextStyle(
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.bold,
                     color: _primary,
@@ -974,18 +1045,18 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
         ),
         const SizedBox(height: 32),
         Text(
-          'ملاحظات للطبيب (اختياري)',
+          t('ملاحظات للطبيب (اختياري)', 'Notes for the doctor (Optional)'),
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: _textPrimary,
+            color: textPrimaryColor,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF16151A) : Colors.white,
+            color: cardColor,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10),
@@ -994,12 +1065,12 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
           child: TextField(
             controller: _notesController,
             maxLines: 3,
-            style: TextStyle(fontFamily: 'Inter'),
+            style: TextStyle(fontFamily: 'Inter', color: textPrimaryColor),
             decoration: InputDecoration(
-              hintText: 'أكتب أي ملاحظات أو استفسارات...',
-              hintStyle: TextStyle(color: _textMuted),
+              hintText: t('أكتب أي ملاحظات أو استفسارات...', 'Write any notes or queries...'),
+              hintStyle: TextStyle(color: textMutedColor),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.all(20),
+              contentPadding: const EdgeInsets.all(20),
             ),
           ),
         ),
@@ -1014,7 +1085,6 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
     required IconData icon,
     required bool isForSelf,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final selected = _selectedPatientId == id;
     return GestureDetector(
       onTap: () {
@@ -1030,7 +1100,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF16151A) : Colors.white,
+          color: cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: selected ? _primary : Colors.transparent,
@@ -1042,7 +1112,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                     BoxShadow(
                       color: _primary.withAlpha(40),
                       blurRadius: 12,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     ),
                   ]
                   : [
@@ -1055,10 +1125,10 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: selected ? _primary.withAlpha(20) : _surface,
+                color: selected ? _primary.withAlpha(20) : surfaceColor,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, color: selected ? _primary : _textMuted),
+              child: Icon(icon, color: selected ? _primary : textMutedColor),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -1071,6 +1141,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
+                      color: textPrimaryColor,
                     ),
                   ),
                   if (subtitle.isNotEmpty)
@@ -1079,7 +1150,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 13,
-                        color: _textMuted,
+                        color: textMutedColor,
                       ),
                     ),
                 ],
@@ -1089,13 +1160,13 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
               Container(
                 width: 28,
                 height: 28,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(colors: [_primary, _primaryDark]),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.check_rounded,
-                  color: isDark ? const Color(0xFF16151A) : Colors.white,
+                  color: Colors.white,
                   size: 16,
                 ),
               ),
@@ -1106,59 +1177,59 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
   }
 
   Widget _buildStep4Review() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final localeStr = isAr ? 'ar' : 'en';
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
       physics: const BouncingScrollPhysics(),
       children: [
         Text(
-          'مراجعة الحجز',
+          t('مراجعة الحجز', 'Review Booking'),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: _textPrimary,
+            color: textPrimaryColor,
           ),
         ),
         const SizedBox(height: 20),
         _buildReviewCard(
           Icons.local_hospital_rounded,
-          'العيادة',
+          t('العيادة', 'Clinic'),
           widget.clinicName,
           _primary,
         ),
         _buildReviewCard(
           Icons.person_rounded,
-          'الطبيب',
+          t('الطبيب', 'Doctor'),
           widget.doctorName,
           const Color(0xFF8B5CF6),
         ),
         if (_selectedService != null)
           _buildReviewCard(
             Icons.medical_services_rounded,
-            'الخدمة',
+            t('الخدمة', 'Service'),
             '${_selectedService!['name']} — ${_selectedService!['price']} EGP',
             const Color(0xFF10B981),
           ),
         _buildReviewCard(
           Icons.calendar_today_rounded,
-          _bookingMode == 'queue' ? 'يوم الزيارة (طابور)' : 'التاريخ والوقت',
+          _bookingMode == 'queue' ? t('يوم الزيارة (طابور)', 'Visit Day (Queue)') : t('التاريخ والوقت', 'Date & Time'),
           _bookingMode == 'queue'
-              ? DateFormat('EEEE, d MMMM yyyy').format(_selectedDate)
-              : '${DateFormat('EEEE, d MMMM yyyy').format(_selectedDate)} · $_selectedTimeSlot',
+              ? DateFormat('EEEE, d MMMM yyyy', localeStr).format(_selectedDate)
+              : '${DateFormat('EEEE, d MMMM yyyy', localeStr).format(_selectedDate)} · $_selectedTimeSlot',
           const Color(0xFFF59E0B),
         ),
         if (_selectedPatientName != null)
           _buildReviewCard(
             Icons.people_rounded,
-            'المريض',
+            t('المريض', 'Patient'),
             _selectedPatientName!,
             const Color(0xFFEF4444),
           ),
         if (_notesController.text.isNotEmpty)
           _buildReviewCard(
             Icons.notes_rounded,
-            'ملاحظات',
+            t('ملاحظات', 'Notes'),
             _notesController.text,
             const Color(0xFF64748B),
           ),
@@ -1166,13 +1237,13 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [_primary, _primaryDark]),
+            gradient: const LinearGradient(colors: [_primary, _primaryDark]),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
                 color: _primary.withAlpha(60),
                 blurRadius: 16,
-                offset: Offset(0, 8),
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -1180,19 +1251,19 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'إجمالي الحجز',
-                style: TextStyle(
+                t('إجمالي الحجز', 'Total Amount'),
+                style: const TextStyle(
                   fontFamily: 'Inter',
-                  color: isDark ? const Color(0xFF16151A) : Colors.white,
+                  color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
                 '${_selectedService?['price'] ?? 0} EGP',
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Poppins',
-                  color: isDark ? const Color(0xFF16151A) : Colors.white,
+                  color: Colors.white,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1210,12 +1281,11 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
     String value,
     Color color,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF16151A) : Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10),
@@ -1241,7 +1311,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 12,
-                    color: _textMuted,
+                    color: textMutedColor,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1251,7 +1321,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                     fontFamily: 'Inter',
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: _textPrimary,
+                    color: textPrimaryColor,
                   ),
                 ),
               ],
@@ -1263,7 +1333,6 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
   }
 
   Widget _buildBottomBar() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLast = _currentStep == _totalSteps - 1;
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -1273,13 +1342,13 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
         MediaQuery.of(context).padding.bottom + 16,
       ),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF16151A) : Colors.white,
+        color: cardColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(10),
             blurRadius: 24,
-            offset: Offset(0, -8),
+            offset: const Offset(0, -8),
           ),
         ],
       ),
@@ -1293,16 +1362,16 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                 child: Container(
                   height: 56,
                   decoration: BoxDecoration(
-                    color: _surface,
+                    color: surfaceColor,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
-                      'رجوع',
+                      t('رجوع', 'Back'),
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.bold,
-                        color: _textPrimary,
+                        color: textPrimaryColor,
                       ),
                     ),
                   ),
@@ -1320,11 +1389,11 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                 decoration: BoxDecoration(
                   gradient:
                       _canProceed()
-                          ? LinearGradient(
+                          ? const LinearGradient(
                             colors: [_primary, _primaryDark],
                           )
                           : null,
-                  color: _canProceed() ? null : const Color(0xFFCBD5E1),
+                  color: _canProceed() ? null : (isDark ? const Color(0xFF2A2831) : const Color(0xFFCBD5E1)),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow:
                       _canProceed()
@@ -1332,7 +1401,7 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                             BoxShadow(
                               color: _primary.withAlpha(60),
                               blurRadius: 16,
-                              offset: Offset(0, 6),
+                              offset: const Offset(0, 6),
                             ),
                           ]
                           : [],
@@ -1340,21 +1409,23 @@ class _ClinicBookingPageState extends State<ClinicBookingPage>
                 child: Center(
                   child:
                       _isSubmitting
-                          ? SizedBox(
+                          ? const SizedBox(
                             width: 24,
                             height: 24,
                             child: CircularProgressIndicator(
-                              color: isDark ? const Color(0xFF16151A) : Colors.white,
+                              color: Colors.white,
                               strokeWidth: 2.5,
                             ),
                           )
                           : Text(
-                            isLast ? 'تأكيد الحجز' : 'التالي',
+                            isLast ? t('تأكيد الحجز', 'Confirm Booking') : t('التالي', 'Next'),
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFF16151A) : Colors.white,
+                              color: _canProceed()
+                                  ? Colors.white
+                                  : (isDark ? Colors.white.withAlpha(60) : Colors.white.withAlpha(180)),
                             ),
                           ),
                 ),

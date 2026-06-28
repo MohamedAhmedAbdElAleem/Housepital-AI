@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../booking/presentation/pages/booking_step1_select_patient.dart';
 import '../../../../../core/network/api_constants.dart';
 import '../../../../../core/network/api_service.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 🎨 DESIGN SYSTEM
@@ -10,19 +11,19 @@ import '../../../../../core/network/api_service.dart';
 
 class _ServiceDesign {
   static Color surface(bool isDark) => isDark ? const Color(0xFF0D0C11) : const Color(0xFFF8FAFC);
-  static const cardBg = Colors.white;
-  static const textPrimary = Color(0xFF1E293B);
-  static const textSecondary = Color(0xFF64748B);
-  static const textMuted = Color(0xFF94A3B8);
-  static const divider = Color(0xFFE2E8F0);
+  static Color cardBg(bool isDark) => isDark ? const Color(0xFF16151A) : Colors.white;
+  static Color textPrimary(bool isDark) => isDark ? Colors.white : const Color(0xFF1E293B);
+  static Color textSecondary(bool isDark) => isDark ? const Color(0xFFA19EAB) : const Color(0xFF64748B);
+  static Color textMuted(bool isDark) => isDark ? const Color(0xFF555263) : const Color(0xFF94A3B8);
+  static Color divider(bool isDark) => isDark ? const Color(0xFF2A2831) : const Color(0xFFE2E8F0);
   static const starColor = Color(0xFFF59E0B);
   static const successGreen = Color(0xFF00B870);
   static const infoBlue = Color(0xFF3B82F6);
 
-  static BoxShadow get cardShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.06),
+  static BoxShadow cardShadow(bool isDark) => BoxShadow(
+    color: Colors.black.withOpacity(isDark ? 0.25 : 0.06),
     blurRadius: 20,
-    offset: Offset(0, 8),
+    offset: const Offset(0, 8),
   );
 }
 
@@ -32,6 +33,7 @@ class _ServiceDesign {
 
 class ServiceDetailsPage extends StatefulWidget {
   final String title;
+  final String? englishTitle; // Always English — used for API matching
   final String? serviceId;
   final String? serviceRoute;
   final String price;
@@ -44,6 +46,7 @@ class ServiceDetailsPage extends StatefulWidget {
   const ServiceDetailsPage({
     super.key,
     required this.title,
+    this.englishTitle,
     this.serviceId,
     this.serviceRoute,
     required this.price,
@@ -80,7 +83,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
       curve: Curves.easeOut,
     );
     _slideAnimation = Tween<Offset>(
-      begin: Offset(0, 0.1),
+      begin: const Offset(0, 0.1),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
@@ -122,9 +125,11 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
 
     if (services.isEmpty) return null;
 
+    // Use the stable English title if available; otherwise fall back to widget.title.
+    // This ensures Arabic locale never breaks API matching.
+    final englishName = (widget.englishTitle ?? widget.title).toLowerCase().trim();
     final routeToken = (widget.serviceRoute ?? '').toLowerCase().trim();
-    final titleToken = widget.title.toLowerCase().trim();
-    final titleSlug = _slugFromTitle(widget.title);
+    final titleSlug = _slugFromTitle(widget.englishTitle ?? widget.title);
 
     String? pickId(dynamic item) {
       if (item is! Map) return null;
@@ -134,9 +139,12 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
       final name = item['name']?.toString().toLowerCase().trim() ?? '';
 
       if (id.isEmpty) return null;
+      // 1. Match by stable English category slug (most reliable)
       if (routeToken.isNotEmpty && category == routeToken) return id;
-      if (category == titleSlug) return id;
-      if (name == titleToken) return id;
+      // 2. Match by English name slug vs category
+      if (titleSlug.isNotEmpty && category == titleSlug) return id;
+      // 3. Direct English name match
+      if (name.isNotEmpty && name == englishName) return id;
       return null;
     }
 
@@ -150,6 +158,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -207,7 +216,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              _buildAppBar(),
+              _buildAppBar(l10n),
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: _slideAnimation,
@@ -215,13 +224,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                     opacity: _fadeAnimation,
                     child: Column(
                       children: [
-                        _buildHeroCard(),
-                        _buildQuickStats(),
-                        _buildServiceHighlights(),
-                        _buildTabSelector(),
-                        _buildTabContent(),
-                        _buildNursePreview(),
-                        _buildGuaranteeCard(),
+                        _buildHeroCard(l10n),
+                        _buildQuickStats(l10n),
+                        _buildServiceHighlights(l10n),
+                        _buildTabSelector(l10n),
+                        _buildTabContent(l10n),
+                        _buildNursePreview(l10n),
+                        _buildGuaranteeCard(l10n),
                         _buildBottomSpacing(),
                       ],
                     ),
@@ -232,14 +241,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
           ),
 
           // Floating Book Button
-          _buildFloatingBookButton(),
+          _buildFloatingBookButton(l10n),
         ],
       ),
     );
   }
 
-  Widget _buildAppBar() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildAppBar(AppLocalizations l10n) {
     return SliverAppBar(
       expandedHeight: 220,
       pinned: true,
@@ -269,8 +277,8 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                 content: Row(
                   children: [
                     Icon(Icons.share_rounded, color: isDark ? const Color(0xFF16151A) : Colors.white),
-                    SizedBox(width: 12),
-                    Text('Share feature coming soon!'),
+                    const SizedBox(width: 12),
+                    Text(l10n.shareComingSoon),
                   ],
                 ),
                 backgroundColor: widget.iconColor,
@@ -320,7 +328,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                         BoxShadow(
                           color: Colors.white.withOpacity(0.3),
                           blurRadius: 12,
-                          offset: Offset(0, 4),
+                          offset: const Offset(0, 4),
                         ),
                       ]
                       : null,
@@ -374,7 +382,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                         BoxShadow(
                           color: Colors.black.withOpacity(0.15),
                           blurRadius: 30,
-                          offset: Offset(0, 15),
+                          offset: const Offset(0, 15),
                         ),
                       ],
                     ),
@@ -412,7 +420,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        'Professional Service',
+                        l10n.professionalService,
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.white.withOpacity(0.95),
@@ -430,19 +438,18 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
-  Widget _buildHeroCard() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildHeroCard(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF16151A) : Colors.white,
+        color: _ServiceDesign.cardBg(isDark),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(isDark ? 0.25 : 0.08),
             blurRadius: 30,
-            offset: Offset(0, 10),
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -458,10 +465,10 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
+                  color: isDark ? Colors.amber.withOpacity(0.15) : const Color(0xFFFEF3C7),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
                     Icon(
                       Icons.star_rounded,
@@ -482,22 +489,22 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
               ),
               const SizedBox(width: 12),
               Text(
-                '2,847 reviews',
-                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                l10n.reviewsCount(2847),
+                style: TextStyle(fontSize: 14, color: isDark ? const Color(0xFFA19EAB) : Colors.grey[550]),
               ),
               const SizedBox(width: 12),
               Container(
                 width: 4,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[400],
+                  color: isDark ? const Color(0xFF555263) : Colors.grey[400],
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 12),
               Text(
-                '5.2k bookings',
-                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                l10n.bookingsCount(5200),
+                style: TextStyle(fontSize: 14, color: isDark ? const Color(0xFFA19EAB) : Colors.grey[550]),
               ),
             ],
           ),
@@ -509,7 +516,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
-              color: isDark ? const Color(0xFFA19EAB) : const Color(0xFF64748B),
+              color: _ServiceDesign.textSecondary(isDark),
               height: 1.6,
             ),
           ),
@@ -518,8 +525,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
-  Widget _buildQuickStats() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildQuickStats(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Row(
@@ -527,7 +533,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
           Expanded(
             child: _buildStatCard(
               icon: Icons.payments_rounded,
-              label: 'Price',
+              label: l10n.price,
               value: widget.price,
               color: const Color(0xFF00B870),
             ),
@@ -536,7 +542,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
           Expanded(
             child: _buildStatCard(
               icon: Icons.schedule_rounded,
-              label: 'Duration',
+              label: l10n.duration,
               value: widget.duration,
               color: const Color(0xFF3B82F6),
             ),
@@ -545,8 +551,8 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
           Expanded(
             child: _buildStatCard(
               icon: Icons.bolt_rounded,
-              label: 'Response',
-              value: '< 5 min',
+              label: l10n.response,
+              value: l10n.lessThan5Min,
               color: const Color(0xFFF59E0B),
             ),
           ),
@@ -561,17 +567,16 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     required String value,
     required Color color,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF16151A) : Colors.white,
+        color: _ServiceDesign.cardBg(isDark),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.08),
+            color: color.withOpacity(isDark ? 0.15 : 0.08),
             blurRadius: 15,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -591,7 +596,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[500],
+              color: isDark ? const Color(0xFFA19EAB) : Colors.grey[500],
             ),
           ),
           const SizedBox(height: 4),
@@ -609,28 +614,27 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
-  Widget _buildServiceHighlights() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildServiceHighlights(AppLocalizations l10n) {
     final highlights = [
       {
         'icon': Icons.verified_user_rounded,
-        'title': 'Certified',
-        'subtitle': 'Licensed nurses',
+        'title': l10n.highlightCertified,
+        'subtitle': l10n.highlightCertifiedDesc,
       },
       {
         'icon': Icons.schedule_rounded,
-        'title': 'On-Time',
-        'subtitle': '98% punctual',
+        'title': l10n.highlightOnTime,
+        'subtitle': l10n.highlightOnTimeDesc,
       },
       {
         'icon': Icons.thumb_up_rounded,
-        'title': 'Trusted',
-        'subtitle': '5.2k+ served',
+        'title': l10n.highlightTrusted,
+        'subtitle': l10n.highlightTrustedDesc,
       },
       {
         'icon': Icons.support_agent_rounded,
-        'title': '24/7',
-        'subtitle': 'Support',
+        'title': l10n.highlightSupport,
+        'subtitle': l10n.highlightSupportDesc,
       },
     ];
 
@@ -649,13 +653,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF16151A) : Colors.white,
+                    color: _ServiceDesign.cardBg(isDark),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
                         blurRadius: 10,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -672,7 +676,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: _ServiceDesign.textPrimary,
+                          color: _ServiceDesign.textPrimary(isDark),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -680,7 +684,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                         item['subtitle'] as String,
                         style: TextStyle(
                           fontSize: 10,
-                          color: _ServiceDesign.textMuted,
+                          color: _ServiceDesign.textMuted(isDark),
                         ),
                       ),
                     ],
@@ -692,28 +696,26 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
-  Widget _buildTabSelector() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildTabSelector(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: isDark ? const Color(0xFF1E1C24) : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _ServiceDesign.divider.withOpacity(0.5)),
+        border: Border.all(color: _ServiceDesign.divider(isDark).withOpacity(0.5)),
       ),
       child: Row(
         children: [
-          _buildTab(0, 'Includes', Icons.check_circle_outline_rounded),
-          _buildTab(1, 'Reviews', Icons.star_outline_rounded),
-          _buildTab(2, 'FAQ', Icons.help_outline_rounded),
+          _buildTab(0, l10n.tabIncludes, Icons.check_circle_outline_rounded),
+          _buildTab(1, l10n.tabReviews, Icons.star_outline_rounded),
+          _buildTab(2, l10n.tabFaq, Icons.help_outline_rounded),
         ],
       ),
     );
   }
 
   Widget _buildTab(int index, String label, IconData icon) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedTab == index;
 
     return Expanded(
@@ -726,7 +728,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
           duration: const Duration(milliseconds: 250),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
+            color: isSelected ? (isDark ? const Color(0xFF2C2A35) : Colors.white) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             boxShadow:
                 isSelected
@@ -734,7 +736,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                       BoxShadow(
                         color: widget.iconColor.withOpacity(0.15),
                         blurRadius: 10,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ]
                     : null,
@@ -745,7 +747,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
               Icon(
                 icon,
                 size: 18,
-                color: isSelected ? widget.iconColor : _ServiceDesign.textMuted,
+                color: isSelected ? widget.iconColor : _ServiceDesign.textMuted(isDark),
               ),
               const SizedBox(width: 6),
               Text(
@@ -754,7 +756,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color:
-                      isSelected ? widget.iconColor : _ServiceDesign.textMuted,
+                      isSelected ? widget.iconColor : _ServiceDesign.textMuted(isDark),
                 ),
               ),
             ],
@@ -764,33 +766,31 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
-  Widget _buildTabContent() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildTabContent(AppLocalizations l10n) {
     switch (_selectedTab) {
       case 0:
-        return _buildIncludesContent();
+        return _buildIncludesContent(l10n);
       case 1:
-        return _buildReviewsContent();
+        return _buildReviewsContent(l10n);
       case 2:
-        return _buildFAQContent();
+        return _buildFAQContent(l10n);
       default:
-        return _buildIncludesContent();
+        return _buildIncludesContent(l10n);
     }
   }
 
-  Widget _buildIncludesContent() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildIncludesContent(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF16151A) : Colors.white,
+        color: _ServiceDesign.cardBg(isDark),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
             blurRadius: 15,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -813,11 +813,11 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
               ),
               const SizedBox(width: 12),
               Text(
-                'What\'s Included',
+                l10n.whatsIncluded,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
+                  color: _ServiceDesign.textPrimary(isDark),
                 ),
               ),
             ],
@@ -863,7 +863,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                         entry.value,
                         style: TextStyle(
                           fontSize: 15,
-                          color: Color(0xFF475569),
+                          color: isDark ? const Color(0xFFD1D5DB) : const Color(0xFF475569),
                         ),
                       ),
                     ),
@@ -877,26 +877,25 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
-  Widget _buildReviewsContent() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildReviewsContent(AppLocalizations l10n) {
     final reviews = [
       {
-        'name': 'Ahmed M.',
+        'name': l10n.review1Name,
         'rating': 5,
-        'comment': 'Excellent service! The nurse was very professional.',
-        'date': '2 days ago',
+        'comment': l10n.review1Comment,
+        'date': l10n.timeAgo2Days,
       },
       {
-        'name': 'Fatima K.',
+        'name': l10n.review2Name,
         'rating': 5,
-        'comment': 'Very satisfied with the care provided. Highly recommend!',
-        'date': '1 week ago',
+        'comment': l10n.review2Comment,
+        'date': l10n.timeAgo1Week,
       },
       {
-        'name': 'Mohamed S.',
+        'name': l10n.review3Name,
         'rating': 4,
-        'comment': 'Good service, nurse arrived on time.',
-        'date': '2 weeks ago',
+        'comment': l10n.review3Comment,
+        'date': l10n.timeAgo2Weeks,
       },
     ];
 
@@ -909,13 +908,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF16151A) : Colors.white,
+                  color: _ServiceDesign.cardBg(isDark),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                       blurRadius: 10,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -952,7 +951,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
+                                  color: _ServiceDesign.textPrimary(isDark),
                                 ),
                               ),
                               Row(
@@ -973,7 +972,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                           review['date'] as String,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[400],
+                            color: isDark ? const Color(0xFF555263) : Colors.grey[400],
                           ),
                         ),
                       ],
@@ -983,7 +982,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                       review['comment'] as String,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: isDark ? const Color(0xFFA19EAB) : Colors.grey[600],
                         height: 1.4,
                       ),
                     ),
@@ -995,23 +994,19 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
-  Widget _buildFAQContent() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildFAQContent(AppLocalizations l10n) {
     final faqs = [
       {
-        'q': 'How do I prepare for the service?',
-        'a':
-            'Ensure a clean, comfortable space for the nurse to work. Have any relevant medical documents ready.',
+        'q': l10n.faq1Q,
+        'a': l10n.faq1A,
       },
       {
-        'q': 'Can I reschedule my booking?',
-        'a':
-            'Yes, you can reschedule up to 2 hours before your appointment without any charges.',
+        'q': l10n.faq2Q,
+        'a': l10n.faq2A,
       },
       {
-        'q': 'What if I need to cancel?',
-        'a':
-            'Cancellations made 2+ hours before are free. Late cancellations may incur a small fee.',
+        'q': l10n.faq3Q,
+        'a': l10n.faq3A,
       },
     ];
 
@@ -1023,13 +1018,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF16151A) : Colors.white,
+                  color: _ServiceDesign.cardBg(isDark),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                       blurRadius: 10,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -1059,7 +1054,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
+                      color: _ServiceDesign.textPrimary(isDark),
                     ),
                   ),
                   children: [
@@ -1067,7 +1062,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                       entry.value['a']!,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: isDark ? const Color(0xFFA19EAB) : Colors.grey[600],
                         height: 1.5,
                       ),
                     ),
@@ -1079,8 +1074,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
-  Widget _buildNursePreview() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildNursePreview(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       padding: const EdgeInsets.all(18),
@@ -1101,13 +1095,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF16151A) : Colors.white,
+              color: _ServiceDesign.cardBg(isDark),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
                   color: widget.iconColor.withOpacity(0.2),
                   blurRadius: 10,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -1123,19 +1117,19 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Verified Nurses Only',
+                  l10n.verifiedNursesOnly,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _ServiceDesign.textPrimary,
+                    color: _ServiceDesign.textPrimary(isDark),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'All nurses are licensed, background-checked, and highly rated by patients.',
+                  l10n.verifiedNursesDesc,
                   style: TextStyle(
                     fontSize: 13,
-                    color: _ServiceDesign.textSecondary,
+                    color: _ServiceDesign.textSecondary(isDark),
                     height: 1.4,
                   ),
                 ),
@@ -1152,20 +1146,19 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
-  Widget _buildGuaranteeCard() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildGuaranteeCard(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF16151A) : Colors.white,
+        color: _ServiceDesign.cardBg(isDark),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _ServiceDesign.divider),
+        border: Border.all(color: _ServiceDesign.divider(isDark)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -1176,12 +1169,12 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
+                  color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.shield_rounded,
-                  color: Color(0xFF16A34A),
+                  color: isDark ? const Color(0xFF2ECC71) : const Color(0xFF16A34A),
                   size: 24,
                 ),
               ),
@@ -1191,19 +1184,19 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Satisfaction Guarantee',
+                      l10n.satisfactionGuarantee,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: _ServiceDesign.textPrimary,
+                        color: _ServiceDesign.textPrimary(isDark),
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      '100% Money back if not satisfied',
+                      l10n.satisfactionGuaranteeDesc,
                       style: TextStyle(
                         fontSize: 12,
-                        color: _ServiceDesign.textSecondary,
+                        color: _ServiceDesign.textSecondary(isDark),
                       ),
                     ),
                   ],
@@ -1214,11 +1207,11 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildGuaranteeItem(Icons.access_time_rounded, 'Free Reschedule'),
+              _buildGuaranteeItem(Icons.access_time_rounded, l10n.freeReschedule),
               const SizedBox(width: 12),
-              _buildGuaranteeItem(Icons.replay_rounded, 'Easy Refund'),
+              _buildGuaranteeItem(Icons.replay_rounded, l10n.easyRefund),
               const SizedBox(width: 12),
-              _buildGuaranteeItem(Icons.headset_mic_rounded, '24/7 Support'),
+              _buildGuaranteeItem(Icons.headset_mic_rounded, l10n.support247),
             ],
           ),
         ],
@@ -1227,7 +1220,6 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildGuaranteeItem(IconData icon, String label) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -1244,7 +1236,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: _ServiceDesign.textSecondary,
+                color: _ServiceDesign.textSecondary(isDark),
               ),
               textAlign: TextAlign.center,
             ),
@@ -1255,12 +1247,10 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
   }
 
   Widget _buildBottomSpacing() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return const SizedBox(height: 140);
   }
 
-  Widget _buildFloatingBookButton() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildFloatingBookButton(AppLocalizations l10n) {
     return Positioned(
       left: 0,
       right: 0,
@@ -1268,13 +1258,13 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF16151A) : Colors.white,
+          color: _ServiceDesign.cardBg(isDark),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
               blurRadius: 25,
-              offset: Offset(0, -8),
+              offset: const Offset(0, -8),
             ),
           ],
         ),
@@ -1289,11 +1279,11 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Total Price',
+                      l10n.totalPrice,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: _ServiceDesign.textMuted,
+                        color: _ServiceDesign.textMuted(isDark),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1313,10 +1303,10 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                         Padding(
                           padding: const EdgeInsets.only(bottom: 4),
                           child: Text(
-                            '/visit',
+                            l10n.perVisit,
                             style: TextStyle(
                               fontSize: 12,
-                              color: _ServiceDesign.textMuted,
+                              color: _ServiceDesign.textMuted(isDark),
                             ),
                           ),
                         ),
@@ -1335,7 +1325,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                           ? null
                           : () {
                             HapticFeedback.mediumImpact();
-                            _navigateToBooking();
+                            _navigateToBooking(l10n);
                           },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 18),
@@ -1353,7 +1343,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                         BoxShadow(
                           color: widget.iconColor.withOpacity(0.4),
                           blurRadius: 20,
-                          offset: Offset(0, 8),
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
@@ -1385,7 +1375,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
                               ),
                             )
                             : Text(
-                              'Book Now',
+                              l10n.bookNow,
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.bold,
@@ -1405,7 +1395,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
     );
   }
 
-  Future<void> _navigateToBooking() async {
+  Future<void> _navigateToBooking(AppLocalizations l10n) async {
     if (_isResolvingServiceId) return;
 
     setState(() => _isResolvingServiceId = true);
@@ -1425,9 +1415,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
       if (mounted) {
         setState(() => _isResolvingServiceId = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Service is currently unavailable. Please try another service.',
+              l10n.serviceUnavailable,
             ),
           ),
         );
@@ -1451,7 +1441,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage>
         transitionsBuilder: (_, animation, __, child) {
           return SlideTransition(
             position: Tween<Offset>(
-              begin: Offset(0.0, 1.0),
+              begin: const Offset(0.0, 1.0),
               end: Offset.zero,
             ).animate(
               CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),

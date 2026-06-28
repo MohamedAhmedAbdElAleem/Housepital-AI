@@ -5,7 +5,8 @@
     "scripts": {
         "backend": "cd Backend && npm run dev",
         "admin": "cd housepital-admin && npm run dev",
-        "dev": "concurrently \"npm run backend\" \"npm run admin\"",
+        "landing": "cd housepital-landing && npm run dev",
+        "dev": "concurrently \"npm run backend\" \"npm run admin\" \"npm run landing\"",
         "install:all": "concurrently \"cd Backend && npm install\" \"cd housepital-admin && npm install\""
     },
     "devDependencies": {

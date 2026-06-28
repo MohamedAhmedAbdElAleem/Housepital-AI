@@ -287,16 +287,28 @@ exports.getPatientVisitReports = async (req, res) => {
     const { patientId } = req.params;
     const userId = req.user?.id;
 
-    // Must be the patient themselves, or a nurse/admin
-    // For simplicity: patient can only see their own reports
-    const user = await require("../models/User").findById(userId);
-    if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Not authenticated" });
+    // Check if the user is a nurse or doctor
+    const isNurse = await require("../models/Nurse").exists({ user: userId });
+    const isDoctor = await require("../models/Doctor").exists({ user: userId });
+
+    // Must be the patient themselves, or a nurse, doctor, or admin
+    if (!isNurse && !isDoctor) {
+      const user = await require("../models/User").findById(userId);
+      if (!user) {
+        return res
+          .status(401)
+          .json({ success: false, message: "Not authenticated" });
+      }
     }
 
-    const query = { patientId };
+    // Support searching either direct patientId or dependentId
+    const query = {
+      $or: [
+        { patientId },
+        { dependentId: patientId }
+      ]
+    };
+
     const reports = await VisitReport.find(query)
       .sort({ createdAt: -1 })
       .limit(20)
@@ -321,13 +333,20 @@ exports.getPatientVisitReports = async (req, res) => {
 /**
  * @desc    Get the last visit report for a patient (for prefill on next visit)
  * @route   GET /api/patients/:patientId/last-visit-report
- * @access  Private (Nurse)
+ * @access  Private (Nurse/Doctor)
  */
 exports.getLastVisitReport = async (req, res) => {
   try {
     const { patientId } = req.params;
 
-    const lastReport = await VisitReport.findOne({ patientId })
+    const query = {
+      $or: [
+        { patientId },
+        { dependentId: patientId }
+      ]
+    };
+
+    const lastReport = await VisitReport.findOne(query)
       .sort({ createdAt: -1 })
       .select("patientStatus vitals careProvided createdAt bookingId")
       .populate("bookingId", "serviceName visitStartedAt");

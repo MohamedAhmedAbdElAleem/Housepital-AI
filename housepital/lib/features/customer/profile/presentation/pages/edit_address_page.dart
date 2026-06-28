@@ -1,36 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:housepital/generated/l10n/app_localizations.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
 import '../../../../../core/widgets/custom_popup.dart';
 import 'location_picker_page.dart';
 
 class _AddressDesign {
-  static const primaryGreen = Color(0xFF00C853);
-  static const surface = Color(0xFFF8FAFC);
-  static const textPrimary = Color(0xFF1E293B);
-  static const textSecondary = Color(0xFF64748B);
-  static const cardBg = Colors.white;
-  static const inputBorder = Color(0xFFE2E8F0);
+  final BuildContext context;
+  _AddressDesign(this.context);
 
-  static const headerGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF00C853), Color(0xFF00E676), Color(0xFF69F0AE)],
-  );
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
 
-  static BoxShadow get cardShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.06),
-    blurRadius: 16,
-    offset: const Offset(0, 4),
-  );
+  Color get primaryGreen => const Color(0xFF00C853);
+  Color get surface => isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
+  Color get textPrimary => isDark ? Colors.white : const Color(0xFF1E293B);
+  Color get textSecondary => isDark ? Colors.white70 : const Color(0xFF64748B);
+  Color get cardBg => isDark ? const Color(0xFF16151A) : Colors.white;
+  Color get inputBorder => isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
-  static BoxShadow get softShadow => BoxShadow(
-    color: primaryGreen.withOpacity(0.15),
-    blurRadius: 20,
-    offset: const Offset(0, 8),
-  );
+  LinearGradient get headerGradient => isDark
+      ? const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF16151A), Color(0xFF0D0C10)],
+        )
+      : const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF00C853), Color(0xFF00E676), Color(0xFF69F0AE)],
+        );
+
+  BoxShadow get cardShadow => BoxShadow(
+        color: Colors.black.withAlpha(isDark ? 100 : 15),
+        blurRadius: 16,
+        offset: const Offset(0, 4),
+      );
+
+  BoxShadow get softShadow => BoxShadow(
+        color: primaryGreen.withOpacity(isDark ? 0.05 : 0.15),
+        blurRadius: 20,
+        offset: const Offset(0, 8),
+      );
 }
 
 class EditAddressPage extends StatefulWidget {
@@ -149,11 +161,12 @@ class _EditAddressPageState extends State<EditAddressPage>
 
   Future<void> _updateAddress() async {
     HapticFeedback.mediumImpact();
+    final l10n = AppLocalizations.of(context)!;
 
     if (!_formKey.currentState!.validate()) return;
 
     if (_latitude == null || _longitude == null) {
-      CustomPopup.error(context, 'Please pin your location on the map first.');
+      CustomPopup.error(context, l10n.pinLocationFirst);
       return;
     }
 
@@ -164,7 +177,7 @@ class _EditAddressPageState extends State<EditAddressPage>
       if (userId == null || userId.isEmpty) {
         if (mounted) {
           setState(() => _isLoading = false);
-          CustomPopup.error(context, 'User ID not found. Please log in again.');
+          CustomPopup.error(context, l10n.errLoadUserId);
         }
         return;
       }
@@ -193,7 +206,7 @@ class _EditAddressPageState extends State<EditAddressPage>
           HapticFeedback.heavyImpact();
           _showSuccessDialog();
         } else {
-          CustomPopup.error(context, 'Failed to update address');
+          CustomPopup.error(context, l10n.errUpdateAddress);
         }
       }
     } catch (e) {
@@ -205,11 +218,14 @@ class _EditAddressPageState extends State<EditAddressPage>
   }
 
   void _showSuccessDialog() {
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder:
           (context) => AlertDialog(
+            backgroundColor: design.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -220,9 +236,9 @@ class _EditAddressPageState extends State<EditAddressPage>
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    gradient: _AddressDesign.headerGradient,
+                    gradient: design.headerGradient,
                     shape: BoxShape.circle,
-                    boxShadow: [_AddressDesign.softShadow],
+                    boxShadow: [design.softShadow],
                   ),
                   child: const Icon(
                     Icons.check_rounded,
@@ -231,19 +247,19 @@ class _EditAddressPageState extends State<EditAddressPage>
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Address Updated!',
+                Text(
+                  l10n.addressUpdated,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: _AddressDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Your address has been updated successfully.',
+                  l10n.addressUpdatedDesc,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14, color: design.textSecondary),
                 ),
               ],
             ),
@@ -256,7 +272,7 @@ class _EditAddressPageState extends State<EditAddressPage>
                     Navigator.pop(context, true);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _AddressDesign.primaryGreen,
+                    backgroundColor: design.primaryGreen,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -264,9 +280,9 @@ class _EditAddressPageState extends State<EditAddressPage>
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Done',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  child: Text(
+                    l10n.done,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -282,10 +298,13 @@ class _EditAddressPageState extends State<EditAddressPage>
     }
 
     HapticFeedback.lightImpact();
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
+            backgroundColor: design.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -304,29 +323,29 @@ class _EditAddressPageState extends State<EditAddressPage>
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'Discard Changes?',
+                Text(
+                  l10n.discardChangesTitle,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: _AddressDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
               ],
             ),
-            content: const Text(
-              'You have unsaved changes. Are you sure you want to leave without saving?',
+            content: Text(
+              l10n.discardChangesDesc,
               style: TextStyle(
                 fontSize: 15,
-                color: _AddressDesign.textSecondary,
+                color: design.textSecondary,
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Keep Editing',
-                  style: TextStyle(color: Colors.grey[600]),
+                  l10n.keepEditing,
+                  style: TextStyle(color: design.textSecondary),
                 ),
               ),
               ElevatedButton(
@@ -342,7 +361,7 @@ class _EditAddressPageState extends State<EditAddressPage>
                   ),
                   elevation: 0,
                 ),
-                child: const Text('Discard'),
+                child: Text(l10n.discard),
               ),
             ],
           ),
@@ -351,8 +370,9 @@ class _EditAddressPageState extends State<EditAddressPage>
 
   @override
   Widget build(BuildContext context) {
+    final design = _AddressDesign(context);
     return Scaffold(
-      backgroundColor: _AddressDesign.surface,
+      backgroundColor: design.surface,
       body: Form(
         key: _formKey,
         child: Column(
@@ -390,6 +410,8 @@ class _EditAddressPageState extends State<EditAddressPage>
   }
 
   Widget _buildHeader() {
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     IconData typeIcon;
     switch (_selectedType.toLowerCase()) {
       case 'work':
@@ -404,15 +426,14 @@ class _EditAddressPageState extends State<EditAddressPage>
 
     return Container(
       decoration: BoxDecoration(
-        gradient: _AddressDesign.headerGradient,
+        gradient: design.headerGradient,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
-        boxShadow: [_AddressDesign.softShadow],
+        boxShadow: [design.softShadow],
       ),
       child: SafeArea(
-        bottom: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 8, 20, 24),
           child: Column(
@@ -434,10 +455,10 @@ class _EditAddressPageState extends State<EditAddressPage>
                       ),
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Edit Address',
-                      style: TextStyle(
+                      l10n.editAddress,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -474,7 +495,7 @@ class _EditAddressPageState extends State<EditAddressPage>
                           Text(
                             _labelController.text.isNotEmpty
                                 ? _labelController.text
-                                : _capitalize(_selectedType),
+                                : _getLocalAddressType(context, _selectedType),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -494,7 +515,7 @@ class _EditAddressPageState extends State<EditAddressPage>
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  _selectedType.toUpperCase(),
+                                  _getLocalAddressType(context, _selectedType).toUpperCase(),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 11,
@@ -513,18 +534,18 @@ class _EditAddressPageState extends State<EditAddressPage>
                                     color: Colors.amber.withOpacity(0.3),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.edit_rounded,
                                         color: Colors.white,
                                         size: 12,
                                       ),
-                                      SizedBox(width: 4),
+                                      const SizedBox(width: 4),
                                       Text(
-                                        'Modified',
-                                        style: TextStyle(
+                                        l10n.modified,
+                                        style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
@@ -550,25 +571,27 @@ class _EditAddressPageState extends State<EditAddressPage>
   }
 
   Widget _buildTypeCard() {
+    final l10n = AppLocalizations.of(context)!;
+    final design = _AddressDesign(context);
     return _buildCard(
-      title: 'Address Type',
+      title: l10n.addressType,
       icon: Icons.category_outlined,
       children: [
         Row(
           children: [
             Expanded(
               child: _buildTypeOption(
-                'Home',
+                l10n.addressTypeHome,
                 'home',
                 Icons.home_rounded,
-                _AddressDesign.primaryGreen,
+                design.primaryGreen,
                 [const Color(0xFF00C853), const Color(0xFF00E676)],
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildTypeOption(
-                'Work',
+                l10n.addressTypeWork,
                 'work',
                 Icons.work_rounded,
                 Colors.blue,
@@ -578,7 +601,7 @@ class _EditAddressPageState extends State<EditAddressPage>
             const SizedBox(width: 12),
             Expanded(
               child: _buildTypeOption(
-                'Other',
+                l10n.addressTypeOther,
                 'other',
                 Icons.place_rounded,
                 Colors.purple,
@@ -592,8 +615,10 @@ class _EditAddressPageState extends State<EditAddressPage>
   }
 
   Widget _buildLocationCard() {
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return _buildCard(
-      title: 'Map Location',
+      title: l10n.mapLocation,
       icon: Icons.map_outlined,
       children: [
         ListTile(
@@ -604,28 +629,28 @@ class _EditAddressPageState extends State<EditAddressPage>
               color:
                   _latitude == null
                       ? Colors.red.withOpacity(0.1)
-                      : _AddressDesign.primaryGreen.withOpacity(0.1),
+                      : design.primaryGreen.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.pin_drop_outlined,
               color:
-                  _latitude == null ? Colors.red : _AddressDesign.primaryGreen,
+                  _latitude == null ? Colors.red : design.primaryGreen,
             ),
           ),
           title: Text(
-            _latitude == null ? 'Location not selected' : 'Location selected',
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            _latitude == null ? l10n.locationNotSelected : l10n.locationSelected,
+            style: TextStyle(fontWeight: FontWeight.w600, color: design.textPrimary),
           ),
           subtitle: Text(
             _latitude == null
-                ? 'Required for nurse tracking'
+                ? l10n.requiredForTracking
                 : 'Lat: ${_latitude!.toStringAsFixed(4)}, Lng: ${_longitude!.toStringAsFixed(4)}',
             style: TextStyle(
               color:
                   _latitude == null
                       ? Colors.red[300]
-                      : _AddressDesign.textSecondary,
+                      : design.textSecondary,
               fontSize: 13,
             ),
           ),
@@ -652,9 +677,9 @@ class _EditAddressPageState extends State<EditAddressPage>
               }
             },
             icon: const Icon(Icons.edit_location_alt_outlined),
-            label: Text(_latitude == null ? 'Pick' : 'Change'),
+            label: Text(_latitude == null ? l10n.pick : l10n.change),
             style: TextButton.styleFrom(
-              foregroundColor: _AddressDesign.primaryGreen,
+              foregroundColor: design.primaryGreen,
             ),
           ),
         ),
@@ -663,31 +688,32 @@ class _EditAddressPageState extends State<EditAddressPage>
   }
 
   Widget _buildDetailsCard() {
+    final l10n = AppLocalizations.of(context)!;
     return _buildCard(
-      title: 'Address Details',
+      title: l10n.addressDetails,
       icon: Icons.location_on_outlined,
       children: [
         _buildTextField(
           controller: _labelController,
-          label: 'Label (Optional)',
-          hint: 'e.g., Home, Office, Mom\'s Place',
+          label: l10n.labelOptional,
+          hint: l10n.labelHint,
           icon: Icons.label_outline,
         ),
         const SizedBox(height: 16),
         _buildTextField(
           controller: _streetController,
-          label: 'Street Address',
-          hint: 'Enter street address',
+          label: l10n.streetAddress,
+          hint: l10n.enterStreet,
           icon: Icons.signpost_outlined,
-          validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+          validator: (v) => v?.isEmpty ?? true ? l10n.requiredField : null,
         ),
         const SizedBox(height: 16),
         _buildTextField(
           controller: _areaController,
-          label: 'Area / District',
-          hint: 'Enter area or district',
+          label: l10n.areaDistrict,
+          hint: l10n.enterArea,
           icon: Icons.map_outlined,
-          validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+          validator: (v) => v?.isEmpty ?? true ? l10n.requiredField : null,
         ),
         const SizedBox(height: 16),
         Row(
@@ -695,18 +721,18 @@ class _EditAddressPageState extends State<EditAddressPage>
             Expanded(
               child: _buildTextField(
                 controller: _cityController,
-                label: 'City',
-                hint: 'Enter city',
+                label: l10n.city,
+                hint: l10n.enterCity,
                 icon: Icons.location_city_outlined,
-                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+                validator: (v) => v?.isEmpty ?? true ? l10n.requiredField : null,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildTextField(
                 controller: _stateController,
-                label: 'State',
-                hint: 'Enter state',
+                label: l10n.state,
+                hint: l10n.enterState,
                 icon: Icons.public_outlined,
               ),
             ),
@@ -715,8 +741,8 @@ class _EditAddressPageState extends State<EditAddressPage>
         const SizedBox(height: 16),
         _buildTextField(
           controller: _zipCodeController,
-          label: 'Zip / Postal Code',
-          hint: 'Enter zip code',
+          label: l10n.zipCode,
+          hint: l10n.enterZip,
           icon: Icons.pin_outlined,
           keyboardType: TextInputType.number,
         ),
@@ -725,8 +751,10 @@ class _EditAddressPageState extends State<EditAddressPage>
   }
 
   Widget _buildPreferencesCard() {
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return _buildCard(
-      title: 'Preferences',
+      title: l10n.preferences,
       icon: Icons.settings_outlined,
       children: [
         GestureDetector(
@@ -743,14 +771,14 @@ class _EditAddressPageState extends State<EditAddressPage>
             decoration: BoxDecoration(
               color:
                   _isDefault
-                      ? _AddressDesign.primaryGreen.withOpacity(0.1)
-                      : _AddressDesign.surface,
+                      ? design.primaryGreen.withOpacity(0.1)
+                      : design.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color:
                     _isDefault
-                        ? _AddressDesign.primaryGreen
-                        : _AddressDesign.inputBorder,
+                        ? design.primaryGreen
+                        : design.inputBorder,
                 width: _isDefault ? 2 : 1,
               ),
             ),
@@ -761,13 +789,13 @@ class _EditAddressPageState extends State<EditAddressPage>
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    gradient: _isDefault ? _AddressDesign.headerGradient : null,
-                    color: _isDefault ? null : _AddressDesign.surface,
+                    gradient: _isDefault ? design.headerGradient : null,
+                    color: _isDefault ? null : design.surface,
                     borderRadius: BorderRadius.circular(14),
                     border:
                         _isDefault
                             ? null
-                            : Border.all(color: _AddressDesign.inputBorder),
+                            : Border.all(color: design.inputBorder),
                   ),
                   child: Icon(
                     _isDefault
@@ -783,20 +811,20 @@ class _EditAddressPageState extends State<EditAddressPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Set as default address',
+                        l10n.setDefaultAddress,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color:
                               _isDefault
-                                  ? _AddressDesign.primaryGreen
-                                  : _AddressDesign.textPrimary,
+                                  ? design.primaryGreen
+                                  : design.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Use this address by default for bookings',
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        l10n.setDefaultAddressDesc,
+                        style: TextStyle(fontSize: 13, color: design.textSecondary.withOpacity(0.8)),
                       ),
                     ],
                   ),
@@ -808,13 +836,13 @@ class _EditAddressPageState extends State<EditAddressPage>
                   decoration: BoxDecoration(
                     color:
                         _isDefault
-                            ? _AddressDesign.primaryGreen
+                            ? design.primaryGreen
                             : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color:
                           _isDefault
-                              ? _AddressDesign.primaryGreen
+                              ? design.primaryGreen
                               : Colors.grey,
                       width: 2,
                     ),
@@ -841,12 +869,13 @@ class _EditAddressPageState extends State<EditAddressPage>
     required IconData icon,
     required List<Widget> children,
   }) {
+    final design = _AddressDesign(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: _AddressDesign.cardBg,
+        color: design.cardBg,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [_AddressDesign.cardShadow],
+        boxShadow: [design.cardShadow],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -856,7 +885,7 @@ class _EditAddressPageState extends State<EditAddressPage>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  gradient: _AddressDesign.headerGradient,
+                  gradient: design.headerGradient,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: Colors.white, size: 22),
@@ -864,10 +893,10 @@ class _EditAddressPageState extends State<EditAddressPage>
               const SizedBox(width: 14),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: _AddressDesign.textPrimary,
+                  color: design.textPrimary,
                 ),
               ),
             ],
@@ -887,31 +916,32 @@ class _EditAddressPageState extends State<EditAddressPage>
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
+    final design = _AddressDesign(context);
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
-      style: const TextStyle(fontSize: 16, color: _AddressDesign.textPrimary),
+      style: TextStyle(fontSize: 16, color: design.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        labelStyle: const TextStyle(color: _AddressDesign.textSecondary),
-        hintStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Icon(icon, color: _AddressDesign.primaryGreen),
+        labelStyle: TextStyle(color: design.textSecondary),
+        hintStyle: TextStyle(color: design.textSecondary.withOpacity(0.5)),
+        prefixIcon: Icon(icon, color: design.primaryGreen),
         filled: true,
-        fillColor: _AddressDesign.surface,
+        fillColor: design.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _AddressDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _AddressDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: _AddressDesign.primaryGreen,
+          borderSide: BorderSide(
+            color: design.primaryGreen,
             width: 2,
           ),
         ),
@@ -934,6 +964,7 @@ class _EditAddressPageState extends State<EditAddressPage>
     Color color,
     List<Color> gradientColors,
   ) {
+    final design = _AddressDesign(context);
     final isSelected = _selectedType == value;
     return GestureDetector(
       onTap: () {
@@ -948,10 +979,10 @@ class _EditAddressPageState extends State<EditAddressPage>
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
           gradient: isSelected ? LinearGradient(colors: gradientColors) : null,
-          color: isSelected ? null : _AddressDesign.surface,
+          color: isSelected ? null : design.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? color : _AddressDesign.inputBorder,
+            color: isSelected ? color : design.inputBorder,
             width: isSelected ? 0 : 1,
           ),
           boxShadow:
@@ -977,7 +1008,7 @@ class _EditAddressPageState extends State<EditAddressPage>
               label,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : Colors.grey[700],
+                color: isSelected ? Colors.white : design.textSecondary,
                 fontSize: 14,
               ),
             ),
@@ -988,13 +1019,15 @@ class _EditAddressPageState extends State<EditAddressPage>
   }
 
   Widget _buildUpdateButton() {
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: design.cardBg,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(design.isDark ? 0.2 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -1008,9 +1041,9 @@ class _EditAddressPageState extends State<EditAddressPage>
             onPressed: _isLoading || !_hasChanges ? null : _updateAddress,
             style: ElevatedButton.styleFrom(
               backgroundColor:
-                  _hasChanges ? _AddressDesign.primaryGreen : Colors.grey[400],
+                  _hasChanges ? design.primaryGreen : Colors.grey[400],
               foregroundColor: Colors.white,
-              disabledBackgroundColor: Colors.grey[300],
+              disabledBackgroundColor: design.isDark ? Colors.grey[800] : Colors.grey[300],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -1037,7 +1070,7 @@ class _EditAddressPageState extends State<EditAddressPage>
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          _hasChanges ? 'Save Changes' : 'No Changes',
+                          _hasChanges ? l10n.saveChanges : l10n.noChanges,
                           style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w600,
@@ -1051,8 +1084,15 @@ class _EditAddressPageState extends State<EditAddressPage>
     );
   }
 
-  String _capitalize(String text) {
-    if (text.isEmpty) return text;
-    return text[0].toUpperCase() + text.substring(1);
+  String _getLocalAddressType(BuildContext context, String type) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (type.toLowerCase()) {
+      case 'home':
+        return l10n.addressTypeHome;
+      case 'work':
+        return l10n.addressTypeWork;
+      default:
+        return l10n.addressTypeOther;
+    }
   }
 }

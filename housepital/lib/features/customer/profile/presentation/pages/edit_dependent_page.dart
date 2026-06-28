@@ -1,34 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:housepital/generated/l10n/app_localizations.dart';
 import '../../../../../core/network/api_service.dart';
 import 'package:housepital/core/widgets/custom_popup.dart';
 
 class _DependentDesign {
-  static const primaryGreen = Color(0xFF00C853);
-  static const surface = Color(0xFFF8FAFC);
-  static const textPrimary = Color(0xFF1E293B);
-  static const textSecondary = Color(0xFF64748B);
-  static const cardBg = Colors.white;
-  static const inputBorder = Color(0xFFE2E8F0);
-  static const dangerRed = Color(0xFFEF4444);
+  final BuildContext context;
+  _DependentDesign(this.context);
 
-  static const headerGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF00C853), Color(0xFF00E676), Color(0xFF69F0AE)],
-  );
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
 
-  static BoxShadow get cardShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.06),
-    blurRadius: 16,
-    offset: const Offset(0, 4),
-  );
+  Color get primaryGreen => const Color(0xFF00C853);
+  Color get surface => isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
+  Color get textPrimary => isDark ? Colors.white : const Color(0xFF1E293B);
+  Color get textSecondary => isDark ? Colors.white70 : const Color(0xFF64748B);
+  Color get cardBg => isDark ? const Color(0xFF16151A) : Colors.white;
+  Color get inputBorder => isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+  Color get dangerRed => const Color(0xFFEF4444);
 
-  static BoxShadow get softShadow => BoxShadow(
-    color: primaryGreen.withOpacity(0.15),
-    blurRadius: 20,
-    offset: const Offset(0, 8),
-  );
+  LinearGradient get headerGradient => isDark
+      ? const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF16151A), Color(0xFF0D0C10)],
+        )
+      : const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF00C853), Color(0xFF00E676), Color(0xFF69F0AE)],
+        );
+
+  BoxShadow get cardShadow => BoxShadow(
+        color: Colors.black.withAlpha(isDark ? 100 : 15),
+        blurRadius: 16,
+        offset: const Offset(0, 4),
+      );
+
+  BoxShadow get softShadow => BoxShadow(
+        color: primaryGreen.withOpacity(isDark ? 0.05 : 0.15),
+        blurRadius: 20,
+        offset: const Offset(0, 8),
+      );
 }
 
 class EditDependentPage extends StatefulWidget {
@@ -168,15 +180,16 @@ class _EditDependentPageState extends State<EditDependentPage>
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
       builder: (context, child) {
+        final design = _DependentDesign(context);
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: _DependentDesign.primaryGreen,
+            colorScheme: ColorScheme.light(
+              primary: design.primaryGreen,
               onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: _DependentDesign.textPrimary,
+              surface: design.cardBg,
+              onSurface: design.textPrimary,
             ),
-            dialogTheme: DialogThemeData(backgroundColor: Colors.white),
+            dialogTheme: DialogThemeData(backgroundColor: design.cardBg),
           ),
           child: child!,
         );
@@ -192,9 +205,10 @@ class _EditDependentPageState extends State<EditDependentPage>
 
   void _addChronicDisease() {
     HapticFeedback.lightImpact();
+    final l10n = AppLocalizations.of(context)!;
     _showAddDialog(
-      title: 'Add Chronic Disease',
-      hint: 'e.g., Diabetes, Hypertension',
+      title: l10n.addChronicCondition,
+      hint: l10n.addChronicDiseaseHint,
       icon: Icons.medication_outlined,
       color: Colors.orange,
       onAdd:
@@ -207,9 +221,10 @@ class _EditDependentPageState extends State<EditDependentPage>
 
   void _addAllergy() {
     HapticFeedback.lightImpact();
+    final l10n = AppLocalizations.of(context)!;
     _showAddDialog(
-      title: 'Add Allergy',
-      hint: 'e.g., Penicillin, Peanuts',
+      title: l10n.addAllergy,
+      hint: l10n.addAllergyHint,
       icon: Icons.warning_amber_rounded,
       color: Colors.red,
       onAdd:
@@ -228,10 +243,13 @@ class _EditDependentPageState extends State<EditDependentPage>
     required Function(String) onAdd,
   }) {
     final controller = TextEditingController();
+    final design = _DependentDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
+            backgroundColor: design.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -248,10 +266,10 @@ class _EditDependentPageState extends State<EditDependentPage>
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: _DependentDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
               ],
@@ -260,11 +278,12 @@ class _EditDependentPageState extends State<EditDependentPage>
               controller: controller,
               autofocus: true,
               textCapitalization: TextCapitalization.words,
+              style: TextStyle(color: design.textPrimary),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: TextStyle(color: Colors.grey[400]),
+                hintStyle: TextStyle(color: design.textSecondary.withOpacity(0.6)),
                 filled: true,
-                fillColor: _DependentDesign.surface,
+                fillColor: design.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide.none,
@@ -279,8 +298,8 @@ class _EditDependentPageState extends State<EditDependentPage>
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Cancel',
-                  style: TextStyle(color: Colors.grey[600]),
+                  l10n.cancel,
+                  style: TextStyle(color: design.textSecondary),
                 ),
               ),
               ElevatedButton(
@@ -299,7 +318,7 @@ class _EditDependentPageState extends State<EditDependentPage>
                   ),
                   elevation: 0,
                 ),
-                child: const Text('Add'),
+                child: Text(l10n.add),
               ),
             ],
           ),
@@ -308,16 +327,17 @@ class _EditDependentPageState extends State<EditDependentPage>
 
   Future<void> _updateDependent() async {
     HapticFeedback.mediumImpact();
+    final l10n = AppLocalizations.of(context)!;
 
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedRelationship == null) {
-      CustomPopup.warning(context, 'Please select a relationship');
+      CustomPopup.warning(context, l10n.selectRelationshipWarn);
       return;
     }
 
     if (_selectedDate == null) {
-      CustomPopup.warning(context, 'Please select date of birth');
+      CustomPopup.warning(context, l10n.selectDobWarn);
       return;
     }
 
@@ -325,7 +345,7 @@ class _EditDependentPageState extends State<EditDependentPage>
         _birthCertificateIdController.text.trim().isEmpty) {
       CustomPopup.warning(
         context,
-        'Please provide either National ID or Birth Certificate ID',
+        l10n.provideIdWarn,
       );
       return;
     }
@@ -358,7 +378,7 @@ class _EditDependentPageState extends State<EditDependentPage>
         } else {
           CustomPopup.error(
             context,
-            response['message'] ?? 'Failed to update member',
+            response['message'] ?? l10n.errUpdateAddress,
           );
         }
       }
@@ -372,11 +392,14 @@ class _EditDependentPageState extends State<EditDependentPage>
 
   Future<void> _deleteDependent() async {
     HapticFeedback.heavyImpact();
+    final designD = _DependentDesign(context);
+    final l10n = AppLocalizations.of(context)!;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
+            backgroundColor: designD.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -385,22 +408,22 @@ class _EditDependentPageState extends State<EditDependentPage>
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: _DependentDesign.dangerRed.withOpacity(0.1),
+                    color: designD.dangerRed.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.delete_outline_rounded,
-                    color: _DependentDesign.dangerRed,
+                    color: designD.dangerRed,
                     size: 24,
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'Delete Member',
+                Text(
+                  l10n.deleteMember,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: _DependentDesign.textPrimary,
+                    color: designD.textPrimary,
                   ),
                 ),
               ],
@@ -410,36 +433,36 @@ class _EditDependentPageState extends State<EditDependentPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Are you sure you want to delete ${_fullNameController.text}?',
-                  style: const TextStyle(
+                  l10n.deleteMemberConfirm(_fullNameController.text),
+                  style: TextStyle(
                     fontSize: 15,
-                    color: _DependentDesign.textPrimary,
+                    color: designD.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: _DependentDesign.dangerRed.withOpacity(0.05),
+                    color: designD.dangerRed.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: _DependentDesign.dangerRed.withOpacity(0.2),
+                      color: designD.dangerRed.withOpacity(0.2),
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.warning_amber_rounded,
-                        color: _DependentDesign.dangerRed.withOpacity(0.7),
+                        color: designD.dangerRed.withOpacity(0.7),
                         size: 20,
                       ),
                       const SizedBox(width: 10),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'This action cannot be undone',
+                          l10n.actionUndone,
                           style: TextStyle(
                             fontSize: 13,
-                            color: _DependentDesign.dangerRed,
+                            color: designD.dangerRed,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -453,26 +476,26 @@ class _EditDependentPageState extends State<EditDependentPage>
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text(
-                  'Cancel',
-                  style: TextStyle(color: Colors.grey[600]),
+                  l10n.cancel,
+                  style: TextStyle(color: designD.textSecondary),
                 ),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _DependentDesign.dangerRed,
+                  backgroundColor: designD.dangerRed,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 0,
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.delete_outline, size: 18),
-                    SizedBox(width: 6),
-                    Text('Delete'),
+                    const Icon(Icons.delete_outline, size: 18),
+                    const SizedBox(width: 6),
+                    Text(l10n.delete),
                   ],
                 ),
               ),
@@ -494,7 +517,7 @@ class _EditDependentPageState extends State<EditDependentPage>
         setState(() => _isLoading = false);
         if (response['success'] == true) {
           HapticFeedback.heavyImpact();
-          CustomPopup.success(context, 'Family member deleted successfully');
+          CustomPopup.success(context, l10n.deleteMemberSuccess);
           await Future.delayed(const Duration(seconds: 1));
           if (mounted) Navigator.pop(context, true);
         } else {
@@ -513,11 +536,14 @@ class _EditDependentPageState extends State<EditDependentPage>
   }
 
   void _showSuccessDialog() {
+    final design = _DependentDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder:
           (context) => AlertDialog(
+            backgroundColor: design.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -528,9 +554,9 @@ class _EditDependentPageState extends State<EditDependentPage>
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    gradient: _DependentDesign.headerGradient,
+                    gradient: design.headerGradient,
                     shape: BoxShape.circle,
-                    boxShadow: [_DependentDesign.softShadow],
+                    boxShadow: [design.softShadow],
                   ),
                   child: const Icon(
                     Icons.check_rounded,
@@ -539,19 +565,19 @@ class _EditDependentPageState extends State<EditDependentPage>
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Changes Saved!',
+                Text(
+                  l10n.changesSaved,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: _DependentDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Family member information has been updated successfully.',
+                  l10n.familyMemberUpdated,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14, color: design.textSecondary),
                 ),
               ],
             ),
@@ -564,7 +590,7 @@ class _EditDependentPageState extends State<EditDependentPage>
                     Navigator.pop(context, true);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _DependentDesign.primaryGreen,
+                    backgroundColor: design.primaryGreen,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -572,9 +598,9 @@ class _EditDependentPageState extends State<EditDependentPage>
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Done',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  child: Text(
+                    l10n.done,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -590,10 +616,13 @@ class _EditDependentPageState extends State<EditDependentPage>
     }
 
     HapticFeedback.lightImpact();
+    final design = _DependentDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
+            backgroundColor: design.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -612,29 +641,29 @@ class _EditDependentPageState extends State<EditDependentPage>
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'Discard Changes?',
+                Text(
+                  l10n.discardChangesTitle,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: _DependentDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
               ],
             ),
-            content: const Text(
-              'You have unsaved changes. Are you sure you want to leave without saving?',
+            content: Text(
+              l10n.discardChangesDesc,
               style: TextStyle(
                 fontSize: 15,
-                color: _DependentDesign.textSecondary,
+                color: design.textSecondary,
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Keep Editing',
-                  style: TextStyle(color: Colors.grey[600]),
+                  l10n.keepEditing,
+                  style: TextStyle(color: design.textSecondary),
                 ),
               ),
               ElevatedButton(
@@ -643,14 +672,14 @@ class _EditDependentPageState extends State<EditDependentPage>
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _DependentDesign.dangerRed,
+                  backgroundColor: design.dangerRed,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 0,
                 ),
-                child: const Text('Discard'),
+                child: Text(l10n.discard),
               ),
             ],
           ),
@@ -659,8 +688,9 @@ class _EditDependentPageState extends State<EditDependentPage>
 
   @override
   Widget build(BuildContext context) {
+    final design = _DependentDesign(context);
     return Scaffold(
-      backgroundColor: _DependentDesign.surface,
+      backgroundColor: design.surface,
       body: Form(
         key: _formKey,
         child: Column(
@@ -698,14 +728,16 @@ class _EditDependentPageState extends State<EditDependentPage>
   }
 
   Widget _buildHeader() {
+    final design = _DependentDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
-        gradient: _DependentDesign.headerGradient,
+        gradient: design.headerGradient,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
-        boxShadow: [_DependentDesign.softShadow],
+        boxShadow: [design.softShadow],
       ),
       child: SafeArea(
         bottom: false,
@@ -730,10 +762,10 @@ class _EditDependentPageState extends State<EditDependentPage>
                       ),
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Edit Family Member',
-                      style: TextStyle(
+                      l10n.editFamilyMember,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -788,7 +820,7 @@ class _EditDependentPageState extends State<EditDependentPage>
                           Text(
                             _fullNameController.text.isNotEmpty
                                 ? _fullNameController.text
-                                : 'Family Member',
+                                : l10n.addFamilyMember,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -808,7 +840,9 @@ class _EditDependentPageState extends State<EditDependentPage>
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  _selectedRelationship ?? 'Relationship',
+                                  _selectedRelationship != null
+                                      ? _getLocalRelationship(context, _selectedRelationship!)
+                                      : l10n.relationship,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,
@@ -827,18 +861,18 @@ class _EditDependentPageState extends State<EditDependentPage>
                                     color: Colors.amber.withOpacity(0.3),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.edit_rounded,
                                         color: Colors.white,
                                         size: 12,
                                       ),
-                                      SizedBox(width: 4),
+                                      const SizedBox(width: 4),
                                       Text(
-                                        'Modified',
-                                        style: TextStyle(
+                                        l10n.modified,
+                                        style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
@@ -864,15 +898,16 @@ class _EditDependentPageState extends State<EditDependentPage>
   }
 
   Widget _buildBasicInfoCard() {
+    final l10n = AppLocalizations.of(context)!;
     return _buildCard(
-      title: 'Basic Information',
+      title: l10n.basicInformation,
       icon: Icons.person_outline_rounded,
       children: [
         _buildTextField(
           controller: _fullNameController,
-          label: 'Full Name',
+          label: l10n.fullName,
           icon: Icons.badge_outlined,
-          validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+          validator: (v) => v?.isEmpty ?? true ? l10n.requiredField : null,
         ),
         const SizedBox(height: 16),
         _buildDropdown(),
@@ -883,7 +918,7 @@ class _EditDependentPageState extends State<EditDependentPage>
         const SizedBox(height: 16),
         _buildTextField(
           controller: _mobileController,
-          label: 'Mobile Number (Optional)',
+          label: l10n.mobileNumberOptional,
           icon: Icons.phone_outlined,
           keyboardType: TextInputType.phone,
         ),
@@ -892,8 +927,10 @@ class _EditDependentPageState extends State<EditDependentPage>
   }
 
   Widget _buildIdentificationCard() {
+    final l10n = AppLocalizations.of(context)!;
+    final design = _DependentDesign(context);
     return _buildCard(
-      title: 'Identification',
+      title: l10n.identification,
       icon: Icons.credit_card_outlined,
       children: [
         Container(
@@ -909,7 +946,7 @@ class _EditDependentPageState extends State<EditDependentPage>
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Provide at least one ID',
+                  l10n.provideOneId,
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.amber[800],
@@ -923,7 +960,7 @@ class _EditDependentPageState extends State<EditDependentPage>
         const SizedBox(height: 16),
         _buildTextField(
           controller: _nationalIdController,
-          label: 'National ID',
+          label: l10n.nationalId,
           icon: Icons.badge_outlined,
           keyboardType: TextInputType.number,
           maxLength: 14,
@@ -931,7 +968,7 @@ class _EditDependentPageState extends State<EditDependentPage>
         const SizedBox(height: 16),
         _buildTextField(
           controller: _birthCertificateIdController,
-          label: 'Birth Certificate ID',
+          label: l10n.birthCertificateId,
           icon: Icons.description_outlined,
           keyboardType: TextInputType.number,
           maxLength: 20,
@@ -941,12 +978,13 @@ class _EditDependentPageState extends State<EditDependentPage>
   }
 
   Widget _buildMedicalInfoCard() {
+    final l10n = AppLocalizations.of(context)!;
     return _buildCard(
-      title: 'Medical Information',
+      title: l10n.medicalInformation,
       icon: Icons.medical_information_outlined,
       children: [
         _buildChipSection(
-          title: 'Chronic Diseases',
+          title: l10n.chronicConditions,
           items: _chronicDiseases,
           onAdd: _addChronicDisease,
           onRemove:
@@ -959,7 +997,7 @@ class _EditDependentPageState extends State<EditDependentPage>
         ),
         const SizedBox(height: 20),
         _buildChipSection(
-          title: 'Allergies',
+          title: l10n.allergies,
           items: _allergies,
           onAdd: _addAllergy,
           onRemove:
@@ -975,12 +1013,14 @@ class _EditDependentPageState extends State<EditDependentPage>
   }
 
   Widget _buildDangerZone() {
+    final design = _DependentDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: _DependentDesign.dangerRed.withOpacity(0.05),
+        color: design.dangerRed.withOpacity(0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _DependentDesign.dangerRed.withOpacity(0.2)),
+        border: Border.all(color: design.dangerRed.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -990,30 +1030,30 @@ class _EditDependentPageState extends State<EditDependentPage>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: _DependentDesign.dangerRed.withOpacity(0.1),
+                  color: design.dangerRed.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.warning_amber_rounded,
-                  color: _DependentDesign.dangerRed,
+                  color: design.dangerRed,
                   size: 22,
                 ),
               ),
               const SizedBox(width: 14),
-              const Text(
-                'Danger Zone',
+              Text(
+                l10n.dangerZone,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: _DependentDesign.dangerRed,
+                  color: design.dangerRed,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
-            'Permanently delete this family member from your account. This action cannot be undone.',
-            style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+            l10n.deleteFamilyMemberDesc,
+            style: TextStyle(fontSize: 13, color: design.textSecondary),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -1021,10 +1061,10 @@ class _EditDependentPageState extends State<EditDependentPage>
             child: OutlinedButton.icon(
               onPressed: _deleteDependent,
               icon: const Icon(Icons.delete_outline_rounded, size: 20),
-              label: const Text('Delete Family Member'),
+              label: Text(l10n.deleteFamilyMember),
               style: OutlinedButton.styleFrom(
-                foregroundColor: _DependentDesign.dangerRed,
-                side: const BorderSide(color: _DependentDesign.dangerRed),
+                foregroundColor: design.dangerRed,
+                side: BorderSide(color: design.dangerRed),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -1042,12 +1082,13 @@ class _EditDependentPageState extends State<EditDependentPage>
     required IconData icon,
     required List<Widget> children,
   }) {
+    final design = _DependentDesign(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: _DependentDesign.cardBg,
+        color: design.cardBg,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [_DependentDesign.cardShadow],
+        boxShadow: [design.cardShadow],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1057,7 +1098,7 @@ class _EditDependentPageState extends State<EditDependentPage>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  gradient: _DependentDesign.headerGradient,
+                  gradient: design.headerGradient,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: Colors.white, size: 22),
@@ -1065,10 +1106,10 @@ class _EditDependentPageState extends State<EditDependentPage>
               const SizedBox(width: 14),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: _DependentDesign.textPrimary,
+                  color: design.textPrimary,
                 ),
               ),
             ],
@@ -1088,31 +1129,32 @@ class _EditDependentPageState extends State<EditDependentPage>
     String? Function(String?)? validator,
     int? maxLength,
   }) {
+    final design = _DependentDesign(context);
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       maxLength: maxLength,
       validator: validator,
-      style: const TextStyle(fontSize: 16, color: _DependentDesign.textPrimary),
+      style: TextStyle(fontSize: 16, color: design.textPrimary),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: _DependentDesign.textSecondary),
-        prefixIcon: Icon(icon, color: _DependentDesign.primaryGreen),
+        labelStyle: TextStyle(color: design.textSecondary),
+        prefixIcon: Icon(icon, color: design.primaryGreen),
         filled: true,
-        fillColor: _DependentDesign.surface,
+        fillColor: design.surface,
         counterText: '',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _DependentDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _DependentDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: _DependentDesign.primaryGreen,
+          borderSide: BorderSide(
+            color: design.primaryGreen,
             width: 2,
           ),
         ),
@@ -1129,38 +1171,43 @@ class _EditDependentPageState extends State<EditDependentPage>
   }
 
   Widget _buildDropdown() {
+    final design = _DependentDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return DropdownButtonFormField<String>(
       initialValue: _selectedRelationship,
       decoration: InputDecoration(
-        labelText: 'Relationship',
-        labelStyle: const TextStyle(color: _DependentDesign.textSecondary),
+        labelText: l10n.relationship,
+        labelStyle: TextStyle(color: design.textSecondary),
         prefixIcon: const Icon(
           Icons.family_restroom,
-          color: _DependentDesign.primaryGreen,
         ),
+        prefixIconColor: design.primaryGreen,
         filled: true,
-        fillColor: _DependentDesign.surface,
+        fillColor: design.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _DependentDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _DependentDesign.inputBorder),
+          borderSide: BorderSide(color: design.inputBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: _DependentDesign.primaryGreen,
+          borderSide: BorderSide(
+            color: design.primaryGreen,
             width: 2,
           ),
         ),
       ),
-      dropdownColor: Colors.white,
+      dropdownColor: design.cardBg,
       borderRadius: BorderRadius.circular(14),
       items:
           _relationships
-              .map((rel) => DropdownMenuItem(value: rel, child: Text(rel)))
+              .map((rel) => DropdownMenuItem(
+                    value: rel,
+                    child: Text(_getLocalRelationship(context, rel)),
+                  ))
               .toList(),
       onChanged: (val) {
         HapticFeedback.selectionClick();
@@ -1173,15 +1220,15 @@ class _EditDependentPageState extends State<EditDependentPage>
   }
 
   Widget _buildGenderSelector() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Gender',
-          style: TextStyle(
+        Text(
+          l10n.gender,
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: _DependentDesign.textSecondary,
           ),
         ),
         const SizedBox(height: 10),
@@ -1189,7 +1236,7 @@ class _EditDependentPageState extends State<EditDependentPage>
           children: [
             Expanded(
               child: _buildGenderOption(
-                'Male',
+                l10n.male,
                 'male',
                 Icons.male,
                 Colors.blue,
@@ -1198,7 +1245,7 @@ class _EditDependentPageState extends State<EditDependentPage>
             const SizedBox(width: 14),
             Expanded(
               child: _buildGenderOption(
-                'Female',
+                l10n.female,
                 'female',
                 Icons.female,
                 Colors.pink,
@@ -1216,6 +1263,7 @@ class _EditDependentPageState extends State<EditDependentPage>
     IconData icon,
     Color color,
   ) {
+    final design = _DependentDesign(context);
     final isSelected = _selectedGender == value;
     return GestureDetector(
       onTap: () {
@@ -1235,10 +1283,10 @@ class _EditDependentPageState extends State<EditDependentPage>
                     colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
                   )
                   : null,
-          color: isSelected ? null : _DependentDesign.surface,
+          color: isSelected ? null : design.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? color : _DependentDesign.inputBorder,
+            color: isSelected ? color : design.inputBorder,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -1247,7 +1295,7 @@ class _EditDependentPageState extends State<EditDependentPage>
           children: [
             Icon(
               icon,
-              color: isSelected ? color : _DependentDesign.textSecondary,
+              color: isSelected ? color : design.textSecondary,
               size: 22,
             ),
             const SizedBox(width: 8),
@@ -1255,7 +1303,7 @@ class _EditDependentPageState extends State<EditDependentPage>
               label,
               style: TextStyle(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? color : _DependentDesign.textSecondary,
+                color: isSelected ? color : design.textSecondary,
                 fontSize: 15,
               ),
             ),
@@ -1266,18 +1314,20 @@ class _EditDependentPageState extends State<EditDependentPage>
   }
 
   Widget _buildDatePicker() {
+    final design = _DependentDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: _pickDate,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _DependentDesign.surface,
+          color: design.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color:
                 _selectedDate != null
-                    ? _DependentDesign.primaryGreen
-                    : _DependentDesign.inputBorder,
+                    ? design.primaryGreen
+                    : design.inputBorder,
             width: _selectedDate != null ? 2 : 1,
           ),
         ),
@@ -1286,12 +1336,12 @@ class _EditDependentPageState extends State<EditDependentPage>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: _DependentDesign.primaryGreen.withOpacity(0.1),
+                color: design.primaryGreen.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.cake_outlined,
-                color: _DependentDesign.primaryGreen,
+                color: design.primaryGreen,
                 size: 22,
               ),
             ),
@@ -1301,21 +1351,21 @@ class _EditDependentPageState extends State<EditDependentPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Date of Birth',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    l10n.dateOfBirth,
+                    style: TextStyle(fontSize: 12, color: design.textSecondary.withOpacity(0.8)),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     _selectedDate == null
-                        ? 'Select date'
+                        ? l10n.selectDate
                         : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                       color:
                           _selectedDate == null
-                              ? _DependentDesign.textSecondary
-                              : _DependentDesign.textPrimary,
+                              ? design.textSecondary
+                              : design.textPrimary,
                     ),
                   ),
                 ],
@@ -1324,7 +1374,7 @@ class _EditDependentPageState extends State<EditDependentPage>
             Icon(
               Icons.calendar_today_rounded,
               size: 20,
-              color: _DependentDesign.primaryGreen.withOpacity(0.7),
+              color: design.primaryGreen.withOpacity(0.7),
             ),
           ],
         ),
@@ -1340,6 +1390,8 @@ class _EditDependentPageState extends State<EditDependentPage>
     required Color color,
     required IconData icon,
   }) {
+    final design = _DependentDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1352,10 +1404,10 @@ class _EditDependentPageState extends State<EditDependentPage>
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: _DependentDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
               ],
@@ -1363,7 +1415,7 @@ class _EditDependentPageState extends State<EditDependentPage>
             TextButton.icon(
               onPressed: onAdd,
               icon: Icon(Icons.add_circle_outline, size: 18, color: color),
-              label: Text('Add', style: TextStyle(color: color)),
+              label: Text(l10n.add, style: TextStyle(color: color)),
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -1391,7 +1443,7 @@ class _EditDependentPageState extends State<EditDependentPage>
                   Icon(icon, size: 18, color: color.withOpacity(0.5)),
                   const SizedBox(width: 8),
                   Text(
-                    'No $title added',
+                    l10n.noItemsAdded(title.toLowerCase()),
                     style: TextStyle(
                       fontSize: 13,
                       color: color.withOpacity(0.7),
@@ -1430,13 +1482,15 @@ class _EditDependentPageState extends State<EditDependentPage>
   }
 
   Widget _buildUpdateButton() {
+    final design = _DependentDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: design.cardBg,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(design.isDark ? 0.2 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -1451,10 +1505,10 @@ class _EditDependentPageState extends State<EditDependentPage>
             style: ElevatedButton.styleFrom(
               backgroundColor:
                   _hasChanges
-                      ? _DependentDesign.primaryGreen
+                      ? design.primaryGreen
                       : Colors.grey[400],
               foregroundColor: Colors.white,
-              disabledBackgroundColor: Colors.grey[300],
+              disabledBackgroundColor: design.isDark ? Colors.grey[800] : Colors.grey[300],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -1481,7 +1535,7 @@ class _EditDependentPageState extends State<EditDependentPage>
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          _hasChanges ? 'Save Changes' : 'No Changes',
+                          _hasChanges ? l10n.saveChanges : l10n.noChanges,
                           style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w600,
@@ -1493,5 +1547,31 @@ class _EditDependentPageState extends State<EditDependentPage>
         ),
       ),
     );
+  }
+
+  String _getLocalRelationship(BuildContext context, String rel) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (rel.toLowerCase()) {
+      case 'father':
+        return l10n.relationshipFather;
+      case 'mother':
+        return l10n.relationshipMother;
+      case 'son':
+        return l10n.relationshipSon;
+      case 'daughter':
+        return l10n.relationshipDaughter;
+      case 'brother':
+        return l10n.relationshipBrother;
+      case 'sister':
+        return l10n.relationshipSister;
+      case 'grandparent':
+        return l10n.relationshipGrandparent;
+      case 'grandchild':
+        return l10n.relationshipGrandchild;
+      case 'spouse':
+        return l10n.relationshipSpouse;
+      default:
+        return l10n.relationshipOther;
+    }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui';
+import '../../../../../generated/l10n/app_localizations.dart';
 import '../../../services/presentation/pages/service_details_page.dart';
 import '../widgets/nursing_service_card.dart';
 
@@ -25,138 +26,227 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
     'Long-term',
   ];
 
-  final List<_ServiceData> _allServices = [
-    _ServiceData(
-      id: '1',
-      title: 'Wound Care',
-      price: 150,
-      duration: '30-45 min',
-      icon: Icons.healing_rounded,
-      iconColor: const Color(0xFFEF4444),
-      category: 'Popular',
-      rating: 4.9,
-      reviewCount: 312,
-      description: 'Professional wound care and dressing services provided by certified nurses.',
-      includes: ['Professional wound assessment', 'Sterile dressing', 'Wound cleaning', 'Follow-up visits', 'Progress monitoring'],
-    ),
-    _ServiceData(
-      id: '2',
-      title: 'Injections',
-      price: 50,
-      duration: '15-20 min',
-      icon: Icons.medication_liquid_rounded,
-      iconColor: const Color(0xFF3B82F6),
-      category: 'Quick',
-      rating: 4.8,
-      reviewCount: 548,
-      description: 'Safe and painless injection services at your home.',
-      includes: ['All types of injections', 'Proper sterilization', 'Medication administration', 'Post-injection care'],
-    ),
-    _ServiceData(
-      id: '3',
-      title: 'Elderly Care',
-      price: 200,
-      duration: '1-4 hours',
-      icon: Icons.elderly_rounded,
-      iconColor: const Color(0xFF8B5CF6),
-      category: 'Long-term',
-      rating: 4.9,
-      reviewCount: 187,
-      description: 'Comprehensive care for elderly patients including assistance with daily activities.',
-      includes: ['Daily activity assistance', 'Medication management', 'Vital signs monitoring', 'Companionship'],
-    ),
-    _ServiceData(
-      id: '4',
-      title: 'Post-Op Care',
-      price: 300,
-      duration: '45-60 min',
-      icon: Icons.monitor_heart_rounded,
-      iconColor: const Color(0xFF10B981),
-      category: 'Specialized',
-      rating: 4.9,
-      reviewCount: 203,
-      description: 'Post-operative care services to ensure smooth recovery after surgery.',
-      includes: ['Surgical wound care', 'Pain management', 'Medication administration', 'Vital signs monitoring'],
-    ),
-    _ServiceData(
-      id: '5',
-      title: 'Baby Care',
-      price: 180,
-      duration: '2-3 hours',
-      icon: Icons.child_care_rounded,
-      iconColor: const Color(0xFFF59E0B),
-      category: 'Specialized',
-      rating: 4.8,
-      reviewCount: 156,
-      description: 'Professional newborn and infant care services.',
-      includes: ['Newborn monitoring', 'Feeding assistance', 'Bathing', 'Development assessment'],
-    ),
-    _ServiceData(
-      id: '6',
-      title: 'IV Therapy',
-      price: 250,
-      duration: '45-60 min',
-      icon: Icons.water_drop_rounded,
-      iconColor: const Color(0xFFEC4899),
-      category: 'Popular',
-      rating: 4.7,
-      reviewCount: 421,
-      description: 'Intravenous fluid and medication therapy administered safely at home.',
-      includes: ['IV line insertion', 'Medication administration', 'Fluid therapy', 'Monitoring'],
-    ),
-    _ServiceData(
-      id: '7',
-      title: 'Catheter Care',
-      price: 120,
-      duration: '30-40 min',
-      icon: Icons.medical_services_rounded,
-      iconColor: const Color(0xFF06B6D4),
-      category: 'Specialized',
-      rating: 4.8,
-      reviewCount: 98,
-      description: 'Professional catheter insertion, maintenance, and care services.',
-      includes: ['Catheter insertion', 'Regular maintenance', 'Infection prevention', 'Patient education'],
-    ),
-    _ServiceData(
-      id: '8',
-      title: 'Vital Signs',
-      price: 80,
-      duration: '20-30 min',
-      icon: Icons.favorite_rounded,
-      iconColor: const Color(0xFF84CC16),
-      category: 'Quick',
-      rating: 4.9,
-      reviewCount: 672,
-      description: 'Complete vital signs monitoring with detailed reporting.',
-      includes: ['Blood pressure', 'Temperature', 'Heart rate', 'Oxygen saturation', 'Health report'],
-    ),
-    _ServiceData(
-      id: '9',
-      title: 'Blood Draw',
-      price: 100,
-      duration: '15 min',
-      icon: Icons.bloodtype_rounded,
-      iconColor: const Color(0xFFDC2626),
-      category: 'Quick',
-      rating: 4.8,
-      reviewCount: 389,
-      description: 'Professional blood sample collection at your home.',
-      includes: ['Blood sample collection', 'Proper labeling', 'Lab delivery', 'Results coordination'],
-    ),
-    _ServiceData(
-      id: '10',
-      title: 'Physiotherapy',
-      price: 350,
-      duration: '60-90 min',
-      icon: Icons.accessibility_new_rounded,
-      iconColor: const Color(0xFF7C3AED),
-      category: 'Long-term',
-      rating: 4.9,
-      reviewCount: 234,
-      description: 'Home physiotherapy sessions for rehabilitation and mobility.',
-      includes: ['Assessment', 'Exercise therapy', 'Mobility training', 'Progress tracking'],
-    ),
-  ];
+  static String _getCategoryNameStatic(String cat, AppLocalizations l10n) {
+    switch (cat) {
+      case 'All':
+        return l10n.categoryAll;
+      case 'Popular':
+        return l10n.categoryPopular;
+      case 'Quick':
+        return l10n.categoryQuick;
+      case 'Specialized':
+        return l10n.categorySpecialized;
+      case 'Long-term':
+        return l10n.categoryLongTerm;
+      default:
+        return cat;
+    }
+  }
+
+  String _getSortName(String sort, AppLocalizations l10n) {
+    switch (sort) {
+      case 'Recommended':
+        return l10n.sortRecommended;
+      case 'Price: Low to High':
+        return l10n.sortPriceLowToHigh;
+      case 'Price: High to Low':
+        return l10n.sortPriceHighToLow;
+      case 'Highest Rated':
+        return l10n.sortHighestRated;
+      default:
+        return sort;
+    }
+  }
+
+  List<_ServiceData> _getServices(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      _ServiceData(
+        id: '1',
+        title: l10n.serviceWoundCareTitle,
+        price: 150,
+        duration: l10n.serviceWoundCareDuration,
+        icon: Icons.healing_rounded,
+        iconColor: const Color(0xFFEF4444),
+        category: 'Popular',
+        rating: 4.9,
+        reviewCount: 312,
+        description: l10n.serviceWoundCareDesc,
+        includes: [
+          l10n.serviceWoundCareInc1,
+          l10n.serviceWoundCareInc2,
+          l10n.serviceWoundCareInc3,
+          l10n.serviceWoundCareInc4,
+          l10n.serviceWoundCareInc5,
+        ],
+      ),
+      _ServiceData(
+        id: '2',
+        title: l10n.serviceInjectionsTitle,
+        price: 50,
+        duration: l10n.serviceInjectionsDuration,
+        icon: Icons.medication_liquid_rounded,
+        iconColor: const Color(0xFF3B82F6),
+        category: 'Quick',
+        rating: 4.8,
+        reviewCount: 548,
+        description: l10n.serviceInjectionsDesc,
+        includes: [
+          l10n.serviceInjectionsInc1,
+          l10n.serviceInjectionsInc2,
+          l10n.serviceInjectionsInc3,
+          l10n.serviceInjectionsInc4,
+        ],
+      ),
+      _ServiceData(
+        id: '3',
+        title: l10n.serviceElderlyCareTitle,
+        price: 200,
+        duration: l10n.serviceElderlyCareDuration,
+        icon: Icons.elderly_rounded,
+        iconColor: const Color(0xFF8B5CF6),
+        category: 'Long-term',
+        rating: 4.9,
+        reviewCount: 187,
+        description: l10n.serviceElderlyCareDesc,
+        includes: [
+          l10n.serviceElderlyCareInc1,
+          l10n.serviceElderlyCareInc2,
+          l10n.serviceElderlyCareInc3,
+          l10n.serviceElderlyCareInc4,
+        ],
+      ),
+      _ServiceData(
+        id: '4',
+        title: l10n.servicePostOpCareTitle,
+        price: 300,
+        duration: l10n.servicePostOpCareDuration,
+        icon: Icons.monitor_heart_rounded,
+        iconColor: const Color(0xFF10B981),
+        category: 'Specialized',
+        rating: 4.9,
+        reviewCount: 203,
+        description: l10n.servicePostOpCareDesc,
+        includes: [
+          l10n.servicePostOpCareInc1,
+          l10n.servicePostOpCareInc2,
+          l10n.servicePostOpCareInc3,
+          l10n.servicePostOpCareInc4,
+        ],
+      ),
+      _ServiceData(
+        id: '5',
+        title: l10n.serviceBabyCareTitle,
+        price: 180,
+        duration: l10n.serviceBabyCareDuration,
+        icon: Icons.child_care_rounded,
+        iconColor: const Color(0xFFF59E0B),
+        category: 'Specialized',
+        rating: 4.8,
+        reviewCount: 156,
+        description: l10n.serviceBabyCareDesc,
+        includes: [
+          l10n.serviceBabyCareInc1,
+          l10n.serviceBabyCareInc2,
+          l10n.serviceBabyCareInc3,
+          l10n.serviceBabyCareInc4,
+        ],
+      ),
+      _ServiceData(
+        id: '6',
+        title: l10n.serviceIvTherapyTitle,
+        price: 250,
+        duration: l10n.serviceIvTherapyDuration,
+        icon: Icons.water_drop_rounded,
+        iconColor: const Color(0xFFEC4899),
+        category: 'Popular',
+        rating: 4.7,
+        reviewCount: 421,
+        description: l10n.serviceIvTherapyDesc,
+        includes: [
+          l10n.serviceIvTherapyInc1,
+          l10n.serviceIvTherapyInc2,
+          l10n.serviceIvTherapyInc3,
+          l10n.serviceIvTherapyInc4,
+        ],
+      ),
+      _ServiceData(
+        id: '7',
+        title: l10n.serviceCatheterCareTitle,
+        price: 120,
+        duration: l10n.serviceCatheterCareDuration,
+        icon: Icons.medical_services_rounded,
+        iconColor: const Color(0xFF06B6D4),
+        category: 'Specialized',
+        rating: 4.8,
+        reviewCount: 98,
+        description: l10n.serviceCatheterCareDesc,
+        includes: [
+          l10n.serviceCatheterCareInc1,
+          l10n.serviceCatheterCareInc2,
+          l10n.serviceCatheterCareInc3,
+          l10n.serviceCatheterCareInc4,
+        ],
+      ),
+      _ServiceData(
+        id: '8',
+        title: l10n.serviceVitalSignsTitle,
+        price: 80,
+        duration: l10n.serviceVitalSignsDuration,
+        icon: Icons.favorite_rounded,
+        iconColor: const Color(0xFF84CC16),
+        category: 'Quick',
+        rating: 4.9,
+        reviewCount: 672,
+        description: l10n.serviceVitalSignsDesc,
+        includes: [
+          l10n.serviceVitalSignsInc1,
+          l10n.serviceVitalSignsInc2,
+          l10n.serviceVitalSignsInc3,
+          l10n.serviceVitalSignsInc4,
+          l10n.serviceVitalSignsInc5,
+        ],
+      ),
+      _ServiceData(
+        id: '9',
+        title: l10n.serviceBloodDrawTitle,
+        price: 100,
+        duration: l10n.serviceBloodDrawDuration,
+        icon: Icons.bloodtype_rounded,
+        iconColor: const Color(0xFFDC2626),
+        category: 'Quick',
+        rating: 4.8,
+        reviewCount: 389,
+        description: l10n.serviceBloodDrawDesc,
+        includes: [
+          l10n.serviceBloodDrawInc1,
+          l10n.serviceBloodDrawInc2,
+          l10n.serviceBloodDrawInc3,
+          l10n.serviceBloodDrawInc4,
+        ],
+      ),
+      _ServiceData(
+        id: '10',
+        title: l10n.servicePhysiotherapyTitle,
+        price: 350,
+        duration: l10n.servicePhysiotherapyDuration,
+        icon: Icons.accessibility_new_rounded,
+        iconColor: const Color(0xFF7C3AED),
+        category: 'Long-term',
+        rating: 4.9,
+        reviewCount: 234,
+        description: l10n.servicePhysiotherapyDesc,
+        includes: [
+          l10n.servicePhysiotherapyInc1,
+          l10n.servicePhysiotherapyInc2,
+          l10n.servicePhysiotherapyInc3,
+          l10n.servicePhysiotherapyInc4,
+        ],
+      ),
+    ];
+  }
+
+  List<_ServiceData> get _allServices => _getServices(context);
 
   List<_ServiceData> get _filteredServices {
     var filtered = _allServices.where((service) {
@@ -191,6 +281,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? Colors.white : const Color(0xFF1A202C);
     final textMuted = isDark ? const Color(0xFFA19EAB) : const Color(0xFF718096);
@@ -206,7 +297,6 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
 
     final services = _filteredServices;
     const primary = Color(0xFF2ECC71);
-    
 
     return Scaffold(
       backgroundColor: surfaceColor,
@@ -245,7 +335,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                 ),
                 onPressed: () {
                   HapticFeedback.lightImpact();
-                  _showFilterBottomSheet(isDark);
+                  _showFilterBottomSheet(isDark, l10n);
                 },
               ),
               const SizedBox(width: 8),
@@ -282,9 +372,9 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            const Text(
-                              'Nursing\nServices',
-                              style: TextStyle(
+                            Text(
+                              l10n.nursingServicesHeader,
+                              style: const TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
@@ -295,7 +385,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Explore ${_allServices.length} premium at-home treatments.',
+                              l10n.nursingServicesSubtitle(_allServices.length),
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 14,
@@ -319,7 +409,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                                     onChanged: (val) => setState(() => _searchQuery = val),
                                     style: TextStyle(color: textPrimary, fontFamily: 'Inter', fontSize: 15),
                                     decoration: InputDecoration(
-                                      hintText: 'Search treatments...',
+                                      hintText: l10n.searchTreatments,
                                       hintStyle: TextStyle(color: textMuted, fontSize: 15),
                                       prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF2ECC71), size: 22),
                                       suffixIcon: _searchQuery.isNotEmpty
@@ -366,6 +456,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                 HapticFeedback.selectionClick();
                 setState(() => _selectedCategory = val);
               },
+              l10n: l10n,
             ),
           ),
 
@@ -379,12 +470,12 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                     Icon(Icons.search_off_rounded, size: 64, color: Colors.grey.withAlpha(100)),
                     const SizedBox(height: 16),
                     Text(
-                      'No services found',
+                      l10n.noServicesFound,
                       style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Try a different search or category',
+                      l10n.tryDifferentSearch,
                       style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: textMuted),
                     ),
                   ],
@@ -409,14 +500,14 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                     },
                     child: NursingServiceCard(
                       title: service.title,
-                      category: service.category,
+                      category: _getCategoryNameStatic(service.category, l10n),
                       duration: service.duration,
                       rating: service.rating,
                       reviewCount: service.reviewCount,
                       price: service.price,
                       icon: service.icon,
                       iconColor: service.iconColor,
-                      onTap: () => _navigateToDetails(service),
+                      onTap: () => _navigateToDetails(service, l10n),
                     ),
                   );
                 }, childCount: services.length),
@@ -427,13 +518,13 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
     );
   }
 
-  void _navigateToDetails(_ServiceData service) {
+  void _navigateToDetails(_ServiceData service, AppLocalizations l10n) {
     Navigator.push(
       context,
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => ServiceDetailsPage(
           title: service.title,
-          price: '${service.price} EGP',
+          price: l10n.priceEgp(service.price),
           duration: service.duration,
           icon: service.icon,
           iconColor: service.iconColor,
@@ -453,7 +544,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
     );
   }
 
-  void _showFilterBottomSheet(bool isDark) {
+  void _showFilterBottomSheet(bool isDark, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -485,7 +576,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Filter Services',
+                      l10n.filterServices,
                       style: TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black),
                     ),
                     TextButton(
@@ -502,27 +593,27 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                         });
                         Navigator.pop(context);
                       },
-                      child: const Text('Reset', style: TextStyle(color: Color(0xFF2ECC71), fontWeight: FontWeight.bold)),
+                      child: Text(l10n.reset, style: const TextStyle(color: Color(0xFF2ECC71), fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
-                Text('Sort By', style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black)),
+                Text(l10n.sortBy, style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black)),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
                   children: [
-                    _buildFilterChip('Recommended', _selectedSort == 'Recommended', isDark, () {
+                    _buildFilterChip(_getSortName('Recommended', l10n), _selectedSort == 'Recommended', isDark, () {
                       setModalState(() => _selectedSort = 'Recommended');
                     }),
-                    _buildFilterChip('Price: Low to High', _selectedSort == 'Price: Low to High', isDark, () {
+                    _buildFilterChip(_getSortName('Price: Low to High', l10n), _selectedSort == 'Price: Low to High', isDark, () {
                       setModalState(() => _selectedSort = 'Price: Low to High');
                     }),
-                    _buildFilterChip('Price: High to Low', _selectedSort == 'Price: High to Low', isDark, () {
+                    _buildFilterChip(_getSortName('Price: High to Low', l10n), _selectedSort == 'Price: High to Low', isDark, () {
                       setModalState(() => _selectedSort = 'Price: High to Low');
                     }),
-                    _buildFilterChip('Highest Rated', _selectedSort == 'Highest Rated', isDark, () {
+                    _buildFilterChip(_getSortName('Highest Rated', l10n), _selectedSort == 'Highest Rated', isDark, () {
                       setModalState(() => _selectedSort = 'Highest Rated');
                     }),
                   ],
@@ -543,7 +634,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 0,
                     ),
-                    child: const Text('Apply Filters', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: Text(l10n.applyFilters, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 SizedBox(height: MediaQuery.of(context).padding.bottom),
@@ -586,12 +677,14 @@ class _StickyCategoryDelegate extends SliverPersistentHeaderDelegate {
   final List<String> categories;
   final String selectedCategory;
   final Function(String) onSelect;
+  final AppLocalizations l10n;
 
   _StickyCategoryDelegate({
     required this.isDark,
     required this.categories,
     required this.selectedCategory,
     required this.onSelect,
+    required this.l10n,
   });
 
   @override
@@ -602,7 +695,7 @@ class _StickyCategoryDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     final isScrolled = shrinkOffset > 0 || overlapsContent;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: isScrolled ? (isDark ? const Color(0xFF0D0C11).withAlpha(240) : const Color(0xFFF0F4F8).withAlpha(240)) : (isDark ? const Color(0xFF0D0C11) : const Color(0xFFF0F4F8)),
@@ -621,6 +714,7 @@ class _StickyCategoryDelegate extends SliverPersistentHeaderDelegate {
             itemBuilder: (context, index) {
               final category = categories[index];
               final isSelected = selectedCategory == category;
+              final categoryName = _AllNursingServicesPageState._getCategoryNameStatic(category, l10n);
 
               return GestureDetector(
                 onTap: () => onSelect(category),
@@ -639,7 +733,7 @@ class _StickyCategoryDelegate extends SliverPersistentHeaderDelegate {
                         : [],
                   ),
                   child: Text(
-                    category,
+                    categoryName,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,

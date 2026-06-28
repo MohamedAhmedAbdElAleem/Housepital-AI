@@ -95,6 +95,19 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     }
   }
 
+  Future<void> verifyPinAndStartVisit(String bookingId, String pin) async {
+    try {
+      await _api.post(
+        '/bookings/$bookingId/verify-pin',
+        body: {'pin': pin},
+      );
+      emit(AppointmentActionSuccess('Visit started successfully'));
+      await fetchAppointments();
+    } catch (e) {
+      emit(AppointmentError(e.toString()));
+    }
+  }
+
   Future<void> completeVisit(String bookingId) async {
     try {
       await _api.put(

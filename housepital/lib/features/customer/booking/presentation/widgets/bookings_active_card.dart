@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 import '../../utils/booking_utils.dart';
 import '../pages/booking_tracking_page.dart';
 import '../pages/booking_matching_screen.dart';
 import '../widgets/booking_cancellation_modal.dart';
 import '../../../../../core/network/api_service.dart';
+import 'booking_ticket_modal.dart';
 
 class BookingsActiveCard extends StatelessWidget {
   final Map<String, dynamic> booking;
@@ -46,9 +48,30 @@ class BookingsActiveCard extends StatelessWidget {
     return '';
   }
 
+  String _clinicAddress(Map<String, dynamic> b) {
+    if (b['clinicAddress'] != null) return b['clinicAddress'] as String;
+    final c = b['clinicId'];
+    if (c is Map) {
+      final addr = c['address'];
+      if (addr == null) return '';
+      if (addr is String) return addr;
+      if (addr is Map) {
+        final street = addr['street'] ?? '';
+        final area = addr['area'] ?? '';
+        final city = addr['city'] ?? '';
+        final state = addr['state'] ?? '';
+        return [street, area, city, state]
+            .map((e) => e.toString().trim())
+            .where((s) => s.isNotEmpty)
+            .join(', ');
+      }
+      return addr.toString();
+    }
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final status = BookingUtils.normalizeStatus(booking['status']);
     final isMatchingRequest = booking['isMatchingRequest'] == true;
     final canResumeMatching =
@@ -82,6 +105,8 @@ class BookingsActiveCard extends StatelessWidget {
     IconData statusIcon;
     IconData watermarkIcon;
 
+    final l10n = AppLocalizations.of(context)!;
+
     switch (status) {
       case 'in-progress':
         tileGradient =
@@ -90,7 +115,7 @@ class BookingsActiveCard extends StatelessWidget {
                 : [const Color(0xFF2ECC71), const Color(0xFF219150)];
         shadowColor =
             isClinic ? const Color(0xFF3498BB) : const Color(0xFF2ECC71);
-        statusLabel = isClinic ? 'In Clinic' : 'In Progress';
+        statusLabel = isClinic ? l10n.inClinic : l10n.inProgress;
         statusIcon =
             isClinic
                 ? Icons.local_hospital_rounded
@@ -103,14 +128,14 @@ class BookingsActiveCard extends StatelessWidget {
       case 'arrived':
         tileGradient = [const Color(0xFFEA580C), const Color(0xFFC2410C)];
         shadowColor = const Color(0xFFEA580C);
-        statusLabel = isClinic ? 'Ready For Visit' : 'Nurse Arrived';
+        statusLabel = isClinic ? l10n.readyForVisit : l10n.nurseArrived;
         statusIcon = Icons.location_on_rounded;
         watermarkIcon = Icons.location_on_rounded;
         break;
       case 'on-the-way':
         tileGradient = [const Color(0xFF0EA5E9), const Color(0xFF0284C7)];
         shadowColor = const Color(0xFF0EA5E9);
-        statusLabel = isClinic ? 'Confirmed' : 'On The Way';
+        statusLabel = isClinic ? l10n.confirmed : l10n.onTheWay;
         statusIcon = Icons.directions_car_rounded;
         watermarkIcon = Icons.directions_car_rounded;
         break;
@@ -122,7 +147,7 @@ class BookingsActiveCard extends StatelessWidget {
                 : [const Color(0xFF2ECC71), const Color(0xFF219150)];
         shadowColor =
             isClinic ? const Color(0xFF3498BB) : const Color(0xFF2ECC71);
-        statusLabel = 'Confirmed';
+        statusLabel = l10n.confirmed;
         statusIcon = Icons.check_circle_rounded;
         watermarkIcon = Icons.verified_rounded;
         break;
@@ -130,7 +155,7 @@ class BookingsActiveCard extends StatelessWidget {
       case 'pending':
         tileGradient = [const Color(0xFFF59E0B), const Color(0xFFD97706)];
         shadowColor = const Color(0xFFF59E0B);
-        statusLabel = isClinic ? 'Awaiting Confirmation' : 'Finding Nurse';
+        statusLabel = isClinic ? l10n.awaitingConfirmation : l10n.findingNurse;
         statusIcon =
             isClinic ? Icons.hourglass_top_rounded : Icons.search_rounded;
         watermarkIcon = Icons.search_rounded;
@@ -138,21 +163,21 @@ class BookingsActiveCard extends StatelessWidget {
       case 'offers_pending':
         tileGradient = [const Color(0xFFF59E0B), const Color(0xFFD97706)];
         shadowColor = const Color(0xFFF59E0B);
-        statusLabel = 'Finding Nurse';
+        statusLabel = l10n.findingNurse;
         statusIcon = Icons.search_rounded;
         watermarkIcon = Icons.search_rounded;
         break;
       case 'nurse_accepted':
         tileGradient = [const Color(0xFF16A34A), const Color(0xFF15803D)];
         shadowColor = const Color(0xFF16A34A);
-        statusLabel = 'Nurse Offers Ready';
+        statusLabel = l10n.nurseOffersReady;
         statusIcon = Icons.local_offer_rounded;
         watermarkIcon = Icons.local_offer_rounded;
         break;
       default:
         tileGradient = [const Color(0xFF64748B), const Color(0xFF475569)];
         shadowColor = const Color(0xFF64748B);
-        statusLabel = 'Pending';
+        statusLabel = l10n.statusPending;
         statusIcon = Icons.schedule_rounded;
         watermarkIcon = Icons.schedule_rounded;
     }
@@ -331,7 +356,7 @@ class BookingsActiveCard extends StatelessWidget {
                                       Expanded(
                                         child: Text(
                                           isQueue
-                                              ? 'طابور'
+                                              ? l10n.queueLabel
                                               : [
                                                 if (scheduledDate != null)
                                                   () {
@@ -379,7 +404,7 @@ class BookingsActiveCard extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              '${price.toStringAsFixed(0)} EGP',
+                              '${price.toStringAsFixed(0)} ${l10n.currencyEgp}',
                               style: TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 18,
@@ -500,13 +525,53 @@ class BookingsActiveCard extends StatelessWidget {
                       // Action Buttons
                       Row(
                         children: [
+                          if (isClinic &&
+                              (status == 'confirmed' ||
+                                  status == 'in-progress' ||
+                                  status == 'arrived' ||
+                                  status == 'assigned')) ...[
+                            Expanded(
+                              child: _buildCardAction(
+                                context: context,
+                                label: l10n.viewTicket,
+                                icon: Icons.qr_code_2_rounded,
+                                isFilled: true,
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (ctx) => BookingTicketModal(
+                                      serviceName: serviceName,
+                                      patientName: patientName,
+                                      clinicName: _clinicName(booking),
+                                      clinicAddress: _clinicAddress(booking),
+                                      doctorName: doctorName ?? '',
+                                      scheduledTime: [
+                                        if (scheduledDate != null)
+                                          () {
+                                            try {
+                                              return DateFormat('d MMM').format(DateTime.parse(scheduledDate));
+                                            } catch (_) {
+                                              return scheduledDate;
+                                            }
+                                          }(),
+                                        if (scheduledTime != null) scheduledTime,
+                                      ].join(' · '),
+                                      checkInPin: booking['visitPin'] ?? '----',
+                                      onClose: () => Navigator.pop(ctx),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                          ],
                           if (!isClinic &&
                               (BookingUtils.isTrackableStatus(status) ||
                                   canResumeMatching))
                             Expanded(
                               child: _buildCardAction(
                                 context: context,
-                                label: 'Track',
+                                label: l10n.track,
                                 icon: Icons.location_on_rounded,
                                 isFilled: true,
                                 onTap: () {
@@ -569,7 +634,7 @@ class BookingsActiveCard extends StatelessWidget {
                           Expanded(
                             child: _buildCardAction(
                               context: context,
-                              label: 'Cancel',
+                              label: l10n.cancel,
                               icon: Icons.close_rounded,
                               isFilled: false,
                               onTap: () => _handleCancelBooking(context),
@@ -595,7 +660,6 @@ class BookingsActiveCard extends StatelessWidget {
     required bool isFilled,
     required VoidCallback onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -663,7 +727,7 @@ class BookingsActiveCard extends StatelessWidget {
     BuildContext context,
     String bookingId,
   ) async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     try {
       final apiService = ApiService();
       await apiService.put('/api/bookings/$bookingId/cancel', body: {});
@@ -673,9 +737,9 @@ class BookingsActiveCard extends StatelessWidget {
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 12),
-                Text('Booking cancelled'),
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Text(l10n.bookingCancelled),
               ],
             ),
             backgroundColor: const Color(0xFF2ECC71),
@@ -695,7 +759,7 @@ class BookingsActiveCard extends StatelessWidget {
     BuildContext context,
     String requestId,
   ) async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     if (requestId.isEmpty) return;
 
     try {
@@ -708,9 +772,9 @@ class BookingsActiveCard extends StatelessWidget {
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 12),
-              Text('Matching request cancelled'),
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 12),
+              Text(l10n.matchingRequestCancelled),
             ],
           ),
           backgroundColor: const Color(0xFF2ECC71),
@@ -723,7 +787,7 @@ class BookingsActiveCard extends StatelessWidget {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to cancel matching request')),
+        SnackBar(content: Text(l10n.failedToCancelMatching)),
       );
     }
   }

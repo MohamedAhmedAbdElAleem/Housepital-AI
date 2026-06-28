@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
 
@@ -343,6 +344,7 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   Widget _buildLoadingState() {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -364,9 +366,9 @@ class _BookingsPageState extends State<BookingsPage>
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Loading bookings...',
-            style: TextStyle(
+          Text(
+            l10n.loadingBookings,
+            style: const TextStyle(
               fontFamily: 'Inter',
               fontSize: 16,
               color: Color(0xFF94A3B8),
@@ -378,11 +380,12 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   Widget _buildActiveBookings() {
+    final l10n = AppLocalizations.of(context)!;
     if (_activeBookings.isEmpty) {
       return BookingsEmptyState(
         icon: Icons.calendar_today_rounded,
-        title: 'No Active Bookings',
-        subtitle: 'Your upcoming appointments will appear here',
+        title: l10n.noActiveBookings,
+        subtitle: l10n.noActiveBookingsDesc,
         showAction: true,
         onAction: () => Navigator.pop(context),
       );
@@ -408,11 +411,12 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   Widget _buildHistoryBookings() {
+    final l10n = AppLocalizations.of(context)!;
     if (_historyBookings.isEmpty) {
-      return const BookingsEmptyState(
+      return BookingsEmptyState(
         icon: Icons.history_rounded,
-        title: 'No Booking History',
-        subtitle: 'Your completed bookings will appear here',
+        title: l10n.noBookingHistory,
+        subtitle: l10n.noBookingHistoryDesc,
         showAction: false,
       );
     }

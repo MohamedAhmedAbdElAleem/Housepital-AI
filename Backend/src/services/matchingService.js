@@ -535,7 +535,7 @@ async function executeMatching(matchingRequestId, io = null) {
 
     // ── Notify nurses via Socket.io ──
     if (io) {
-        const patientName = (await User.findById(matchingRequest.patientId).select("name"))?.name || "Patient";
+        const patientName = matchingRequest.patientName || (await User.findById(matchingRequest.patientId).select("name"))?.name || "Patient";
         const nurseUserByProfileId = new Map(
             rankedNurses.map((nurse) => [String(nurse._id), nurse.user ? String(nurse.user) : null])
         );
@@ -724,7 +724,9 @@ async function handlePatientResponse(offerId, patientUserId, response, io = null
             serviceName: matchingRequest.serviceName,
             servicePrice: offer.servicePrice,
             patientId: offer.patientId,
-            patientName: (await User.findById(offer.patientId))?.name || "Patient",
+            patientName: matchingRequest.patientName || (await User.findById(offer.patientId))?.name || "Patient",
+            dependentId: matchingRequest.dependentId || null,
+            isForSelf: matchingRequest.isForSelf !== undefined ? matchingRequest.isForSelf : true,
             userId: offer.patientId,
             timeOption: matchingRequest.timeOption,
             scheduledDate: matchingRequest.scheduledDate,

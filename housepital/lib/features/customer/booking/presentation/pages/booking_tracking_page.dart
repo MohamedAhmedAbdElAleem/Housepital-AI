@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
@@ -319,16 +320,18 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   }
 
   String _formatDuration(double seconds) {
+    final l10n = AppLocalizations.of(context)!;
     int minutes = (seconds / 60).ceil();
-    if (minutes < 60) return '$minutes min';
+    if (minutes < 60) return '$minutes ${l10n.unitMinutes}';
     int hours = minutes ~/ 60;
     int rem = minutes % 60;
-    return '${hours}h ${rem}m';
+    return '${hours}${l10n.unitHours} ${rem}${l10n.unitMinutes}';
   }
 
   String _formatDistance(double meters) {
-    if (meters < 1000) return '${meters.round()} m';
-    return '${(meters / 1000).toStringAsFixed(1)} km';
+    final l10n = AppLocalizations.of(context)!;
+    if (meters < 1000) return '${meters.round()} ${l10n.unitMeters}';
+    return '${(meters / 1000).toStringAsFixed(1)} ${l10n.unitKilometers}';
   }
 
   @override
@@ -354,32 +357,34 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
   String get _serviceName => _booking['serviceName'] ?? 'Service';
 
   String get _statusLabel {
+    final l10n = AppLocalizations.of(context)!;
     switch (_status) {
       case 'assigned':
-        return 'Nurse Assigned';
+        return l10n.nurseAssigned;
       case 'on-the-way':
-        return 'Nurse On The Way';
+        return l10n.nurseOnTheWay;
       case 'arrived':
-        return 'Nurse Has Arrived';
+        return l10n.nurseHasArrived;
       case 'in-progress':
-        return 'Service In Progress';
+        return l10n.serviceInProgress;
       default:
-        return 'Tracking';
+        return l10n.trackingTitle;
     }
   }
 
   String get _statusSubtext {
+    final l10n = AppLocalizations.of(context)!;
     switch (_status) {
       case 'assigned':
-        return 'Waiting for the nurse to head to your location.';
+        return l10n.waitingNurseDesc;
       case 'on-the-way':
-        return 'The nurse is heading to your location right now.';
+        return l10n.nurseHeadingDesc;
       case 'arrived':
-        return 'Nurse is outside. Please provide the START CODE.';
+        return l10n.nurseOutsideDesc;
       case 'in-progress':
-        return 'The nurse is currently providing the service.';
+        return l10n.nurseProvidingDesc;
       default:
-        return 'We are tracking your appointment.';
+        return l10n.trackingDesc;
     }
   }
 
@@ -595,6 +600,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
 
   Widget _buildTripStats() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
@@ -635,7 +641,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                     ),
                   ),
                   Text(
-                    'Est. arrival',
+                    l10n.estArrival,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
@@ -664,7 +670,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                     ),
                   ),
                   Text(
-                    'Distance',
+                    l10n.distance,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
@@ -682,6 +688,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
 
   Widget _buildPatientMarker() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -724,7 +731,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             ],
           ),
           child: Text(
-            'You',
+            l10n.youLabel,
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
@@ -1028,6 +1035,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
 
   Widget _buildPinCard() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
@@ -1056,7 +1064,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'VISIT START CODE',
+                    l10n.visitStartCode,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
@@ -1071,7 +1079,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               ),
               const SizedBox(height: 6),
               Text(
-                'Provide this to the nurse\nto begin the session.',
+                l10n.provideStartCodeDesc,
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200,
@@ -1122,6 +1130,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
 
   Widget _buildInProgressNotice() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Container(
@@ -1157,7 +1166,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Service in Progress',
+                      l10n.serviceInProgress,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -1166,7 +1175,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'The nurse is providing $_serviceName. The visit will be marked complete soon.',
+                      l10n.serviceInProgressDesc(_serviceName),
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.white.withOpacity(0.9),
@@ -1185,6 +1194,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
 
   Widget _buildNurseInfoSection() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         // Nurse Avatar
@@ -1266,7 +1276,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        'New',
+                        l10n.newTag,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -1285,7 +1295,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Registered Nurse',
+                    l10n.registeredNurse,
                     style: TextStyle(
                       fontSize: 13,
                       color:
@@ -1307,7 +1317,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
             child: InkWell(
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Calling $_nursePhone...')),
+                  SnackBar(content: Text(l10n.callingNurse(_nursePhone!))),
                 );
               },
               borderRadius: BorderRadius.circular(16),
@@ -1334,6 +1344,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
 
   Widget _buildActionButtonsRow() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Row(
@@ -1342,8 +1353,8 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               child: ElevatedButton.icon(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Calling Emergency Services...'),
+                    SnackBar(
+                      content: Text(l10n.callingEmergency),
                     ),
                   );
                 },
@@ -1356,10 +1367,10 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                   ),
                   elevation: 0,
                 ),
-                icon: Icon(Icons.emergency, size: 20),
+                icon: const Icon(Icons.emergency, size: 20),
                 label: Text(
-                  'SOS',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  l10n.sosLabel,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -1368,7 +1379,7 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
               child: ElevatedButton.icon(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Filing a report...')),
+                    SnackBar(content: Text(l10n.filingReport)),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -1382,8 +1393,8 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
                 ),
                 icon: Icon(Icons.flag, size: 20, color: AppColors.warning500),
                 label: Text(
-                  'Report',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  l10n.reportLabel,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),
             ),

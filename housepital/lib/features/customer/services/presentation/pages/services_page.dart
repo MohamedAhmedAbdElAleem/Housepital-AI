@@ -1,33 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 import 'service_details_page.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 🎨 DESIGN SYSTEM
+// 🎨 DYNAMIC DESIGN SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════
 
-class _ServicesDesign {
-  static const primaryGreen = Color(0xFF00C853);
-  static const surface = Color(0xFFF8FAFC);
-  static const cardBg = Colors.white;
-  static const textPrimary = Color(0xFF1E293B);
-  static const textSecondary = Color(0xFF64748B);
-  static const textMuted = Color(0xFF94A3B8);
-  static const divider = Color(0xFFE2E8F0);
+class _ServicesTheme {
+  final bool isDark;
+  _ServicesTheme(BuildContext context) : isDark = Theme.of(context).brightness == Brightness.dark;
 
-  static const headerGradient = LinearGradient(
+  Color get primaryGreen => const Color(0xFF00C853);
+  Color get surface => isDark ? const Color(0xFF0D0C11) : const Color(0xFFF8FAFC);
+  Color get cardBg => isDark ? const Color(0xFF16151A) : Colors.white;
+  Color get textPrimary => isDark ? Colors.white : const Color(0xFF1E293B);
+  Color get textSecondary => isDark ? const Color(0xFFA19EAB) : const Color(0xFF64748B);
+  Color get textMuted => isDark ? const Color(0xFF555263) : const Color(0xFF94A3B8);
+  Color get divider => isDark ? const Color(0xFF2A2831) : const Color(0xFFE2E8F0);
+
+  LinearGradient get headerGradient => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [Color(0xFF00C853), Color(0xFF00B248), Color(0xFF009624)],
   );
 
-  static BoxShadow get cardShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.06),
+  BoxShadow get cardShadow => BoxShadow(
+    color: Colors.black.withOpacity(isDark ? 0.25 : 0.06),
     blurRadius: 20,
     offset: const Offset(0, 8),
   );
 
-  static BoxShadow get softShadow => BoxShadow(
+  BoxShadow get softShadow => BoxShadow(
     color: primaryGreen.withOpacity(0.15),
     blurRadius: 20,
     offset: const Offset(0, 8),
@@ -54,6 +58,8 @@ class ServiceCategory {
 
 class ServiceItem {
   final String title;
+  final String englishTitle; // Always English — used for API matching
+  final String? serviceRoute; // Stable English category slug for API matching
   final String description;
   final String price;
   final String duration;
@@ -66,6 +72,8 @@ class ServiceItem {
 
   const ServiceItem({
     required this.title,
+    required this.englishTitle,
+    this.serviceRoute,
     required this.description,
     required this.price,
     required this.duration,
@@ -101,191 +109,209 @@ class _ServicesPageState extends State<ServicesPage>
   int _selectedCategoryIndex = 0;
   String _searchQuery = '';
 
-  // Service Categories Data
-  final List<ServiceCategory> _categories = [
-    ServiceCategory(
-      name: 'All Services',
-      icon: Icons.grid_view_rounded,
-      color: _ServicesDesign.primaryGreen,
-      services: [],
-    ),
-    ServiceCategory(
-      name: 'Post-Surgery',
-      icon: Icons.healing_rounded,
-      color: const Color(0xFF3B82F6),
-      services: [
-        ServiceItem(
-          title: 'Post-Surgical Care',
-          description:
-              'Professional nursing care for patients recovering from surgery',
-          price: '350 EGP',
-          duration: '2-3 hours',
-          icon: Icons.healing_rounded,
-          color: const Color(0xFF3B82F6),
-          rating: 4.9,
-          bookings: 5200,
-          isPopular: true,
-          includes: [
-            'Wound dressing and care',
-            'Pain management assistance',
-            'Vital signs monitoring',
-            'Medication administration',
-            'Post-operative exercises guidance',
-            'Infection prevention measures',
-          ],
-        ),
-      ],
-    ),
-    ServiceCategory(
-      name: 'Elderly Care',
-      icon: Icons.elderly_rounded,
-      color: const Color(0xFF8B5CF6),
-      services: [
-        ServiceItem(
-          title: 'Elderly Care',
-          description: 'Compassionate care for seniors with chronic conditions',
-          price: '300 EGP',
-          duration: '3-4 hours',
-          icon: Icons.elderly_rounded,
-          color: const Color(0xFF8B5CF6),
-          rating: 4.8,
-          bookings: 4100,
-          includes: [
-            'Personal hygiene assistance',
-            'Medication reminders',
-            'Mobility assistance',
-            'Vital signs monitoring',
-            'Companionship and emotional support',
-            'Light meal preparation',
-          ],
-        ),
-        ServiceItem(
-          title: 'Chronic Disease Management',
-          description: 'Ongoing care for diabetes, hypertension, and more',
-          price: '280 EGP',
-          duration: '2-3 hours',
-          icon: Icons.monitor_heart_rounded,
-          color: const Color(0xFFEC4899),
-          rating: 4.7,
-          bookings: 3200,
-          includes: [
-            'Blood sugar monitoring',
-            'Blood pressure checks',
-            'Medication management',
-            'Diet counseling',
-            'Exercise guidance',
-            'Health education',
-          ],
-        ),
-      ],
-    ),
-    ServiceCategory(
-      name: 'Injections',
-      icon: Icons.vaccines_rounded,
-      color: const Color(0xFF00C853),
-      services: [
-        ServiceItem(
-          title: 'IV Therapy',
-          description: 'Intravenous fluid and medication administration',
-          price: '200 EGP',
-          duration: '30-60 min',
-          icon: Icons.vaccines_rounded,
-          color: const Color(0xFF00C853),
-          rating: 4.9,
-          bookings: 8500,
-          isPopular: true,
-          includes: [
-            'IV line insertion',
-            'Fluid administration',
-            'Medication infusion',
-            'Vital signs monitoring',
-            'Post-procedure care',
-          ],
-        ),
-        ServiceItem(
-          title: 'IM/SC Injections',
-          description: 'Intramuscular and subcutaneous injections',
-          price: '100 EGP',
-          duration: '15-20 min',
-          icon: Icons.medication_rounded,
-          color: const Color(0xFF14B8A6),
-          rating: 4.8,
-          bookings: 12000,
-          includes: [
-            'Injection administration',
-            'Site preparation',
-            'Post-injection monitoring',
-            'Proper disposal of materials',
-          ],
-        ),
-      ],
-    ),
-    ServiceCategory(
-      name: 'Wound Care',
-      icon: Icons.medical_services_rounded,
-      color: const Color(0xFFF59E0B),
-      services: [
-        ServiceItem(
-          title: 'Wound Dressing',
-          description: 'Professional wound cleaning and dressing',
-          price: '150 EGP',
-          duration: '30-45 min',
-          icon: Icons.medical_services_rounded,
-          color: const Color(0xFFF59E0B),
-          rating: 4.8,
-          bookings: 6300,
-          includes: [
-            'Wound assessment',
-            'Cleaning and disinfection',
-            'Sterile dressing application',
-            'Infection monitoring',
-            'Care instructions',
-          ],
-        ),
-        ServiceItem(
-          title: 'Burn Care',
-          description: 'Specialized care for burn injuries',
-          price: '180 EGP',
-          duration: '45-60 min',
-          icon: Icons.local_fire_department_rounded,
-          color: const Color(0xFFEF4444),
-          rating: 4.9,
-          bookings: 2100,
-          includes: [
-            'Burn assessment',
-            'Wound cleaning',
-            'Specialized dressing',
-            'Pain management',
-            'Healing monitoring',
-          ],
-        ),
-      ],
-    ),
-    ServiceCategory(
-      name: 'Orthopedic',
-      icon: Icons.accessibility_new_rounded,
-      color: const Color(0xFFEF4444),
-      services: [
-        ServiceItem(
-          title: 'Fracture Care',
-          description: 'Care for patients with broken bones or fractures',
-          price: '250 EGP',
-          duration: '1-2 hours',
-          icon: Icons.accessibility_new_rounded,
-          color: const Color(0xFFEF4444),
-          rating: 4.7,
-          bookings: 3800,
-          includes: [
-            'Cast care instructions',
-            'Pain management',
-            'Mobility assistance',
-            'Physical therapy exercises',
-            'Swelling monitoring',
-          ],
-        ),
-      ],
-    ),
-  ];
+  List<ServiceCategory> _getLocalizedCategories(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final design = _ServicesTheme(context);
+    return [
+      ServiceCategory(
+        name: l10n.categoryAllServices,
+        icon: Icons.grid_view_rounded,
+        color: design.primaryGreen,
+        services: [],
+      ),
+      ServiceCategory(
+        name: l10n.categoryPostSurgery,
+        icon: Icons.healing_rounded,
+        color: const Color(0xFF3B82F6),
+        services: [
+          ServiceItem(
+            title: l10n.servicePostSurgicalCareTitle,
+            englishTitle: 'Post-Surgical Care',
+            serviceRoute: 'post_surgical_care',
+            description: l10n.servicePostSurgicalCareDesc,
+            price: l10n.priceEgp(350),
+            duration: l10n.servicePostSurgicalCareDuration,
+            icon: Icons.healing_rounded,
+            color: const Color(0xFF3B82F6),
+            rating: 4.9,
+            bookings: 5200,
+            isPopular: true,
+            includes: [
+              l10n.servicePostSurgicalCareInc1,
+              l10n.servicePostSurgicalCareInc2,
+              l10n.servicePostSurgicalCareInc3,
+              l10n.servicePostSurgicalCareInc4,
+              l10n.servicePostSurgicalCareInc5,
+              l10n.servicePostSurgicalCareInc6,
+            ],
+          ),
+        ],
+      ),
+      ServiceCategory(
+        name: l10n.categoryElderlyCare,
+        icon: Icons.elderly_rounded,
+        color: const Color(0xFF8B5CF6),
+        services: [
+          ServiceItem(
+            title: l10n.serviceElderlyCareTitle,
+            englishTitle: 'Elderly Care',
+            serviceRoute: 'elderly_care',
+            description: l10n.serviceElderlyCareDesc,
+            price: l10n.priceEgp(300),
+            duration: l10n.serviceElderlyCareDuration,
+            icon: Icons.elderly_rounded,
+            color: const Color(0xFF8B5CF6),
+            rating: 4.8,
+            bookings: 4100,
+            includes: [
+              l10n.serviceElderlyCareInc1,
+              l10n.serviceElderlyCareInc2,
+              l10n.serviceElderlyCareInc3,
+              l10n.serviceElderlyCareInc4,
+            ],
+          ),
+          ServiceItem(
+            title: l10n.serviceChronicDiseaseTitle,
+            englishTitle: 'Chronic Disease Management',
+            serviceRoute: 'chronic_disease_management',
+            description: l10n.serviceChronicDiseaseDesc,
+            price: l10n.priceEgp(280),
+            duration: l10n.serviceChronicDiseaseDuration,
+            icon: Icons.monitor_heart_rounded,
+            color: const Color(0xFFEC4899),
+            rating: 4.7,
+            bookings: 3200,
+            includes: [
+              l10n.serviceChronicDiseaseInc1,
+              l10n.serviceChronicDiseaseInc2,
+              l10n.serviceChronicDiseaseInc3,
+              l10n.serviceChronicDiseaseInc4,
+              l10n.serviceChronicDiseaseInc5,
+              l10n.serviceChronicDiseaseInc6,
+            ],
+          ),
+        ],
+      ),
+      ServiceCategory(
+        name: l10n.categoryInjections,
+        icon: Icons.vaccines_rounded,
+        color: const Color(0xFF00C853),
+        services: [
+          ServiceItem(
+            title: l10n.serviceIvTherapyTitle,
+            englishTitle: 'IV Therapy',
+            serviceRoute: 'iv_therapy',
+            description: l10n.serviceIvTherapyDesc,
+            price: l10n.priceEgp(200),
+            duration: l10n.serviceIvTherapyDurationShort,
+            icon: Icons.vaccines_rounded,
+            color: const Color(0xFF00C853),
+            rating: 4.9,
+            bookings: 8500,
+            isPopular: true,
+            includes: [
+              l10n.serviceIvTherapyInc1,
+              l10n.serviceIvTherapyInc2,
+              l10n.serviceIvTherapyInc3,
+              l10n.serviceIvTherapyInc4,
+              l10n.serviceIvTherapyInc5,
+            ],
+          ),
+          ServiceItem(
+            title: l10n.serviceImScInjectionsTitle,
+            englishTitle: 'IM/SC Injections',
+            serviceRoute: 'im_sc_injections',
+            description: l10n.serviceImScInjectionsDesc,
+            price: l10n.priceEgp(100),
+            duration: l10n.serviceImScInjectionsDuration,
+            icon: Icons.medication_rounded,
+            color: const Color(0xFF14B8A6),
+            rating: 4.8,
+            bookings: 12000,
+            includes: [
+              l10n.serviceImScInjectionsInc1,
+              l10n.serviceImScInjectionsInc2,
+              l10n.serviceImScInjectionsInc3,
+              l10n.serviceImScInjectionsInc4,
+            ],
+          ),
+        ],
+      ),
+      ServiceCategory(
+        name: l10n.categoryWoundCare,
+        icon: Icons.medical_services_rounded,
+        color: const Color(0xFFF59E0B),
+        services: [
+          ServiceItem(
+            title: l10n.serviceWoundDressingTitle,
+            englishTitle: 'Wound Dressing',
+            serviceRoute: 'wound_dressing',
+            description: l10n.serviceWoundDressingDesc,
+            price: l10n.priceEgp(150),
+            duration: l10n.serviceWoundDressingDuration,
+            icon: Icons.medical_services_rounded,
+            color: const Color(0xFFF59E0B),
+            rating: 4.8,
+            bookings: 6300,
+            includes: [
+              l10n.serviceWoundDressingInc1,
+              l10n.serviceWoundDressingInc2,
+              l10n.serviceWoundDressingInc3,
+              l10n.serviceWoundDressingInc4,
+              l10n.serviceWoundDressingInc5,
+            ],
+          ),
+          ServiceItem(
+            title: l10n.serviceBurnCareTitle,
+            englishTitle: 'Burn Care',
+            serviceRoute: 'burn_care',
+            description: l10n.serviceBurnCareDesc,
+            price: l10n.priceEgp(180),
+            duration: l10n.serviceBurnCareDuration,
+            icon: Icons.local_fire_department_rounded,
+            color: const Color(0xFFEF4444),
+            rating: 4.9,
+            bookings: 2100,
+            includes: [
+              l10n.serviceBurnCareInc1,
+              l10n.serviceBurnCareInc2,
+              l10n.serviceBurnCareInc3,
+              l10n.serviceBurnCareInc4,
+              l10n.serviceBurnCareInc5,
+            ],
+          ),
+        ],
+      ),
+      ServiceCategory(
+        name: l10n.categoryOrthopedic,
+        icon: Icons.accessibility_new_rounded,
+        color: const Color(0xFFEF4444),
+        services: [
+          ServiceItem(
+            title: l10n.serviceFractureCareTitle,
+            englishTitle: 'Fracture Care',
+            serviceRoute: 'fracture_care',
+            description: l10n.serviceFractureCareDesc,
+            price: l10n.priceEgp(250),
+            duration: l10n.serviceFractureCareDuration,
+            icon: Icons.accessibility_new_rounded,
+            color: const Color(0xFFEF4444),
+            rating: 4.7,
+            bookings: 3800,
+            includes: [
+              l10n.serviceFractureCareInc1,
+              l10n.serviceFractureCareInc2,
+              l10n.serviceFractureCareInc3,
+              l10n.serviceFractureCareInc4,
+              l10n.serviceFractureCareInc5,
+            ],
+          ),
+        ],
+      ),
+    ];
+  }
+
+  List<ServiceCategory> get _categories => _getLocalizedCategories(context);
 
   List<ServiceItem> get _allServices {
     final services = <ServiceItem>[];
@@ -349,15 +375,17 @@ class _ServicesPageState extends State<ServicesPage>
 
   @override
   Widget build(BuildContext context) {
+    final design = _ServicesTheme(context);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: _ServicesDesign.surface,
+      backgroundColor: design.surface,
       body: Stack(
         children: [
           // Background gradient
           Container(
             height: 280,
-            decoration: const BoxDecoration(
-              gradient: _ServicesDesign.headerGradient,
+            decoration: BoxDecoration(
+              gradient: design.headerGradient,
             ),
           ),
 
@@ -365,13 +393,13 @@ class _ServicesPageState extends State<ServicesPage>
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(),
+                _buildHeader(design, l10n),
                 Expanded(
                   child: SlideTransition(
                     position: _slideAnim,
                     child: FadeTransition(
                       opacity: _fadeAnim,
-                      child: _buildContent(),
+                      child: _buildContent(design, l10n),
                     ),
                   ),
                 ),
@@ -383,7 +411,7 @@ class _ServicesPageState extends State<ServicesPage>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(_ServicesTheme design, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
       child: Column(
@@ -408,21 +436,21 @@ class _ServicesPageState extends State<ServicesPage>
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Our Services',
-                      style: TextStyle(
+                      l10n.ourServices,
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     Text(
-                      'Professional healthcare at your doorstep',
-                      style: TextStyle(fontSize: 13, color: Colors.white70),
+                      l10n.servicesSubtitle,
+                      style: const TextStyle(fontSize: 13, color: Colors.white70),
                     ),
                   ],
                 ),
@@ -448,7 +476,7 @@ class _ServicesPageState extends State<ServicesPage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: design.cardBg,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -460,9 +488,9 @@ class _ServicesPageState extends State<ServicesPage>
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.search_rounded,
-                  color: _ServicesDesign.textMuted,
+                  color: design.textMuted,
                   size: 22,
                 ),
                 const SizedBox(width: 12),
@@ -470,18 +498,18 @@ class _ServicesPageState extends State<ServicesPage>
                   child: TextField(
                     controller: _searchController,
                     onChanged: (value) => setState(() => _searchQuery = value),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
-                      color: _ServicesDesign.textPrimary,
+                      color: design.textPrimary,
                     ),
-                    decoration: const InputDecoration(
-                      hintText: 'Search services...',
+                    decoration: InputDecoration(
+                      hintText: l10n.searchServices,
                       hintStyle: TextStyle(
-                        color: _ServicesDesign.textMuted,
+                        color: design.textMuted,
                         fontSize: 15,
                       ),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 16),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                   ),
                 ),
@@ -494,13 +522,13 @@ class _ServicesPageState extends State<ServicesPage>
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: _ServicesDesign.textMuted.withOpacity(0.2),
+                        color: design.textMuted.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close_rounded,
                         size: 16,
-                        color: _ServicesDesign.textMuted,
+                        color: design.textMuted,
                       ),
                     ),
                   ),
@@ -512,11 +540,11 @@ class _ServicesPageState extends State<ServicesPage>
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(_ServicesTheme design, AppLocalizations l10n) {
     return Container(
-      decoration: const BoxDecoration(
-        color: _ServicesDesign.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: design.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -525,15 +553,15 @@ class _ServicesPageState extends State<ServicesPage>
           physics: const BouncingScrollPhysics(),
           slivers: [
             // Category Chips
-            SliverToBoxAdapter(child: _buildCategoryChips()),
+            SliverToBoxAdapter(child: _buildCategoryChips(design)),
 
             // Popular Services (only when showing all)
             if (_selectedCategoryIndex == 0 && _searchQuery.isEmpty) ...[
               SliverToBoxAdapter(
-                child: _buildSectionTitle('🔥 Popular Services'),
+                child: _buildSectionTitle(l10n.popularServices, design),
               ),
-              SliverToBoxAdapter(child: _buildPopularServices()),
-              SliverToBoxAdapter(child: _buildSectionTitle('📋 All Services')),
+              SliverToBoxAdapter(child: _buildPopularServices(l10n)),
+              SliverToBoxAdapter(child: _buildSectionTitle(l10n.allServices, design)),
             ],
 
             // Services List
@@ -541,12 +569,14 @@ class _ServicesPageState extends State<ServicesPage>
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
               sliver:
                   _filteredServices.isEmpty
-                      ? SliverToBoxAdapter(child: _buildEmptyState())
+                      ? SliverToBoxAdapter(child: _buildEmptyState(design, l10n))
                       : SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) => _buildServiceCard(
                             _filteredServices[index],
                             index,
+                            design,
+                            l10n,
                           ),
                           childCount: _filteredServices.length,
                         ),
@@ -558,7 +588,7 @@ class _ServicesPageState extends State<ServicesPage>
     );
   }
 
-  Widget _buildCategoryChips() {
+  Widget _buildCategoryChips(_ServicesTheme design) {
     return Container(
       height: 50,
       margin: const EdgeInsets.only(top: 20),
@@ -589,11 +619,11 @@ class _ServicesPageState extends State<ServicesPage>
                           ],
                         )
                         : null,
-                color: isSelected ? null : Colors.white,
+                color: isSelected ? null : design.cardBg,
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(
                   color:
-                      isSelected ? Colors.transparent : _ServicesDesign.divider,
+                      isSelected ? Colors.transparent : design.divider,
                 ),
                 boxShadow:
                     isSelected
@@ -622,7 +652,7 @@ class _ServicesPageState extends State<ServicesPage>
                       color:
                           isSelected
                               ? Colors.white
-                              : _ServicesDesign.textPrimary,
+                              : design.textPrimary,
                     ),
                   ),
                 ],
@@ -634,21 +664,21 @@ class _ServicesPageState extends State<ServicesPage>
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, _ServicesTheme design) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: _ServicesDesign.textPrimary,
+          color: design.textPrimary,
         ),
       ),
     );
   }
 
-  Widget _buildPopularServices() {
+  Widget _buildPopularServices(AppLocalizations l10n) {
     final popularServices = _allServices.where((s) => s.isPopular).toList();
 
     return SizedBox(
@@ -794,7 +824,7 @@ class _ServicesPageState extends State<ServicesPage>
     );
   }
 
-  Widget _buildServiceCard(ServiceItem service, int index) {
+  Widget _buildServiceCard(ServiceItem service, int index, _ServicesTheme design, AppLocalizations l10n) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 300 + (index * 50)),
@@ -812,11 +842,11 @@ class _ServicesPageState extends State<ServicesPage>
         child: Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: design.cardBg,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(design.isDark ? 0.25 : 0.05),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -859,10 +889,10 @@ class _ServicesPageState extends State<ServicesPage>
                           Expanded(
                             child: Text(
                               service.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: _ServicesDesign.textPrimary,
+                                color: design.textPrimary,
                               ),
                             ),
                           ),
@@ -873,23 +903,23 @@ class _ServicesPageState extends State<ServicesPage>
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFEF3C7),
+                                color: design.isDark ? Colors.amber.withOpacity(0.15) : const Color(0xFFFEF3C7),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Row(
+                              child: Row(
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.local_fire_department_rounded,
                                     size: 12,
                                     color: Color(0xFFF59E0B),
                                   ),
-                                  SizedBox(width: 4),
+                                  const SizedBox(width: 4),
                                   Text(
-                                    'Popular',
+                                    l10n.popularLabel,
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF92400E),
+                                      color: design.isDark ? Colors.amber : const Color(0xFF92400E),
                                     ),
                                   ),
                                 ],
@@ -900,9 +930,9 @@ class _ServicesPageState extends State<ServicesPage>
                       const SizedBox(height: 6),
                       Text(
                         service.description,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: _ServicesDesign.textSecondary,
+                          color: design.textSecondary,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -933,17 +963,17 @@ class _ServicesPageState extends State<ServicesPage>
                           // Duration
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.schedule_rounded,
                                 size: 14,
-                                color: _ServicesDesign.textMuted,
+                                color: design.textMuted,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 service.duration,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: _ServicesDesign.textMuted,
+                                  color: design.textMuted,
                                 ),
                               ),
                             ],
@@ -960,10 +990,10 @@ class _ServicesPageState extends State<ServicesPage>
                               const SizedBox(width: 4),
                               Text(
                                 service.rating.toString(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: _ServicesDesign.textPrimary,
+                                  color: design.textPrimary,
                                 ),
                               ),
                             ],
@@ -980,7 +1010,7 @@ class _ServicesPageState extends State<ServicesPage>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: _ServicesDesign.surface,
+                    color: design.surface,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -997,7 +1027,7 @@ class _ServicesPageState extends State<ServicesPage>
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(_ServicesTheme design, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(40),
       child: Column(
@@ -1006,30 +1036,30 @@ class _ServicesPageState extends State<ServicesPage>
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: _ServicesDesign.primaryGreen.withOpacity(0.1),
+              color: design.primaryGreen.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.search_off_rounded,
               size: 48,
-              color: _ServicesDesign.primaryGreen,
+              color: design.primaryGreen,
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'No Services Found',
+          Text(
+            l10n.noServicesFound,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: _ServicesDesign.textPrimary,
+              color: design.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Try adjusting your search or filters',
+          Text(
+            l10n.tryAdjustingFilters,
             style: TextStyle(
               fontSize: 14,
-              color: _ServicesDesign.textSecondary,
+              color: design.textSecondary,
             ),
           ),
           const SizedBox(height: 24),
@@ -1044,12 +1074,12 @@ class _ServicesPageState extends State<ServicesPage>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(
-                color: _ServicesDesign.primaryGreen,
+                color: design.primaryGreen,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
-                'Clear Filters',
-                style: TextStyle(
+              child: Text(
+                l10n.clearFilters,
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
@@ -1070,6 +1100,8 @@ class _ServicesPageState extends State<ServicesPage>
         pageBuilder:
             (_, __, ___) => ServiceDetailsPage(
               title: service.title,
+              englishTitle: service.englishTitle,
+              serviceRoute: service.serviceRoute,
               price: service.price,
               duration: service.duration,
               icon: service.icon,

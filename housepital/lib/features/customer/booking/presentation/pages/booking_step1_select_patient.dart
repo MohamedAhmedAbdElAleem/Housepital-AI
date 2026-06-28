@@ -528,6 +528,9 @@ class _BookingStep1SelectPatientState extends State<BookingStep1SelectPatient>
           'scheduledTime': _selectedTimeSlot,
         'nurseGenderPreference': _nurseGenderPreference ?? 'any',
         'notes': _notesController.text.trim(),
+        'dependentId': _isForSelf ? null : _selectedPatientId,
+        'isForSelf': _isForSelf,
+        'patientName': _selectedPatientName ?? 'Patient',
       };
 
       final response = await apiService.post(

@@ -117,6 +117,11 @@ exports.createBooking = async (req, res) => {
 			}
 		}
 
+		// Generate 4-digit PIN for clinic appointments (patients show this at reception)
+		const visitPin = bookingType === "clinic_appointment"
+			? Math.floor(1000 + Math.random() * 9000).toString()
+			: undefined;
+
 		const booking = new Booking({
 			type: bookingType,
 			serviceId,
@@ -145,6 +150,7 @@ exports.createBooking = async (req, res) => {
 			// clinic specific
 			...(clinicId && { clinicId }),
 			...(doctorId && { doctorId }),
+			...(visitPin && { visitPin }),
 		});
 
 		await booking.save();
@@ -215,6 +221,8 @@ exports.getDoctorAppointments = async (req, res) => {
 			type: "clinic_appointment",
 		})
 			.populate("clinicId", "name address")
+			.populate("patientId", "name email mobile gender dateOfBirth medicalInfo")
+			.populate("dependentId", "fullName gender dateOfBirth chronicConditions allergies relationship")
 			.sort({ createdAt: -1 });
 
 		res.status(200).json({ success: true, bookings });
@@ -686,6 +694,7 @@ exports.verifyPinAndStartVisit = async (req, res) => {
 		const { id } = req.params;
 		const { pin } = req.body;
 		const Nurse = require("../models/Nurse");
+		const Doctor = require("../models/Doctor");
 
 		if (!pin || pin.length !== 4) {
 			return res.status(400).json({
@@ -695,23 +704,12 @@ exports.verifyPinAndStartVisit = async (req, res) => {
 		}
 
 		const nurseProfile = await Nurse.findOne({ user: req.user?.id });
-		if (!nurseProfile) {
+		const doctorProfile = await Doctor.findOne({ user: req.user?.id });
+
+		if (!nurseProfile && !doctorProfile) {
 			return res.status(404).json({
 				success: false,
-				message: "Nurse profile not found",
-			});
-		}
-
-		// Prevent starting a second visit while one is already in-progress
-		const existingInProgress = await Booking.findOne({
-			assignedNurse: nurseProfile._id,
-			status: "in-progress",
-			_id: { $ne: id },
-		});
-		if (existingInProgress) {
-			return res.status(400).json({
-				success: false,
-				message: "You already have a visit in progress. Please complete it first.",
+				message: "Profile not found (must be nurse or doctor)",
 			});
 		}
 
@@ -724,12 +722,53 @@ exports.verifyPinAndStartVisit = async (req, res) => {
 			});
 		}
 
-		// Verify nurse is assigned to this booking
-		if (booking.assignedNurse?.toString() !== nurseProfile._id.toString()) {
-			return res.status(403).json({
-				success: false,
-				message: "Not authorized for this booking",
+		// Authorization check based on booking type
+		if (booking.type === "clinic_appointment") {
+			if (!doctorProfile) {
+				return res.status(403).json({
+					success: false,
+					message: "Only doctors can start clinic appointments",
+				});
+			}
+			if (booking.doctorId?.toString() !== doctorProfile._id.toString()) {
+				return res.status(403).json({
+					success: false,
+					message: "Not authorized for this booking",
+				});
+			}
+		} else {
+			// Nursing booking
+			if (!nurseProfile) {
+				return res.status(403).json({
+					success: false,
+					message: "Only nurses can start home nursing visits",
+				});
+			}
+			if (booking.assignedNurse?.toString() !== nurseProfile._id.toString()) {
+				return res.status(403).json({
+					success: false,
+					message: "Not authorized for this booking",
+				});
+			}
+
+			// Prevent starting a second visit while one is already in-progress
+			const existingInProgress = await Booking.findOne({
+				assignedNurse: nurseProfile._id,
+				status: "in-progress",
+				_id: { $ne: id },
 			});
+			if (existingInProgress) {
+				return res.status(400).json({
+					success: false,
+					message: "You already have a visit in progress. Please complete it first.",
+				});
+			}
+		}
+
+		// Fallback: If visitPin is not set, generate it on the fly (for old/seeded bookings)
+		if (!booking.visitPin) {
+			booking.visitPin = Math.floor(1000 + Math.random() * 9000).toString();
+			await booking.save();
 		}
 
 		// Verify PIN
@@ -746,13 +785,13 @@ exports.verifyPinAndStartVisit = async (req, res) => {
 		booking.checkedInAt = new Date();
 		await booking.save();
 
-		// Re-fetch with populated userId so Flutter client gets patient name/phone
-		const populatedBooking = await Booking.findById(booking._id).populate(
-			"userId",
-			"name email mobile"
-		);
+		// Re-fetch with populated details
+		const populatedBooking = await Booking.findById(booking._id)
+			.populate("userId", "name email mobile")
+			.populate("patientId", "name email mobile medicalInfo gender dateOfBirth")
+			.populate("dependentId", "fullName gender dateOfBirth chronicConditions allergies relationship");
 
-		console.log(`✅ Visit started for booking ${id}`);
+		console.log(`✅ Visit/Appointment started for booking ${id}`);
 
 		res.status(200).json({
 			success: true,

@@ -197,6 +197,46 @@ class VisitReportData {
     );
   }
 
+  factory VisitReportData.fromMap(Map<String, dynamic> json) {
+    final ps = (json['patientStatus'] as Map<String, dynamic>?) ?? {};
+    final v = (json['vitals'] as Map<String, dynamic>?) ?? {};
+    final cp = (json['careProvided'] as Map<String, dynamic>?) ?? {};
+    final n = (json['notes'] as Map<String, dynamic>?) ?? {};
+    final fu = (json['followUp'] as Map<String, dynamic>?) ?? {};
+
+    return VisitReportData(
+      overallCondition: ps['overallCondition'] ?? 'stable',
+      consciousnessLevel: ps['consciousnessLevel'] ?? 'alert',
+      painLevel: (ps['painLevel'] as num?)?.toInt() ?? 0,
+      mobility: List<String>.from(ps['mobility'] ?? []),
+      woundSiteCondition: ps['woundSiteCondition'] ?? 'na',
+      
+      bpSystolic: (v['bloodPressure']?['systolic'] as num?)?.toInt(),
+      bpDiastolic: (v['bloodPressure']?['diastolic'] as num?)?.toInt(),
+      heartRate: (v['heartRate']?['value'] as num?)?.toInt() ?? (v['heartRate'] is num ? (v['heartRate'] as num).toInt() : null),
+      temperature: (v['temperature']?['value'] as num?)?.toDouble() ?? (v['temperature'] is num ? (v['temperature'] as num).toDouble() : null),
+      oxygenSaturation: (v['oxygenSaturation']?['value'] as num?)?.toInt() ?? (v['oxygenSaturation'] is num ? (v['oxygenSaturation'] as num).toInt() : null),
+      respiratoryRate: (v['respiratoryRate'] as num?)?.toInt(),
+      bloodSugar: (v['bloodSugar'] as num?)?.toInt(),
+      weight: (v['weight'] as num?)?.toDouble(),
+
+      servicesPerformed: List<String>.from(cp['servicesPerformed'] ?? []),
+      medications: (cp['medications'] as List? ?? []).map((m) => MedicationEntry.fromJson(Map<String, dynamic>.from(m))).toList(),
+      procedures: List<String>.from(cp['procedures'] ?? []),
+      patientCooperation: cp['patientCooperation'] ?? 'cooperative',
+
+      clinicalObservations: n['clinicalObservations'] ?? '',
+      familyPresent: n['familyPresent'] ?? false,
+      homeEnvironment: List<String>.from(n['homeEnvironment'] ?? []),
+      patientFamilyConcerns: n['patientFamilyConcerns'] ?? '',
+
+      followUpRequired: fu['required'] ?? false,
+      followUpUrgency: fu['urgency'] ?? 'routine',
+      recommendedActions: List<String>.from(fu['recommendedActions'] ?? []),
+      alertMessage: fu['alertMessage'] ?? '',
+    );
+  }
+
   // ── Vital status helpers (for inline feedback) ───────────────────────────
 
   VitalStatus get bpStatus {
@@ -264,6 +304,14 @@ class MedicationEntry {
     this.dose = '',
     this.route = 'oral',
   });
+
+  factory MedicationEntry.fromJson(Map<String, dynamic> json) {
+    return MedicationEntry(
+      name: json['name'] ?? '',
+      dose: json['dose'] ?? '',
+      route: json['route'] ?? 'oral',
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'name': name,

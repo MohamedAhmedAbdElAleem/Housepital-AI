@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 
 class BookingCancellationModal extends StatelessWidget {
   final bool isLateCancel;
@@ -15,6 +16,8 @@ class BookingCancellationModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+
     final dialogBg = isDark ? const Color(0xFF16151A) : Colors.white;
     final titleColor = isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B);
     final descColor = isDark ? const Color(0xFFA19EAB) : Colors.grey[600]!;
@@ -51,7 +54,7 @@ class BookingCancellationModal extends StatelessWidget {
 
             // Title
             Text(
-              'Cancel Booking?',
+              l10n.cancelBookingTitle,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -63,8 +66,8 @@ class BookingCancellationModal extends StatelessWidget {
             // Description
             Text(
               isLateCancel
-                  ? 'Since the nurse is already assigned, a late cancellation fee of 50 EGP will apply.'
-                  : 'Are you sure you want to cancel this booking? This action cannot be undone.',
+                  ? l10n.cancelBookingLateDesc('50')
+                  : l10n.cancelBookingNormalDesc,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -93,7 +96,7 @@ class BookingCancellationModal extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Late Cancellation Fee: 50 EGP',
+                        l10n.lateCancellationFee('50'),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -122,7 +125,7 @@ class BookingCancellationModal extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: const Text('Go Back'),
+                    child: Text(l10n.goBack),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -138,7 +141,7 @@ class BookingCancellationModal extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     child: Text(
-                      isLateCancel ? 'Cancel & Pay Fee' : 'Yes, Cancel',
+                      isLateCancel ? l10n.cancelAndPayFee : l10n.yesCancel,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),

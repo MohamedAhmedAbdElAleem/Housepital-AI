@@ -9,6 +9,18 @@ const matchingRequestSchema = new mongoose.Schema(
             required: [true, "Patient ID is required"],
             index: true
         },
+        dependentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Dependent",
+            default: null
+        },
+        isForSelf: {
+            type: Boolean,
+            default: true
+        },
+        patientName: {
+            type: String
+        },
 
         // Service being requested
         serviceId: {

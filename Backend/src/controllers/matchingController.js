@@ -71,7 +71,10 @@ exports.createMatchingRequest = async (req, res) => {
             timeOption,
             scheduledDate,
             scheduledTime,
-            notes
+            notes,
+            dependentId,
+            isForSelf,
+            patientName
         } = req.body;
 
         // Validate required fields
@@ -95,6 +98,9 @@ exports.createMatchingRequest = async (req, res) => {
         // Create matching request
         const matchingRequest = new MatchingRequest({
             patientId: userId,
+            dependentId: dependentId || null,
+            isForSelf: isForSelf !== undefined ? isForSelf : true,
+            patientName: patientName || "",
             serviceId: service._id,
             serviceName: service.name,
             serviceCategory: service.category,

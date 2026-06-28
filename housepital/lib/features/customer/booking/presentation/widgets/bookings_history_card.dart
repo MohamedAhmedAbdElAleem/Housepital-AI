@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 import '../../utils/booking_utils.dart';
 
 class BookingsHistoryCard extends StatelessWidget {
@@ -60,6 +61,8 @@ class BookingsHistoryCard extends StatelessWidget {
                 : _doctorSpec(booking))
             : null;
 
+    final l10n = AppLocalizations.of(context)!;
+
     // History status styling
     List<Color> statusGradient;
     String historyStatusLabel;
@@ -69,20 +72,20 @@ class BookingsHistoryCard extends StatelessWidget {
     switch (status) {
       case 'cancelled':
         statusGradient = [const Color(0xFFEF4444), const Color(0xFFDC2626)];
-        historyStatusLabel = 'Cancelled';
+        historyStatusLabel = l10n.statusCancelled;
         historyStatusIcon = Icons.cancel_rounded;
         watermarkIcon = Icons.cancel_outlined;
         break;
       case 'no-show':
         statusGradient = [const Color(0xFFF59E0B), const Color(0xFFD97706)];
-        historyStatusLabel = 'No Show';
+        historyStatusLabel = l10n.statusNoShow;
         historyStatusIcon = Icons.event_busy_rounded;
         watermarkIcon = Icons.event_busy_outlined;
         break;
       case 'completed':
       default:
         statusGradient = [const Color(0xFF2ECC71), const Color(0xFF219150)];
-        historyStatusLabel = 'Completed';
+        historyStatusLabel = l10n.statusCompleted;
         historyStatusIcon = Icons.check_circle_rounded;
         watermarkIcon = Icons.verified_outlined;
         break;
@@ -272,7 +275,7 @@ class BookingsHistoryCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              '${price.toStringAsFixed(0)} EGP',
+                              '${price.toStringAsFixed(0)} ${l10n.currencyEgp}',
                               style: TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 16,
@@ -335,9 +338,9 @@ class BookingsHistoryCard extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                child: const Text(
-                                  'Rebook',
-                                  style: TextStyle(
+                                child: Text(
+                                  l10n.rebook,
+                                  style: const TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,

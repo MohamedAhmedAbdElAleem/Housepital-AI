@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 
 class BookingsEmptyState extends StatelessWidget {
   final IconData icon;
@@ -18,6 +19,9 @@ class BookingsEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -51,21 +55,21 @@ class BookingsEmptyState extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: isDark ? const Color(0xFFF2F2F5) : const Color(0xFF1E293B),
               ),
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 14,
-                color: Color(0xFF94A3B8),
+                color: isDark ? const Color(0xFFA19EAB) : const Color(0xFF94A3B8),
               ),
             ),
             if (showAction) ...[
@@ -92,14 +96,14 @@ class BookingsEmptyState extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.add, color: Colors.white, size: 20),
-                      SizedBox(width: 8),
+                      const Icon(Icons.add, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
                       Text(
-                        'Book a Service',
-                        style: TextStyle(
+                        l10n.bookService,
+                        style: const TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 15,
                           fontWeight: FontWeight.bold,

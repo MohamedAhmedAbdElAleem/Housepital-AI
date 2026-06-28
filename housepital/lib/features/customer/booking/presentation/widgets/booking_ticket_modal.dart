@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 
 class BookingTicketModal extends StatelessWidget {
   final String serviceName;
@@ -25,6 +26,8 @@ class BookingTicketModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+
     final dialogBg = isDark ? const Color(0xFF16151A) : Colors.white;
     final qrBoxBg = isDark ? const Color(0xFF1E1C24) : Colors.grey[200]!;
     final qrBoxBorder = isDark ? const Color(0xFF2A2831) : Colors.grey[300]!;
@@ -57,9 +60,9 @@ class BookingTicketModal extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Digital Ticket',
-                          style: TextStyle(
+                        Text(
+                          l10n.digitalTicket,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -101,7 +104,7 @@ class BookingTicketModal extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Scan at reception',
+                                  l10n.scanAtReception,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: qrTextColor,
@@ -112,7 +115,7 @@ class BookingTicketModal extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Check-in PIN',
+                            l10n.checkInPin,
                             style: TextStyle(
                               fontSize: 12,
                               color: qrTextColor,
@@ -140,19 +143,19 @@ class BookingTicketModal extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    _buildDetailRow('Service', serviceName, isDark),
+                    _buildDetailRow(l10n.serviceLabel, serviceName, isDark),
                     const SizedBox(height: 12),
-                    _buildDetailRow('Patient', patientName, isDark),
+                    _buildDetailRow(l10n.patientLabel, patientName, isDark),
                     const SizedBox(height: 12),
-                    _buildDetailRow('Clinic', clinicName, isDark),
+                    _buildDetailRow(l10n.clinicLabel, clinicName, isDark),
                     if (clinicAddress.isNotEmpty) ...[
                       const SizedBox(height: 12),
-                      _buildDetailRow('Address', clinicAddress, isDark),
+                      _buildDetailRow(l10n.addressLabel, clinicAddress, isDark),
                     ],
                     const SizedBox(height: 12),
-                    _buildDetailRow('Doctor', doctorName, isDark),
+                    _buildDetailRow(l10n.doctorLabel, doctorName, isDark),
                     const SizedBox(height: 12),
-                    _buildDetailRow('Time', scheduledTime, isDark),
+                    _buildDetailRow(l10n.timeLabel, scheduledTime, isDark),
 
                     const SizedBox(height: 20),
 
@@ -174,7 +177,7 @@ class BookingTicketModal extends StatelessWidget {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Show this QR code or PIN at the clinic reception to check in.',
+                              l10n.ticketInstruction,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: instructionTextColor,
@@ -199,9 +202,9 @@ class BookingTicketModal extends StatelessWidget {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        child: const Text(
-                          'Close',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        child: Text(
+                          l10n.close,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),

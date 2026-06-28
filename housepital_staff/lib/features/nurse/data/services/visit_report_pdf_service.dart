@@ -41,6 +41,34 @@ class VisitReportPdfService {
     );
   }
 
+  Future<void> previewFromRaw(Map<String, dynamic> record, String patientName) async {
+    final bookingJson = record['bookingId'] is Map ? record['bookingId'] : {};
+    final nurseJson = record['nurseId'] is Map ? record['nurseId'] : {};
+    final nurseName = nurseJson['user']?['name'] ?? 'Care Provider';
+
+    final booking = NurseBooking(
+      id: bookingJson['_id'] ?? record['bookingId']?.toString() ?? '',
+      type: 'home_nursing',
+      serviceName: bookingJson['serviceName'] ?? 'Home Nursing Visit',
+      servicePrice: 0.0,
+      patientId: record['patientId']?.toString() ?? '',
+      patientName: patientName,
+      customerName: 'Customer',
+      status: 'completed',
+      timeOption: 'scheduled',
+      createdAt: record['createdAt'] != null ? (DateTime.tryParse(record['createdAt']) ?? DateTime.now()) : DateTime.now(),
+      visitStartedAt: bookingJson['visitStartedAt'] != null ? DateTime.tryParse(bookingJson['visitStartedAt']) : null,
+      visitEndedAt: bookingJson['visitEndedAt'] != null ? DateTime.tryParse(bookingJson['visitEndedAt']) : null,
+    );
+
+    final report = VisitReportData.fromMap(record);
+    final visitDuration = (booking.visitStartedAt != null && booking.visitEndedAt != null)
+        ? booking.visitEndedAt!.difference(booking.visitStartedAt!)
+        : Duration(minutes: record['visitDurationMinutes'] is num ? (record['visitDurationMinutes'] as num).toInt() : 30);
+
+    await preview(booking, report, nurseName, visitDuration);
+  }
+
   Future<void> share(
     NurseBooking booking,
     VisitReportData report,

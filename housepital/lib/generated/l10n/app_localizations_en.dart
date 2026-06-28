@@ -1032,4 +1032,1270 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tabHistory => 'History';
+
+  @override
+  String get familyTitle => 'My Family';
+
+  @override
+  String get addMember => 'Add Member';
+
+  @override
+  String get addFamilyMember => 'Add Family Member';
+
+  @override
+  String get aboutFamilyTitle => 'About Family Members';
+
+  @override
+  String get aboutFamilyDesc =>
+      'Add family members to easily book nursing services for them. You can store their medical information for faster booking.';
+
+  @override
+  String get gotIt => 'Got it!';
+
+  @override
+  String get loadingFamily => 'Loading family members...';
+
+  @override
+  String get noFamilyMembers => 'No Family Members Yet';
+
+  @override
+  String get noFamilyMembersDesc =>
+      'Add your loved ones to easily book nursing services for them';
+
+  @override
+  String get errLoadFamily =>
+      'Unable to load family members. Please log in again.';
+
+  @override
+  String get years => 'years';
+
+  @override
+  String get memberSingle => '1 member';
+
+  @override
+  String membersPlural(Object count) {
+    return '$count members';
+  }
+
+  @override
+  String get editFamilyMember => 'Edit Family Member';
+
+  @override
+  String get deleteMember => 'Delete Member';
+
+  @override
+  String deleteMemberConfirm(Object name) {
+    return 'Are you sure you want to delete $name?';
+  }
+
+  @override
+  String get actionUndone => 'This action cannot be undone';
+
+  @override
+  String get discardChangesTitle => 'Discard Changes?';
+
+  @override
+  String get discardChangesDesc =>
+      'You have unsaved changes. Are you sure you want to leave without saving?';
+
+  @override
+  String get keepEditing => 'Keep Editing';
+
+  @override
+  String get discard => 'Discard';
+
+  @override
+  String get changesSaved => 'Changes Saved!';
+
+  @override
+  String get familyMemberUpdated =>
+      'Family member information has been updated successfully.';
+
+  @override
+  String get relationship => 'Relationship';
+
+  @override
+  String get dateOfBirth => 'Date of Birth';
+
+  @override
+  String get gender => 'Gender';
+
+  @override
+  String get male => 'Male';
+
+  @override
+  String get female => 'Female';
+
+  @override
+  String get nationalId => 'National ID';
+
+  @override
+  String get birthCertificateId => 'Birth Certificate ID';
+
+  @override
+  String get chronicConditions => 'Chronic Conditions';
+
+  @override
+  String get allergies => 'Allergies';
+
+  @override
+  String get addChronicCondition => 'Add Chronic Disease';
+
+  @override
+  String get addAllergy => 'Add Allergy';
+
+  @override
+  String get saveChanges => 'Save Changes';
+
+  @override
+  String get relationshipFather => 'Father';
+
+  @override
+  String get relationshipMother => 'Mother';
+
+  @override
+  String get relationshipSon => 'Son';
+
+  @override
+  String get relationshipDaughter => 'Daughter';
+
+  @override
+  String get relationshipBrother => 'Brother';
+
+  @override
+  String get relationshipSister => 'Sister';
+
+  @override
+  String get relationshipGrandparent => 'Grandparent';
+
+  @override
+  String get relationshipGrandchild => 'Grandchild';
+
+  @override
+  String get relationshipSpouse => 'Spouse';
+
+  @override
+  String get relationshipOther => 'Other';
+
+  @override
+  String get savedAddressesTitle => 'Saved Addresses';
+
+  @override
+  String get addressSavedSingle => '1 Address Saved';
+
+  @override
+  String addressesSavedPlural(Object count) {
+    return '$count Addresses Saved';
+  }
+
+  @override
+  String get manageLocations => 'Manage your delivery locations';
+
+  @override
+  String get loadingAddresses => 'Loading addresses...';
+
+  @override
+  String get noSavedAddresses => 'No Saved Addresses';
+
+  @override
+  String get noSavedAddressesDesc =>
+      'Add your first address to get started with home nursing services';
+
+  @override
+  String get addFirstAddress => 'Add Your First Address';
+
+  @override
+  String get addAddress => 'Add Address';
+
+  @override
+  String get aboutAddresses => 'About Addresses';
+
+  @override
+  String get addressTypeHome => 'Home';
+
+  @override
+  String get addressTypeWork => 'Work';
+
+  @override
+  String get addressTypeOther => 'Other';
+
+  @override
+  String get addressTypeHomeDesc => 'Your primary residence';
+
+  @override
+  String get addressTypeWorkDesc => 'Your workplace address';
+
+  @override
+  String get addressTypeOtherDesc => 'Any other location';
+
+  @override
+  String get defaultAddressNote => 'Set a default address for faster booking';
+
+  @override
+  String get defaultTag => 'DEFAULT';
+
+  @override
+  String get addressOptions => 'Address Options';
+
+  @override
+  String get setAsDefault => 'Set as Default';
+
+  @override
+  String get editAddress => 'Edit Address';
+
+  @override
+  String get deleteAddress => 'Delete Address';
+
+  @override
+  String get confirmDeleteAddress =>
+      'Are you sure you want to delete this address?';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get addressDeleted => 'Address deleted successfully';
+
+  @override
+  String get addressSetDefault => 'Address set as default successfully';
+
+  @override
+  String get errSetDefault => 'Failed to set default address';
+
+  @override
+  String get errDeleteAddress => 'Failed to delete address';
+
+  @override
+  String get errLoadAddresses =>
+      'Unable to load addresses. Please log in again.';
+
+  @override
+  String get mapLocation => 'Map Location';
+
+  @override
+  String get locationNotSelected => 'Location not selected';
+
+  @override
+  String get locationSelected => 'Location selected';
+
+  @override
+  String get requiredForTracking => 'Required for nurse tracking';
+
+  @override
+  String get pick => 'Pick';
+
+  @override
+  String get change => 'Change';
+
+  @override
+  String get addressDetails => 'Address Details';
+
+  @override
+  String get labelOptional => 'Label (Optional)';
+
+  @override
+  String get labelHint => 'e.g., Home, Office, Mom\'s Place';
+
+  @override
+  String get streetAddress => 'Street Address';
+
+  @override
+  String get enterStreet => 'Enter street address';
+
+  @override
+  String get areaDistrict => 'Area / District';
+
+  @override
+  String get enterArea => 'Enter area or district';
+
+  @override
+  String get city => 'City';
+
+  @override
+  String get enterCity => 'Enter city';
+
+  @override
+  String get state => 'State';
+
+  @override
+  String get enterState => 'Enter state';
+
+  @override
+  String get zipCode => 'Zip / Postal Code';
+
+  @override
+  String get enterZip => 'Enter zip code';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get setDefaultAddress => 'Set as default address';
+
+  @override
+  String get setDefaultAddressDesc =>
+      'Use this address by default for bookings';
+
+  @override
+  String get updateAddress => 'Update Address';
+
+  @override
+  String get addressUpdated => 'Address Updated!';
+
+  @override
+  String get addressUpdatedDesc =>
+      'Your address has been updated successfully.';
+
+  @override
+  String get pinLocationFirst => 'Please pin your location on the map first.';
+
+  @override
+  String get errLoadUserId => 'User ID not found. Please log in again.';
+
+  @override
+  String get errUpdateAddress => 'Failed to update address';
+
+  @override
+  String get requiredField => 'Required';
+
+  @override
+  String get warningUndone => 'This action cannot be undone';
+
+  @override
+  String get viewDetails => 'View Details';
+
+  @override
+  String get basicInformation => 'Basic Information';
+
+  @override
+  String get fullName => 'Full Name';
+
+  @override
+  String get mobileNumberOptional => 'Mobile Number (Optional)';
+
+  @override
+  String get identification => 'Identification';
+
+  @override
+  String get provideOneId => 'Provide at least one ID';
+
+  @override
+  String get medicalInformation => 'Medical Information';
+
+  @override
+  String get dangerZone => 'Danger Zone';
+
+  @override
+  String get deleteFamilyMemberDesc =>
+      'Permanently delete this family member from your account. This action cannot be undone.';
+
+  @override
+  String get noChanges => 'No Changes';
+
+  @override
+  String noItemsAdded(Object title) {
+    return 'No $title added';
+  }
+
+  @override
+  String get addChronicDiseaseHint => 'e.g., Diabetes, Hypertension';
+
+  @override
+  String get addAllergyHint => 'e.g., Penicillin, Peanuts';
+
+  @override
+  String get selectRelationshipWarn => 'Please select a relationship';
+
+  @override
+  String get selectDobWarn => 'Please select date of birth';
+
+  @override
+  String get provideIdWarn =>
+      'Please provide either National ID or Birth Certificate ID';
+
+  @override
+  String get deleteMemberSuccess => 'Family member deleted successfully';
+
+  @override
+  String get selectDate => 'Select date';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get modified => 'Modified';
+
+  @override
+  String get deleteFamilyMember => 'Delete Family Member';
+
+  @override
+  String get addressType => 'Address Type';
+
+  @override
+  String get loadingBookings => 'Loading bookings...';
+
+  @override
+  String get noActiveBookings => 'No Active Bookings';
+
+  @override
+  String get noActiveBookingsDesc =>
+      'Your upcoming appointments will appear here';
+
+  @override
+  String get noBookingHistory => 'No Booking History';
+
+  @override
+  String get noBookingHistoryDesc => 'Your completed bookings will appear here';
+
+  @override
+  String get bookService => 'Book a Service';
+
+  @override
+  String get inProgress => 'In Progress';
+
+  @override
+  String get inClinic => 'In Clinic';
+
+  @override
+  String get nurseArrived => 'Nurse Arrived';
+
+  @override
+  String get readyForVisit => 'Ready For Visit';
+
+  @override
+  String get onTheWay => 'On The Way';
+
+  @override
+  String get confirmed => 'Confirmed';
+
+  @override
+  String get awaitingConfirmation => 'Awaiting Confirmation';
+
+  @override
+  String get findingNurse => 'Finding Nurse';
+
+  @override
+  String get nurseOffersReady => 'Nurse Offers Ready';
+
+  @override
+  String get statusPending => 'Pending';
+
+  @override
+  String get viewTicket => 'View Ticket';
+
+  @override
+  String get track => 'Track';
+
+  @override
+  String get statusCancelled => 'Cancelled';
+
+  @override
+  String get statusNoShow => 'No Show';
+
+  @override
+  String get statusCompleted => 'Completed';
+
+  @override
+  String get rebook => 'Rebook';
+
+  @override
+  String get nurseLabel => 'Nurse';
+
+  @override
+  String get cancelBookingTitle => 'Cancel Booking?';
+
+  @override
+  String cancelBookingLateDesc(Object fee) {
+    return 'Since the nurse is already assigned, a late cancellation fee of $fee EGP will apply.';
+  }
+
+  @override
+  String get cancelBookingNormalDesc =>
+      'Are you sure you want to cancel this booking? This action cannot be undone.';
+
+  @override
+  String lateCancellationFee(Object fee) {
+    return 'Late Cancellation Fee: $fee EGP';
+  }
+
+  @override
+  String get goBack => 'Go Back';
+
+  @override
+  String get cancelAndPayFee => 'Cancel & Pay Fee';
+
+  @override
+  String get yesCancel => 'Yes, Cancel';
+
+  @override
+  String get bookingCancelled => 'Booking cancelled';
+
+  @override
+  String get matchingRequestCancelled => 'Matching request cancelled';
+
+  @override
+  String get failedToCancelMatching => 'Failed to cancel matching request';
+
+  @override
+  String get queueLabel => 'Queue';
+
+  @override
+  String get digitalTicket => 'Digital Ticket';
+
+  @override
+  String get scanAtReception => 'Scan at reception';
+
+  @override
+  String get checkInPin => 'Check-in PIN';
+
+  @override
+  String get patientLabel => 'Patient';
+
+  @override
+  String get clinicLabel => 'Clinic';
+
+  @override
+  String get addressLabel => 'Address';
+
+  @override
+  String get doctorLabel => 'Doctor';
+
+  @override
+  String get timeLabel => 'Time';
+
+  @override
+  String get ticketInstruction =>
+      'Show this QR code or PIN at the clinic reception to check in.';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get estArrival => 'Est. arrival';
+
+  @override
+  String get distance => 'Distance';
+
+  @override
+  String get youLabel => 'You';
+
+  @override
+  String get visitStartCode => 'VISIT START CODE';
+
+  @override
+  String get provideStartCodeDesc =>
+      'Provide this to the nurse to begin the session.';
+
+  @override
+  String get serviceInProgress => 'Service in Progress';
+
+  @override
+  String serviceInProgressDesc(Object serviceName) {
+    return 'The nurse is providing $serviceName. The visit will be marked complete soon.';
+  }
+
+  @override
+  String get newTag => 'New';
+
+  @override
+  String get registeredNurse => 'Registered Nurse';
+
+  @override
+  String callingNurse(Object phone) {
+    return 'Calling $phone...';
+  }
+
+  @override
+  String get callingEmergency => 'Calling Emergency Services...';
+
+  @override
+  String get sosLabel => 'SOS';
+
+  @override
+  String get filingReport => 'Filing a report...';
+
+  @override
+  String get reportLabel => 'Report';
+
+  @override
+  String get nurseAssigned => 'Nurse Assigned';
+
+  @override
+  String get nurseOnTheWay => 'Nurse On The Way';
+
+  @override
+  String get nurseHasArrived => 'Nurse Has Arrived';
+
+  @override
+  String get serviceInProgressLabel => 'Service In Progress';
+
+  @override
+  String get waitingNurseDesc =>
+      'Waiting for the nurse to head to your location.';
+
+  @override
+  String get nurseHeadingDesc =>
+      'The nurse is heading to your location right now.';
+
+  @override
+  String get nurseOutsideDesc =>
+      'Nurse is outside. Please provide the START CODE.';
+
+  @override
+  String get nurseProvidingDesc =>
+      'The nurse is currently providing the service.';
+
+  @override
+  String get trackingDesc => 'We are tracking your appointment.';
+
+  @override
+  String get trackingTitle => 'Tracking';
+
+  @override
+  String get unitMinutes => 'min';
+
+  @override
+  String get unitHours => 'h';
+
+  @override
+  String get unitMeters => 'm';
+
+  @override
+  String get unitKilometers => 'km';
+
+  @override
+  String get categoryAll => 'All';
+
+  @override
+  String get categoryPopular => 'Popular';
+
+  @override
+  String get categoryQuick => 'Quick';
+
+  @override
+  String get categorySpecialized => 'Specialized';
+
+  @override
+  String get categoryLongTerm => 'Long-term';
+
+  @override
+  String get serviceWoundCareTitle => 'Wound Care';
+
+  @override
+  String get serviceWoundCareDuration => '30-45 min';
+
+  @override
+  String get serviceWoundCareDesc =>
+      'Professional wound care and dressing services provided by certified nurses.';
+
+  @override
+  String get serviceWoundCareInc1 => 'Professional wound assessment';
+
+  @override
+  String get serviceWoundCareInc2 => 'Sterile dressing';
+
+  @override
+  String get serviceWoundCareInc3 => 'Wound cleaning';
+
+  @override
+  String get serviceWoundCareInc4 => 'Follow-up visits';
+
+  @override
+  String get serviceWoundCareInc5 => 'Progress monitoring';
+
+  @override
+  String get serviceInjectionsTitle => 'Injections';
+
+  @override
+  String get serviceInjectionsDuration => '15-20 min';
+
+  @override
+  String get serviceInjectionsDesc =>
+      'Safe and painless injection services at your home.';
+
+  @override
+  String get serviceInjectionsInc1 => 'All types of injections';
+
+  @override
+  String get serviceInjectionsInc2 => 'Proper sterilization';
+
+  @override
+  String get serviceInjectionsInc3 => 'Medication administration';
+
+  @override
+  String get serviceInjectionsInc4 => 'Post-injection care';
+
+  @override
+  String get serviceElderlyCareTitle => 'Elderly Care';
+
+  @override
+  String get serviceElderlyCareDuration => '1-4 hours';
+
+  @override
+  String get serviceElderlyCareDesc =>
+      'Comprehensive care for elderly patients including assistance with daily activities.';
+
+  @override
+  String get serviceElderlyCareInc1 => 'Daily activity assistance';
+
+  @override
+  String get serviceElderlyCareInc2 => 'Medication management';
+
+  @override
+  String get serviceElderlyCareInc3 => 'Vital signs monitoring';
+
+  @override
+  String get serviceElderlyCareInc4 => 'Companionship';
+
+  @override
+  String get servicePostOpCareTitle => 'Post-Op Care';
+
+  @override
+  String get servicePostOpCareDuration => '45-60 min';
+
+  @override
+  String get servicePostOpCareDesc =>
+      'Post-operative care services to ensure smooth recovery after surgery.';
+
+  @override
+  String get servicePostOpCareInc1 => 'Surgical wound care';
+
+  @override
+  String get servicePostOpCareInc2 => 'Pain management';
+
+  @override
+  String get servicePostOpCareInc3 => 'Medication administration';
+
+  @override
+  String get servicePostOpCareInc4 => 'Vital signs monitoring';
+
+  @override
+  String get serviceBabyCareTitle => 'Baby Care';
+
+  @override
+  String get serviceBabyCareDuration => '2-3 hours';
+
+  @override
+  String get serviceBabyCareDesc =>
+      'Professional newborn and infant care services.';
+
+  @override
+  String get serviceBabyCareInc1 => 'Newborn monitoring';
+
+  @override
+  String get serviceBabyCareInc2 => 'Feeding assistance';
+
+  @override
+  String get serviceBabyCareInc3 => 'Bathing';
+
+  @override
+  String get serviceBabyCareInc4 => 'Development assessment';
+
+  @override
+  String get serviceIvTherapyTitle => 'IV Therapy';
+
+  @override
+  String get serviceIvTherapyDuration => '45-60 min';
+
+  @override
+  String get serviceIvTherapyDesc =>
+      'Intravenous fluid and medication administration';
+
+  @override
+  String get serviceIvTherapyInc1 => 'IV line insertion';
+
+  @override
+  String get serviceIvTherapyInc2 => 'Medication administration';
+
+  @override
+  String get serviceIvTherapyInc3 => 'Fluid therapy';
+
+  @override
+  String get serviceIvTherapyInc4 => 'Monitoring';
+
+  @override
+  String get serviceCatheterCareTitle => 'Catheter Care';
+
+  @override
+  String get serviceCatheterCareDuration => '30-40 min';
+
+  @override
+  String get serviceCatheterCareDesc =>
+      'Professional catheter insertion, maintenance, and care services.';
+
+  @override
+  String get serviceCatheterCareInc1 => 'Catheter insertion';
+
+  @override
+  String get serviceCatheterCareInc2 => 'Regular maintenance';
+
+  @override
+  String get serviceCatheterCareInc3 => 'Infection prevention';
+
+  @override
+  String get serviceCatheterCareInc4 => 'Patient education';
+
+  @override
+  String get serviceVitalSignsTitle => 'Vital Signs';
+
+  @override
+  String get serviceVitalSignsDuration => '20-30 min';
+
+  @override
+  String get serviceVitalSignsDesc =>
+      'Complete vital signs monitoring with detailed reporting.';
+
+  @override
+  String get serviceVitalSignsInc1 => 'Blood pressure';
+
+  @override
+  String get serviceVitalSignsInc2 => 'Temperature';
+
+  @override
+  String get serviceVitalSignsInc3 => 'Heart rate';
+
+  @override
+  String get serviceVitalSignsInc4 => 'Oxygen saturation';
+
+  @override
+  String get serviceVitalSignsInc5 => 'Health report';
+
+  @override
+  String get serviceBloodDrawTitle => 'Blood Draw';
+
+  @override
+  String get serviceBloodDrawDuration => '15 min';
+
+  @override
+  String get serviceBloodDrawDesc =>
+      'Professional blood sample collection at your home.';
+
+  @override
+  String get serviceBloodDrawInc1 => 'Blood sample collection';
+
+  @override
+  String get serviceBloodDrawInc2 => 'Proper labeling';
+
+  @override
+  String get serviceBloodDrawInc3 => 'Lab delivery';
+
+  @override
+  String get serviceBloodDrawInc4 => 'Results coordination';
+
+  @override
+  String get servicePhysiotherapyTitle => 'Physiotherapy';
+
+  @override
+  String get servicePhysiotherapyDuration => '60-90 min';
+
+  @override
+  String get servicePhysiotherapyDesc =>
+      'Home physiotherapy sessions for rehabilitation and mobility.';
+
+  @override
+  String get servicePhysiotherapyInc1 => 'Assessment';
+
+  @override
+  String get servicePhysiotherapyInc2 => 'Exercise therapy';
+
+  @override
+  String get servicePhysiotherapyInc3 => 'Mobility training';
+
+  @override
+  String get servicePhysiotherapyInc4 => 'Progress tracking';
+
+  @override
+  String get categoryAllServices => 'All Services';
+
+  @override
+  String get categoryPostSurgery => 'Post-Surgery';
+
+  @override
+  String get categoryElderlyCare => 'Elderly Care';
+
+  @override
+  String get categoryInjections => 'Injections';
+
+  @override
+  String get categoryWoundCare => 'Wound Care';
+
+  @override
+  String get categoryOrthopedic => 'Orthopedic';
+
+  @override
+  String get servicePostSurgicalCareTitle => 'Post-Surgical Care';
+
+  @override
+  String get servicePostSurgicalCareDesc =>
+      'Professional nursing care for patients recovering from surgery';
+
+  @override
+  String get servicePostSurgicalCareDuration => '2-3 hours';
+
+  @override
+  String get servicePostSurgicalCareInc1 => 'Wound dressing and care';
+
+  @override
+  String get servicePostSurgicalCareInc2 => 'Pain management assistance';
+
+  @override
+  String get servicePostSurgicalCareInc3 => 'Vital signs monitoring';
+
+  @override
+  String get servicePostSurgicalCareInc4 => 'Medication administration';
+
+  @override
+  String get servicePostSurgicalCareInc5 => 'Post-operative exercises guidance';
+
+  @override
+  String get servicePostSurgicalCareInc6 => 'Infection prevention measures';
+
+  @override
+  String get serviceChronicDiseaseTitle => 'Chronic Disease Management';
+
+  @override
+  String get serviceChronicDiseaseDesc =>
+      'Ongoing care for diabetes, hypertension, and more';
+
+  @override
+  String get serviceChronicDiseaseDuration => '2-3 hours';
+
+  @override
+  String get serviceChronicDiseaseInc1 => 'Blood sugar monitoring';
+
+  @override
+  String get serviceChronicDiseaseInc2 => 'Blood pressure checks';
+
+  @override
+  String get serviceChronicDiseaseInc3 => 'Medication management';
+
+  @override
+  String get serviceChronicDiseaseInc4 => 'Diet counseling';
+
+  @override
+  String get serviceChronicDiseaseInc5 => 'Exercise guidance';
+
+  @override
+  String get serviceChronicDiseaseInc6 => 'Health education';
+
+  @override
+  String get serviceIvTherapyDurationShort => '30-60 min';
+
+  @override
+  String get serviceIvTherapyInc5 => 'Post-procedure care';
+
+  @override
+  String get serviceImScInjectionsTitle => 'IM/SC Injections';
+
+  @override
+  String get serviceImScInjectionsDesc =>
+      'Intramuscular and subcutaneous injections';
+
+  @override
+  String get serviceImScInjectionsDuration => '15-20 min';
+
+  @override
+  String get serviceImScInjectionsInc1 => 'Injection administration';
+
+  @override
+  String get serviceImScInjectionsInc2 => 'Site preparation';
+
+  @override
+  String get serviceImScInjectionsInc3 => 'Post-injection monitoring';
+
+  @override
+  String get serviceImScInjectionsInc4 => 'Proper disposal of materials';
+
+  @override
+  String get serviceWoundDressingTitle => 'Wound Dressing';
+
+  @override
+  String get serviceWoundDressingDesc =>
+      'Professional wound cleaning and dressing';
+
+  @override
+  String get serviceWoundDressingDuration => '30-45 min';
+
+  @override
+  String get serviceWoundDressingInc1 => 'Wound assessment';
+
+  @override
+  String get serviceWoundDressingInc2 => 'Cleaning and disinfection';
+
+  @override
+  String get serviceWoundDressingInc3 => 'Sterile dressing application';
+
+  @override
+  String get serviceWoundDressingInc4 => 'Infection monitoring';
+
+  @override
+  String get serviceWoundDressingInc5 => 'Care instructions';
+
+  @override
+  String get serviceBurnCareTitle => 'Burn Care';
+
+  @override
+  String get serviceBurnCareDesc => 'Specialized care for burn injuries';
+
+  @override
+  String get serviceBurnCareDuration => '45-60 min';
+
+  @override
+  String get serviceBurnCareInc1 => 'Burn assessment';
+
+  @override
+  String get serviceBurnCareInc2 => 'Wound cleaning';
+
+  @override
+  String get serviceBurnCareInc3 => 'Specialized dressing';
+
+  @override
+  String get serviceBurnCareInc4 => 'Pain management';
+
+  @override
+  String get serviceBurnCareInc5 => 'Healing monitoring';
+
+  @override
+  String get serviceFractureCareTitle => 'Fracture Care';
+
+  @override
+  String get serviceFractureCareDesc =>
+      'Care for patients with broken bones or fractures';
+
+  @override
+  String get serviceFractureCareDuration => '1-2 hours';
+
+  @override
+  String get serviceFractureCareInc1 => 'Cast care instructions';
+
+  @override
+  String get serviceFractureCareInc2 => 'Pain management';
+
+  @override
+  String get serviceFractureCareInc3 => 'Mobility assistance';
+
+  @override
+  String get serviceFractureCareInc4 => 'Physical therapy exercises';
+
+  @override
+  String get serviceFractureCareInc5 => 'Swelling monitoring';
+
+  @override
+  String get filterServices => 'Filter Services';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get sortBy => 'Sort By';
+
+  @override
+  String get sortRecommended => 'Recommended';
+
+  @override
+  String get sortPriceLowToHigh => 'Price: Low to High';
+
+  @override
+  String get sortPriceHighToLow => 'Price: High to Low';
+
+  @override
+  String get sortHighestRated => 'Highest Rated';
+
+  @override
+  String get applyFilters => 'Apply Filters';
+
+  @override
+  String get nursingServicesHeader => 'Nursing\nServices';
+
+  @override
+  String nursingServicesSubtitle(Object count) {
+    return 'Explore $count premium at-home treatments.';
+  }
+
+  @override
+  String get searchTreatments => 'Search treatments...';
+
+  @override
+  String get noServicesFound => 'No services found';
+
+  @override
+  String get tryDifferentSearch => 'Try a different search or category';
+
+  @override
+  String priceEgp(Object price) {
+    return '$price EGP';
+  }
+
+  @override
+  String get ourServices => 'Our Services';
+
+  @override
+  String get servicesSubtitle => 'Professional healthcare at your doorstep';
+
+  @override
+  String get searchServices => 'Search services...';
+
+  @override
+  String get popularServices => '🔥 Popular Services';
+
+  @override
+  String get allServices => '📋 All Services';
+
+  @override
+  String get popularLabel => 'Popular';
+
+  @override
+  String get tryAdjustingFilters => 'Try adjusting your search or filters';
+
+  @override
+  String get clearFilters => 'Clear Filters';
+
+  @override
+  String get shareComingSoon => 'Share feature coming soon!';
+
+  @override
+  String get professionalService => 'Professional Service';
+
+  @override
+  String reviewsCount(Object count) {
+    return '$count reviews';
+  }
+
+  @override
+  String bookingsCount(Object count) {
+    return '$count bookings';
+  }
+
+  @override
+  String get price => 'Price';
+
+  @override
+  String get duration => 'Duration';
+
+  @override
+  String get response => 'Response';
+
+  @override
+  String get lessThan5Min => '< 5 min';
+
+  @override
+  String get highlightCertified => 'Certified';
+
+  @override
+  String get highlightCertifiedDesc => 'Licensed nurses';
+
+  @override
+  String get highlightOnTime => 'On-Time';
+
+  @override
+  String get highlightOnTimeDesc => '98% punctual';
+
+  @override
+  String get highlightTrusted => 'Trusted';
+
+  @override
+  String get highlightTrustedDesc => '5.2k+ served';
+
+  @override
+  String get highlightSupport => '24/7';
+
+  @override
+  String get highlightSupportDesc => 'Support';
+
+  @override
+  String get tabIncludes => 'Includes';
+
+  @override
+  String get tabReviews => 'Reviews';
+
+  @override
+  String get tabFaq => 'FAQ';
+
+  @override
+  String get whatsIncluded => 'What\'s Included';
+
+  @override
+  String get review1Name => 'Ahmed M.';
+
+  @override
+  String get review1Comment =>
+      'Excellent service! The nurse was very professional.';
+
+  @override
+  String get review2Name => 'Fatima K.';
+
+  @override
+  String get review2Comment =>
+      'Very satisfied with the care provided. Highly recommend!';
+
+  @override
+  String get review3Name => 'Mohamed S.';
+
+  @override
+  String get review3Comment => 'Good service, nurse arrived on time.';
+
+  @override
+  String get timeAgo2Days => '2 days ago';
+
+  @override
+  String get timeAgo1Week => '1 week ago';
+
+  @override
+  String get timeAgo2Weeks => '2 weeks ago';
+
+  @override
+  String get faq1Q => 'How do I prepare for the service?';
+
+  @override
+  String get faq1A =>
+      'Ensure a clean, comfortable space for the nurse to work. Have any relevant medical documents ready.';
+
+  @override
+  String get faq2Q => 'Can I reschedule my booking?';
+
+  @override
+  String get faq2A =>
+      'Yes, you can reschedule up to 2 hours before your appointment without any charges.';
+
+  @override
+  String get faq3Q => 'What if I need to cancel?';
+
+  @override
+  String get faq3A =>
+      'Cancellations made 2+ hours before are free. Late cancellations may incur a small fee.';
+
+  @override
+  String get verifiedNursesOnly => 'Verified Nurses Only';
+
+  @override
+  String get verifiedNursesDesc =>
+      'All nurses are licensed, background-checked, and highly rated by patients.';
+
+  @override
+  String get satisfactionGuarantee => 'Satisfaction Guarantee';
+
+  @override
+  String get satisfactionGuaranteeDesc => '100% Money back if not satisfied';
+
+  @override
+  String get freeReschedule => 'Free Reschedule';
+
+  @override
+  String get easyRefund => 'Easy Refund';
+
+  @override
+  String get support247 => '24/7 Support';
+
+  @override
+  String get totalPrice => 'Total Price';
+
+  @override
+  String get perVisit => '/visit';
+
+  @override
+  String get bookNow => 'Book Now';
+
+  @override
+  String get serviceUnavailable =>
+      'Service is currently unavailable. Please try another service.';
 }

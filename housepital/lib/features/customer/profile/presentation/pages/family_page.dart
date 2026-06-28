@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:housepital/generated/l10n/app_localizations.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
 import 'add_dependent_page.dart';
@@ -7,24 +8,38 @@ import 'edit_dependent_page.dart';
 
 // Design System
 class _FamilyDesign {
-  static const Color primaryGreen = Color(0xFF00C853);
-  static const Color surface = Color(0xFFF8FAFC);
-  static const Color textPrimary = Color(0xFF1E293B);
-  static const Color textSecondary = Color(0xFF64748B);
+  final BuildContext context;
+  _FamilyDesign(this.context);
 
-  static LinearGradient get headerGradient => const LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF00C853), Color(0xFF00B248), Color(0xFF009624)],
-  );
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
 
-  static List<BoxShadow> get cardShadow => [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.05),
-      blurRadius: 15,
-      offset: const Offset(0, 5),
-    ),
-  ];
+  Color get primaryGreen => const Color(0xFF00C853);
+  Color get surface => isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
+  Color get textPrimary => isDark ? Colors.white : const Color(0xFF1E293B);
+  Color get textSecondary => isDark ? Colors.white70 : const Color(0xFF64748B);
+  Color get cardBg => isDark ? const Color(0xFF16151A) : Colors.white;
+  Color get scaffoldBg => isDark ? Colors.black : const Color(0xFFF8FAFC);
+  Color get arrowBg => isDark ? Colors.white.withAlpha(20) : const Color(0xFFF1F5F9);
+
+  LinearGradient get headerGradient => isDark
+      ? const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF16151A), Color(0xFF0D0C10)],
+        )
+      : const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF00C853), Color(0xFF00B248), Color(0xFF009624)],
+        );
+
+  List<BoxShadow> get cardShadow => [
+        BoxShadow(
+          color: Colors.black.withAlpha(isDark ? 100 : 15),
+          blurRadius: 15,
+          offset: const Offset(0, 5),
+        ),
+      ];
 }
 
 class FamilyPage extends StatefulWidget {
@@ -124,13 +139,19 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
   }
 
   void _showErrorSnackBar(String message) {
+    String localizedMsg = message;
+    if (message == 'Unable to load family members. Please log in again.') {
+      if (mounted) {
+        localizedMsg = AppLocalizations.of(context)!.errLoadFamily;
+      }
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             const Icon(Icons.error_outline, color: Colors.white),
             const SizedBox(width: 10),
-            Expanded(child: Text(message)),
+            Expanded(child: Text(localizedMsg)),
           ],
         ),
         backgroundColor: Colors.red,
@@ -153,11 +174,13 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final design = _FamilyDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: _FamilyDesign.surface,
+      backgroundColor: design.scaffoldBg,
       body: RefreshIndicator(
         onRefresh: _fetchDependents,
-        color: _FamilyDesign.primaryGreen,
+        color: design.primaryGreen,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(
             parent: BouncingScrollPhysics(),
@@ -201,11 +224,11 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
         scale: _fabScaleAnimation,
         child: Container(
           decoration: BoxDecoration(
-            gradient: _FamilyDesign.headerGradient,
+            gradient: design.headerGradient,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: _FamilyDesign.primaryGreen.withOpacity(0.4),
+                color: design.primaryGreen.withOpacity(0.4),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -216,9 +239,9 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
             backgroundColor: Colors.transparent,
             elevation: 0,
             icon: const Icon(Icons.person_add_rounded, color: Colors.white),
-            label: const Text(
-              'Add Member',
-              style: TextStyle(
+            label: Text(
+              l10n.addMember,
+              style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
@@ -230,16 +253,18 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
   }
 
   Widget _buildHeader() {
+    final design = _FamilyDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
-        gradient: _FamilyDesign.headerGradient,
+        gradient: design.headerGradient,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(36),
           bottomRight: Radius.circular(36),
         ),
         boxShadow: [
           BoxShadow(
-            color: _FamilyDesign.primaryGreen.withOpacity(0.3),
+            color: design.primaryGreen.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -291,7 +316,7 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
 
               // Icon
               Container(
-                padding: const EdgeInsets.all(16),
+                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -306,9 +331,9 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
               const SizedBox(height: 16),
 
               // Title
-              const Text(
-                'My Family',
-                style: TextStyle(
+              Text(
+                l10n.familyTitle,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -338,8 +363,10 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
                     const SizedBox(width: 8),
                     Text(
                       _isLoading
-                          ? 'Loading...'
-                          : '${_dependents.length} ${_dependents.length == 1 ? 'member' : 'members'}',
+                          ? l10n.loadingFamily
+                          : _dependents.length == 1
+                              ? l10n.memberSingle
+                              : l10n.membersPlural(_dependents.length),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -357,10 +384,13 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
   }
 
   void _showInfoDialog() {
+    final design = _FamilyDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder:
           (context) => Dialog(
+            backgroundColor: design.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -372,31 +402,31 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: _FamilyDesign.primaryGreen.withOpacity(0.1),
+                      color: design.primaryGreen.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.family_restroom_rounded,
-                      color: _FamilyDesign.primaryGreen,
+                      color: design.primaryGreen,
                       size: 36,
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'About Family Members',
+                  Text(
+                    l10n.aboutFamilyTitle,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: _FamilyDesign.textPrimary,
+                      color: design.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Add family members to easily book nursing services for them. You can store their medical information for faster booking.',
+                    l10n.aboutFamilyDesc,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: design.textSecondary,
                       height: 1.5,
                     ),
                   ),
@@ -406,14 +436,14 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
                     child: ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _FamilyDesign.primaryGreen,
+                        backgroundColor: design.primaryGreen,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('Got it!'),
+                      child: Text(l10n.gotIt),
                     ),
                   ),
                 ],
@@ -424,6 +454,8 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
   }
 
   Widget _buildLoadingState() {
+    final design = _FamilyDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -431,18 +463,18 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: _FamilyDesign.primaryGreen.withOpacity(0.1),
+              color: design.primaryGreen.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: CircularProgressIndicator(
-              color: _FamilyDesign.primaryGreen,
+              color: design.primaryGreen,
               strokeWidth: 3,
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Loading family members...',
-            style: TextStyle(color: _FamilyDesign.textSecondary, fontSize: 15),
+          Text(
+            l10n.loadingFamily,
+            style: TextStyle(color: design.textSecondary, fontSize: 15),
           ),
         ],
       ),
@@ -450,6 +482,8 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
   }
 
   Widget _buildEmptyState() {
+    final design = _FamilyDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -464,8 +498,8 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    _FamilyDesign.primaryGreen.withOpacity(0.15),
-                    _FamilyDesign.primaryGreen.withOpacity(0.05),
+                    design.primaryGreen.withOpacity(0.15),
+                    design.primaryGreen.withOpacity(0.05),
                   ],
                 ),
                 shape: BoxShape.circle,
@@ -473,26 +507,26 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
               child: Icon(
                 Icons.family_restroom_rounded,
                 size: 80,
-                color: _FamilyDesign.primaryGreen,
+                color: design.primaryGreen,
               ),
             ),
             const SizedBox(height: 32),
 
-            const Text(
-              'No Family Members Yet',
+            Text(
+              l10n.noFamilyMembers,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: _FamilyDesign.textPrimary,
+                color: design.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
 
             Text(
-              'Add your loved ones to easily book\nnursing services for them',
+              l10n.noFamilyMembersDesc,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.grey[600],
+                color: design.textSecondary,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
@@ -502,11 +536,11 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
             // Add Button
             Container(
               decoration: BoxDecoration(
-                gradient: _FamilyDesign.headerGradient,
+                gradient: design.headerGradient,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: _FamilyDesign.primaryGreen.withOpacity(0.3),
+                    color: design.primaryGreen.withOpacity(0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -515,7 +549,7 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
               child: ElevatedButton.icon(
                 onPressed: _goToAddDependent,
                 icon: const Icon(Icons.person_add_rounded),
-                label: const Text('Add Family Member'),
+                label: Text(l10n.addFamilyMember),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   foregroundColor: Colors.white,
@@ -537,6 +571,8 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
   }
 
   Widget _buildFamilyMemberCard(dynamic dep, int index) {
+    final design = _FamilyDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     final String fullName = dep['fullName'] ?? 'Unknown';
     final String relationship = dep['relationship'] ?? '';
     final String gender = dep['gender'] ?? 'other';
@@ -574,9 +610,9 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: design.cardBg,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: _FamilyDesign.cardShadow,
+        boxShadow: design.cardShadow,
       ),
       child: Material(
         color: Colors.transparent,
@@ -630,10 +666,10 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
                       // Name
                       Text(
                         fullName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: _FamilyDesign.textPrimary,
+                          color: design.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -644,9 +680,10 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
                         runSpacing: 6,
                         children: [
                           // Relationship Tag
-                          _buildTag(relationship, _FamilyDesign.primaryGreen),
+                          if (relationship.isNotEmpty)
+                            _buildTag(_getLocalRelation(context, relationship), design.primaryGreen),
                           // Age Tag
-                          if (age > 0) _buildTag('$age years', Colors.blue),
+                          if (age > 0) _buildTag('$age ${l10n.years}', Colors.blue),
                         ],
                       ),
 
@@ -658,14 +695,14 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
                             Icon(
                               Icons.phone_rounded,
                               size: 14,
-                              color: Colors.grey[500],
+                              color: design.textSecondary.withOpacity(0.7),
                             ),
                             const SizedBox(width: 6),
                             Text(
                               mobile,
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Colors.grey[600],
+                                color: design.textSecondary,
                               ),
                             ),
                           ],
@@ -679,13 +716,13 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: design.arrowBg,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.chevron_right_rounded,
                     size: 22,
-                    color: Colors.grey[500],
+                    color: design.textSecondary.withOpacity(0.7),
                   ),
                 ),
               ],
@@ -694,6 +731,36 @@ class _FamilyPageState extends State<FamilyPage> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  String _getLocalRelation(BuildContext context, String rel) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (rel.toLowerCase()) {
+      case 'father':
+        return l10n.relationshipFather;
+      case 'mother':
+        return l10n.relationshipMother;
+      case 'son':
+        return l10n.relationshipSon;
+      case 'daughter':
+        return l10n.relationshipDaughter;
+      case 'brother':
+        return l10n.relationshipBrother;
+      case 'sister':
+        return l10n.relationshipSister;
+      case 'grandparent':
+        return l10n.relationshipGrandparent;
+      case 'grandchild':
+        return l10n.relationshipGrandchild;
+      case 'spouse':
+        return l10n.relationshipSpouse;
+      case 'other':
+        return l10n.relationshipOther;
+      default:
+        return rel.isEmpty
+            ? ''
+            : '${rel[0].toUpperCase()}${rel.substring(1).toLowerCase()}';
+    }
   }
 
   Widget _buildTag(String text, Color color) {

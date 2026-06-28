@@ -13,6 +13,10 @@ class ClinicDiscoveryPage extends StatefulWidget {
 
 class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
   bool get isDark => Theme.of(context).brightness == Brightness.dark;
+  bool get isAr => Localizations.localeOf(context).languageCode == 'ar';
+
+  String t(String ar, String en) => isAr ? ar : en;
+
   static const _primary = Color(0xFF3B82F6);
   static const _primaryDark = Color(0xFF1D4ED8);
   Color get _surface => isDark ? const Color(0xFF0D0C11) : const Color(0xFFF0F4F8);
@@ -23,8 +27,9 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
   List<dynamic> _filtered = [];
   bool _isLoading = true;
   String _searchQuery = '';
-  String _selectedCategory = 'الكل';
-  final List<String> _categories = [
+  int _selectedCategoryIndex = 0;
+
+  final List<String> _categoriesAr = [
     'الكل',
     'أسنان',
     'عظام',
@@ -33,6 +38,19 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
     'باطنة',
     'جلدية',
   ];
+
+  final List<String> _categoriesEn = [
+    'All',
+    'Dental',
+    'Orthopedic',
+    'Pediatric',
+    'Cardiology',
+    'Internal Medicine',
+    'Dermatology',
+  ];
+
+  List<String> get _categories => isAr ? _categoriesAr : _categoriesEn;
+
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -89,10 +107,15 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
           }
 
           bool matchesCategory = true;
-          if (_selectedCategory != 'الكل') {
+          if (_selectedCategoryIndex != 0) {
+            final specLow = spec.toLowerCase();
+            final catAr = _categoriesAr[_selectedCategoryIndex];
+            final catEn = _categoriesEn[_selectedCategoryIndex].toLowerCase();
             matchesCategory =
-                spec.contains(_selectedCategory) ||
-                _selectedCategory.contains(spec);
+                specLow.contains(catAr) ||
+                specLow.contains(catEn) ||
+                catAr.contains(specLow) ||
+                catEn.contains(specLow);
           }
 
           return matchesSearch && matchesCategory;
@@ -101,7 +124,6 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -130,7 +152,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                 ),
                 child: Icon(
                   Icons.arrow_back_ios_new_rounded,
-                  color: isDark ? const Color(0xFF16151A) : Colors.white,
+                  color: Colors.white,
                   size: 18,
                 ),
               ),
@@ -139,7 +161,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
             flexibleSpace: FlexibleSpaceBar(
               collapseMode: CollapseMode.parallax,
               background: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -165,19 +187,19 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Text(
-                              'احجز موعد',
-                              style: TextStyle(
+                              t('احجز موعد', 'Book Appointment'),
+                              style: const TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? const Color(0xFF16151A) : Colors.white,
+                                color: Colors.white,
                                 height: 1.1,
                                 letterSpacing: -0.5,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'ابحث عن عيادة وحدد الخدمة الطبية.',
+                              t('ابحث عن عيادة وحدد الخدمة الطبية.', 'Search for a clinic and select your service.'),
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 14,
@@ -209,12 +231,12 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                                     ),
                                     decoration: InputDecoration(
                                       hintText:
-                                          'ابحث بالاسم، الطبيب، أو المنطقة...',
+                                          t('ابحث بالاسم، الطبيب، أو المنطقة...', 'Search by name, doctor, or area...'),
                                       hintStyle: TextStyle(
                                         color: _textMuted,
                                         fontSize: 15,
                                       ),
-                                      prefixIcon: Icon(
+                                      prefixIcon: const Icon(
                                         Icons.search_rounded,
                                         color: _primary,
                                         size: 22,
@@ -263,12 +285,12 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                                 itemCount: _categories.length,
                                 itemBuilder: (context, index) {
                                   final cat = _categories[index];
-                                  final isSelected = cat == _selectedCategory;
+                                  final isSelected = index == _selectedCategoryIndex;
                                   return GestureDetector(
                                     onTap: () {
                                       HapticFeedback.lightImpact();
                                       setState(() {
-                                        _selectedCategory = cat;
+                                        _selectedCategoryIndex = index;
                                         _applyFilter();
                                       });
                                     },
@@ -340,7 +362,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'لا توجد عيادات',
+                      t('لا توجد عيادات', 'No clinics found'),
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 18,
@@ -351,8 +373,8 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                     const SizedBox(height: 8),
                     Text(
                       _searchQuery.isNotEmpty
-                          ? 'لا نتائج لـ "$_searchQuery"'
-                          : 'لا توجد عيادات متاحة حالياً.',
+                          ? t('لا نتائج لـ "$_searchQuery"', 'No results found for "$_searchQuery"')
+                          : t('لا توجد عيادات متاحة حالياً.', 'No clinics currently available.'),
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 14,
@@ -423,7 +445,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
             transitionsBuilder: (_, animation, __, child) {
               return SlideTransition(
                 position: Tween<Offset>(
-                  begin: Offset(1.0, 0.0),
+                  begin: const Offset(1.0, 0.0),
                   end: Offset.zero,
                 ).animate(
                   CurvedAnimation(
@@ -517,7 +539,7 @@ class _ClinicDiscoveryPageState extends State<ClinicDiscoveryPage> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              isQueue ? 'طابور' : 'مواعيد',
+                              isQueue ? t('طابور', 'Queue') : t('مواعيد', 'Appointment'),
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 11,

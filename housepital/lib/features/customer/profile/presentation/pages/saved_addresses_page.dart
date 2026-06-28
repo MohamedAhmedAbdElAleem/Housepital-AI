@@ -1,35 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:housepital/generated/l10n/app_localizations.dart';
 import '../../../../../core/network/api_service.dart';
 import '../../../../../core/utils/token_manager.dart';
 import 'add_address_page.dart';
 import 'edit_address_page.dart';
 
 class _AddressDesign {
-  static const primaryGreen = Color(0xFF00C853);
-  static const surface = Color(0xFFF8FAFC);
-  static const textPrimary = Color(0xFF1E293B);
-  static const textSecondary = Color(0xFF64748B);
-  static const cardBg = Colors.white;
-  static const dangerRed = Color(0xFFEF4444);
+  final BuildContext context;
+  _AddressDesign(this.context);
 
-  static const headerGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF00C853), Color(0xFF00E676), Color(0xFF69F0AE)],
-  );
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
 
-  static BoxShadow get cardShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.06),
-    blurRadius: 16,
-    offset: const Offset(0, 4),
-  );
+  Color get primaryGreen => const Color(0xFF00C853);
+  Color get surface => isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
+  Color get textPrimary => isDark ? Colors.white : const Color(0xFF1E293B);
+  Color get textSecondary => isDark ? Colors.white70 : const Color(0xFF64748B);
+  Color get cardBg => isDark ? const Color(0xFF16151A) : Colors.white;
+  Color get scaffoldBg => isDark ? Colors.black : const Color(0xFFF8FAFC);
+  Color get arrowBg => isDark ? Colors.white.withAlpha(20) : const Color(0xFFF1F5F9);
+  Color get dangerRed => const Color(0xFFEF4444);
 
-  static BoxShadow get softShadow => BoxShadow(
-    color: primaryGreen.withOpacity(0.15),
-    blurRadius: 20,
-    offset: const Offset(0, 8),
-  );
+  LinearGradient get headerGradient => isDark
+      ? const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF16151A), Color(0xFF0D0C10)],
+        )
+      : const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF00C853), Color(0xFF00E676), Color(0xFF69F0AE)],
+        );
+
+  BoxShadow get cardShadow => BoxShadow(
+        color: Colors.black.withAlpha(isDark ? 100 : 15),
+        blurRadius: 16,
+        offset: const Offset(0, 4),
+      );
+
+  BoxShadow get softShadow => BoxShadow(
+        color: primaryGreen.withOpacity(isDark ? 0.05 : 0.15),
+        blurRadius: 20,
+        offset: const Offset(0, 8),
+      );
 }
 
 class SavedAddressesPage extends StatefulWidget {
@@ -87,7 +101,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
       if (userId == null || userId.isEmpty) {
         if (mounted) {
           setState(() => _isLoading = false);
-          _showErrorSnackBar('Unable to load addresses. Please log in again.');
+          _showErrorSnackBar(AppLocalizations.of(context)!.errLoadAddresses);
         }
         return;
       }
@@ -111,16 +125,21 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
   }
 
   void _showErrorSnackBar(String message) {
+    final design = _AddressDesign(context);
+    String localizedMsg = message;
+    if (message == 'Unable to load addresses. Please log in again.') {
+      localizedMsg = AppLocalizations.of(context)!.errLoadAddresses;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             const Icon(Icons.error_outline, color: Colors.white),
             const SizedBox(width: 12),
-            Expanded(child: Text(message)),
+            Expanded(child: Text(localizedMsg)),
           ],
         ),
-        backgroundColor: _AddressDesign.dangerRed,
+        backgroundColor: design.dangerRed,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
@@ -129,16 +148,23 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
   }
 
   void _showSuccessSnackBar(String message) {
+    final design = _AddressDesign(context);
+    String localizedMsg = message;
+    if (message == 'Address deleted successfully!') {
+      localizedMsg = AppLocalizations.of(context)!.addressDeleted;
+    } else if (message == 'Set as default successfully!') {
+      localizedMsg = AppLocalizations.of(context)!.addressSetDefault;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             const Icon(Icons.check_circle, color: Colors.white),
             const SizedBox(width: 12),
-            Expanded(child: Text(message)),
+            Expanded(child: Text(localizedMsg)),
           ],
         ),
-        backgroundColor: _AddressDesign.primaryGreen,
+        backgroundColor: design.primaryGreen,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
@@ -159,8 +185,9 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
 
   @override
   Widget build(BuildContext context) {
+    final design = _AddressDesign(context);
     return Scaffold(
-      backgroundColor: _AddressDesign.surface,
+      backgroundColor: design.scaffoldBg,
       body: Column(
         children: [
           _buildHeader(),
@@ -179,14 +206,16 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
   }
 
   Widget _buildHeader() {
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
-        gradient: _AddressDesign.headerGradient,
+        gradient: design.headerGradient,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
-        boxShadow: [_AddressDesign.softShadow],
+        boxShadow: [design.softShadow],
       ),
       child: SafeArea(
         bottom: false,
@@ -214,10 +243,10 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                       ),
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Saved Addresses',
-                      style: TextStyle(
+                      l10n.savedAddressesTitle,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -272,7 +301,11 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${_addresses.length} ${_addresses.length == 1 ? 'Address' : 'Addresses'} Saved',
+                            _isLoading
+                                ? l10n.loading
+                                : _addresses.length == 1
+                                    ? l10n.addressSavedSingle
+                                    : l10n.addressesSavedPlural(_addresses.length),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -280,9 +313,9 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Manage your delivery locations',
-                            style: TextStyle(
+                          Text(
+                            l10n.manageLocations,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 13,
                             ),
@@ -301,6 +334,8 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
   }
 
   Widget _buildLoadingState() {
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -308,18 +343,18 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: _AddressDesign.primaryGreen.withOpacity(0.1),
+              color: design.primaryGreen.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: const CircularProgressIndicator(
-              color: _AddressDesign.primaryGreen,
+            child: CircularProgressIndicator(
+              color: design.primaryGreen,
               strokeWidth: 3,
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Loading addresses...',
-            style: TextStyle(fontSize: 16, color: _AddressDesign.textSecondary),
+          Text(
+            l10n.loadingAddresses,
+            style: TextStyle(fontSize: 16, color: design.textSecondary),
           ),
         ],
       ),
@@ -327,6 +362,8 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
   }
 
   Widget _buildEmptyState() {
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SlideTransition(
@@ -345,34 +382,34 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        _AddressDesign.primaryGreen.withOpacity(0.2),
-                        _AddressDesign.primaryGreen.withOpacity(0.05),
+                        design.primaryGreen.withOpacity(0.2),
+                        design.primaryGreen.withOpacity(0.05),
                       ],
                     ),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.add_location_alt_outlined,
                     size: 70,
-                    color: _AddressDesign.primaryGreen,
+                    color: design.primaryGreen,
                   ),
                 ),
                 const SizedBox(height: 32),
-                const Text(
-                  'No Saved Addresses',
+                Text(
+                  l10n.noSavedAddresses,
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: _AddressDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Add your first address to get started\nwith home nursing services',
+                  l10n.noSavedAddressesDesc,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
-                    color: Colors.grey[600],
+                    color: design.textSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -380,9 +417,9 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                 ElevatedButton.icon(
                   onPressed: _addAddress,
                   icon: const Icon(Icons.add_location_alt_outlined),
-                  label: const Text('Add Your First Address'),
+                  label: Text(l10n.addFirstAddress),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _AddressDesign.primaryGreen,
+                    backgroundColor: design.primaryGreen,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,
@@ -403,13 +440,14 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
   }
 
   Widget _buildAddressList() {
+    final design = _AddressDesign(context);
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SlideTransition(
         position: _slideAnimation,
         child: RefreshIndicator(
           onRefresh: _fetchAddresses,
-          color: _AddressDesign.primaryGreen,
+          color: design.primaryGreen,
           child: ListView.builder(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
             itemCount: _addresses.length,
@@ -423,6 +461,8 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
   }
 
   Widget _buildAddressCard(dynamic address, int index) {
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     final label = address['label'] ?? '';
     final type = address['type'] ?? 'home';
     final street = address['street'] ?? '';
@@ -447,7 +487,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
         break;
       default:
         typeIcon = Icons.home_rounded;
-        typeColor = _AddressDesign.primaryGreen;
+        typeColor = design.primaryGreen;
         gradientColors = [const Color(0xFF00C853), const Color(0xFF00E676)];
     }
 
@@ -463,13 +503,13 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: _AddressDesign.cardBg,
+          color: design.cardBg,
           borderRadius: BorderRadius.circular(24),
           border:
               isDefault
-                  ? Border.all(color: _AddressDesign.primaryGreen, width: 2)
+                  ? Border.all(color: design.primaryGreen, width: 2)
                   : null,
-          boxShadow: [_AddressDesign.cardShadow],
+          boxShadow: [design.cardShadow],
         ),
         child: Material(
           color: Colors.transparent,
@@ -513,11 +553,11 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                                   child: Text(
                                     label.isNotEmpty
                                         ? label
-                                        : _capitalize(type),
-                                    style: const TextStyle(
+                                        : _getLocalAddressType(context, type),
+                                    style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: _AddressDesign.textPrimary,
+                                      color: design.textPrimary,
                                     ),
                                   ),
                                 ),
@@ -528,21 +568,21 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      gradient: _AddressDesign.headerGradient,
+                                      gradient: design.headerGradient,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: const Row(
+                                    child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(
+                                        const Icon(
                                           Icons.star_rounded,
                                           color: Colors.white,
                                           size: 12,
                                         ),
-                                        SizedBox(width: 4),
+                                        const SizedBox(width: 4),
                                         Text(
-                                          'DEFAULT',
-                                          style: TextStyle(
+                                          l10n.defaultTag,
+                                          style: const TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.white,
@@ -564,7 +604,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                type.toUpperCase(),
+                                _getLocalAddressType(context, type).toUpperCase(),
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: typeColor,
@@ -579,12 +619,12 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                         icon: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: design.textSecondary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
                             Icons.more_vert_rounded,
-                            color: Colors.grey[600],
+                            color: design.textSecondary.withOpacity(0.8),
                             size: 20,
                           ),
                         ),
@@ -599,7 +639,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: _AddressDesign.surface,
+                      color: design.surface,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(
@@ -607,15 +647,15 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                         Icon(
                           Icons.location_on_outlined,
                           size: 20,
-                          color: Colors.grey[500],
+                          color: design.textSecondary.withOpacity(0.7),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             '$street, $area, $city',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: _AddressDesign.textSecondary,
+                              color: design.textSecondary,
                               height: 1.4,
                             ),
                           ),
@@ -632,12 +672,28 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
     );
   }
 
+  String _getLocalAddressType(BuildContext context, String type) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (type.toLowerCase()) {
+      case 'home':
+        return l10n.addressTypeHome;
+      case 'work':
+        return l10n.addressTypeWork;
+      case 'other':
+        return l10n.addressTypeOther;
+      default:
+        return _capitalize(type);
+    }
+  }
+
   Widget _buildFAB() {
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
-        gradient: _AddressDesign.headerGradient,
+        gradient: design.headerGradient,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [_AddressDesign.softShadow],
+        boxShadow: [design.softShadow],
       ),
       child: FloatingActionButton.extended(
         onPressed: _addAddress,
@@ -645,19 +701,22 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
         elevation: 0,
         highlightElevation: 0,
         icon: const Icon(Icons.add_location_alt_rounded, color: Colors.white),
-        label: const Text(
-          'Add Address',
-          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+        label: Text(
+          l10n.addAddress,
+          style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
         ),
       ),
     );
   }
 
   void _showInfoDialog() {
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
+            backgroundColor: design.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -666,7 +725,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    gradient: _AddressDesign.headerGradient,
+                    gradient: design.headerGradient,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -676,12 +735,12 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'About Addresses',
+                Text(
+                  l10n.aboutAddresses,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: _AddressDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
               ],
@@ -692,40 +751,40 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
               children: [
                 _buildInfoItem(
                   Icons.home_rounded,
-                  'Home',
-                  'Your primary residence',
+                  l10n.addressTypeHome,
+                  l10n.addressTypeHomeDesc,
                 ),
                 _buildInfoItem(
                   Icons.work_rounded,
-                  'Work',
-                  'Your workplace address',
+                  l10n.addressTypeWork,
+                  l10n.addressTypeWorkDesc,
                 ),
                 _buildInfoItem(
                   Icons.place_rounded,
-                  'Other',
-                  'Any other location',
+                  l10n.addressTypeOther,
+                  l10n.addressTypeOtherDesc,
                 ),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: _AddressDesign.primaryGreen.withOpacity(0.1),
+                    color: design.primaryGreen.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.star_rounded,
-                        color: _AddressDesign.primaryGreen,
+                        color: design.primaryGreen,
                         size: 20,
                       ),
                       const SizedBox(width: 10),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Set a default address for faster booking',
+                          l10n.defaultAddressNote,
                           style: TextStyle(
                             fontSize: 13,
-                            color: _AddressDesign.textSecondary,
+                            color: design.textSecondary,
                           ),
                         ),
                       ),
@@ -740,7 +799,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _AddressDesign.primaryGreen,
+                    backgroundColor: design.primaryGreen,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -748,7 +807,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                     ),
                     elevation: 0,
                   ),
-                  child: const Text('Got it'),
+                  child: Text(l10n.gotIt),
                 ),
               ),
             ],
@@ -757,27 +816,28 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
   }
 
   Widget _buildInfoItem(IconData icon, String title, String subtitle) {
+    final design = _AddressDesign(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: _AddressDesign.primaryGreen),
+          Icon(icon, size: 20, color: design.primaryGreen),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: _AddressDesign.textPrimary,
+                  color: design.textPrimary,
                 ),
               ),
               Text(
                 subtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: _AddressDesign.textSecondary,
+                  color: design.textSecondary,
                 ),
               ),
             ],
@@ -790,9 +850,12 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
   void _showOptionsMenu(dynamic address) {
     HapticFeedback.mediumImpact();
     final isDefault = address['isDefault'] ?? false;
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
 
     showModalBottomSheet(
       context: context,
+      backgroundColor: design.cardBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -806,15 +869,15 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: design.isDark ? Colors.white24 : Colors.grey[300],
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
                 const SizedBox(height: 24),
                 _buildMenuItem(
                   icon: Icons.visibility_outlined,
-                  title: 'View Details',
-                  color: _AddressDesign.primaryGreen,
+                  title: l10n.viewDetails,
+                  color: design.primaryGreen,
                   onTap: () {
                     Navigator.pop(context);
                     _showAddressDetails(address);
@@ -822,7 +885,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                 ),
                 _buildMenuItem(
                   icon: Icons.edit_outlined,
-                  title: 'Edit Address',
+                  title: l10n.editAddress,
                   color: Colors.blue,
                   onTap: () async {
                     Navigator.pop(context);
@@ -840,7 +903,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                 if (!isDefault)
                   _buildMenuItem(
                     icon: Icons.star_outline_rounded,
-                    title: 'Set as Default',
+                    title: l10n.setAsDefault,
                     color: Colors.amber,
                     onTap: () {
                       Navigator.pop(context);
@@ -849,8 +912,8 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                   ),
                 _buildMenuItem(
                   icon: Icons.delete_outline_rounded,
-                  title: 'Delete Address',
-                  color: _AddressDesign.dangerRed,
+                  title: l10n.deleteAddress,
+                  color: design.dangerRed,
                   onTap: () {
                     Navigator.pop(context);
                     _confirmDelete(address);
@@ -869,6 +932,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
     required Color color,
     required VoidCallback onTap,
   }) {
+    final design = _AddressDesign(context);
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(10),
@@ -883,9 +947,9 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
         style: TextStyle(
           fontWeight: FontWeight.w600,
           color:
-              color == _AddressDesign.dangerRed
+              color == design.dangerRed
                   ? color
-                  : _AddressDesign.textPrimary,
+                  : design.textPrimary,
         ),
       ),
       onTap: () {
@@ -897,10 +961,13 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
 
   void _confirmDelete(dynamic address) {
     HapticFeedback.heavyImpact();
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
+            backgroundColor: design.cardBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -909,22 +976,22 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: _AddressDesign.dangerRed.withOpacity(0.1),
+                    color: design.dangerRed.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.delete_outline_rounded,
-                    color: _AddressDesign.dangerRed,
+                    color: design.dangerRed,
                     size: 24,
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'Delete Address',
+                Text(
+                  l10n.deleteAddress,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: _AddressDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
               ],
@@ -933,37 +1000,37 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Are you sure you want to delete this address?',
+                Text(
+                  l10n.confirmDeleteAddress,
                   style: TextStyle(
                     fontSize: 15,
-                    color: _AddressDesign.textPrimary,
+                    color: design.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: _AddressDesign.dangerRed.withOpacity(0.05),
+                    color: design.dangerRed.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: _AddressDesign.dangerRed.withOpacity(0.2),
+                      color: design.dangerRed.withOpacity(0.2),
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(
                         Icons.warning_amber_rounded,
-                        color: _AddressDesign.dangerRed,
+                        color: design.dangerRed,
                         size: 20,
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'This action cannot be undone',
+                          l10n.warningUndone,
                           style: TextStyle(
                             fontSize: 13,
-                            color: _AddressDesign.dangerRed,
+                            color: design.dangerRed,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -977,8 +1044,8 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Cancel',
-                  style: TextStyle(color: Colors.grey[600]),
+                  l10n.cancel,
+                  style: TextStyle(color: design.textSecondary),
                 ),
               ),
               ElevatedButton(
@@ -987,19 +1054,19 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                   _deleteAddress(address);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _AddressDesign.dangerRed,
+                  backgroundColor: design.dangerRed,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 0,
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.delete_outline, size: 18),
-                    SizedBox(width: 6),
-                    Text('Delete'),
+                    const Icon(Icons.delete_outline, size: 18),
+                    const SizedBox(width: 6),
+                    Text(l10n.delete),
                   ],
                 ),
               ),
@@ -1010,6 +1077,8 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
 
   void _showAddressDetails(dynamic address) {
     HapticFeedback.lightImpact();
+    final design = _AddressDesign(context);
+    final l10n = AppLocalizations.of(context)!;
     final label = address['label'] ?? '';
     final type = address['type'] ?? 'home';
     final street = address['street'] ?? '';
@@ -1032,12 +1101,13 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
         break;
       default:
         typeIcon = Icons.home_rounded;
-        typeColor = _AddressDesign.primaryGreen;
+        typeColor = design.primaryGreen;
     }
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: design.cardBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -1053,7 +1123,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: design.isDark ? Colors.white24 : Colors.grey[300],
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -1075,11 +1145,11 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            label.isNotEmpty ? label : _capitalize(type),
-                            style: const TextStyle(
+                            label.isNotEmpty ? label : _getLocalAddressType(context, type),
+                            style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: _AddressDesign.textPrimary,
+                              color: design.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -1095,7 +1165,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  type.toUpperCase(),
+                                  _getLocalAddressType(context, type).toUpperCase(),
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -1111,12 +1181,12 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    gradient: _AddressDesign.headerGradient,
+                                    gradient: design.headerGradient,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Text(
-                                    'DEFAULT',
-                                    style: TextStyle(
+                                  child: Text(
+                                    l10n.defaultTag,
+                                    style: const TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
@@ -1135,28 +1205,28 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: _AddressDesign.surface,
+                    color: design.surface,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
                     children: [
                       _buildDetailRow(
                         Icons.signpost_outlined,
-                        'Street',
+                        l10n.streetAddress,
                         street,
                       ),
-                      _buildDetailRow(Icons.map_outlined, 'Area', area),
+                      _buildDetailRow(Icons.map_outlined, l10n.areaDistrict, area),
                       _buildDetailRow(
                         Icons.location_city_outlined,
-                        'City',
+                        l10n.city,
                         city,
                       ),
                       if (state.isNotEmpty)
-                        _buildDetailRow(Icons.public_outlined, 'State', state),
+                        _buildDetailRow(Icons.public_outlined, l10n.state, state),
                       if (zipCode.isNotEmpty)
                         _buildDetailRow(
                           Icons.pin_outlined,
-                          'Zip Code',
+                          l10n.zipCode,
                           zipCode,
                         ),
                     ],
@@ -1182,11 +1252,11 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                           }
                         },
                         icon: const Icon(Icons.edit_outlined, size: 20),
-                        label: const Text('Edit'),
+                        label: Text(l10n.editAddress),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: _AddressDesign.primaryGreen,
-                          side: const BorderSide(
-                            color: _AddressDesign.primaryGreen,
+                          foregroundColor: design.primaryGreen,
+                          side: BorderSide(
+                            color: design.primaryGreen,
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -1200,9 +1270,9 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
                       child: ElevatedButton.icon(
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.check_rounded, size: 20),
-                        label: const Text('Done'),
+                        label: Text(l10n.done),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _AddressDesign.primaryGreen,
+                          backgroundColor: design.primaryGreen,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -1222,6 +1292,7 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
     if (value.isEmpty) return const SizedBox.shrink();
+    final design = _AddressDesign(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
@@ -1229,10 +1300,10 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: _AddressDesign.primaryGreen.withOpacity(0.1),
+              color: design.primaryGreen.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 18, color: _AddressDesign.primaryGreen),
+            child: Icon(icon, size: 18, color: design.primaryGreen),
           ),
           const SizedBox(width: 14),
           Column(
@@ -1240,18 +1311,18 @@ class _SavedAddressesPageState extends State<SavedAddressesPage>
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: _AddressDesign.textSecondary,
+                  color: design.textSecondary,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: _AddressDesign.textPrimary,
+                  color: design.textPrimary,
                 ),
               ),
             ],

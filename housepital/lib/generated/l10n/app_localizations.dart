@@ -2059,6 +2059,2406 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'History'**
   String get tabHistory;
+
+  /// No description provided for @familyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Family'**
+  String get familyTitle;
+
+  /// No description provided for @addMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Member'**
+  String get addMember;
+
+  /// No description provided for @addFamilyMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Family Member'**
+  String get addFamilyMember;
+
+  /// No description provided for @aboutFamilyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About Family Members'**
+  String get aboutFamilyTitle;
+
+  /// No description provided for @aboutFamilyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add family members to easily book nursing services for them. You can store their medical information for faster booking.'**
+  String get aboutFamilyDesc;
+
+  /// No description provided for @gotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it!'**
+  String get gotIt;
+
+  /// No description provided for @loadingFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading family members...'**
+  String get loadingFamily;
+
+  /// No description provided for @noFamilyMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'No Family Members Yet'**
+  String get noFamilyMembers;
+
+  /// No description provided for @noFamilyMembersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your loved ones to easily book nursing services for them'**
+  String get noFamilyMembersDesc;
+
+  /// No description provided for @errLoadFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load family members. Please log in again.'**
+  String get errLoadFamily;
+
+  /// No description provided for @years.
+  ///
+  /// In en, this message translates to:
+  /// **'years'**
+  String get years;
+
+  /// No description provided for @memberSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'1 member'**
+  String get memberSingle;
+
+  /// No description provided for @membersPlural.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} members'**
+  String membersPlural(Object count);
+
+  /// No description provided for @editFamilyMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Family Member'**
+  String get editFamilyMember;
+
+  /// No description provided for @deleteMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Member'**
+  String get deleteMember;
+
+  /// No description provided for @deleteMemberConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete {name}?'**
+  String deleteMemberConfirm(Object name);
+
+  /// No description provided for @actionUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone'**
+  String get actionUndone;
+
+  /// No description provided for @discardChangesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard Changes?'**
+  String get discardChangesTitle;
+
+  /// No description provided for @discardChangesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved changes. Are you sure you want to leave without saving?'**
+  String get discardChangesDesc;
+
+  /// No description provided for @keepEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep Editing'**
+  String get keepEditing;
+
+  /// No description provided for @discard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get discard;
+
+  /// No description provided for @changesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes Saved!'**
+  String get changesSaved;
+
+  /// No description provided for @familyMemberUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Family member information has been updated successfully.'**
+  String get familyMemberUpdated;
+
+  /// No description provided for @relationship.
+  ///
+  /// In en, this message translates to:
+  /// **'Relationship'**
+  String get relationship;
+
+  /// No description provided for @dateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth'**
+  String get dateOfBirth;
+
+  /// No description provided for @gender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get gender;
+
+  /// No description provided for @male.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get male;
+
+  /// No description provided for @female.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get female;
+
+  /// No description provided for @nationalId.
+  ///
+  /// In en, this message translates to:
+  /// **'National ID'**
+  String get nationalId;
+
+  /// No description provided for @birthCertificateId.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth Certificate ID'**
+  String get birthCertificateId;
+
+  /// No description provided for @chronicConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Chronic Conditions'**
+  String get chronicConditions;
+
+  /// No description provided for @allergies.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergies'**
+  String get allergies;
+
+  /// No description provided for @addChronicCondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Chronic Disease'**
+  String get addChronicCondition;
+
+  /// No description provided for @addAllergy.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Allergy'**
+  String get addAllergy;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChanges;
+
+  /// No description provided for @relationshipFather.
+  ///
+  /// In en, this message translates to:
+  /// **'Father'**
+  String get relationshipFather;
+
+  /// No description provided for @relationshipMother.
+  ///
+  /// In en, this message translates to:
+  /// **'Mother'**
+  String get relationshipMother;
+
+  /// No description provided for @relationshipSon.
+  ///
+  /// In en, this message translates to:
+  /// **'Son'**
+  String get relationshipSon;
+
+  /// No description provided for @relationshipDaughter.
+  ///
+  /// In en, this message translates to:
+  /// **'Daughter'**
+  String get relationshipDaughter;
+
+  /// No description provided for @relationshipBrother.
+  ///
+  /// In en, this message translates to:
+  /// **'Brother'**
+  String get relationshipBrother;
+
+  /// No description provided for @relationshipSister.
+  ///
+  /// In en, this message translates to:
+  /// **'Sister'**
+  String get relationshipSister;
+
+  /// No description provided for @relationshipGrandparent.
+  ///
+  /// In en, this message translates to:
+  /// **'Grandparent'**
+  String get relationshipGrandparent;
+
+  /// No description provided for @relationshipGrandchild.
+  ///
+  /// In en, this message translates to:
+  /// **'Grandchild'**
+  String get relationshipGrandchild;
+
+  /// No description provided for @relationshipSpouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Spouse'**
+  String get relationshipSpouse;
+
+  /// No description provided for @relationshipOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get relationshipOther;
+
+  /// No description provided for @savedAddressesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Addresses'**
+  String get savedAddressesTitle;
+
+  /// No description provided for @addressSavedSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'1 Address Saved'**
+  String get addressSavedSingle;
+
+  /// No description provided for @addressesSavedPlural.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Addresses Saved'**
+  String addressesSavedPlural(Object count);
+
+  /// No description provided for @manageLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your delivery locations'**
+  String get manageLocations;
+
+  /// No description provided for @loadingAddresses.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading addresses...'**
+  String get loadingAddresses;
+
+  /// No description provided for @noSavedAddresses.
+  ///
+  /// In en, this message translates to:
+  /// **'No Saved Addresses'**
+  String get noSavedAddresses;
+
+  /// No description provided for @noSavedAddressesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first address to get started with home nursing services'**
+  String get noSavedAddressesDesc;
+
+  /// No description provided for @addFirstAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Your First Address'**
+  String get addFirstAddress;
+
+  /// No description provided for @addAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Address'**
+  String get addAddress;
+
+  /// No description provided for @aboutAddresses.
+  ///
+  /// In en, this message translates to:
+  /// **'About Addresses'**
+  String get aboutAddresses;
+
+  /// No description provided for @addressTypeHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get addressTypeHome;
+
+  /// No description provided for @addressTypeWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get addressTypeWork;
+
+  /// No description provided for @addressTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get addressTypeOther;
+
+  /// No description provided for @addressTypeHomeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your primary residence'**
+  String get addressTypeHomeDesc;
+
+  /// No description provided for @addressTypeWorkDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your workplace address'**
+  String get addressTypeWorkDesc;
+
+  /// No description provided for @addressTypeOtherDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Any other location'**
+  String get addressTypeOtherDesc;
+
+  /// No description provided for @defaultAddressNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a default address for faster booking'**
+  String get defaultAddressNote;
+
+  /// No description provided for @defaultTag.
+  ///
+  /// In en, this message translates to:
+  /// **'DEFAULT'**
+  String get defaultTag;
+
+  /// No description provided for @addressOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Address Options'**
+  String get addressOptions;
+
+  /// No description provided for @setAsDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as Default'**
+  String get setAsDefault;
+
+  /// No description provided for @editAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Address'**
+  String get editAddress;
+
+  /// No description provided for @deleteAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Address'**
+  String get deleteAddress;
+
+  /// No description provided for @confirmDeleteAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this address?'**
+  String get confirmDeleteAddress;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @addressDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Address deleted successfully'**
+  String get addressDeleted;
+
+  /// No description provided for @addressSetDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Address set as default successfully'**
+  String get addressSetDefault;
+
+  /// No description provided for @errSetDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to set default address'**
+  String get errSetDefault;
+
+  /// No description provided for @errDeleteAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete address'**
+  String get errDeleteAddress;
+
+  /// No description provided for @errLoadAddresses.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load addresses. Please log in again.'**
+  String get errLoadAddresses;
+
+  /// No description provided for @mapLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Map Location'**
+  String get mapLocation;
+
+  /// No description provided for @locationNotSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Location not selected'**
+  String get locationNotSelected;
+
+  /// No description provided for @locationSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Location selected'**
+  String get locationSelected;
+
+  /// No description provided for @requiredForTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Required for nurse tracking'**
+  String get requiredForTracking;
+
+  /// No description provided for @pick.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick'**
+  String get pick;
+
+  /// No description provided for @change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get change;
+
+  /// No description provided for @addressDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Address Details'**
+  String get addressDetails;
+
+  /// No description provided for @labelOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Label (Optional)'**
+  String get labelOptional;
+
+  /// No description provided for @labelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Home, Office, Mom\'s Place'**
+  String get labelHint;
+
+  /// No description provided for @streetAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Street Address'**
+  String get streetAddress;
+
+  /// No description provided for @enterStreet.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter street address'**
+  String get enterStreet;
+
+  /// No description provided for @areaDistrict.
+  ///
+  /// In en, this message translates to:
+  /// **'Area / District'**
+  String get areaDistrict;
+
+  /// No description provided for @enterArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter area or district'**
+  String get enterArea;
+
+  /// No description provided for @city.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get city;
+
+  /// No description provided for @enterCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter city'**
+  String get enterCity;
+
+  /// No description provided for @state.
+  ///
+  /// In en, this message translates to:
+  /// **'State'**
+  String get state;
+
+  /// No description provided for @enterState.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter state'**
+  String get enterState;
+
+  /// No description provided for @zipCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Zip / Postal Code'**
+  String get zipCode;
+
+  /// No description provided for @enterZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter zip code'**
+  String get enterZip;
+
+  /// No description provided for @preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get preferences;
+
+  /// No description provided for @setDefaultAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as default address'**
+  String get setDefaultAddress;
+
+  /// No description provided for @setDefaultAddressDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this address by default for bookings'**
+  String get setDefaultAddressDesc;
+
+  /// No description provided for @updateAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Address'**
+  String get updateAddress;
+
+  /// No description provided for @addressUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Address Updated!'**
+  String get addressUpdated;
+
+  /// No description provided for @addressUpdatedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your address has been updated successfully.'**
+  String get addressUpdatedDesc;
+
+  /// No description provided for @pinLocationFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please pin your location on the map first.'**
+  String get pinLocationFirst;
+
+  /// No description provided for @errLoadUserId.
+  ///
+  /// In en, this message translates to:
+  /// **'User ID not found. Please log in again.'**
+  String get errLoadUserId;
+
+  /// No description provided for @errUpdateAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update address'**
+  String get errUpdateAddress;
+
+  /// No description provided for @requiredField.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get requiredField;
+
+  /// No description provided for @warningUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone'**
+  String get warningUndone;
+
+  /// No description provided for @viewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View Details'**
+  String get viewDetails;
+
+  /// No description provided for @basicInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Information'**
+  String get basicInformation;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @mobileNumberOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Number (Optional)'**
+  String get mobileNumberOptional;
+
+  /// No description provided for @identification.
+  ///
+  /// In en, this message translates to:
+  /// **'Identification'**
+  String get identification;
+
+  /// No description provided for @provideOneId.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide at least one ID'**
+  String get provideOneId;
+
+  /// No description provided for @medicalInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical Information'**
+  String get medicalInformation;
+
+  /// No description provided for @dangerZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger Zone'**
+  String get dangerZone;
+
+  /// No description provided for @deleteFamilyMemberDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete this family member from your account. This action cannot be undone.'**
+  String get deleteFamilyMemberDesc;
+
+  /// No description provided for @noChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'No Changes'**
+  String get noChanges;
+
+  /// No description provided for @noItemsAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'No {title} added'**
+  String noItemsAdded(Object title);
+
+  /// No description provided for @addChronicDiseaseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Diabetes, Hypertension'**
+  String get addChronicDiseaseHint;
+
+  /// No description provided for @addAllergyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Penicillin, Peanuts'**
+  String get addAllergyHint;
+
+  /// No description provided for @selectRelationshipWarn.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a relationship'**
+  String get selectRelationshipWarn;
+
+  /// No description provided for @selectDobWarn.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select date of birth'**
+  String get selectDobWarn;
+
+  /// No description provided for @provideIdWarn.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide either National ID or Birth Certificate ID'**
+  String get provideIdWarn;
+
+  /// No description provided for @deleteMemberSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Family member deleted successfully'**
+  String get deleteMemberSuccess;
+
+  /// No description provided for @selectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date'**
+  String get selectDate;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @modified.
+  ///
+  /// In en, this message translates to:
+  /// **'Modified'**
+  String get modified;
+
+  /// No description provided for @deleteFamilyMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Family Member'**
+  String get deleteFamilyMember;
+
+  /// No description provided for @addressType.
+  ///
+  /// In en, this message translates to:
+  /// **'Address Type'**
+  String get addressType;
+
+  /// No description provided for @loadingBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading bookings...'**
+  String get loadingBookings;
+
+  /// No description provided for @noActiveBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'No Active Bookings'**
+  String get noActiveBookings;
+
+  /// No description provided for @noActiveBookingsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your upcoming appointments will appear here'**
+  String get noActiveBookingsDesc;
+
+  /// No description provided for @noBookingHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No Booking History'**
+  String get noBookingHistory;
+
+  /// No description provided for @noBookingHistoryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your completed bookings will appear here'**
+  String get noBookingHistoryDesc;
+
+  /// No description provided for @bookService.
+  ///
+  /// In en, this message translates to:
+  /// **'Book a Service'**
+  String get bookService;
+
+  /// No description provided for @inProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get inProgress;
+
+  /// No description provided for @inClinic.
+  ///
+  /// In en, this message translates to:
+  /// **'In Clinic'**
+  String get inClinic;
+
+  /// No description provided for @nurseArrived.
+  ///
+  /// In en, this message translates to:
+  /// **'Nurse Arrived'**
+  String get nurseArrived;
+
+  /// No description provided for @readyForVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready For Visit'**
+  String get readyForVisit;
+
+  /// No description provided for @onTheWay.
+  ///
+  /// In en, this message translates to:
+  /// **'On The Way'**
+  String get onTheWay;
+
+  /// No description provided for @confirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get confirmed;
+
+  /// No description provided for @awaitingConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting Confirmation'**
+  String get awaitingConfirmation;
+
+  /// No description provided for @findingNurse.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding Nurse'**
+  String get findingNurse;
+
+  /// No description provided for @nurseOffersReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Nurse Offers Ready'**
+  String get nurseOffersReady;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get statusPending;
+
+  /// No description provided for @viewTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'View Ticket'**
+  String get viewTicket;
+
+  /// No description provided for @track.
+  ///
+  /// In en, this message translates to:
+  /// **'Track'**
+  String get track;
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get statusCancelled;
+
+  /// No description provided for @statusNoShow.
+  ///
+  /// In en, this message translates to:
+  /// **'No Show'**
+  String get statusNoShow;
+
+  /// No description provided for @statusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get statusCompleted;
+
+  /// No description provided for @rebook.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebook'**
+  String get rebook;
+
+  /// No description provided for @nurseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Nurse'**
+  String get nurseLabel;
+
+  /// No description provided for @cancelBookingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Booking?'**
+  String get cancelBookingTitle;
+
+  /// No description provided for @cancelBookingLateDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Since the nurse is already assigned, a late cancellation fee of {fee} EGP will apply.'**
+  String cancelBookingLateDesc(Object fee);
+
+  /// No description provided for @cancelBookingNormalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this booking? This action cannot be undone.'**
+  String get cancelBookingNormalDesc;
+
+  /// No description provided for @lateCancellationFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Late Cancellation Fee: {fee} EGP'**
+  String lateCancellationFee(Object fee);
+
+  /// No description provided for @goBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Back'**
+  String get goBack;
+
+  /// No description provided for @cancelAndPayFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel & Pay Fee'**
+  String get cancelAndPayFee;
+
+  /// No description provided for @yesCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, Cancel'**
+  String get yesCancel;
+
+  /// No description provided for @bookingCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking cancelled'**
+  String get bookingCancelled;
+
+  /// No description provided for @matchingRequestCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching request cancelled'**
+  String get matchingRequestCancelled;
+
+  /// No description provided for @failedToCancelMatching.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to cancel matching request'**
+  String get failedToCancelMatching;
+
+  /// No description provided for @queueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue'**
+  String get queueLabel;
+
+  /// No description provided for @digitalTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital Ticket'**
+  String get digitalTicket;
+
+  /// No description provided for @scanAtReception.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan at reception'**
+  String get scanAtReception;
+
+  /// No description provided for @checkInPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in PIN'**
+  String get checkInPin;
+
+  /// No description provided for @patientLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient'**
+  String get patientLabel;
+
+  /// No description provided for @clinicLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinic'**
+  String get clinicLabel;
+
+  /// No description provided for @addressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get addressLabel;
+
+  /// No description provided for @doctorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor'**
+  String get doctorLabel;
+
+  /// No description provided for @timeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get timeLabel;
+
+  /// No description provided for @ticketInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show this QR code or PIN at the clinic reception to check in.'**
+  String get ticketInstruction;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @estArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Est. arrival'**
+  String get estArrival;
+
+  /// No description provided for @distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get distance;
+
+  /// No description provided for @youLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get youLabel;
+
+  /// No description provided for @visitStartCode.
+  ///
+  /// In en, this message translates to:
+  /// **'VISIT START CODE'**
+  String get visitStartCode;
+
+  /// No description provided for @provideStartCodeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide this to the nurse to begin the session.'**
+  String get provideStartCodeDesc;
+
+  /// No description provided for @serviceInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Service in Progress'**
+  String get serviceInProgress;
+
+  /// No description provided for @serviceInProgressDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The nurse is providing {serviceName}. The visit will be marked complete soon.'**
+  String serviceInProgressDesc(Object serviceName);
+
+  /// No description provided for @newTag.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get newTag;
+
+  /// No description provided for @registeredNurse.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered Nurse'**
+  String get registeredNurse;
+
+  /// No description provided for @callingNurse.
+  ///
+  /// In en, this message translates to:
+  /// **'Calling {phone}...'**
+  String callingNurse(Object phone);
+
+  /// No description provided for @callingEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Calling Emergency Services...'**
+  String get callingEmergency;
+
+  /// No description provided for @sosLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'SOS'**
+  String get sosLabel;
+
+  /// No description provided for @filingReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Filing a report...'**
+  String get filingReport;
+
+  /// No description provided for @reportLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get reportLabel;
+
+  /// No description provided for @nurseAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Nurse Assigned'**
+  String get nurseAssigned;
+
+  /// No description provided for @nurseOnTheWay.
+  ///
+  /// In en, this message translates to:
+  /// **'Nurse On The Way'**
+  String get nurseOnTheWay;
+
+  /// No description provided for @nurseHasArrived.
+  ///
+  /// In en, this message translates to:
+  /// **'Nurse Has Arrived'**
+  String get nurseHasArrived;
+
+  /// No description provided for @serviceInProgressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Service In Progress'**
+  String get serviceInProgressLabel;
+
+  /// No description provided for @waitingNurseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the nurse to head to your location.'**
+  String get waitingNurseDesc;
+
+  /// No description provided for @nurseHeadingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The nurse is heading to your location right now.'**
+  String get nurseHeadingDesc;
+
+  /// No description provided for @nurseOutsideDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Nurse is outside. Please provide the START CODE.'**
+  String get nurseOutsideDesc;
+
+  /// No description provided for @nurseProvidingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The nurse is currently providing the service.'**
+  String get nurseProvidingDesc;
+
+  /// No description provided for @trackingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'We are tracking your appointment.'**
+  String get trackingDesc;
+
+  /// No description provided for @trackingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking'**
+  String get trackingTitle;
+
+  /// No description provided for @unitMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get unitMinutes;
+
+  /// No description provided for @unitHours.
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get unitHours;
+
+  /// No description provided for @unitMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'m'**
+  String get unitMeters;
+
+  /// No description provided for @unitKilometers.
+  ///
+  /// In en, this message translates to:
+  /// **'km'**
+  String get unitKilometers;
+
+  /// No description provided for @categoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get categoryAll;
+
+  /// No description provided for @categoryPopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get categoryPopular;
+
+  /// No description provided for @categoryQuick.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick'**
+  String get categoryQuick;
+
+  /// No description provided for @categorySpecialized.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialized'**
+  String get categorySpecialized;
+
+  /// No description provided for @categoryLongTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-term'**
+  String get categoryLongTerm;
+
+  /// No description provided for @serviceWoundCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wound Care'**
+  String get serviceWoundCareTitle;
+
+  /// No description provided for @serviceWoundCareDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'30-45 min'**
+  String get serviceWoundCareDuration;
+
+  /// No description provided for @serviceWoundCareDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional wound care and dressing services provided by certified nurses.'**
+  String get serviceWoundCareDesc;
+
+  /// No description provided for @serviceWoundCareInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional wound assessment'**
+  String get serviceWoundCareInc1;
+
+  /// No description provided for @serviceWoundCareInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Sterile dressing'**
+  String get serviceWoundCareInc2;
+
+  /// No description provided for @serviceWoundCareInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Wound cleaning'**
+  String get serviceWoundCareInc3;
+
+  /// No description provided for @serviceWoundCareInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up visits'**
+  String get serviceWoundCareInc4;
+
+  /// No description provided for @serviceWoundCareInc5.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress monitoring'**
+  String get serviceWoundCareInc5;
+
+  /// No description provided for @serviceInjectionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Injections'**
+  String get serviceInjectionsTitle;
+
+  /// No description provided for @serviceInjectionsDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'15-20 min'**
+  String get serviceInjectionsDuration;
+
+  /// No description provided for @serviceInjectionsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Safe and painless injection services at your home.'**
+  String get serviceInjectionsDesc;
+
+  /// No description provided for @serviceInjectionsInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'All types of injections'**
+  String get serviceInjectionsInc1;
+
+  /// No description provided for @serviceInjectionsInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Proper sterilization'**
+  String get serviceInjectionsInc2;
+
+  /// No description provided for @serviceInjectionsInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication administration'**
+  String get serviceInjectionsInc3;
+
+  /// No description provided for @serviceInjectionsInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-injection care'**
+  String get serviceInjectionsInc4;
+
+  /// No description provided for @serviceElderlyCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Elderly Care'**
+  String get serviceElderlyCareTitle;
+
+  /// No description provided for @serviceElderlyCareDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'1-4 hours'**
+  String get serviceElderlyCareDuration;
+
+  /// No description provided for @serviceElderlyCareDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Comprehensive care for elderly patients including assistance with daily activities.'**
+  String get serviceElderlyCareDesc;
+
+  /// No description provided for @serviceElderlyCareInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily activity assistance'**
+  String get serviceElderlyCareInc1;
+
+  /// No description provided for @serviceElderlyCareInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication management'**
+  String get serviceElderlyCareInc2;
+
+  /// No description provided for @serviceElderlyCareInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital signs monitoring'**
+  String get serviceElderlyCareInc3;
+
+  /// No description provided for @serviceElderlyCareInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Companionship'**
+  String get serviceElderlyCareInc4;
+
+  /// No description provided for @servicePostOpCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-Op Care'**
+  String get servicePostOpCareTitle;
+
+  /// No description provided for @servicePostOpCareDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'45-60 min'**
+  String get servicePostOpCareDuration;
+
+  /// No description provided for @servicePostOpCareDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-operative care services to ensure smooth recovery after surgery.'**
+  String get servicePostOpCareDesc;
+
+  /// No description provided for @servicePostOpCareInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Surgical wound care'**
+  String get servicePostOpCareInc1;
+
+  /// No description provided for @servicePostOpCareInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Pain management'**
+  String get servicePostOpCareInc2;
+
+  /// No description provided for @servicePostOpCareInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication administration'**
+  String get servicePostOpCareInc3;
+
+  /// No description provided for @servicePostOpCareInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital signs monitoring'**
+  String get servicePostOpCareInc4;
+
+  /// No description provided for @serviceBabyCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Baby Care'**
+  String get serviceBabyCareTitle;
+
+  /// No description provided for @serviceBabyCareDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'2-3 hours'**
+  String get serviceBabyCareDuration;
+
+  /// No description provided for @serviceBabyCareDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional newborn and infant care services.'**
+  String get serviceBabyCareDesc;
+
+  /// No description provided for @serviceBabyCareInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Newborn monitoring'**
+  String get serviceBabyCareInc1;
+
+  /// No description provided for @serviceBabyCareInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Feeding assistance'**
+  String get serviceBabyCareInc2;
+
+  /// No description provided for @serviceBabyCareInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Bathing'**
+  String get serviceBabyCareInc3;
+
+  /// No description provided for @serviceBabyCareInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Development assessment'**
+  String get serviceBabyCareInc4;
+
+  /// No description provided for @serviceIvTherapyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'IV Therapy'**
+  String get serviceIvTherapyTitle;
+
+  /// No description provided for @serviceIvTherapyDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'45-60 min'**
+  String get serviceIvTherapyDuration;
+
+  /// No description provided for @serviceIvTherapyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Intravenous fluid and medication administration'**
+  String get serviceIvTherapyDesc;
+
+  /// No description provided for @serviceIvTherapyInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'IV line insertion'**
+  String get serviceIvTherapyInc1;
+
+  /// No description provided for @serviceIvTherapyInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication administration'**
+  String get serviceIvTherapyInc2;
+
+  /// No description provided for @serviceIvTherapyInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluid therapy'**
+  String get serviceIvTherapyInc3;
+
+  /// No description provided for @serviceIvTherapyInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitoring'**
+  String get serviceIvTherapyInc4;
+
+  /// No description provided for @serviceCatheterCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Catheter Care'**
+  String get serviceCatheterCareTitle;
+
+  /// No description provided for @serviceCatheterCareDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'30-40 min'**
+  String get serviceCatheterCareDuration;
+
+  /// No description provided for @serviceCatheterCareDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional catheter insertion, maintenance, and care services.'**
+  String get serviceCatheterCareDesc;
+
+  /// No description provided for @serviceCatheterCareInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Catheter insertion'**
+  String get serviceCatheterCareInc1;
+
+  /// No description provided for @serviceCatheterCareInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular maintenance'**
+  String get serviceCatheterCareInc2;
+
+  /// No description provided for @serviceCatheterCareInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Infection prevention'**
+  String get serviceCatheterCareInc3;
+
+  /// No description provided for @serviceCatheterCareInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient education'**
+  String get serviceCatheterCareInc4;
+
+  /// No description provided for @serviceVitalSignsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital Signs'**
+  String get serviceVitalSignsTitle;
+
+  /// No description provided for @serviceVitalSignsDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'20-30 min'**
+  String get serviceVitalSignsDuration;
+
+  /// No description provided for @serviceVitalSignsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete vital signs monitoring with detailed reporting.'**
+  String get serviceVitalSignsDesc;
+
+  /// No description provided for @serviceVitalSignsInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood pressure'**
+  String get serviceVitalSignsInc1;
+
+  /// No description provided for @serviceVitalSignsInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get serviceVitalSignsInc2;
+
+  /// No description provided for @serviceVitalSignsInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate'**
+  String get serviceVitalSignsInc3;
+
+  /// No description provided for @serviceVitalSignsInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen saturation'**
+  String get serviceVitalSignsInc4;
+
+  /// No description provided for @serviceVitalSignsInc5.
+  ///
+  /// In en, this message translates to:
+  /// **'Health report'**
+  String get serviceVitalSignsInc5;
+
+  /// No description provided for @serviceBloodDrawTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood Draw'**
+  String get serviceBloodDrawTitle;
+
+  /// No description provided for @serviceBloodDrawDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'15 min'**
+  String get serviceBloodDrawDuration;
+
+  /// No description provided for @serviceBloodDrawDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional blood sample collection at your home.'**
+  String get serviceBloodDrawDesc;
+
+  /// No description provided for @serviceBloodDrawInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood sample collection'**
+  String get serviceBloodDrawInc1;
+
+  /// No description provided for @serviceBloodDrawInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Proper labeling'**
+  String get serviceBloodDrawInc2;
+
+  /// No description provided for @serviceBloodDrawInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab delivery'**
+  String get serviceBloodDrawInc3;
+
+  /// No description provided for @serviceBloodDrawInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Results coordination'**
+  String get serviceBloodDrawInc4;
+
+  /// No description provided for @servicePhysiotherapyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Physiotherapy'**
+  String get servicePhysiotherapyTitle;
+
+  /// No description provided for @servicePhysiotherapyDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'60-90 min'**
+  String get servicePhysiotherapyDuration;
+
+  /// No description provided for @servicePhysiotherapyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Home physiotherapy sessions for rehabilitation and mobility.'**
+  String get servicePhysiotherapyDesc;
+
+  /// No description provided for @servicePhysiotherapyInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment'**
+  String get servicePhysiotherapyInc1;
+
+  /// No description provided for @servicePhysiotherapyInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise therapy'**
+  String get servicePhysiotherapyInc2;
+
+  /// No description provided for @servicePhysiotherapyInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobility training'**
+  String get servicePhysiotherapyInc3;
+
+  /// No description provided for @servicePhysiotherapyInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress tracking'**
+  String get servicePhysiotherapyInc4;
+
+  /// No description provided for @categoryAllServices.
+  ///
+  /// In en, this message translates to:
+  /// **'All Services'**
+  String get categoryAllServices;
+
+  /// No description provided for @categoryPostSurgery.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-Surgery'**
+  String get categoryPostSurgery;
+
+  /// No description provided for @categoryElderlyCare.
+  ///
+  /// In en, this message translates to:
+  /// **'Elderly Care'**
+  String get categoryElderlyCare;
+
+  /// No description provided for @categoryInjections.
+  ///
+  /// In en, this message translates to:
+  /// **'Injections'**
+  String get categoryInjections;
+
+  /// No description provided for @categoryWoundCare.
+  ///
+  /// In en, this message translates to:
+  /// **'Wound Care'**
+  String get categoryWoundCare;
+
+  /// No description provided for @categoryOrthopedic.
+  ///
+  /// In en, this message translates to:
+  /// **'Orthopedic'**
+  String get categoryOrthopedic;
+
+  /// No description provided for @servicePostSurgicalCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-Surgical Care'**
+  String get servicePostSurgicalCareTitle;
+
+  /// No description provided for @servicePostSurgicalCareDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional nursing care for patients recovering from surgery'**
+  String get servicePostSurgicalCareDesc;
+
+  /// No description provided for @servicePostSurgicalCareDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'2-3 hours'**
+  String get servicePostSurgicalCareDuration;
+
+  /// No description provided for @servicePostSurgicalCareInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Wound dressing and care'**
+  String get servicePostSurgicalCareInc1;
+
+  /// No description provided for @servicePostSurgicalCareInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Pain management assistance'**
+  String get servicePostSurgicalCareInc2;
+
+  /// No description provided for @servicePostSurgicalCareInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital signs monitoring'**
+  String get servicePostSurgicalCareInc3;
+
+  /// No description provided for @servicePostSurgicalCareInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication administration'**
+  String get servicePostSurgicalCareInc4;
+
+  /// No description provided for @servicePostSurgicalCareInc5.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-operative exercises guidance'**
+  String get servicePostSurgicalCareInc5;
+
+  /// No description provided for @servicePostSurgicalCareInc6.
+  ///
+  /// In en, this message translates to:
+  /// **'Infection prevention measures'**
+  String get servicePostSurgicalCareInc6;
+
+  /// No description provided for @serviceChronicDiseaseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chronic Disease Management'**
+  String get serviceChronicDiseaseTitle;
+
+  /// No description provided for @serviceChronicDiseaseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing care for diabetes, hypertension, and more'**
+  String get serviceChronicDiseaseDesc;
+
+  /// No description provided for @serviceChronicDiseaseDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'2-3 hours'**
+  String get serviceChronicDiseaseDuration;
+
+  /// No description provided for @serviceChronicDiseaseInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood sugar monitoring'**
+  String get serviceChronicDiseaseInc1;
+
+  /// No description provided for @serviceChronicDiseaseInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood pressure checks'**
+  String get serviceChronicDiseaseInc2;
+
+  /// No description provided for @serviceChronicDiseaseInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication management'**
+  String get serviceChronicDiseaseInc3;
+
+  /// No description provided for @serviceChronicDiseaseInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet counseling'**
+  String get serviceChronicDiseaseInc4;
+
+  /// No description provided for @serviceChronicDiseaseInc5.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise guidance'**
+  String get serviceChronicDiseaseInc5;
+
+  /// No description provided for @serviceChronicDiseaseInc6.
+  ///
+  /// In en, this message translates to:
+  /// **'Health education'**
+  String get serviceChronicDiseaseInc6;
+
+  /// No description provided for @serviceIvTherapyDurationShort.
+  ///
+  /// In en, this message translates to:
+  /// **'30-60 min'**
+  String get serviceIvTherapyDurationShort;
+
+  /// No description provided for @serviceIvTherapyInc5.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-procedure care'**
+  String get serviceIvTherapyInc5;
+
+  /// No description provided for @serviceImScInjectionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'IM/SC Injections'**
+  String get serviceImScInjectionsTitle;
+
+  /// No description provided for @serviceImScInjectionsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Intramuscular and subcutaneous injections'**
+  String get serviceImScInjectionsDesc;
+
+  /// No description provided for @serviceImScInjectionsDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'15-20 min'**
+  String get serviceImScInjectionsDuration;
+
+  /// No description provided for @serviceImScInjectionsInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Injection administration'**
+  String get serviceImScInjectionsInc1;
+
+  /// No description provided for @serviceImScInjectionsInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Site preparation'**
+  String get serviceImScInjectionsInc2;
+
+  /// No description provided for @serviceImScInjectionsInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-injection monitoring'**
+  String get serviceImScInjectionsInc3;
+
+  /// No description provided for @serviceImScInjectionsInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Proper disposal of materials'**
+  String get serviceImScInjectionsInc4;
+
+  /// No description provided for @serviceWoundDressingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wound Dressing'**
+  String get serviceWoundDressingTitle;
+
+  /// No description provided for @serviceWoundDressingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional wound cleaning and dressing'**
+  String get serviceWoundDressingDesc;
+
+  /// No description provided for @serviceWoundDressingDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'30-45 min'**
+  String get serviceWoundDressingDuration;
+
+  /// No description provided for @serviceWoundDressingInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Wound assessment'**
+  String get serviceWoundDressingInc1;
+
+  /// No description provided for @serviceWoundDressingInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleaning and disinfection'**
+  String get serviceWoundDressingInc2;
+
+  /// No description provided for @serviceWoundDressingInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Sterile dressing application'**
+  String get serviceWoundDressingInc3;
+
+  /// No description provided for @serviceWoundDressingInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Infection monitoring'**
+  String get serviceWoundDressingInc4;
+
+  /// No description provided for @serviceWoundDressingInc5.
+  ///
+  /// In en, this message translates to:
+  /// **'Care instructions'**
+  String get serviceWoundDressingInc5;
+
+  /// No description provided for @serviceBurnCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Burn Care'**
+  String get serviceBurnCareTitle;
+
+  /// No description provided for @serviceBurnCareDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialized care for burn injuries'**
+  String get serviceBurnCareDesc;
+
+  /// No description provided for @serviceBurnCareDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'45-60 min'**
+  String get serviceBurnCareDuration;
+
+  /// No description provided for @serviceBurnCareInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Burn assessment'**
+  String get serviceBurnCareInc1;
+
+  /// No description provided for @serviceBurnCareInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Wound cleaning'**
+  String get serviceBurnCareInc2;
+
+  /// No description provided for @serviceBurnCareInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialized dressing'**
+  String get serviceBurnCareInc3;
+
+  /// No description provided for @serviceBurnCareInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Pain management'**
+  String get serviceBurnCareInc4;
+
+  /// No description provided for @serviceBurnCareInc5.
+  ///
+  /// In en, this message translates to:
+  /// **'Healing monitoring'**
+  String get serviceBurnCareInc5;
+
+  /// No description provided for @serviceFractureCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fracture Care'**
+  String get serviceFractureCareTitle;
+
+  /// No description provided for @serviceFractureCareDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Care for patients with broken bones or fractures'**
+  String get serviceFractureCareDesc;
+
+  /// No description provided for @serviceFractureCareDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'1-2 hours'**
+  String get serviceFractureCareDuration;
+
+  /// No description provided for @serviceFractureCareInc1.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast care instructions'**
+  String get serviceFractureCareInc1;
+
+  /// No description provided for @serviceFractureCareInc2.
+  ///
+  /// In en, this message translates to:
+  /// **'Pain management'**
+  String get serviceFractureCareInc2;
+
+  /// No description provided for @serviceFractureCareInc3.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobility assistance'**
+  String get serviceFractureCareInc3;
+
+  /// No description provided for @serviceFractureCareInc4.
+  ///
+  /// In en, this message translates to:
+  /// **'Physical therapy exercises'**
+  String get serviceFractureCareInc4;
+
+  /// No description provided for @serviceFractureCareInc5.
+  ///
+  /// In en, this message translates to:
+  /// **'Swelling monitoring'**
+  String get serviceFractureCareInc5;
+
+  /// No description provided for @filterServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter Services'**
+  String get filterServices;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @sortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort By'**
+  String get sortBy;
+
+  /// No description provided for @sortRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get sortRecommended;
+
+  /// No description provided for @sortPriceLowToHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Price: Low to High'**
+  String get sortPriceLowToHigh;
+
+  /// No description provided for @sortPriceHighToLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Price: High to Low'**
+  String get sortPriceHighToLow;
+
+  /// No description provided for @sortHighestRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest Rated'**
+  String get sortHighestRated;
+
+  /// No description provided for @applyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Filters'**
+  String get applyFilters;
+
+  /// No description provided for @nursingServicesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Nursing\nServices'**
+  String get nursingServicesHeader;
+
+  /// No description provided for @nursingServicesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore {count} premium at-home treatments.'**
+  String nursingServicesSubtitle(Object count);
+
+  /// No description provided for @searchTreatments.
+  ///
+  /// In en, this message translates to:
+  /// **'Search treatments...'**
+  String get searchTreatments;
+
+  /// No description provided for @noServicesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No services found'**
+  String get noServicesFound;
+
+  /// No description provided for @tryDifferentSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different search or category'**
+  String get tryDifferentSearch;
+
+  /// No description provided for @priceEgp.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} EGP'**
+  String priceEgp(Object price);
+
+  /// No description provided for @ourServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Our Services'**
+  String get ourServices;
+
+  /// No description provided for @servicesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional healthcare at your doorstep'**
+  String get servicesSubtitle;
+
+  /// No description provided for @searchServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Search services...'**
+  String get searchServices;
+
+  /// No description provided for @popularServices.
+  ///
+  /// In en, this message translates to:
+  /// **'🔥 Popular Services'**
+  String get popularServices;
+
+  /// No description provided for @allServices.
+  ///
+  /// In en, this message translates to:
+  /// **'📋 All Services'**
+  String get allServices;
+
+  /// No description provided for @popularLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get popularLabel;
+
+  /// No description provided for @tryAdjustingFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your search or filters'**
+  String get tryAdjustingFilters;
+
+  /// No description provided for @clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Filters'**
+  String get clearFilters;
+
+  /// No description provided for @shareComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Share feature coming soon!'**
+  String get shareComingSoon;
+
+  /// No description provided for @professionalService.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional Service'**
+  String get professionalService;
+
+  /// No description provided for @reviewsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} reviews'**
+  String reviewsCount(Object count);
+
+  /// No description provided for @bookingsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bookings'**
+  String bookingsCount(Object count);
+
+  /// No description provided for @price.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get price;
+
+  /// No description provided for @duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get duration;
+
+  /// No description provided for @response.
+  ///
+  /// In en, this message translates to:
+  /// **'Response'**
+  String get response;
+
+  /// No description provided for @lessThan5Min.
+  ///
+  /// In en, this message translates to:
+  /// **'< 5 min'**
+  String get lessThan5Min;
+
+  /// No description provided for @highlightCertified.
+  ///
+  /// In en, this message translates to:
+  /// **'Certified'**
+  String get highlightCertified;
+
+  /// No description provided for @highlightCertifiedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Licensed nurses'**
+  String get highlightCertifiedDesc;
+
+  /// No description provided for @highlightOnTime.
+  ///
+  /// In en, this message translates to:
+  /// **'On-Time'**
+  String get highlightOnTime;
+
+  /// No description provided for @highlightOnTimeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'98% punctual'**
+  String get highlightOnTimeDesc;
+
+  /// No description provided for @highlightTrusted.
+  ///
+  /// In en, this message translates to:
+  /// **'Trusted'**
+  String get highlightTrusted;
+
+  /// No description provided for @highlightTrustedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'5.2k+ served'**
+  String get highlightTrustedDesc;
+
+  /// No description provided for @highlightSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'24/7'**
+  String get highlightSupport;
+
+  /// No description provided for @highlightSupportDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get highlightSupportDesc;
+
+  /// No description provided for @tabIncludes.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes'**
+  String get tabIncludes;
+
+  /// No description provided for @tabReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get tabReviews;
+
+  /// No description provided for @tabFaq.
+  ///
+  /// In en, this message translates to:
+  /// **'FAQ'**
+  String get tabFaq;
+
+  /// No description provided for @whatsIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s Included'**
+  String get whatsIncluded;
+
+  /// No description provided for @review1Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Ahmed M.'**
+  String get review1Name;
+
+  /// No description provided for @review1Comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent service! The nurse was very professional.'**
+  String get review1Comment;
+
+  /// No description provided for @review2Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Fatima K.'**
+  String get review2Name;
+
+  /// No description provided for @review2Comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Very satisfied with the care provided. Highly recommend!'**
+  String get review2Comment;
+
+  /// No description provided for @review3Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Mohamed S.'**
+  String get review3Name;
+
+  /// No description provided for @review3Comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Good service, nurse arrived on time.'**
+  String get review3Comment;
+
+  /// No description provided for @timeAgo2Days.
+  ///
+  /// In en, this message translates to:
+  /// **'2 days ago'**
+  String get timeAgo2Days;
+
+  /// No description provided for @timeAgo1Week.
+  ///
+  /// In en, this message translates to:
+  /// **'1 week ago'**
+  String get timeAgo1Week;
+
+  /// No description provided for @timeAgo2Weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'2 weeks ago'**
+  String get timeAgo2Weeks;
+
+  /// No description provided for @faq1Q.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I prepare for the service?'**
+  String get faq1Q;
+
+  /// No description provided for @faq1A.
+  ///
+  /// In en, this message translates to:
+  /// **'Ensure a clean, comfortable space for the nurse to work. Have any relevant medical documents ready.'**
+  String get faq1A;
+
+  /// No description provided for @faq2Q.
+  ///
+  /// In en, this message translates to:
+  /// **'Can I reschedule my booking?'**
+  String get faq2Q;
+
+  /// No description provided for @faq2A.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, you can reschedule up to 2 hours before your appointment without any charges.'**
+  String get faq2A;
+
+  /// No description provided for @faq3Q.
+  ///
+  /// In en, this message translates to:
+  /// **'What if I need to cancel?'**
+  String get faq3Q;
+
+  /// No description provided for @faq3A.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellations made 2+ hours before are free. Late cancellations may incur a small fee.'**
+  String get faq3A;
+
+  /// No description provided for @verifiedNursesOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified Nurses Only'**
+  String get verifiedNursesOnly;
+
+  /// No description provided for @verifiedNursesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'All nurses are licensed, background-checked, and highly rated by patients.'**
+  String get verifiedNursesDesc;
+
+  /// No description provided for @satisfactionGuarantee.
+  ///
+  /// In en, this message translates to:
+  /// **'Satisfaction Guarantee'**
+  String get satisfactionGuarantee;
+
+  /// No description provided for @satisfactionGuaranteeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'100% Money back if not satisfied'**
+  String get satisfactionGuaranteeDesc;
+
+  /// No description provided for @freeReschedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Reschedule'**
+  String get freeReschedule;
+
+  /// No description provided for @easyRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy Refund'**
+  String get easyRefund;
+
+  /// No description provided for @support247.
+  ///
+  /// In en, this message translates to:
+  /// **'24/7 Support'**
+  String get support247;
+
+  /// No description provided for @totalPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Price'**
+  String get totalPrice;
+
+  /// No description provided for @perVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'/visit'**
+  String get perVisit;
+
+  /// No description provided for @bookNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Book Now'**
+  String get bookNow;
+
+  /// No description provided for @serviceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Service is currently unavailable. Please try another service.'**
+  String get serviceUnavailable;
 }
 
 class _AppLocalizationsDelegate
