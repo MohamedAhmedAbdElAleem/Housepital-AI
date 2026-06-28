@@ -100,6 +100,7 @@ class PopularServicesGrid extends StatelessWidget {
                       builder:
                           (context) => ServiceDetailsPage(
                             title: 'Wound Care',
+                            englishTitle: 'Wound Care',
                             price: '150 EGP',
                             duration: '30-45 min',
                             icon: Icons.healing,
@@ -131,6 +132,7 @@ class PopularServicesGrid extends StatelessWidget {
                       builder:
                           (context) => ServiceDetailsPage(
                             title: 'Injections',
+                            englishTitle: 'Injections',
                             price: '50 EGP',
                             duration: '15-20 min',
                             icon: Icons.medication_liquid,
@@ -162,6 +164,7 @@ class PopularServicesGrid extends StatelessWidget {
                       builder:
                           (context) => ServiceDetailsPage(
                             title: 'Elderly Care',
+                            englishTitle: 'Elderly Care',
                             price: '200 EGP/hr',
                             duration: '1-4 hours',
                             icon: Icons.elderly,
@@ -193,6 +196,7 @@ class PopularServicesGrid extends StatelessWidget {
                       builder:
                           (context) => ServiceDetailsPage(
                             title: 'Post-Op Care',
+                            englishTitle: 'Post-Op Care',
                             price: '300 EGP',
                             duration: '45-60 min',
                             icon: Icons.monitor_heart,

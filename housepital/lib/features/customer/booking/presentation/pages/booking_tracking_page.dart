@@ -1052,42 +1052,45 @@ class _BookingTrackingPageState extends State<BookingTrackingPage>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.security_rounded,
-                    size: 16,
-                    color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    l10n.visitStartCode,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color:
-                          isDark
-                              ? const Color(0xFFF2F2F5)
-                              : AppColors.dark700, // Slate 900
-                      letterSpacing: 0.5,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.security_rounded,
+                      size: 16,
+                      color: isDark ? const Color(0xFFF2F2F5) : AppColors.dark700,
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                l10n.provideStartCodeDesc,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200,
-                  height: 1.3,
+                    const SizedBox(width: 6),
+                    Text(
+                      l10n.visitStartCode,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color:
+                            isDark
+                                ? const Color(0xFFF2F2F5)
+                                : AppColors.dark700, // Slate 900
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 6),
+                Text(
+                  l10n.provideStartCodeDesc,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? const Color(0xFFA19EAB) : AppColors.dark200,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(

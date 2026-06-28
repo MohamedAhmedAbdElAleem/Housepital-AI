@@ -64,6 +64,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
       _ServiceData(
         id: '1',
         title: l10n.serviceWoundCareTitle,
+        englishTitle: 'Wound Care',
         price: 150,
         duration: l10n.serviceWoundCareDuration,
         icon: Icons.healing_rounded,
@@ -83,6 +84,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
       _ServiceData(
         id: '2',
         title: l10n.serviceInjectionsTitle,
+        englishTitle: 'Injections',
         price: 50,
         duration: l10n.serviceInjectionsDuration,
         icon: Icons.medication_liquid_rounded,
@@ -101,6 +103,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
       _ServiceData(
         id: '3',
         title: l10n.serviceElderlyCareTitle,
+        englishTitle: 'Elderly Care',
         price: 200,
         duration: l10n.serviceElderlyCareDuration,
         icon: Icons.elderly_rounded,
@@ -119,6 +122,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
       _ServiceData(
         id: '4',
         title: l10n.servicePostOpCareTitle,
+        englishTitle: 'Post-Op Care',
         price: 300,
         duration: l10n.servicePostOpCareDuration,
         icon: Icons.monitor_heart_rounded,
@@ -137,6 +141,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
       _ServiceData(
         id: '5',
         title: l10n.serviceBabyCareTitle,
+        englishTitle: 'Baby Care',
         price: 180,
         duration: l10n.serviceBabyCareDuration,
         icon: Icons.child_care_rounded,
@@ -155,6 +160,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
       _ServiceData(
         id: '6',
         title: l10n.serviceIvTherapyTitle,
+        englishTitle: 'IV Therapy',
         price: 250,
         duration: l10n.serviceIvTherapyDuration,
         icon: Icons.water_drop_rounded,
@@ -173,6 +179,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
       _ServiceData(
         id: '7',
         title: l10n.serviceCatheterCareTitle,
+        englishTitle: 'Catheter Care',
         price: 120,
         duration: l10n.serviceCatheterCareDuration,
         icon: Icons.medical_services_rounded,
@@ -191,6 +198,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
       _ServiceData(
         id: '8',
         title: l10n.serviceVitalSignsTitle,
+        englishTitle: 'Vital Signs Monitoring',
         price: 80,
         duration: l10n.serviceVitalSignsDuration,
         icon: Icons.favorite_rounded,
@@ -210,6 +218,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
       _ServiceData(
         id: '9',
         title: l10n.serviceBloodDrawTitle,
+        englishTitle: 'Blood Draw',
         price: 100,
         duration: l10n.serviceBloodDrawDuration,
         icon: Icons.bloodtype_rounded,
@@ -228,6 +237,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
       _ServiceData(
         id: '10',
         title: l10n.servicePhysiotherapyTitle,
+        englishTitle: 'Physiotherapy',
         price: 350,
         duration: l10n.servicePhysiotherapyDuration,
         icon: Icons.accessibility_new_rounded,
@@ -524,6 +534,7 @@ class _AllNursingServicesPageState extends State<AllNursingServicesPage> {
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => ServiceDetailsPage(
           title: service.title,
+          englishTitle: service.englishTitle,
           price: l10n.priceEgp(service.price),
           duration: service.duration,
           icon: service.icon,
@@ -759,6 +770,7 @@ class _StickyCategoryDelegate extends SliverPersistentHeaderDelegate {
 class _ServiceData {
   final String id;
   final String title;
+  final String englishTitle;
   final int price;
   final String duration;
   final IconData icon;
@@ -772,6 +784,7 @@ class _ServiceData {
   _ServiceData({
     required this.id,
     required this.title,
+    required this.englishTitle,
     required this.price,
     required this.duration,
     required this.icon,

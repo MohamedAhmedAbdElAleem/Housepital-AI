@@ -1,7 +1,7 @@
 class ApiConstants {
   // Base URL for the API
   // For Physical Device: Use your computer's actual IP address
-  static const String baseUrl = 'http://10.0.2.2:3500';
+  static const String baseUrl = 'https://housepital-ai-production.up.railway.app';
 
   // API Endpoints
   static const String register = '/api/auth/register';

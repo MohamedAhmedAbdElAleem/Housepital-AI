@@ -121,12 +121,12 @@ class _SearchPageState extends State<SearchPage> {
   List<SearchResult> _getNursingServices() {
     // Mirroring data from all_nursing_services_page.dart
     final rawServices = [
-      {'title': 'Wound Care', 'price': 150, 'icon': Icons.healing_rounded, 'color': Color(0xFFEF4444)},
-      {'title': 'Injections', 'price': 50, 'icon': Icons.medication_liquid_rounded, 'color': Color(0xFF3B82F6)},
-      {'title': 'Elderly Care', 'price': 200, 'icon': Icons.elderly_rounded, 'color': Color(0xFF8B5CF6)},
-      {'title': 'Post-Op Care', 'price': 300, 'icon': Icons.monitor_heart_rounded, 'color': Color(0xFF10B981)},
-      {'title': 'IV Therapy', 'price': 250, 'icon': Icons.water_drop_rounded, 'color': Color(0xFFEC4899)},
-      {'title': 'Blood Draw', 'price': 100, 'icon': Icons.bloodtype_rounded, 'color': Color(0xFFDC2626)},
+      {'title': 'Wound Care', 'englishTitle': 'Wound Care', 'price': 150, 'icon': Icons.healing_rounded, 'color': Color(0xFFEF4444)},
+      {'title': 'Injections', 'englishTitle': 'Injections', 'price': 50, 'icon': Icons.medication_liquid_rounded, 'color': Color(0xFF3B82F6)},
+      {'title': 'Elderly Care', 'englishTitle': 'Elderly Care', 'price': 200, 'icon': Icons.elderly_rounded, 'color': Color(0xFF8B5CF6)},
+      {'title': 'Post-Op Care', 'englishTitle': 'Post-Op Care', 'price': 300, 'icon': Icons.monitor_heart_rounded, 'color': Color(0xFF10B981)},
+      {'title': 'IV Therapy', 'englishTitle': 'IV Therapy', 'price': 250, 'icon': Icons.water_drop_rounded, 'color': Color(0xFFEC4899)},
+      {'title': 'Blood Draw', 'englishTitle': 'Blood Draw', 'price': 100, 'icon': Icons.bloodtype_rounded, 'color': Color(0xFFDC2626)},
     ];
 
     return rawServices.map((s) {
@@ -374,6 +374,7 @@ class _SearchPageState extends State<SearchPage> {
         MaterialPageRoute(
           builder: (_) => ServiceDetailsPage(
             title: data['title'],
+            englishTitle: data['englishTitle'],
             price: '${data['price']} EGP',
             duration: '30-45 min',
             icon: data['icon'],
