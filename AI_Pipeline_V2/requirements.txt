@@ -7,3 +7,4 @@ opencv-python-headless
 ultralytics
 timm
 torchvision
+python-multipart
