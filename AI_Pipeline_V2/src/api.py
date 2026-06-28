@@ -1,4 +1,9 @@
 
+import sys
+from pathlib import Path
+# Add src directory to system path to resolve imports correctly
+sys.path.append(str(Path(__file__).resolve().parent))
+
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from inference_pipeline import InferencePipeline
